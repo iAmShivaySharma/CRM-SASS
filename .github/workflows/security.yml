@@ -1,0 +1,330 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security checks daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  # CodeQL Analysis
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript', 'typescript']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: '/language:${{matrix.language}}'
+
+  # Dependency Vulnerability Scan
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level high --production
+          npm audit --json > audit-results.json
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-results
+          path: audit-results.json
+
+      - name: Check for high/critical vulnerabilities
+        run: |
+          HIGH_VULNS=$(npm audit --audit-level high --json | jq '.metadata.vulnerabilities.high // 0')
+          CRITICAL_VULNS=$(npm audit --audit-level critical --json | jq '.metadata.vulnerabilities.critical // 0')
+
+          if [ "$HIGH_VULNS" -gt 0 ] || [ "$CRITICAL_VULNS" -gt 0 ]; then
+            echo "❌ High or critical vulnerabilities found!"
+            echo "High vulnerabilities: $HIGH_VULNS"
+            echo "Critical vulnerabilities: $CRITICAL_VULNS"
+            exit 1
+          else
+            echo "✅ No high or critical vulnerabilities found"
+          fi
+
+  # SAST (Static Application Security Testing)
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          semgrep --config=auto --json --output=semgrep-results.json .
+          semgrep --config=auto --severity=ERROR .
+
+      - name: Upload Semgrep results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-results
+          path: semgrep-results.json
+
+  # Secret Scanning
+  truffleHog:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Container Security (if using Docker)
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          if [ -f "Dockerfile" ]; then
+            docker build -t crm-app:latest .
+          else
+            echo "No Dockerfile found, skipping container scan"
+            exit 0
+          fi
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        if: hashFiles('Dockerfile') != ''
+        with:
+          image-ref: 'crm-app:latest'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: hashFiles('Dockerfile') != ''
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # License Compliance
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check licenses
+        run: |
+          npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;Unlicense' --json > license-report.json
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: license-report.json
+
+  # Security Headers Check
+  security-headers:
+    name: Security Headers Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and start application
+        run: |
+          npm run build
+          npm start &
+          sleep 30  # Wait for app to start
+        env:
+          MONGODB_URI: 'mongodb://localhost:27017/crm_test'
+          JWT_SECRET: 'test-secret-for-security-check'
+
+      - name: Check security headers
+        run: |
+          curl -I http://localhost:3000 > headers.txt
+
+          # Check for security headers
+          if ! grep -i "x-frame-options" headers.txt; then
+            echo "❌ Missing X-Frame-Options header"
+            exit 1
+          fi
+
+          if ! grep -i "x-content-type-options" headers.txt; then
+            echo "❌ Missing X-Content-Type-Options header"
+            exit 1
+          fi
+
+          if ! grep -i "content-security-policy" headers.txt; then
+            echo "❌ Missing Content-Security-Policy header"
+            exit 1
+          fi
+
+          echo "✅ Security headers check passed"
+
+  # OWASP ZAP Security Scan
+  zap-scan:
+    name: OWASP ZAP Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and start application
+        run: |
+          npm run build
+          npm start &
+          sleep 30
+        env:
+          MONGODB_URI: 'mongodb://localhost:27017/crm_test'
+          JWT_SECRET: 'test-secret-for-zap-scan'
+
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+  # Generate Security Report
+  security-report:
+    name: Generate Security Report
+    needs: [codeql, dependency-scan, semgrep, truffleHog, license-check]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate security report
+        run: |
+          mkdir -p security-report
+          echo "# Security Scan Report" > security-report/README.md
+          echo "Generated on: $(date)" >> security-report/README.md
+          echo "" >> security-report/README.md
+
+          # Check if any security issues were found
+          if [ -f "semgrep-results/semgrep-results.json" ]; then
+            SEMGREP_ISSUES=$(jq '.results | length' semgrep-results/semgrep-results.json)
+            echo "## Semgrep SAST Results: $SEMGREP_ISSUES issues found" >> security-report/README.md
+          fi
+
+          if [ -f "npm-audit-results/audit-results.json" ]; then
+            HIGH_VULNS=$(jq '.metadata.vulnerabilities.high // 0' npm-audit-results/audit-results.json)
+            CRITICAL_VULNS=$(jq '.metadata.vulnerabilities.critical // 0' npm-audit-results/audit-results.json)
+            echo "## Dependency Vulnerabilities: $HIGH_VULNS high, $CRITICAL_VULNS critical" >> security-report/README.md
+          fi
+
+          echo "" >> security-report/README.md
+          echo "See individual artifact files for detailed results." >> security-report/README.md
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report/
+
+  # Notify on Security Issues
+  notify-security:
+    name: Notify Security Issues
+    needs: [security-report]
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Notify team
+        run: |
+          echo "🚨 Security issues detected in main branch!"
+          echo "Please check the security report and address any critical issues."
+          # Add notification logic here (Slack, email, etc.)

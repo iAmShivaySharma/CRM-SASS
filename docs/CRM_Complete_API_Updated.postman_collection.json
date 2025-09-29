@@ -1,0 +1,1692 @@
+{
+  "info": {
+    "name": "CRM-X-SHIVAY - Complete API Collection",
+    "description": "Comprehensive API collection for CRM-X-SHIVAY system with all endpoints including Analytics and Notifications (Updated 2025-09-28)",
+    "version": "2.2.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workspace_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_lead_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_contact_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_webhook_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"Admin123!@#\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('auth_token', response.token);",
+                  "    if (response.user && response.user.workspaceId) {",
+                  "        pm.collectionVariables.set('workspace_id', response.user.workspaceId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"Password123!\",\n  \"fullName\": \"New User\",\n  \"timezone\": \"America/New_York\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Verify Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Lead Management",
+      "item": [
+        {
+          "name": "Get All Leads",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leads?workspaceId={{workspace_id}}&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "assignedTo",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"company\": \"Example Corp\",\n  \"position\": \"CEO\",\n  \"status\": \"new\",\n  \"value\": 5000,\n  \"probability\": 25,\n  \"priority\": \"high\",\n  \"source\": \"website\",\n  \"campaign\": \"summer2024\",\n  \"medium\": \"cpc\",\n  \"notes\": \"Interested in premium plan\",\n  \"customFields\": {\n    \"utm_source\": \"google\",\n    \"utm_campaign\": \"summer2024\",\n    \"lead_score\": \"85\"\n  },\n  \"expectedCloseDate\": \"2025-12-31T23:59:59Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/leads",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.lead && response.lead._id) {",
+                  "        pm.collectionVariables.set('test_lead_id', response.lead._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Lead by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leads/{{test_lead_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads", "{{test_lead_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Lead",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"status\": \"contacted\",\n  \"value\": 7500,\n  \"probability\": 50,\n  \"notes\": \"Had productive call, very interested\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/leads/{{test_lead_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads", "{{test_lead_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Convert Lead to Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"client\",\n  \"status\": \"active\",\n  \"priority\": \"high\",\n  \"totalRevenue\": 10000,\n  \"notes\": \"Converted from qualified lead - signed contract\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/leads/{{test_lead_id}}/convert-to-contact",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads", "{{test_lead_id}}", "convert-to-contact"]
+            }
+          }
+        },
+        {
+          "name": "Delete Lead",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leads/{{test_lead_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads", "{{test_lead_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Lead Notes",
+      "item": [
+        {
+          "name": "Get Lead Notes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leads/{{test_lead_id}}/notes?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads", "{{test_lead_id}}", "notes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Lead Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Called lead and discussed requirements in detail. Very interested in our premium package.\",\n  \"type\": \"call\",\n  \"isPrivate\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/leads/{{test_lead_id}}/notes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads", "{{test_lead_id}}", "notes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Lead Activities",
+      "item": [
+        {
+          "name": "Get Lead Activities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leads/{{test_lead_id}}/activities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "leads", "{{test_lead_id}}", "activities"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Contact Management",
+      "item": [
+        {
+          "name": "Get All Contacts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/contacts?workspaceId={{workspace_id}}&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contacts"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"phone\": \"+1987654321\",\n  \"company\": \"Tech Solutions Inc\",\n  \"position\": \"CTO\",\n  \"category\": \"client\",\n  \"status\": \"active\",\n  \"priority\": \"high\",\n  \"totalRevenue\": 50000,\n  \"totalPayments\": 45000,\n  \"address\": {\n    \"street\": \"123 Tech Street\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zipCode\": \"94105\",\n    \"country\": \"USA\"\n  },\n  \"website\": \"https://techsolutions.com\",\n  \"linkedIn\": \"https://linkedin.com/company/techsolutions\",\n  \"notes\": \"Key client for enterprise solutions\",\n  \"customData\": {\n    \"industry\": \"technology\",\n    \"employees\": \"50-100\",\n    \"budget\": \"100k-250k\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/contacts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contacts"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.contact && response.contact._id) {",
+                  "        pm.collectionVariables.set('test_contact_id', response.contact._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Contact by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/contacts/{{test_contact_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contacts", "{{test_contact_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Contact",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"position\": \"Chief Technology Officer\",\n  \"totalRevenue\": 75000,\n  \"totalPayments\": 70000,\n  \"notes\": \"Upgraded to enterprise plan\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/contacts/{{test_contact_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contacts", "{{test_contact_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Contact",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/contacts/{{test_contact_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contacts", "{{test_contact_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Workspace Management",
+      "item": [
+        {
+          "name": "Get User Workspaces",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces"]
+            }
+          }
+        },
+        {
+          "name": "Create Workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My New Workspace\",\n  \"description\": \"A workspace for my team\",\n  \"currency\": \"USD\",\n  \"timezone\": \"America/New_York\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces"]
+            }
+          }
+        },
+        {
+          "name": "Get Workspace Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Workspace",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Workspace Name\",\n  \"description\": \"Updated description\",\n  \"website\": \"https://mycompany.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Workspace Members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}/members",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}", "members"]
+            }
+          }
+        },
+        {
+          "name": "Get Workspace Invites",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}/invites",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}", "invites"]
+            }
+          }
+        },
+        {
+          "name": "Invite User to Workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newmember@example.com\",\n  \"roleId\": \"role_id_here\",\n  \"message\": \"Welcome to our CRM workspace!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}/invites",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}", "invites"]
+            }
+          }
+        },
+        {
+          "name": "Get Workspace Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspaces/{{workspace_id}}/roles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workspaces", "{{workspace_id}}", "roles"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎭 Role Management",
+      "item": [
+        {
+          "name": "Get Workspace Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/roles?workspaceId={{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "roles"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"name\": \"Custom Sales Role\",\n  \"description\": \"Custom role for sales team members\",\n  \"permissions\": [\n    \"leads:read\",\n    \"leads:write\",\n    \"contacts:read\",\n    \"contacts:write\"\n  ],\n  \"color\": \"#3b82f6\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/roles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "roles"]
+            }
+          }
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Role Name\",\n  \"description\": \"Updated role description\",\n  \"permissions\": [\n    \"leads:read\",\n    \"leads:write\",\n    \"contacts:read\",\n    \"contacts:write\",\n    \"reports:read\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/roles/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "roles", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "role_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/roles/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "roles", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "role_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏷️ Tag Management",
+      "item": [
+        {
+          "name": "Get Workspace Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tags?workspaceId={{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"name\": \"Hot Lead\",\n  \"color\": \"#ef4444\",\n  \"description\": \"High priority leads requiring immediate attention\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tags",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags"]
+            }
+          }
+        },
+        {
+          "name": "Update Tag",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Tag Name\",\n  \"color\": \"#10b981\",\n  \"description\": \"Updated tag description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tags/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "tag_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Tag",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tags/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "tag_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Lead Status Management",
+      "item": [
+        {
+          "name": "Get Lead Statuses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/lead-statuses?workspaceId={{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "lead-statuses"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Lead Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"name\": \"Qualified\",\n  \"color\": \"#10b981\",\n  \"description\": \"Lead has been qualified by sales team\",\n  \"order\": 2,\n  \"isDefault\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lead-statuses",
+              "host": ["{{base_url}}"],
+              "path": ["api", "lead-statuses"]
+            }
+          }
+        },
+        {
+          "name": "Update Lead Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Status Name\",\n  \"color\": \"#8b5cf6\",\n  \"description\": \"Updated status description\",\n  \"order\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lead-statuses/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "lead-statuses", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "status_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Lead Status",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/lead-statuses/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "lead-statuses", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "status_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Activity Tracking",
+      "item": [
+        {
+          "name": "Get Activities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/activities?workspaceId={{workspace_id}}&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "activities"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "entityType",
+                  "value": "lead",
+                  "disabled": true
+                },
+                {
+                  "key": "entityId",
+                  "value": "{{test_lead_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "performedBy",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Log Activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"activityType\": \"note\",\n  \"entityType\": \"lead\",\n  \"entityId\": \"{{test_lead_id}}\",\n  \"description\": \"Called the lead and discussed requirements in detail\",\n  \"metadata\": {\n    \"duration\": \"15 minutes\",\n    \"outcome\": \"positive\",\n    \"next_action\": \"schedule_demo\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/activities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "activities"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔗 Webhook Management",
+      "item": [
+        {
+          "name": "Get Webhooks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/webhooks?workspaceId={{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"name\": \"Facebook Lead Webhook\",\n  \"description\": \"Receives leads from Facebook Lead Ads campaigns\",\n  \"webhookType\": \"facebook\",\n  \"events\": [\"lead.created\"],\n  \"isActive\": true,\n  \"secret\": \"fb-webhook-secret-key\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.webhook && response.webhook._id) {",
+                  "        pm.collectionVariables.set('test_webhook_id', response.webhook._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Webhook",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Webhook Name\",\n  \"description\": \"Updated webhook description\",\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/{{test_webhook_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "{{test_webhook_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Webhook",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/{{test_webhook_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "{{test_webhook_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Test Webhook Receive (Generic)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "PostmanTest/1.0"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Lead from Webhook\",\n  \"email\": \"webhook.test@example.com\",\n  \"phone\": \"+1555123456\",\n  \"company\": \"Webhook Test Corp\",\n  \"source\": \"postman_test\",\n  \"value\": 2500,\n  \"priority\": \"medium\",\n  \"notes\": \"Test lead created via webhook\",\n  \"custom_fields\": {\n    \"utm_source\": \"postman\",\n    \"utm_medium\": \"api_test\",\n    \"test_data\": \"true\"\n  },\n  \"tags\": [\"test\", \"webhook\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/receive/{{test_webhook_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "receive", "{{test_webhook_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Test Webhook Receive (Facebook Format)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "facebookexternalua"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"object\": \"page\",\n  \"entry\": [{\n    \"id\": \"page-id\",\n    \"time\": 1234567890,\n    \"changes\": [{\n      \"field\": \"leadgen\",\n      \"value\": {\n        \"leadgen_id\": \"lead-id-123\",\n        \"page_id\": \"page-id\",\n        \"form_id\": \"form-id\",\n        \"adgroup_id\": \"adgroup-id\",\n        \"ad_id\": \"ad-id\",\n        \"created_time\": 1234567890,\n        \"field_data\": [\n          {\n            \"name\": \"full_name\",\n            \"values\": [\"John Facebook\"]\n          },\n          {\n            \"name\": \"email\",\n            \"values\": [\"john.facebook@example.com\"]\n          },\n          {\n            \"name\": \"phone_number\",\n            \"values\": [\"+1234567890\"]\n          },\n          {\n            \"name\": \"company_name\",\n            \"values\": [\"Facebook Test Corp\"]\n          }\n        ]\n      }\n    }]\n  }]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/receive/{{test_webhook_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "receive", "{{test_webhook_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 User Preferences",
+      "item": [
+        {
+          "name": "Get User Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/preferences",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "preferences"]
+            }
+          }
+        },
+        {
+          "name": "Update User Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"timezone\": \"America/New_York\",\n  \"language\": \"en\",\n  \"notifications\": {\n    \"email\": true,\n    \"push\": false,\n    \"sms\": false\n  },\n  \"dashboardLayout\": \"compact\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/preferences",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "preferences"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 System Information",
+      "item": [
+        {
+          "name": "Get Available Permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "permissions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Testing & Development",
+      "item": [
+        {
+          "name": "Create Test Leads",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"count\": 10,\n  \"source\": \"test-data\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/test-leads",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test-leads"]
+            }
+          }
+        },
+        {
+          "name": "Dodo Payment Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"payment.completed\",\n  \"data\": {\n    \"payment_id\": \"pay_123456\",\n    \"amount\": 5000,\n    \"currency\": \"USD\",\n    \"customer_email\": \"customer@example.com\",\n    \"status\": \"completed\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/dodo",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "dodo"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications?workspaceId={{workspace_id}}&limit=20&offset=0&unreadOnly=false",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "unreadOnly",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"action\": \"markAsRead\",\n  \"notificationId\": \"notification_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\",\n  \"action\": \"markAllAsRead\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/dashboard?workspaceId={{workspace_id}}&from=2025-01-01&to=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "dashboard"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                },
+                {
+                  "key": "from",
+                  "value": "2025-01-01",
+                  "description": "Start date (ISO string, optional)"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-12-31",
+                  "description": "End date (ISO string, optional)"
+                },
+                {
+                  "key": "compareFrom",
+                  "value": "",
+                  "description": "Comparison start date (optional)",
+                  "disabled": true
+                },
+                {
+                  "key": "compareTo",
+                  "value": "",
+                  "description": "Comparison end date (optional)",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Pipeline Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/pipeline?workspaceId={{workspace_id}}&from=2025-01-01&to=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "pipeline"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                },
+                {
+                  "key": "from",
+                  "value": "2025-01-01",
+                  "description": "Start date (ISO string, optional)"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-12-31",
+                  "description": "End date (ISO string, optional)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Performance Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/performance?workspaceId={{workspace_id}}&from=2025-01-01&to=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "performance"],
+              "query": [
+                {
+                  "key": "workspaceId",
+                  "value": "{{workspace_id}}"
+                },
+                {
+                  "key": "from",
+                  "value": "2025-01-01",
+                  "description": "Start date (ISO string, optional)"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-12-31",
+                  "description": "End date (ISO string, optional)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Last Active Workspace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/last-active-workspace",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "last-active-workspace"]
+            }
+          }
+        },
+        {
+          "name": "Update Last Active Workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceId\": \"{{workspace_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/last-active-workspace",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "last-active-workspace"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Add timestamp to requests",
+          "pm.request.headers.add({",
+          "    key: 'X-Request-Timestamp',",
+          "    value: new Date().toISOString()",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test for all requests",
+          "pm.test('Response time is less than 5 seconds', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has proper headers', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});"
+        ]
+      }
+    }
+  ]
+}

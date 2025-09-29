@@ -1,0 +1,135 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env*.local
+
+# vercel
+.vercel
+CLAUDE.md
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# logs
+logs/
+*.log
+
+# Environment files (security sensitive)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.example
+.env.production.example
+# Security and credentials
+*.key
+*.pem
+*.p8
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.jks
+*.keystore
+config/secrets/
+secrets/
+.secrets/
+
+# Database dumps and backups
+*.sql
+*.dump
+*.backup
+db_backup/
+database/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Testing and coverage
+/coverage/
+/test-results/
+/playwright-report/
+jest-junit.xml
+coverage.xml
+junit.xml
+test-output/
+test_results/
+.nyc_output/
+
+# Build artifacts and cache
+.cache/
+.temp/
+temp/
+*.tmp
+*.tsbuildinfo
+.turbo/
+.eslintcache
+
+# Package manager lockfiles (keep npm, consider others)
+pnpm-lock.yaml
+yarn.lock
+.yarn/
+.pnpm/
+
+# Runtime and process files
+.pid
+*.pid
+*.seed
+*.pid.lock
+
+# Optional: Documentation build files
+docs/build/
+.docusaurus/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Application specific
+uploads/
+user-uploads/
+storage/
