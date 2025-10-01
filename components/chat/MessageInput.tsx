@@ -19,7 +19,10 @@ import {
   Italic,
   Code,
   X,
-  Reply
+  Reply,
+  FileText,
+  Image,
+  Trash2
 } from 'lucide-react'
 import {
   Popover,
@@ -33,10 +36,20 @@ interface MessageInputProps {
   onCancelReply?: () => void
 }
 
+interface AttachedFile {
+  url: string
+  name: string
+  size: number
+  type: string
+  id: string
+}
+
 export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replyingTo, onCancelReply }) => {
   const [message, setMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState('')
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
@@ -96,32 +109,70 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
 
   const handleSendMessage = async () => {
     const trimmedMessage = message.trim()
-    if (!trimmedMessage || isSending) return
+    const hasAttachments = attachedFiles.length > 0
+
+    // Don't send if no message and no attachments
+    if (!trimmedMessage && !hasAttachments) return
+    if (isSending) return
 
     try {
-      // Clear input immediately for better UX
+      // Clear inputs immediately for better UX
       setMessage('')
+      const filesToSend = [...attachedFiles]
+      setAttachedFiles([])
       handleTypingStop()
 
-      // Send via API and WebSocket
-      const tempId = `temp-${Date.now()}`
+      // If there are file attachments, send them
+      if (hasAttachments) {
+        for (const file of filesToSend) {
+          const messageType = file.type.startsWith('image/') ? 'image' : 'file'
+          const fileContent = trimmedMessage || `Shared ${messageType === 'image' ? 'an image' : 'a file'}: ${file.name}`
+          const tempId = `temp-file-${Date.now()}-${Math.random()}`
 
-      // Send via WebSocket for real-time updates
-      sendMessage({
-        chatRoomId,
-        content: trimmedMessage,
-        type: 'text',
-        tempId,
-        replyTo: replyingTo?.id,
-      })
+          // Send via WebSocket for real-time updates
+          sendMessage({
+            chatRoomId,
+            content: fileContent,
+            type: messageType,
+            fileUrl: file.url,
+            fileName: file.name,
+            fileSize: file.size,
+            tempId,
+            replyTo: replyingTo?.id,
+          })
 
-      // Send via API for persistence
-      await createMessage({
-        chatRoomId,
-        content: trimmedMessage,
-        type: 'text',
-        replyTo: replyingTo?.id,
-      }).unwrap()
+          // Send via API for persistence
+          await createMessage({
+            chatRoomId,
+            content: fileContent,
+            type: messageType,
+            fileUrl: file.url,
+            fileName: file.name,
+            fileSize: file.size,
+            replyTo: replyingTo?.id,
+          }).unwrap()
+        }
+      } else {
+        // Send text-only message
+        const tempId = `temp-${Date.now()}`
+
+        // Send via WebSocket for real-time updates
+        sendMessage({
+          chatRoomId,
+          content: trimmedMessage,
+          type: 'text',
+          tempId,
+          replyTo: replyingTo?.id,
+        })
+
+        // Send via API for persistence
+        await createMessage({
+          chatRoomId,
+          content: trimmedMessage,
+          type: 'text',
+          replyTo: replyingTo?.id,
+        }).unwrap()
+      }
 
       // Clear reply state
       onCancelReply?.()
@@ -130,12 +181,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
       textareaRef.current?.focus()
     } catch (error) {
       console.error('Failed to send message:', error)
-      // Restore message on error
+      // Restore message and attachments on error
       setMessage(trimmedMessage)
+      setAttachedFiles(filesToSend)
     }
   }
 
-  // Handle file upload
+  // Handle file upload - Upload file and add to attachments (don't auto-send)
   const handleFileUpload = async (file: File) => {
     if (!workspace.currentWorkspace?.id) {
       console.error('No workspace selected')
@@ -145,40 +197,53 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
     setIsUploading(true)
 
     try {
-      // Upload file to MinIO
+      console.log('Starting file upload process...')
+      setUploadProgress('Uploading file...')
+
+      // Upload file to MinIO to get URL
       const uploadResult = await uploadFile({
         file,
         workspaceId: workspace.currentWorkspace.id,
         chatRoomId,
       }).unwrap()
 
-      if (uploadResult.success) {
-        // Send file message via WebSocket
-        sendMessage({
-          chatRoomId,
-          content: `Shared a file: ${uploadResult.file.name}`,
-          type: uploadResult.file.type.startsWith('image/') ? 'image' : 'file',
-          fileUrl: uploadResult.file.url,
-          fileName: uploadResult.file.name,
-          fileSize: uploadResult.file.size,
-        })
+      console.log('File upload result:', uploadResult)
 
-        // Also persist via API
-        await createMessage({
-          chatRoomId,
-          content: `Shared a file: ${uploadResult.file.name}`,
-          type: uploadResult.file.type.startsWith('image/') ? 'image' : 'file',
-          fileUrl: uploadResult.file.url,
-          fileName: uploadResult.file.name,
-          fileSize: uploadResult.file.size,
-        }).unwrap()
+      if (uploadResult.success && uploadResult.file.url) {
+        setUploadProgress('File attached!')
+
+        // Add file to attachments (don't auto-send)
+        const attachedFile: AttachedFile = {
+          url: uploadResult.file.url,
+          name: uploadResult.file.name,
+          size: uploadResult.file.size,
+          type: uploadResult.file.type,
+          id: `file-${Date.now()}-${Math.random()}`,
+        }
+
+        setAttachedFiles(prev => [...prev, attachedFile])
+        console.log('File attached successfully')
+      } else {
+        throw new Error('File upload failed - no URL returned')
       }
     } catch (error) {
       console.error('File upload failed:', error)
-      // You could show a toast notification here
+
+      // Show user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      console.error('Detailed error:', errorMessage)
+
+      // You could add a toast notification here for better UX
+      alert(`File upload failed: ${errorMessage}`)
     } finally {
       setIsUploading(false)
+      setUploadProgress('')
     }
+  }
+
+  // Remove attached file
+  const removeAttachedFile = (fileId: string) => {
+    setAttachedFiles(prev => prev.filter(file => file.id !== fileId))
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -301,6 +366,47 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
             >
               <X className="h-4 w-4" />
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* File Attachments Preview */}
+      {attachedFiles.length > 0 && (
+        <div className="px-4 pt-3 pb-2 border-b border-border">
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">
+              Attached Files ({attachedFiles.length})
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {attachedFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className="flex items-center gap-2 bg-muted/50 rounded-lg p-2 max-w-xs"
+                >
+                  <div className="flex-shrink-0">
+                    {file.type.startsWith('image/') ? (
+                      <Image className="h-4 w-4 text-blue-500" />
+                    ) : (
+                      <FileText className="h-4 w-4 text-gray-500" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 flex-shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => removeAttachedFile(file.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -438,7 +544,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onBlur={handleTypingStop}
-            placeholder="Type a message..."
+            placeholder={attachedFiles.length > 0 ? "Add a message (optional)..." : "Type a message..."}
             className={cn(
               "min-h-[40px] max-h-[120px] resize-none pr-12",
               "focus:ring-2 focus:ring-primary/20"
@@ -485,7 +591,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
         <Button
           size="sm"
           onClick={handleSendMessage}
-          disabled={!message.trim() || isSending || isUploading}
+          disabled={(!message.trim() && attachedFiles.length === 0) || isSending || isUploading}
           className="h-9 w-9 p-0"
         >
           <Send className="h-4 w-4" />
@@ -496,7 +602,10 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
       <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-4">
           {isUploading ? (
-            <span className="text-blue-500">Uploading file...</span>
+            <div className="flex items-center gap-2 text-blue-500">
+              <div className="animate-spin rounded-full h-3 w-3 border border-blue-500 border-t-transparent"></div>
+              <span>{uploadProgress || 'Uploading file...'}</span>
+            </div>
           ) : (
             <span>Press Enter to send, Shift+Enter for new line</span>
           )}

@@ -85,8 +85,11 @@ export const chatApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: '/api/chat',
     credentials: 'include',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
+    prepareHeaders: (headers, { endpoint }) => {
+      // Don't set Content-Type for file uploads - let browser set it automatically
+      if (endpoint !== 'uploadFile') {
+        headers.set('Content-Type', 'application/json')
+      }
       return headers
     },
   }),
@@ -281,11 +284,6 @@ export const chatApi = createApi({
           url: `upload?workspaceId=${workspaceId}&chatRoomId=${chatRoomId}`,
           method: 'POST',
           body: formData,
-          prepareHeaders: (headers) => {
-            // Remove Content-Type header to let browser set it correctly for FormData
-            headers.delete('Content-Type')
-            return headers
-          },
         }
       },
     }),
