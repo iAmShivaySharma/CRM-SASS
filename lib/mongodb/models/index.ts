@@ -14,6 +14,8 @@ export { Tag, type ITag } from './Tag'
 export { LeadNote, type ILeadNote } from './LeadNote'
 export { LeadStatus, type ILeadStatus } from './LeadStatus'
 export { Notification, type INotification } from './Notification'
+export { ChatRoom, type IChatRoom } from './ChatRoom'
+export { Message, type IMessage } from './Message'
 
 // Re-export mongoose for convenience
 export { default as mongoose } from 'mongoose'

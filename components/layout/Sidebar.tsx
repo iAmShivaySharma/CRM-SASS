@@ -25,6 +25,7 @@ import {
   Settings2,
   Phone,
   Mail,
+  MessageSquare,
   FolderKanban,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -96,6 +97,7 @@ const navigation = [
   { name: 'Engines', href: '/engines', icon: Settings2, category: 'main' },
 
   // Communication
+  { name: 'Chat', href: '/chat', icon: MessageSquare, category: 'main' },
   { name: 'Calls', href: '/calls', icon: Phone, category: 'main' },
   { name: 'Email', href: '/email', icon: Mail, category: 'main' },
 

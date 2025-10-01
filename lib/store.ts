@@ -8,6 +8,7 @@ import { contactsApi } from './api/contactsApi'
 import { workspaceApi } from './api/workspaceApi'
 import { analyticsApi } from './api/analyticsApi'
 import { notificationsApi } from './api/notificationsApi'
+import { chatApi } from './api/chatApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -26,6 +27,7 @@ export const store = configureStore({
     [workspaceApi.reducerPath]: workspaceApi.reducer,
     [analyticsApi.reducerPath]: analyticsApi.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
+    [chatApi.reducerPath]: chatApi.reducer,
   } as any,
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
@@ -36,7 +38,8 @@ export const store = configureStore({
       contactsApi.middleware,
       workspaceApi.middleware,
       analyticsApi.middleware,
-      notificationsApi.middleware
+      notificationsApi.middleware,
+      chatApi.middleware
     ),
 })
 

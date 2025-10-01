@@ -26,6 +26,8 @@ import { LeadNote, type ILeadNote } from './models/LeadNote'
 import { LeadStatus, type ILeadStatus } from './models/LeadStatus'
 import { LeadActivity, type ILeadActivity } from './models/LeadActivity'
 import { Contact, type IContact } from './models/Contact'
+import { ChatRoom, type IChatRoom } from './models/ChatRoom'
+import { Message, type IMessage } from './models/Message'
 
 // Database client class to replace Supabase functionality
 export class MongoDBClient {
@@ -237,10 +239,118 @@ export class MongoDBClient {
       .limit(limit)
       .populate('performedBy', 'fullName email avatar')
   }
+
+  // Chat Room operations
+  async createChatRoom(chatRoomData: Partial<IChatRoom>): Promise<IChatRoom> {
+    await this.ensureConnection()
+    const chatRoom = new ChatRoom(chatRoomData)
+    return await chatRoom.save()
+  }
+
+  async getChatRoomById(id: string): Promise<IChatRoom | null> {
+    await this.ensureConnection()
+    return await ChatRoom.findById(id)
+      .populate('participants', 'name email avatar')
+      .populate('admins', 'name email avatar')
+  }
+
+  async getChatRoomsByWorkspace(workspaceId: string, userId: string): Promise<IChatRoom[]> {
+    await this.ensureConnection()
+    return await ChatRoom.find({
+      workspaceId,
+      participants: userId,
+      isArchived: false,
+    })
+      .populate('participants', 'name email avatar')
+      .populate('admins', 'name email avatar')
+      .sort({ 'lastMessage.timestamp': -1, updatedAt: -1 })
+  }
+
+  async updateChatRoom(id: string, updates: Partial<IChatRoom>): Promise<IChatRoom | null> {
+    await this.ensureConnection()
+    return await ChatRoom.findByIdAndUpdate(id, updates, { new: true })
+      .populate('participants', 'name email avatar')
+      .populate('admins', 'name email avatar')
+  }
+
+  async deleteChatRoom(id: string): Promise<boolean> {
+    await this.ensureConnection()
+    const result = await ChatRoom.findByIdAndDelete(id)
+    return !!result
+  }
+
+  // Message operations
+  async createMessage(messageData: Partial<IMessage>): Promise<IMessage> {
+    await this.ensureConnection()
+    const message = new Message(messageData)
+    return await message.save()
+  }
+
+  async getMessageById(id: string): Promise<IMessage | null> {
+    await this.ensureConnection()
+    return await Message.findById(id)
+      .populate('replyTo', 'content senderName createdAt')
+  }
+
+  async getMessagesByChatRoom(
+    chatRoomId: string,
+    page: number = 1,
+    limit: number = 50
+  ): Promise<{ messages: IMessage[]; total: number; hasMore: boolean }> {
+    await this.ensureConnection()
+    const skip = (page - 1) * limit
+
+    const [messages, total] = await Promise.all([
+      Message.find({ chatRoomId })
+        .populate('replyTo', 'content senderName createdAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Message.countDocuments({ chatRoomId })
+    ])
+
+    return {
+      messages: messages.reverse(),
+      total,
+      hasMore: skip + messages.length < total
+    }
+  }
+
+  async updateMessage(id: string, updates: Partial<IMessage>): Promise<IMessage | null> {
+    await this.ensureConnection()
+    return await Message.findByIdAndUpdate(id, updates, { new: true })
+      .populate('replyTo', 'content senderName createdAt')
+  }
+
+  async deleteMessage(id: string): Promise<boolean> {
+    await this.ensureConnection()
+    const result = await Message.findByIdAndDelete(id)
+    return !!result
+  }
+
+  async markMessagesAsRead(chatRoomId: string, userId: string, messageIds?: string[]): Promise<void> {
+    await this.ensureConnection()
+    const filter = messageIds && messageIds.length > 0
+      ? { _id: { $in: messageIds }, chatRoomId }
+      : { chatRoomId, senderId: { $ne: userId } }
+
+    await Message.updateMany(
+      filter,
+      {
+        $addToSet: {
+          readBy: {
+            userId,
+            readAt: new Date(),
+          },
+        },
+      }
+    )
+  }
 }
 
 // Create singleton instance
 export const mongoClient = new MongoDBClient()
+export default mongoClient
 
 // Export models for direct use
 export {
@@ -260,4 +370,6 @@ export {
   LeadStatus,
   LeadActivity,
   Contact,
+  ChatRoom,
+  Message,
 }
