@@ -82,6 +82,9 @@ import {
   PageHeaderSkeleton,
   ListItemSkeleton,
 } from '@/components/ui/skeleton'
+import { RoleForm } from '@/components/roles/RoleForm'
+import { PermissionForm } from '@/components/permissions/PermissionForm'
+import { useGetPermissionsQuery } from '@/lib/api/roleApi'
 
 // Types for API responses
 interface WorkspaceMember {
@@ -132,6 +135,8 @@ export default function WorkspaceSettingsPage() {
     useGetWorkspaceRolesQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
+  const { data: permissionsData, isLoading: permissionsLoading } =
+    useGetPermissionsQuery(currentWorkspace?.id)
   const [inviteToWorkspace, { isLoading: inviteLoading }] =
     useInviteToWorkspaceMutation()
   const [updateWorkspace, { isLoading: updateLoading }] =
@@ -142,12 +147,29 @@ export default function WorkspaceSettingsPage() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('')
 
+  // Role and Permission dialogs
+  const [createRoleOpen, setCreateRoleOpen] = useState(false)
+  const [createPermissionOpen, setCreatePermissionOpen] = useState(false)
+
   // Extract data from RTK Query responses
   const workspaceDetails = workspaceData?.workspace
   const members = workspaceDetails?.members || []
   const roles = useMemo(() => rolesData?.roles || [], [rolesData?.roles])
+  const permissions = useMemo(() => permissionsData || [], [permissionsData])
   const memberCount = workspaceDetails?.memberCount || 0
   const isOwner = workspaceDetails?.userRole === 'Owner'
+
+  // Group permissions by category for display
+  const permissionsByCategory = useMemo(() => {
+    const grouped: Record<string, typeof permissions> = {}
+    permissions.forEach(permission => {
+      if (!grouped[permission.category]) {
+        grouped[permission.category] = []
+      }
+      grouped[permission.category].push(permission)
+    })
+    return grouped
+  }, [permissions])
 
   // General settings state
   const [workspaceName, setWorkspaceName] = useState(
@@ -630,195 +652,362 @@ export default function WorkspaceSettingsPage() {
 
           {/* Roles & Permissions */}
           {activeTab === 'roles' && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Roles & Permissions</CardTitle>
-                    <CardDescription>
-                      Manage workspace roles and their permissions.
-                    </CardDescription>
-                  </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Role
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New Role</DialogTitle>
-                        <DialogDescription>
-                          Define a new role with specific permissions for your
-                          workspace.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="roleName">Role Name</Label>
-                          <Input
-                            id="roleName"
-                            placeholder="e.g., Sales Manager"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="roleDescription">Description</Label>
-                          <Textarea
-                            id="roleDescription"
-                            placeholder="Describe the role responsibilities..."
-                            rows={3}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Permissions</Label>
-                          <div className="grid max-h-48 grid-cols-2 gap-2 overflow-y-auto">
-                            {/* Permission checkboxes will be populated here */}
-                            <div className="flex items-center space-x-2">
-                              <input type="checkbox" id="leads.view" />
-                              <label htmlFor="leads.view" className="text-sm">
-                                View Leads
-                              </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input type="checkbox" id="leads.create" />
-                              <label htmlFor="leads.create" className="text-sm">
-                                Create Leads
-                              </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input type="checkbox" id="leads.edit" />
-                              <label htmlFor="leads.edit" className="text-sm">
-                                Edit Leads
-                              </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input type="checkbox" id="members.invite" />
-                              <label
-                                htmlFor="members.invite"
-                                className="text-sm"
-                              >
-                                Invite Members
-                              </label>
-                            </div>
+            <Tabs defaultValue="roles" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="roles">Role Management</TabsTrigger>
+                <TabsTrigger value="permissions">Permission Management</TabsTrigger>
+              </TabsList>
+
+              {/* Roles Tab */}
+              <TabsContent value="roles" className="space-y-0">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Roles Management</CardTitle>
+                        <CardDescription>
+                          Create and manage workspace roles.
+                        </CardDescription>
+                      </div>
+                      <Dialog open={createRoleOpen} onOpenChange={setCreateRoleOpen}>
+                        <DialogTrigger asChild>
+                          <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Create Role
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>Create New Role</DialogTitle>
+                            <DialogDescription>
+                              Define a new role with specific permissions for your workspace.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto">
+                            <RoleForm
+                              onSuccess={() => setCreateRoleOpen(false)}
+                              onCancel={() => setCreateRoleOpen(false)}
+                            />
                           </div>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline">Cancel</Button>
-                        <Button>Create Role</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {workspaceLoading ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="flex animate-pulse items-center space-x-4 rounded-lg border p-4"
-                      >
-                        <div className="h-10 w-10 rounded-lg bg-gray-200"></div>
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 w-1/4 rounded bg-gray-200"></div>
-                          <div className="h-3 w-1/2 rounded bg-gray-200"></div>
-                        </div>
-                        <div className="h-6 w-20 rounded bg-gray-200"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {roles.length === 0 ? (
-                      <div className="py-8 text-center">
-                        <Shield className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                        <p className="text-muted-foreground">No roles found</p>
-                        <p className="text-sm text-muted-foreground/70">
-                          Create your first role to get started
-                        </p>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {rolesLoading ? (
+                      <div className="space-y-4">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="flex animate-pulse items-center space-x-4 rounded-lg border p-4"
+                          >
+                            <div className="h-10 w-10 rounded-lg bg-gray-200"></div>
+                            <div className="flex-1 space-y-2">
+                              <div className="h-4 w-1/4 rounded bg-gray-200"></div>
+                              <div className="h-3 w-1/2 rounded bg-gray-200"></div>
+                            </div>
+                            <div className="h-6 w-20 rounded bg-gray-200"></div>
+                          </div>
+                        ))}
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        {roles.map(role => (
-                          <div
-                            key={role.id}
-                            className="flex items-center justify-between rounded-lg border p-4"
-                          >
-                            <div className="flex items-center space-x-4">
+                      <div className="space-y-4">
+                        {roles.length === 0 ? (
+                          <div className="py-8 text-center">
+                            <Shield className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                            <p className="text-muted-foreground">No roles found</p>
+                            <p className="text-sm text-muted-foreground/70">
+                              Create your first role to get started
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {roles.map(role => (
                               <div
-                                className={cn(
-                                  'flex h-10 w-10 items-center justify-center rounded-lg',
-                                  getRoleIconBg(role.name)
-                                )}
+                                key={role.id}
+                                className="flex items-center justify-between rounded-lg border p-4"
                               >
-                                {role.name === 'Owner' ? (
-                                  <Crown className={cn('h-5 w-5', getRoleIconColor(role.name))} />
-                                ) : role.name === 'Admin' ? (
-                                  <Shield className={cn('h-5 w-5', getRoleIconColor(role.name))} />
-                                ) : (
-                                  <User className={cn('h-5 w-5', getRoleIconColor(role.name))} />
-                                )}
-                              </div>
-                              <div>
+                                <div className="flex items-center space-x-4">
+                                  <div
+                                    className={cn(
+                                      'flex h-10 w-10 items-center justify-center rounded-lg',
+                                      getRoleIconBg(role.name)
+                                    )}
+                                  >
+                                    {role.name === 'Owner' ? (
+                                      <Crown className={cn('h-5 w-5', getRoleIconColor(role.name))} />
+                                    ) : role.name === 'Admin' ? (
+                                      <Shield className={cn('h-5 w-5', getRoleIconColor(role.name))} />
+                                    ) : (
+                                      <User className={cn('h-5 w-5', getRoleIconColor(role.name))} />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center space-x-2">
+                                      <h4 className="font-medium">{role.name}</h4>
+                                      {role.isDefault && (
+                                        <Badge variant="secondary">Default</Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      {role.description ||
+                                        `${role.permissions.length} permissions`}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground/70">
+                                      {(role as any).memberCount || 0} member
+                                      {((role as any).memberCount || 0) !== 1
+                                        ? 's'
+                                        : ''}
+                                    </p>
+                                  </div>
+                                </div>
                                 <div className="flex items-center space-x-2">
-                                  <h4 className="font-medium">{role.name}</h4>
-                                  {role.isDefault && (
-                                    <Badge variant="secondary">Default</Badge>
+                                  <Badge
+                                    className={cn(getRoleColor(role.name))}
+                                  >
+                                    {role.permissions.length} Permission
+                                    {role.permissions.length !== 1 ? 's' : ''}
+                                  </Badge>
+                                  {!role.isDefault && (
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent>
+                                        <DropdownMenuItem>
+                                          <Edit className="mr-2 h-4 w-4" />
+                                          Edit Role
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                          <Users className="mr-2 h-4 w-4" />
+                                          View Members
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="text-destructive">
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Delete Role
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   )}
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {role.description ||
-                                    `${role.permissions.length} permissions`}
-                                </p>
-                                <p className="text-xs text-muted-foreground/70">
-                                  {(role as any).memberCount || 0} member
-                                  {((role as any).memberCount || 0) !== 1
-                                    ? 's'
-                                    : ''}
-                                </p>
                               </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Badge
-                                className={cn(getRoleColor(role.name))}
-                              >
-                                {role.permissions.length} Permission
-                                {role.permissions.length !== 1 ? 's' : ''}
-                              </Badge>
-                              {!role.isDefault && (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent>
-                                    <DropdownMenuItem>
-                                      <Edit className="mr-2 h-4 w-4" />
-                                      Edit Role
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Users className="mr-2 h-4 w-4" />
-                                      View Members
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive">
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Delete Role
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              )}
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Permissions Tab */}
+              <TabsContent value="permissions" className="space-y-0">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Permission Management</CardTitle>
+                        <CardDescription>
+                          Create and manage custom permissions for your workspace.
+                        </CardDescription>
+                      </div>
+                      <Dialog open={createPermissionOpen} onOpenChange={setCreatePermissionOpen}>
+                        <DialogTrigger asChild>
+                          <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Create Permission
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>Create New Permission</DialogTitle>
+                            <DialogDescription>
+                              Define a new custom permission for your workspace.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto">
+                            <PermissionForm
+                              onSuccess={() => setCreatePermissionOpen(false)}
+                              onCancel={() => setCreatePermissionOpen(false)}
+                            />
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {permissionsLoading ? (
+                      <div className="space-y-4">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                          <div key={i} className="animate-pulse">
+                            <div className="h-4 w-24 bg-gray-200 rounded mb-3"></div>
+                            <div className="grid grid-cols-2 gap-4">
+                              {Array.from({ length: 6 }).map((_, j) => (
+                                <div key={j} className="h-16 bg-gray-200 rounded"></div>
+                              ))}
                             </div>
                           </div>
                         ))}
                       </div>
+                    ) : permissions.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Shield className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                        <h3 className="text-lg font-medium text-foreground mb-2">
+                          No Permissions Found
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          Create custom permissions to fine-tune access control in your workspace.
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => setCreatePermissionOpen(true)}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create Your First Permission
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Permission Summary */}
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                          <Card className="p-4">
+                            <div className="flex items-center">
+                              <Shield className="h-8 w-8 text-blue-600" />
+                              <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                  Total Permissions
+                                </p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                  {permissions.length}
+                                </p>
+                              </div>
+                            </div>
+                          </Card>
+                          <Card className="p-4">
+                            <div className="flex items-center">
+                              <Shield className="h-8 w-8 text-green-600" />
+                              <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                  System Permissions
+                                </p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                  {permissions.filter(p => p.isSystemPermission).length}
+                                </p>
+                              </div>
+                            </div>
+                          </Card>
+                          <Card className="p-4">
+                            <div className="flex items-center">
+                              <Shield className="h-8 w-8 text-purple-600" />
+                              <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                  Custom Permissions
+                                </p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                  {permissions.filter(p => !p.isSystemPermission).length}
+                                </p>
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
+
+                        {/* Permissions by Category */}
+                        <Tabs defaultValue={Object.keys(permissionsByCategory)[0]} className="w-full">
+                          <TabsList className="grid w-full grid-cols-5">
+                            {Object.keys(permissionsByCategory).map(category => (
+                              <TabsTrigger key={category} value={category}>
+                                {category}
+                              </TabsTrigger>
+                            ))}
+                          </TabsList>
+
+                          {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
+                            <TabsContent key={category} value={category} className="space-y-4">
+                              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                {categoryPermissions.map(permission => (
+                                  <Card key={permission.id} className="transition-shadow hover:shadow-md">
+                                    <CardHeader className="pb-3">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                          <Shield className="h-5 w-5 text-blue-600" />
+                                          <CardTitle className="text-lg">{permission.name}</CardTitle>
+                                        </div>
+                                        <Badge
+                                          variant={permission.isSystemPermission ? 'secondary' : 'default'}
+                                        >
+                                          {permission.isSystemPermission ? 'System' : 'Custom'}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-sm text-muted-foreground">
+                                        {permission.description}
+                                      </p>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-sm font-medium">Permission Name</span>
+                                          <code className="text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                            {permission.id}
+                                          </code>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-sm font-medium">Resource</span>
+                                          <Badge variant="outline">{permission.resource}</Badge>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-sm font-medium">Action</span>
+                                          <Badge variant="outline">{permission.action}</Badge>
+                                        </div>
+
+                                        {permission.dependencies && permission.dependencies.length > 0 && (
+                                          <div className="border-t pt-3">
+                                            <div className="flex items-center space-x-2 mb-2">
+                                              <Shield className="h-4 w-4 text-blue-500" />
+                                              <p className="text-xs text-gray-500">Dependencies:</p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-1">
+                                              {permission.dependencies.map((dep, index) => (
+                                                <Badge key={index} variant="outline" className="text-xs">
+                                                  {dep}
+                                                </Badge>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {permission.conflictsWith && permission.conflictsWith.length > 0 && (
+                                          <div className="border-t pt-3">
+                                            <div className="flex items-center space-x-2 mb-2">
+                                              <AlertTriangle className="h-4 w-4 text-orange-500" />
+                                              <p className="text-xs text-gray-500">Conflicts with:</p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-1">
+                                              {permission.conflictsWith.map((conflict, index) => (
+                                                <Badge key={index} variant="outline" className="text-xs text-orange-600">
+                                                  {conflict}
+                                                </Badge>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </TabsContent>
+                          ))}
+                        </Tabs>
+                      </div>
                     )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           )}
 
           {/* Advanced Settings */}

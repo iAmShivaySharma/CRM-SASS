@@ -91,6 +91,7 @@ export function RoleManager() {
                 setIsCreateOpen(false)
                 refetch()
               }}
+              onCancel={() => setIsCreateOpen(false)}
             />
           </DialogContent>
         </Dialog>

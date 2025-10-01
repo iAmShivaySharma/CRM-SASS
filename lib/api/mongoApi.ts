@@ -480,23 +480,4 @@ export const {
   useCreateLeadNoteMutation,
 } = mongoApi
 
-// Mock exports for features not yet implemented
-
-export const useGetPermissionsQuery = () => ({
-  data: [
-    { id: 'leads:create', name: 'Create Leads', category: 'Leads' },
-    { id: 'leads:read', name: 'View Leads', category: 'Leads' },
-    { id: 'leads:update', name: 'Update Leads', category: 'Leads' },
-    { id: 'leads:delete', name: 'Delete Leads', category: 'Leads' },
-    { id: 'users:create', name: 'Create Users', category: 'Users' },
-    { id: 'users:read', name: 'View Users', category: 'Users' },
-    { id: 'users:update', name: 'Update Users', category: 'Users' },
-    { id: 'users:delete', name: 'Delete Users', category: 'Users' },
-    { id: 'roles:create', name: 'Create Roles', category: 'Roles' },
-    { id: 'roles:read', name: 'View Roles', category: 'Roles' },
-    { id: 'roles:update', name: 'Update Roles', category: 'Roles' },
-    { id: 'roles:delete', name: 'Delete Roles', category: 'Roles' },
-  ],
-  isLoading: false,
-  error: null,
-})
+// Removed old mock permissions - now using real permission system

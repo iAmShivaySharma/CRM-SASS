@@ -16,7 +16,11 @@ export interface Permission {
   name: string
   resource: string
   action: string
+  category: string
   description?: string
+  dependencies?: string[]
+  conflictsWith?: string[]
+  isSystemPermission: boolean
 }
 
 export interface CreateRoleRequest {
@@ -75,8 +79,8 @@ export const roleApi = createApi({
       }),
       invalidatesTags: ['Role'],
     }),
-    getPermissions: builder.query<Permission[], void>({
-      query: () => '/permissions',
+    getPermissions: builder.query<Permission[], string | void>({
+      query: (workspaceId) => `../permissions${workspaceId ? `?workspaceId=${workspaceId}` : ''}`,
       providesTags: ['Permission'],
     }),
   }),

@@ -1,96 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const mockPermissions = [
-  // Leads permissions
-  {
-    id: '1',
-    name: 'Create Lead',
-    resource: 'leads',
-    action: 'create' as const,
-  },
-  { id: '2', name: 'Read Lead', resource: 'leads', action: 'read' as const },
-  {
-    id: '3',
-    name: 'Update Lead',
-    resource: 'leads',
-    action: 'update' as const,
-  },
-  {
-    id: '4',
-    name: 'Delete Lead',
-    resource: 'leads',
-    action: 'delete' as const,
-  },
-
-  // Users permissions
-  {
-    id: '5',
-    name: 'Create User',
-    resource: 'users',
-    action: 'create' as const,
-  },
-  { id: '6', name: 'Read User', resource: 'users', action: 'read' as const },
-  {
-    id: '7',
-    name: 'Update User',
-    resource: 'users',
-    action: 'update' as const,
-  },
-  {
-    id: '8',
-    name: 'Delete User',
-    resource: 'users',
-    action: 'delete' as const,
-  },
-
-  // Roles permissions
-  {
-    id: '9',
-    name: 'Create Role',
-    resource: 'roles',
-    action: 'create' as const,
-  },
-  { id: '10', name: 'Read Role', resource: 'roles', action: 'read' as const },
-  {
-    id: '11',
-    name: 'Update Role',
-    resource: 'roles',
-    action: 'update' as const,
-  },
-  {
-    id: '12',
-    name: 'Delete Role',
-    resource: 'roles',
-    action: 'delete' as const,
-  },
-
-  // Workspace permissions
-  {
-    id: '13',
-    name: 'Create Workspace',
-    resource: 'workspace',
-    action: 'create' as const,
-  },
-  {
-    id: '14',
-    name: 'Read Workspace',
-    resource: 'workspace',
-    action: 'read' as const,
-  },
-  {
-    id: '15',
-    name: 'Update Workspace',
-    resource: 'workspace',
-    action: 'update' as const,
-  },
-  {
-    id: '16',
-    name: 'Delete Workspace',
-    resource: 'workspace',
-    action: 'delete' as const,
-  },
-]
+import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { Permission } from '@/lib/mongodb/models'
+import { connectToMongoDB } from '@/lib/mongodb/connection'
+import { getAvailablePermissions, seedSystemPermissions } from '@/lib/mongodb/seedPermissions'
+import { logUserActivity } from '@/lib/logging/middleware'
 
 export async function GET(request: NextRequest) {
-  return NextResponse.json(mockPermissions)
+  try {
+    await connectToMongoDB()
+
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { message: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const url = new URL(request.url)
+    const workspaceId = url.searchParams.get('workspaceId')
+
+    // Get permissions from database
+    let permissions = await getAvailablePermissions(workspaceId || undefined)
+
+    // If no permissions exist, seed them first
+    if (!permissions || permissions.length === 0) {
+      console.log('No permissions found, seeding system permissions...')
+      await seedSystemPermissions()
+      permissions = await getAvailablePermissions(workspaceId || undefined)
+    }
+
+    // Use the permissions directly - no format conversion needed
+    const formattedPermissions = permissions.map(perm => ({
+      id: perm.name,
+      name: perm.displayName,
+      resource: perm.resource,
+      action: perm.action,
+      category: perm.category,
+      description: perm.description,
+      dependencies: perm.dependencies,
+      conflictsWith: perm.conflictsWith,
+      isSystemPermission: perm.isSystemPermission,
+    }))
+
+    logUserActivity(auth.user.id, 'permissions.list', 'permission', {
+      workspaceId,
+      count: permissions.length,
+    })
+
+    return NextResponse.json(formattedPermissions)
+  } catch (error) {
+    console.error('Error in permissions API:', error)
+    return NextResponse.json(
+      { message: 'Failed to fetch permissions' },
+      { status: 500 }
+    )
+  }
 }

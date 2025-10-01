@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:seed": "npx tsx scripts/seed-mongodb.ts",
+    "db:migrate-permissions": "npx tsx scripts/migrate-permissions.ts",
     "db:reset": "npx tsx scripts/reset-mongodb.ts",
     "test": "jest",
     "test:watch": "jest --watch",

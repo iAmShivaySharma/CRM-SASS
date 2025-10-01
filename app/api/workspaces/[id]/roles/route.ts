@@ -23,47 +23,7 @@ import { getClientIP } from '@/lib/utils/ip-utils'
 import { z } from 'zod'
 import mongoose from 'mongoose'
 
-// Available permissions
-const AVAILABLE_PERMISSIONS = [
-  // Lead Management
-  'leads.view',
-  'leads.create',
-  'leads.edit',
-  'leads.delete',
-  'leads.assign',
-  'leads.export',
-
-  // Workspace Management
-  'workspace.view',
-  'workspace.edit',
-  'workspace.delete',
-  'workspace.invite',
-
-  // Member Management
-  'members.view',
-  'members.invite',
-  'members.edit',
-  'members.remove',
-
-  // Role Management
-  'roles.view',
-  'roles.create',
-  'roles.edit',
-  'roles.delete',
-
-  // Analytics & Reports
-  'analytics.view',
-  'reports.view',
-  'reports.export',
-
-  // Settings
-  'settings.view',
-  'settings.edit',
-
-  // Billing (Owner only)
-  'billing.view',
-  'billing.edit',
-]
+import { getAvailablePermissions, seedSystemPermissions } from '@/lib/mongodb/seedPermissions'
 
 // Validation schemas
 const createRoleSchema = z.object({
@@ -78,11 +38,7 @@ const createRoleSchema = z.object({
     .optional(),
   permissions: z
     .array(z.string())
-    .min(1, 'At least one permission is required')
-    .refine(
-      permissions => permissions.every(p => AVAILABLE_PERMISSIONS.includes(p)),
-      'Invalid permissions provided'
-    ),
+    .min(1, 'At least one permission is required'),
 })
 
 // GET /api/workspaces/[id]/roles - List workspace roles
@@ -191,10 +147,31 @@ export const GET = withSecurityLogging(
           }
         )
 
+        // Get available permissions for this workspace
+        let availablePermissions = await getAvailablePermissions(workspaceId)
+
+        // If no permissions exist, seed them first
+        if (!availablePermissions || availablePermissions.length === 0) {
+          await seedSystemPermissions()
+          availablePermissions = await getAvailablePermissions(workspaceId)
+        }
+
+        // Format permissions for frontend
+        const formattedPermissions = availablePermissions.map(perm => ({
+          id: perm.name,
+          name: perm.displayName,
+          resource: perm.resource,
+          action: perm.action,
+          category: perm.category,
+          description: perm.description,
+          dependencies: perm.dependencies,
+          isSystemPermission: perm.isSystemPermission,
+        }))
+
         return NextResponse.json({
           success: true,
           roles: rolesWithCounts,
-          availablePermissions: AVAILABLE_PERMISSIONS,
+          availablePermissions: formattedPermissions,
         })
       } catch (error) {
         log.error('Error retrieving workspace roles:', error)
@@ -267,6 +244,21 @@ export const POST = withSecurityLogging(
         }
 
         const { name, description, permissions } = validationResult.data
+
+        // Validate permissions exist
+        const availablePermissions = await getAvailablePermissions(workspaceId)
+        const availablePermissionNames = availablePermissions.map(p => p.name)
+
+        const invalidPermissions = permissions.filter(p => !availablePermissionNames.includes(p))
+        if (invalidPermissions.length > 0) {
+          return NextResponse.json(
+            {
+              message: 'Invalid permissions provided',
+              invalidPermissions,
+            },
+            { status: 400 }
+          )
+        }
 
         // Check if user has permission to create roles
         const membership = await WorkspaceMember.findOne({
