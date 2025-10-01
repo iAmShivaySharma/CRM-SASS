@@ -4,6 +4,9 @@ import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
 import { ChatRoom, useUpdateChatRoomMutation, useDeleteChatRoomMutation } from '@/lib/api/chatApi'
+import { ChatDetailsDialog } from './ChatDetailsDialog'
+import { AddParticipantsDialog } from './AddParticipantsDialog'
+import { ChatSettingsDialog } from './ChatSettingsDialog'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -51,6 +54,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onMobileMenuClick,
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [addParticipantsDialogOpen, setAddParticipantsDialogOpen] = useState(false)
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
+
   const workspace = useSelector((state: RootState) => state.workspace)
 
   const [updateChatRoom] = useUpdateChatRoomMutation()
@@ -208,12 +215,12 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       <div className="flex items-center gap-2">
         {/* Quick actions for larger screens */}
         <div className="hidden sm:flex items-center gap-1">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={() => setDetailsDialogOpen(true)}>
             <Info className="h-4 w-4" />
           </Button>
 
           {chatRoom.type !== 'direct' && (
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => setAddParticipantsDialogOpen(true)}>
               <UserPlus className="h-4 w-4" />
             </Button>
           )}
@@ -235,19 +242,19 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setDetailsDialogOpen(true)}>
               <Info className="mr-2 h-4 w-4" />
               Chat details
             </DropdownMenuItem>
 
             {chatRoom.type !== 'direct' && (
               <>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAddParticipantsDialogOpen(true)}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   Add members
                 </DropdownMenuItem>
 
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)}>
                   <Settings className="mr-2 h-4 w-4" />
                   Chat settings
                 </DropdownMenuItem>
@@ -315,6 +322,27 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Chat Details Dialog */}
+      <ChatDetailsDialog
+        chatRoom={chatRoom}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+      />
+
+      {/* Add Participants Dialog */}
+      <AddParticipantsDialog
+        chatRoom={chatRoom}
+        open={addParticipantsDialogOpen}
+        onOpenChange={setAddParticipantsDialogOpen}
+      />
+
+      {/* Chat Settings Dialog */}
+      <ChatSettingsDialog
+        chatRoom={chatRoom}
+        open={settingsDialogOpen}
+        onOpenChange={setSettingsDialogOpen}
+      />
     </div>
   )
 }
