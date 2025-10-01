@@ -1,7 +1,9 @@
 'use client'
 
-import React from 'react'
-import { ChatRoom } from '@/lib/api/chatApi'
+import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/lib/store'
+import { ChatRoom, useUpdateChatRoomMutation, useDeleteChatRoomMutation } from '@/lib/api/chatApi'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -13,6 +15,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import {
   Menu,
   Hash,
@@ -37,6 +50,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   chatRoom,
   onMobileMenuClick,
 }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const workspace = useSelector((state: RootState) => state.workspace)
+
+  const [updateChatRoom] = useUpdateChatRoomMutation()
+  const [deleteChatRoom] = useDeleteChatRoomMutation()
   const getChatRoomIcon = (type: ChatRoom['type']) => {
     switch (type) {
       case 'private':
@@ -62,6 +80,51 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       return chatRoom.participants.length
     }
     return 0
+  }
+
+  const handleArchiveToggle = async () => {
+    if (!workspace.currentWorkspace?.id) return
+
+    try {
+      await updateChatRoom({
+        id: chatRoom.id,
+        workspaceId: workspace.currentWorkspace.id,
+        isArchived: !chatRoom.isArchived,
+      }).unwrap()
+    } catch (error) {
+      console.error('Failed to toggle archive status:', error)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!workspace.currentWorkspace?.id) return
+
+    try {
+      await deleteChatRoom({
+        id: chatRoom.id,
+        workspaceId: workspace.currentWorkspace.id,
+      }).unwrap()
+      setDeleteDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to delete chat room:', error)
+    }
+  }
+
+  const handleNotificationToggle = async () => {
+    if (!workspace.currentWorkspace?.id) return
+
+    try {
+      await updateChatRoom({
+        id: chatRoom.id,
+        workspaceId: workspace.currentWorkspace.id,
+        settings: {
+          ...chatRoom.settings,
+          notifications: !chatRoom.settings?.notifications,
+        },
+      }).unwrap()
+    } catch (error) {
+      console.error('Failed to toggle notifications:', error)
+    }
   }
 
   return (
@@ -155,7 +218,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </Button>
           )}
 
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={handleNotificationToggle}>
             {chatRoom.settings?.notifications !== false ? (
               <Volume2 className="h-4 w-4" />
             ) : (
@@ -193,7 +256,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleNotificationToggle}>
               {chatRoom.settings?.notifications !== false ? (
                 <>
                   <VolumeX className="mr-2 h-4 w-4" />
@@ -208,12 +271,12 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </DropdownMenuItem>
 
             {!chatRoom.isArchived ? (
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleArchiveToggle}>
                 <Archive className="mr-2 h-4 w-4" />
                 Archive chat
               </DropdownMenuItem>
             ) : (
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleArchiveToggle}>
                 <Archive className="mr-2 h-4 w-4" />
                 Unarchive chat
               </DropdownMenuItem>
@@ -222,7 +285,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             {chatRoom.type !== 'general' && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete chat
                 </DropdownMenuItem>
@@ -231,6 +297,24 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Chat Room</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{chatRoom.name}"? This action cannot be undone and all messages will be permanently lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

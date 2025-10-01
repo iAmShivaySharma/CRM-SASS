@@ -95,9 +95,15 @@ export const chatApi = createApi({
     // Chat Rooms
     getChatRooms: builder.query<
       { chatRooms: ChatRoom[] },
-      { workspaceId: string }
+      { workspaceId: string; includeArchived?: boolean }
     >({
-      query: ({ workspaceId }) => `rooms?workspaceId=${workspaceId}`,
+      query: ({ workspaceId, includeArchived = false }) => {
+        const params = new URLSearchParams({ workspaceId })
+        if (includeArchived) {
+          params.append('includeArchived', 'true')
+        }
+        return `rooms?${params}`
+      },
       providesTags: ['ChatRoom'],
     }),
 
@@ -275,6 +281,11 @@ export const chatApi = createApi({
           url: `upload?workspaceId=${workspaceId}&chatRoomId=${chatRoomId}`,
           method: 'POST',
           body: formData,
+          prepareHeaders: (headers) => {
+            // Remove Content-Type header to let browser set it correctly for FormData
+            headers.delete('Content-Type')
+            return headers
+          },
         }
       },
     }),

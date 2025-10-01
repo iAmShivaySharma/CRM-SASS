@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     }
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
+    const includeArchived = searchParams.get('includeArchived') === 'true'
 
     if (!workspaceId) {
       return NextResponse.json(
@@ -39,11 +40,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Get chat rooms where user is a participant
-    const chatRooms = await ChatRoom.find({
+    const filter: any = {
       workspaceId,
       participants: auth.user._id,
-      isArchived: false,
-    })
+    }
+
+    // Only filter out archived if not explicitly including them
+    if (!includeArchived) {
+      filter.isArchived = false
+    }
+
+    const chatRooms = await ChatRoom.find(filter)
       .populate('participants', 'name email avatar')
       .populate('admins', 'name email avatar')
       .sort({ 'lastMessage.timestamp': -1, updatedAt: -1 })

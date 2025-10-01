@@ -12,7 +12,9 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { MessageSquare, Send, Plus, Users, Settings, Search } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { MessageSquare, Send, Plus, Users, Settings, Search, Archive } from 'lucide-react'
 import { ChatRoomList } from './ChatRoomList'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
@@ -30,6 +32,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
 
   const workspace = useSelector((state: RootState) => state.workspace)
   const { isConnected, joinChatRoom, leaveChatRoom } = useSocket()
@@ -39,7 +42,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     isLoading: chatRoomsLoading,
     error: chatRoomsError
   } = useGetChatRoomsQuery(
-    { workspaceId: workspace.currentWorkspace?.id || '' },
+    {
+      workspaceId: workspace.currentWorkspace?.id || '',
+      includeArchived: showArchived
+    },
     { skip: !workspace.currentWorkspace?.id }
   )
 
@@ -144,7 +150,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           </div>
         </div>
 
-        <div className="p-4 border-b">
+        <div className="p-4 border-b space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -153,6 +159,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-archived"
+              checked={showArchived}
+              onCheckedChange={setShowArchived}
+            />
+            <Label htmlFor="show-archived" className="text-sm font-medium">
+              <Archive className="inline h-3 w-3 mr-1" />
+              Show archived chats
+            </Label>
           </div>
         </div>
 
@@ -198,7 +216,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
               </div>
             </div>
 
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -207,6 +225,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="show-archived-mobile"
+                  checked={showArchived}
+                  onCheckedChange={setShowArchived}
+                />
+                <Label htmlFor="show-archived-mobile" className="text-sm font-medium">
+                  <Archive className="inline h-3 w-3 mr-1" />
+                  Show archived chats
+                </Label>
               </div>
             </div>
 
