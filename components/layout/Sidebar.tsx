@@ -27,6 +27,9 @@ import {
   Mail,
   MessageSquare,
   FolderKanban,
+  Folder,
+  CheckSquare,
+  FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -101,12 +104,41 @@ const navigation = [
   { name: 'Calls', href: '/calls', icon: Phone, category: 'main' },
   { name: 'Email', href: '/email', icon: Mail, category: 'main' },
 
-  // Project Management
+  // Project Management Section
   {
-    name: 'Project Management',
+    name: 'Project',
     href: '/projects',
     icon: FolderKanban,
-    category: 'main',
+    category: 'section',
+    id: 'projects',
+  },
+  {
+    name: 'Projects',
+    href: '/projects',
+    icon: Folder,
+    category: 'projects',
+    parent: 'projects',
+  },
+  {
+    name: 'Tasks',
+    href: '/projects/tasks',
+    icon: CheckSquare,
+    category: 'projects',
+    parent: 'projects',
+  },
+  {
+    name: 'Members',
+    href: '/projects/members',
+    icon: Users,
+    category: 'projects',
+    parent: 'projects',
+  },
+  {
+    name: 'Documents',
+    href: '/projects/documents',
+    icon: FileText,
+    category: 'projects',
+    parent: 'projects',
   },
 
   // Other sections
@@ -128,6 +160,7 @@ export function Sidebar({
     Record<string, boolean>
   >({
     sales: false, // All sections collapsed by default
+    projects: false,
     hr: false,
     engines: false,
   })

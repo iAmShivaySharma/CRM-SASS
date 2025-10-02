@@ -30,7 +30,7 @@ import {
   Info,
   AlertTriangle,
   XCircle,
-  MarkEmailRead,
+  MailOpen,
   Filter,
   Clock,
   User,
@@ -222,7 +222,7 @@ export default function NotificationsPage() {
               onClick={handleMarkAllAsRead}
               disabled={updateLoading}
             >
-              <MarkEmailRead className="h-4 w-4 mr-2" />
+              <MailOpen className="h-4 w-4 mr-2" />
               Mark All Read
             </Button>
           )}

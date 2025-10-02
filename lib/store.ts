@@ -10,6 +10,8 @@ import { analyticsApi } from './api/analyticsApi'
 import { notificationsApi } from './api/notificationsApi'
 import { chatApi } from './api/chatApi'
 import { roleApi } from './api/roleApi'
+import { projectsApi } from './api/projectsApi'
+import { tasksApi } from './api/tasksApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -30,6 +32,8 @@ export const store = configureStore({
     [notificationsApi.reducerPath]: notificationsApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer,
     [roleApi.reducerPath]: roleApi.reducer,
+    [projectsApi.reducerPath]: projectsApi.reducer,
+    [tasksApi.reducerPath]: tasksApi.reducer,
   } as any,
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
@@ -42,7 +46,9 @@ export const store = configureStore({
       analyticsApi.middleware,
       notificationsApi.middleware,
       chatApi.middleware,
-      roleApi.middleware
+      roleApi.middleware,
+      projectsApi.middleware,
+      tasksApi.middleware
     ),
 })
 

@@ -17,6 +17,9 @@ export { LeadStatus, type ILeadStatus } from './LeadStatus'
 export { Notification, type INotification } from './Notification'
 export { ChatRoom, type IChatRoom } from './ChatRoom'
 export { Message, type IMessage } from './Message'
-
-// Re-export mongoose for convenience
-export { default as mongoose } from 'mongoose'
+export { Project, type IProject } from './Project'
+export { ProjectMember, type IProjectMember } from './ProjectMember'
+export { Task, type ITask } from './Task'
+export { ProjectDocument, DocumentVersion, type IProjectDocument, type IDocumentVersion } from './Document'
+export { ProjectInvitation, ProjectJoinRequest, type IProjectInvitation, type IProjectJoinRequest } from './ProjectInvitation'
+export { Column, type IColumn } from './Column'

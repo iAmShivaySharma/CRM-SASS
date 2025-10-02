@@ -28,6 +28,12 @@ import { LeadActivity, type ILeadActivity } from './models/LeadActivity'
 import { Contact, type IContact } from './models/Contact'
 import { ChatRoom, type IChatRoom } from './models/ChatRoom'
 import { Message, type IMessage } from './models/Message'
+import { Project, type IProject } from './models/Project'
+import { ProjectMember, type IProjectMember } from './models/ProjectMember'
+import { Task, type ITask } from './models/Task'
+import { ProjectDocument, type IProjectDocument } from './models/Document'
+import { ProjectInvitation, ProjectJoinRequest, type IProjectInvitation, type IProjectJoinRequest } from './models/ProjectInvitation'
+import { Column, type IColumn } from './models/Column'
 
 // Database client class to replace Supabase functionality
 export class MongoDBClient {
@@ -372,4 +378,11 @@ export {
   Contact,
   ChatRoom,
   Message,
+  Project,
+  ProjectMember,
+  Task,
+  ProjectDocument,
+  ProjectInvitation,
+  ProjectJoinRequest,
+  Column,
 }
