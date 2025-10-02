@@ -26,6 +26,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DocumentEditorDialog } from '@/components/projects/DocumentEditorDialog'
 import { TiptapReader, extractPlainText } from '@/components/ui/tiptap-editor-improved'
+import { StatsCardSkeleton, CardSkeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 
 export default function ProjectDocumentsPage() {
@@ -34,7 +35,7 @@ export default function ProjectDocumentsPage() {
   const [search, setSearch] = useState('')
   const [projectFilter, setProjectFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [showEditorDialog, setShowEditorDialog] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
 
@@ -185,7 +186,7 @@ export default function ProjectDocumentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {documentsLoading ? '...' : filteredDocuments.length}
+              {filteredDocuments.length}
             </div>
           </CardContent>
         </Card>
@@ -195,7 +196,7 @@ export default function ProjectDocumentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {documentsLoading ? '...' : filteredDocuments.filter(d => d.type === 'template').length}
+              {filteredDocuments.filter(d => d.type === 'template').length}
             </div>
           </CardContent>
         </Card>
@@ -205,7 +206,7 @@ export default function ProjectDocumentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {documentsLoading ? '...' : filteredDocuments.filter(d => d.type === 'document').length}
+              {filteredDocuments.filter(d => d.type === 'document').length}
             </div>
           </CardContent>
         </Card>
@@ -279,9 +280,24 @@ export default function ProjectDocumentsPage() {
 
       {/* Documents Display */}
       {documentsLoading ? (
-        <div className="flex h-32 items-center justify-center">
-          <div className="text-sm text-muted-foreground">Loading documents...</div>
-        </div>
+        viewMode === 'grid' ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <CardSkeleton className="h-20" />
+            <CardSkeleton className="h-20" />
+            <CardSkeleton className="h-20" />
+            <CardSkeleton className="h-20" />
+            <CardSkeleton className="h-20" />
+          </div>
+        )
       ) : documentsError ? (
         <div className="flex h-32 items-center justify-center">
           <div className="text-sm text-red-500">Error loading documents</div>

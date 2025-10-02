@@ -18,7 +18,7 @@ export default function ProjectsPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<string>('')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   const {

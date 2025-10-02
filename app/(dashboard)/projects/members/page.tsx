@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { StatsCardSkeleton, TableSkeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 
 export default function ProjectMembersPage() {
@@ -152,7 +153,7 @@ export default function ProjectMembersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {membersLoading ? '...' : filteredMembers.length}
+              {filteredMembers.length}
             </div>
           </CardContent>
         </Card>
@@ -162,7 +163,7 @@ export default function ProjectMembersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {membersLoading ? '...' : filteredMembers.filter(m => m.status === 'active').length}
+              {filteredMembers.filter(m => m.status === 'active').length}
             </div>
           </CardContent>
         </Card>
@@ -182,7 +183,7 @@ export default function ProjectMembersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {membersLoading ? '...' : new Set(filteredMembers.map(m => m.role?.name)).size}
+              {new Set(filteredMembers.map(m => m.role?.name)).size}
             </div>
           </CardContent>
         </Card>
@@ -229,9 +230,7 @@ export default function ProjectMembersPage() {
 
       {/* Members List */}
       {membersLoading ? (
-        <div className="flex h-32 items-center justify-center">
-          <div className="text-sm text-muted-foreground">Loading members...</div>
-        </div>
+        <TableSkeleton rows={5} columns={5} />
       ) : membersError ? (
         <div className="flex h-32 items-center justify-center">
           <div className="text-sm text-red-500">Error loading members</div>

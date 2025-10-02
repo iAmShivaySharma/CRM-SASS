@@ -95,7 +95,7 @@ const defaultPresets: ThemePreset[] = [
 const initialState: ThemeState = {
   mode: 'light',
   primaryColor: '#2563eb',
-  sidebarCollapsed: true, // Sidebar collapsed by default
+  sidebarCollapsed: false, // Sidebar expanded by default
   preset: 'blue',
   presets: defaultPresets,
   customTheme: {

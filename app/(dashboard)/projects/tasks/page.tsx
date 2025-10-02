@@ -18,13 +18,14 @@ import {
 import { KanbanBoard } from '@/components/projects/KanbanBoard'
 import { TasksList } from '@/components/projects/TasksList'
 import { CreateTaskDialog } from '@/components/projects/CreateTaskDialog'
+import { StatsCardSkeleton, CardSkeleton } from '@/components/ui/skeleton'
 
 export default function TasksPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [search, setSearch] = useState('')
   const [projectFilter, setProjectFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('list')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   // Get available projects
@@ -190,9 +191,22 @@ export default function TasksPage() {
 
       {/* Tasks Display */}
       {isLoading ? (
-        <div className="flex h-32 items-center justify-center">
-          <div className="text-sm text-muted-foreground">Loading tasks...</div>
-        </div>
+        viewMode === 'kanban' ? (
+          <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
+            <CardSkeleton className="h-96" />
+            <CardSkeleton className="h-96" />
+            <CardSkeleton className="h-96" />
+            <CardSkeleton className="h-96" />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <CardSkeleton className="h-20" />
+            <CardSkeleton className="h-20" />
+            <CardSkeleton className="h-20" />
+            <CardSkeleton className="h-20" />
+            <CardSkeleton className="h-20" />
+          </div>
+        )
       ) : error ? (
         <div className="flex h-32 items-center justify-center">
           <div className="text-sm text-red-500">Error loading tasks</div>
