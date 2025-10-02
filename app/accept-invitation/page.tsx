@@ -47,7 +47,7 @@ type UserState = 'loading' | 'guest' | 'wrong-user' | 'correct-user' | 'error'
 export default function AcceptInvitationPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+  const token = searchParams?.get('token')
 
   const [userState, setUserState] = useState<UserState>('loading')
   const [invitation, setInvitation] = useState<InvitationData | null>(null)

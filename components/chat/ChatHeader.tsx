@@ -311,7 +311,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Chat Room</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{chatRoom.name}"? This action cannot be undone and all messages will be permanently lost.
+              Are you sure you want to delete &quot;{chatRoom.name}&quot;? This action cannot be undone and all messages will be permanently lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -119,9 +119,7 @@ export const GET = withSecurityLogging(
           auth.user.id,
           'documents.list',
           `Listed documents for project: ${project.name}`,
-          'Document',
-          projectId,
-          { projectId, filters: { type, search } }
+          { entityType: 'Document', projectId, filters: { type, search } }
         )
 
         const endTime = Date.now()
@@ -203,7 +201,7 @@ export const POST = withSecurityLogging(
             }
           } else if (Array.isArray(body.tags)) {
             // Extract text from objects, keep strings as-is
-            body.tags = body.tags.map(tag =>
+            body.tags = body.tags.map((tag: any) =>
               typeof tag === 'string' ? tag : (tag.text || String(tag))
             )
           }
@@ -256,9 +254,7 @@ export const POST = withSecurityLogging(
           auth.user.id,
           'documents.create',
           `Created document: ${document.title}`,
-          'Document',
-          document._id.toString(),
-          { documentId: document._id, projectId: validationResult.data.projectId }
+          { entityType: 'Document', documentId: document._id, projectId: validationResult.data.projectId }
         )
 
         const endTime = Date.now()

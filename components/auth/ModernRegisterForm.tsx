@@ -134,7 +134,7 @@ export function ModernRegisterForm() {
 
   // Performance optimization: memoize redirect URL
   const redirectUrl = useMemo(() => {
-    const redirect = searchParams.get('redirect')
+    const redirect = searchParams?.get('redirect')
     return redirect || '/dashboard'
   }, [searchParams])
 

@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose'
 export interface ITask extends Document {
   _id: string
   title: string
-  description?: string
+  description?: string | object // Allow both string and rich text object
   projectId: string
   status: string // Flexible status system (todo, inprogress, review, done, etc.)
   priority: 'low' | 'medium' | 'high' | 'urgent'
@@ -36,9 +36,8 @@ const TaskSchema = new Schema<ITask>(
       maxlength: 200,
     },
     description: {
-      type: String,
-      trim: true,
-      maxlength: 2000,
+      type: Schema.Types.Mixed, // Allows both String and Object for rich text
+      default: '',
     },
     projectId: {
       type: String,

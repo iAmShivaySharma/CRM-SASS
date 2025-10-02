@@ -402,12 +402,12 @@ export default function ProjectDocumentsPage() {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-5 w-5">
-                      <AvatarImage src={document.createdBy?.avatarUrl || undefined} />
+                      <AvatarImage src={undefined} />
                       <AvatarFallback className="text-xs">
-                        {document.createdBy?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
+                        U
                       </AvatarFallback>
                     </Avatar>
-                    <span>{document.createdBy?.fullName || 'Unknown User'}</span>
+                    <span>Unknown User</span>
                   </div>
                   <span>{new Date(document.updatedAt).toLocaleDateString()}</span>
                 </div>

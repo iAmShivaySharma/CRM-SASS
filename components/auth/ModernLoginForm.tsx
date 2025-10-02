@@ -85,8 +85,8 @@ export function ModernLoginForm() {
 
   // Performance optimization: memoize redirect URL
   const redirectUrl = useMemo(() => {
-    const redirect = searchParams.get('redirect')
-    const callbackUrl = searchParams.get('callbackUrl')
+    const redirect = searchParams?.get('redirect')
+    const callbackUrl = searchParams?.get('callbackUrl')
     return redirect || callbackUrl || '/dashboard'
   }, [searchParams])
 

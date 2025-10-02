@@ -83,8 +83,7 @@ export const GET = withSecurityLogging(
           auth.user.id,
           'tasks.view',
           `Viewed task: ${taskData.task.title}`,
-          'Task',
-          params.id
+          { entityType: 'Task', taskId: params.id }
         )
 
         const endTime = Date.now()
@@ -191,9 +190,7 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'tasks.update',
           `Updated task: ${updatedTask?.title}`,
-          'Task',
-          params.id,
-          { changes: validationResult.data }
+          { entityType: 'Task', taskId: params.id, changes: validationResult.data }
         )
 
         const endTime = Date.now()
@@ -276,8 +273,7 @@ export const DELETE = withSecurityLogging(
           auth.user.id,
           'tasks.delete',
           `Deleted task: ${taskData.task.title}`,
-          'Task',
-          params.id
+          { entityType: 'Task', taskId: params.id }
         )
 
         const endTime = Date.now()

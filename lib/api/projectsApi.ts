@@ -403,7 +403,7 @@ export const projectsApi = createApi({
 
         // Convert tags to string array only
         if (processedData.tags && Array.isArray(processedData.tags)) {
-          processedData.tags = processedData.tags.map(tag =>
+          processedData.tags = processedData.tags.map((tag: any) =>
             typeof tag === 'string' ? tag : (tag.text || String(tag))
           )
         }
@@ -432,7 +432,7 @@ export const projectsApi = createApi({
 
         // Convert tags to string array only
         if (processedData.tags && Array.isArray(processedData.tags)) {
-          processedData.tags = processedData.tags.map(tag =>
+          processedData.tags = processedData.tags.map((tag: any) =>
             typeof tag === 'string' ? tag : (tag.text || String(tag))
           )
         }

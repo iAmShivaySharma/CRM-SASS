@@ -102,9 +102,7 @@ export const GET = withSecurityLogging(
           auth.user.id,
           'documents.view',
           `Viewed document: ${document.title}`,
-          'Document',
-          documentId,
-          { documentId }
+          { entityType: 'Document', documentId }
         )
 
         const endTime = Date.now()
@@ -190,7 +188,7 @@ export const PUT = withSecurityLogging(
             }
           } else if (Array.isArray(body.tags)) {
             // Extract text from objects, keep strings as-is
-            body.tags = body.tags.map(tag =>
+            body.tags = body.tags.map((tag: any) =>
               typeof tag === 'string' ? tag : (tag.text || String(tag))
             )
           }
@@ -271,9 +269,7 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'documents.update',
           `Updated document: ${updatedDocument.title}`,
-          'Document',
-          documentId,
-          { documentId, updatedFields: Object.keys(validationResult.data) }
+          { entityType: 'Document', documentId, updatedFields: Object.keys(validationResult.data) }
         )
 
         const endTime = Date.now()
@@ -363,9 +359,7 @@ export const DELETE = withSecurityLogging(
           auth.user.id,
           'documents.delete',
           `Deleted document: ${document.title}`,
-          'Document',
-          documentId,
-          { documentId }
+          { entityType: 'Document', documentId }
         )
 
         const endTime = Date.now()

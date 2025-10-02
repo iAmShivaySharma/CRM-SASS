@@ -216,7 +216,7 @@ export function TiptapEditor({
 
       // Only update if content has actually changed
       if (JSON.stringify(currentContent) !== JSON.stringify(newContent)) {
-        editor.commands.setContent(newContent, false)
+        editor.commands.setContent(newContent, { emitUpdate: false })
       }
     }
   }, [editor, getInitialContent])
@@ -691,8 +691,25 @@ export function TiptapEditor({
           padding-left: 2rem;
         }
 
+        .ProseMirror ul {
+          list-style-type: disc;
+        }
+
+        .ProseMirror ol {
+          list-style-type: decimal;
+        }
+
+        .ProseMirror ul ul {
+          list-style-type: circle;
+        }
+
+        .ProseMirror ul ul ul {
+          list-style-type: square;
+        }
+
         .ProseMirror li {
           margin: 0.5rem 0;
+          display: list-item;
         }
 
         .ProseMirror blockquote {

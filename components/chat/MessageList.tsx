@@ -69,7 +69,7 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
       if (message.chatRoomId === chatRoomId) {
         // Check if message already exists to prevent duplicates
         setAllMessages(prev => {
-          const exists = prev.some(msg => msg.id === message.id || (message.tempId && msg.id === message.tempId))
+          const exists = prev.some(msg => msg.id === message.id || ((message as any).tempId && msg.id === (message as any).tempId))
           if (!exists) {
             return [...prev, message]
           }

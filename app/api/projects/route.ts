@@ -167,9 +167,7 @@ export const GET = withSecurityLogging(
           auth.user.id,
           'projects.list',
           'User listed projects',
-          'Project',
-          workspaceId,
-          { workspaceId, page, limit }
+          { entityType: 'Project', workspaceId, page, limit }
         )
 
         const endTime = Date.now()
@@ -317,17 +315,18 @@ export const POST = withSecurityLogging(
           auth.user.id,
           'projects.create',
           `Created project: ${project.name}`,
-          'Project',
-          project._id.toString(),
-          { projectId: project._id }
+          { entityType: 'Project', projectId: project._id }
         )
 
-        await logBusinessEvent('project_created', {
-          projectId: project._id,
+        await logBusinessEvent(
+          'project_created',
+          auth.user.id,
           workspaceId,
-          userId: auth.user.id,
-          projectName: project.name,
-        })
+          {
+            projectId: project._id,
+            projectName: project.name,
+          }
+        )
 
         const endTime = Date.now()
         console.log(`=== CREATE PROJECT API SUCCESS (${endTime - startTime}ms) ===`)

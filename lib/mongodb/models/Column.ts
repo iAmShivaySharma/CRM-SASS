@@ -4,11 +4,11 @@ export interface IColumn extends Document {
   name: string
   slug: string
   color: string
-  projectId: string
-  workspaceId: string
+  projectId: mongoose.Types.ObjectId
+  workspaceId: mongoose.Types.ObjectId
   order: number
   isDefault: boolean
-  createdBy: string
+  createdBy: mongoose.Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }

@@ -115,10 +115,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
     if (!trimmedMessage && !hasAttachments) return
     if (isSending) return
 
+    const filesToSend = [...attachedFiles]
+
     try {
       // Clear inputs immediately for better UX
       setMessage('')
-      const filesToSend = [...attachedFiles]
       setAttachedFiles([])
       handleTypingStop()
 

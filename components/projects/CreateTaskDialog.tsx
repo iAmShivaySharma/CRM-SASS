@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { TiptapEditor } from '@/components/ui/tiptap-editor-improved'
 import {
   Select,
   SelectContent,
@@ -33,7 +34,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Badge } from '@/components/ui/badge'
-import { useCreateTaskMutation, useGetProjectsQuery } from '@/lib/api/projectsApi'
+import { useCreateTaskMutation, useGetProjectsQuery, useGetColumnsQuery } from '@/lib/api/projectsApi'
 import { useAppSelector } from '@/lib/hooks'
 import { toast } from 'sonner'
 
@@ -62,6 +63,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
   const [isLoading, setIsLoading] = useState(false)
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
+  const [description, setDescription] = useState('')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
   const [createTask] = useCreateTaskMutation()
@@ -82,11 +84,27 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
       title: '',
       description: '',
       projectId: projectId || '',
-      status: defaultStatus || 'todo',
+      status: defaultStatus || '',
       priority: 'medium',
       tags: [],
     },
   })
+
+  // Get columns for the selected project to populate status options
+  const selectedProjectId = projectId || form.watch('projectId')
+  const { data: columnsData } = useGetColumnsQuery(
+    { projectId: selectedProjectId },
+    { skip: !selectedProjectId }
+  )
+
+  // Set default status to first column when columns are loaded
+  React.useEffect(() => {
+    if (columnsData?.columns.length && !form.getValues('status')) {
+      const firstColumn = columnsData.columns.find(col => col.isDefault) || columnsData.columns[0]
+      form.setValue('status', firstColumn.slug)
+    }
+  }, [columnsData, form])
+
 
   const onSubmit = async (data: CreateTaskFormData) => {
     if (!currentWorkspace) return
@@ -95,6 +113,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
     try {
       await createTask({
         ...data,
+        description: description,
         projectId: data.projectId,
         workspaceId: currentWorkspace.id,
         tags,
@@ -106,6 +125,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
       form.reset()
       setTags([])
       setTagInput('')
+      setDescription('')
     } catch (error) {
       console.error('Failed to create task:', error)
       toast.error('Failed to create task')
@@ -134,7 +154,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
           <DialogDescription>
@@ -189,23 +209,15 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                 />
               )}
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe the task..."
-                        className="min-h-[100px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <Label>Description (Optional)</Label>
+                <TiptapEditor
+                  content={description}
+                  onChange={(content) => setDescription(content as unknown as string)}
+                  placeholder="Describe the task..."
+                  className="min-h-[150px]"
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -221,10 +233,16 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="todo">To Do</SelectItem>
-                          <SelectItem value="in-progress">In Progress</SelectItem>
-                          <SelectItem value="review">Review</SelectItem>
-                          <SelectItem value="done">Done</SelectItem>
+                          {columnsData?.columns.map((column) => (
+                            <SelectItem key={column.id} value={column.slug}>
+                              {column.name}
+                            </SelectItem>
+                          ))}
+                          {!columnsData?.columns.length && (
+                            <SelectItem value="todo" disabled>
+                              No columns available - create columns first
+                            </SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />

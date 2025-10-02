@@ -29,7 +29,7 @@ export default function DocumentEditorPage() {
   const params = useParams()
   const router = useRouter()
   const { currentWorkspace } = useAppSelector(state => state.workspace)
-  const documentId = params.id as string
+  const documentId = params?.id as string
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState<any[]>([])
@@ -291,7 +291,7 @@ export default function DocumentEditorPage() {
           <div className="mb-8">
             <TiptapEditor
               content={content}
-              onChange={setContent}
+              onChange={(newContent) => setContent(newContent as any[])}
               onSave={handleSave}
               placeholder="Start writing your document..."
               className="min-h-[600px]"

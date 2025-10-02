@@ -104,9 +104,7 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'columns.update',
           `Updated column: ${updatedColumn?.name}`,
-          'Column',
-          params.id,
-          { changes: validationResult.data }
+          { changes: validationResult.data, columnId: params.id }
         )
 
         const endTime = Date.now()
@@ -214,8 +212,7 @@ export const DELETE = withSecurityLogging(
           auth.user.id,
           'columns.delete',
           `Deleted column: ${columnData.column.name}`,
-          'Column',
-          params.id
+          { columnId: params.id }
         )
 
         const endTime = Date.now()

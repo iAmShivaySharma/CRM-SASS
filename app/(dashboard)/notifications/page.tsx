@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useMemo } from 'react'
@@ -174,7 +175,7 @@ export default function NotificationsPage() {
   }
 
   const filteredNotifications = useMemo(() => {
-    return notifications.filter((notification: NotificationItem) => {
+    return notifications.filter((notification) => {
       if (activeTab === 'unread' && notification.read) return false
       if (activeTab === 'read' && !notification.read) return false
       return true
@@ -346,7 +347,7 @@ export default function NotificationsPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredNotifications.map((notification: NotificationItem) => (
+                  {filteredNotifications.map((notification) => (
                     <div
                       key={notification.id}
                       className={cn(
@@ -389,11 +390,11 @@ export default function NotificationsPage() {
                               {formatDistanceToNow(new Date(notification.timestamp), {
                                 addSuffix: true,
                               })}
-                              {notification.notificationLevel && (
+                              {(notification as any).notificationLevel && (
                                 <>
                                   <span className="mx-2">•</span>
                                   <Badge variant="outline" className="text-xs capitalize">
-                                    {notification.notificationLevel}
+                                    {(notification as any).notificationLevel}
                                   </Badge>
                                 </>
                               )}

@@ -8,7 +8,7 @@ import { z } from 'zod'
 
 const createTaskSchema = z.object({
   title: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
+  description: z.union([z.string(), z.record(z.any()), z.array(z.any())]).optional(),
   projectId: z.string(),
   status: z.string().default('todo'),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
@@ -150,9 +150,7 @@ export const GET = withSecurityLogging(
           projectId
             ? `Listed tasks for project: ${projectId}`
             : `Listed tasks for workspace: ${workspaceId}`,
-          'Task',
-          projectId || workspaceId || '',
-          { projectId, workspaceId, filters: { status, assigneeId, search } }
+          { entityType: 'Task', projectId, workspaceId, filters: { status, assigneeId, search } }
         )
 
         const endTime = Date.now()
@@ -266,9 +264,7 @@ export const POST = withSecurityLogging(
           auth.user.id,
           'tasks.create',
           `Created task: ${task.title}`,
-          'Task',
-          task._id.toString(),
-          { taskId: task._id, projectId: validationResult.data.projectId }
+          { entityType: 'Task', taskId: task._id, projectId: validationResult.data.projectId }
         )
 
         const endTime = Date.now()

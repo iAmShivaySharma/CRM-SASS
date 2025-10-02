@@ -128,7 +128,7 @@ export const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
             Chat Settings
           </DialogTitle>
           <DialogDescription>
-            Manage settings for "{chatRoom.name}"
+            Manage settings for &quot;{chatRoom.name}&quot;
           </DialogDescription>
         </DialogHeader>
 

@@ -122,8 +122,6 @@ export const GET = withSecurityLogging(
           auth.user.id,
           'columns.list',
           `Listed columns for project: ${project.name}`,
-          'Column',
-          projectId,
           { projectId }
         )
 
@@ -234,8 +232,6 @@ export const POST = withSecurityLogging(
           auth.user.id,
           'columns.create',
           `Created column: ${column.name}`,
-          'Column',
-          column._id.toString(),
           { columnId: column._id, projectId: validationResult.data.projectId }
         )
 

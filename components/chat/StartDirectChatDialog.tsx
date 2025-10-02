@@ -128,7 +128,7 @@ export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
               {filteredMembers.length === 0 && searchQuery && (
                 <div className="text-center py-8">
                   <p className="text-sm text-muted-foreground">
-                    No members found matching "{searchQuery}"
+                    No members found matching &quot;{searchQuery}&quot;
                   </p>
                 </div>
               )}

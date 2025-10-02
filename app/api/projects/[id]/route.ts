@@ -95,8 +95,7 @@ export const GET = withSecurityLogging(
           auth.user.id,
           'projects.view',
           `Viewed project: ${project.name}`,
-          'Project',
-          params.id
+          { entityType: 'Project', projectId: params.id }
         )
 
         const endTime = Date.now()
@@ -202,9 +201,7 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'projects.update',
           `Updated project: ${updatedProject?.name}`,
-          'Project',
-          params.id,
-          { changes: validationResult.data }
+          { entityType: 'Project', projectId: params.id, changes: validationResult.data }
         )
 
         const endTime = Date.now()
@@ -299,8 +296,7 @@ export const DELETE = withSecurityLogging(
           auth.user.id,
           'projects.delete',
           `Deleted project: ${project.name}`,
-          'Project',
-          params.id
+          { entityType: 'Project', projectId: params.id }
         )
 
         const endTime = Date.now()

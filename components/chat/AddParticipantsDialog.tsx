@@ -44,7 +44,7 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
   const [updateChatRoom] = useUpdateChatRoomMutation()
 
   const { data: workspaceMembersData, isLoading } = useGetWorkspaceMembersQuery(
-    { workspaceId: workspace.currentWorkspace?.id || '' },
+    workspace.currentWorkspace?.id || '',
     { skip: !workspace.currentWorkspace?.id || !open }
   )
 
@@ -54,15 +54,15 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
   const availableMembers = workspaceMembers.filter(member => {
     const isAlreadyParticipant = Array.isArray(chatRoom.participants) &&
       chatRoom.participants.some((p: any) =>
-        (p.id || p._id || p) === (member.userId?.id || member.userId?._id || member.userId)
+        (p.id || p._id || p) === ((member.userId as any)?.id || (member.userId as any)?._id || member.userId)
       )
 
     if (isAlreadyParticipant) return false
 
     if (!searchQuery) return true
 
-    const memberName = member.userId?.name || member.userId?.email || ''
-    const memberEmail = member.userId?.email || ''
+    const memberName = (member.userId as any)?.name || (member.userId as any)?.email || ''
+    const memberEmail = (member.userId as any)?.email || ''
 
     return memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
            memberEmail.toLowerCase().includes(searchQuery.toLowerCase())
@@ -116,7 +116,7 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
             Add Participants
           </DialogTitle>
           <DialogDescription>
-            Add workspace members to "{chatRoom.name}"
+            Add workspace members to &quot;{chatRoom.name}&quot;
           </DialogDescription>
         </DialogHeader>
 
@@ -148,9 +148,9 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
             ) : (
               <div className="space-y-2">
                 {availableMembers.map((member) => {
-                  const memberId = member.userId?.id || member.userId?._id || member.userId
-                  const memberName = member.userId?.name || member.userId?.email || 'Unknown'
-                  const memberEmail = member.userId?.email
+                  const memberId = (member.userId as any)?.id || (member.userId as any)?._id || member.userId
+                  const memberName = (member.userId as any)?.name || (member.userId as any)?.email || 'Unknown'
+                  const memberEmail = (member.userId as any)?.email
                   const isSelected = selectedMembers.includes(memberId)
 
                   return (
@@ -167,7 +167,7 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
                         onChange={() => handleMemberToggle(memberId)}
                       />
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.userId?.avatar} />
+                        <AvatarImage src={(member.userId as any)?.avatar} />
                         <AvatarFallback>
                           {memberName.charAt(0).toUpperCase()}
                         </AvatarFallback>
