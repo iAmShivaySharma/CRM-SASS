@@ -70,10 +70,9 @@ const updateLeadSchema = z.object({
 // PUT /api/leads/[id] - Update a lead
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
       console.log('=== LEAD UPDATE API DEBUG START ===')
-      console.log('Lead ID:', params.id)
 
       try {
         console.log('Connecting to MongoDB...')
@@ -91,7 +90,8 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        const leadId = params.id
+        const { id: leadId } = await params
+        console.log('Lead ID:', leadId)
         console.log('Reading request body...')
         const body = await request.json()
         console.log('Request body:', body)
@@ -439,7 +439,7 @@ export const PUT = withSecurityLogging(
 // DELETE /api/leads/[id] - Delete a lead
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       try {
         await connectToMongoDB()
 
@@ -453,7 +453,7 @@ export const DELETE = withSecurityLogging(
 
         const url = new URL(request.url)
         const workspaceId = url.searchParams.get('workspaceId')
-        const leadId = params.id
+        const { id: leadId } = await params
 
         if (!workspaceId || !leadId) {
           return NextResponse.json(

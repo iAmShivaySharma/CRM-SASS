@@ -6,7 +6,7 @@ import { connectToMongoDB } from '@/lib/mongodb/connection'
 // Add reaction to message
 export async function POST(
   request: NextRequest,
-  { params }: { params: { messageId: string } }
+  { params }: { params: Promise<{ messageId: string }> }
 ) {
   try {
     await connectToMongoDB()
@@ -20,7 +20,7 @@ export async function POST(
     }
 
     const { emoji, chatRoomId } = await request.json()
-    const { messageId } = params
+    const { messageId } = await params
 
     if (!emoji || !chatRoomId) {
       return NextResponse.json(
@@ -83,7 +83,7 @@ export async function POST(
 // Remove reaction from message
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { messageId: string } }
+  { params }: { params: Promise<{ messageId: string }> }
 ) {
   try {
     await connectToMongoDB()
@@ -97,7 +97,7 @@ export async function DELETE(
     }
 
     const { emoji, chatRoomId } = await request.json()
-    const { messageId } = params
+    const { messageId } = await params
 
     if (!emoji || !chatRoomId) {
       return NextResponse.json(

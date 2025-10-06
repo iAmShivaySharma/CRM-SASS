@@ -213,7 +213,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                 <Label>Description (Optional)</Label>
                 <TiptapEditor
                   content={description}
-                  onChange={(content) => setDescription(content as unknown as string)}
+                  onChange={setDescription}
                   placeholder="Describe the task..."
                   className="min-h-[150px]"
                 />

@@ -13,7 +13,7 @@ import { log } from '@/lib/logging/logger'
 // DELETE /api/lead-statuses/[id] - Delete a lead status
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -29,7 +29,7 @@ export const DELETE = withSecurityLogging(
 
         const url = new URL(request.url)
         const workspaceId = url.searchParams.get('workspaceId')
-        const statusId = params.id
+        const { id: statusId } = await params
 
         if (!workspaceId || !statusId) {
           return NextResponse.json(

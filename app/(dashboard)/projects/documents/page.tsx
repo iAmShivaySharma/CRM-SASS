@@ -101,7 +101,7 @@ export default function ProjectDocumentsPage() {
     try {
       const result = await createDocument({
         title: 'Untitled Document',
-        content: [],
+        content: '',
         projectId: projectFilter,
         workspaceId: currentWorkspace.id,
         type: 'document',

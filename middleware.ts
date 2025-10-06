@@ -146,7 +146,7 @@ function getClientIP(request: NextRequest): string {
     return realIP
   }
 
-  return request.ip || 'unknown'
+  return request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
 }
 
 export async function middleware(request: NextRequest) {

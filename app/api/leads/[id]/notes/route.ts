@@ -20,7 +20,7 @@ const createNoteSchema = z.object({
 // GET /api/leads/[id]/notes - Get notes for a lead
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -34,7 +34,7 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const { id: leadId } = params
+        const { id: leadId } = await params
         const url = new URL(request.url)
         const page = parseInt(url.searchParams.get('page') || '1')
         const limit = parseInt(url.searchParams.get('limit') || '20')
@@ -118,7 +118,7 @@ export const GET = withSecurityLogging(
 // POST /api/leads/[id]/notes - Create a new note for a lead
 export const POST = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -132,7 +132,7 @@ export const POST = withSecurityLogging(
           )
         }
 
-        const { id: leadId } = params
+        const { id: leadId } = await params
         const body = await request.json()
 
         const validationResult = createNoteSchema.safeParse(body)

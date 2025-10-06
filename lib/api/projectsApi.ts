@@ -87,7 +87,7 @@ export interface Task {
 export interface Document {
   id: string
   title: string
-  content: any[]
+  content: string
   projectId: string
   folderId?: string
   type: 'document' | 'template' | 'note'

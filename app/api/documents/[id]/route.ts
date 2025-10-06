@@ -52,7 +52,7 @@ async function checkDocumentAccess(documentId: string, userId: string) {
 // GET /api/documents/[id] - Get a specific document
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
       console.log('=== GET DOCUMENT API DEBUG START ===')
 
@@ -71,7 +71,7 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const documentId = params.id
+        const { id: documentId } = await params
         console.log('Fetching document:', documentId)
 
         const document = await checkDocumentAccess(documentId, auth.user.id)
@@ -144,7 +144,7 @@ export const GET = withSecurityLogging(
 // PUT /api/documents/[id] - Update a document
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
       console.log('=== UPDATE DOCUMENT API DEBUG START ===')
 
@@ -163,7 +163,7 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        const documentId = params.id
+        const { id: documentId } = await params
         const body = await request.json()
         console.log('Request body received:', JSON.stringify(body, null, 2))
         console.log('Tags raw value:', body.tags, typeof body.tags)
@@ -313,7 +313,7 @@ export const PUT = withSecurityLogging(
 // DELETE /api/documents/[id] - Delete a document
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
       console.log('=== DELETE DOCUMENT API DEBUG START ===')
 
@@ -332,7 +332,7 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        const documentId = params.id
+        const { id: documentId } = await params
         console.log('Deleting document:', documentId)
 
         const document = await checkDocumentAccess(documentId, auth.user.id)

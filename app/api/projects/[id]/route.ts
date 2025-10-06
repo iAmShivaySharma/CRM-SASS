@@ -49,58 +49,42 @@ async function checkProjectAccess(projectId: string, userId: string, permission:
 // GET /api/projects/[id] - Get project details
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
-      console.log('=== PROJECT DETAILS API DEBUG START ===')
-      console.log('Project ID:', params.id)
-
-      try {
-        console.log('Connecting to MongoDB...')
+try {
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
-
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
           )
         }
 
-        console.log('Checking project access...')
-        const project = await checkProjectAccess(params.id, auth.user.id, 'read')
+        const { id } = await params
+        const project = await checkProjectAccess(id, auth.user.id, 'read')
 
         if (!project) {
-          console.log('Project not found or access denied')
           return NextResponse.json(
             { message: 'Project not found' },
             { status: 404 }
           )
         }
-
-        console.log('Project access confirmed')
-
         // Get additional project stats
         const [memberCount, taskCount, completedTaskCount] = await Promise.all([
-          ProjectMember.countDocuments({ projectId: params.id, status: 'active' }),
-          Task.countDocuments({ projectId: params.id }),
-          Task.countDocuments({ projectId: params.id, status: 'completed' }),
+          ProjectMember.countDocuments({ projectId: id, status: 'active' }),
+          Task.countDocuments({ projectId: id }),
+          Task.countDocuments({ projectId: id, status: 'completed' }),
         ])
-
-        console.log('Retrieved project stats:', { memberCount, taskCount, completedTaskCount })
 
         await logUserActivity(
           auth.user.id,
           'projects.view',
           `Viewed project: ${project.name}`,
-          { entityType: 'Project', projectId: params.id }
+          { entityType: 'Project', projectId: id }
         )
 
         const endTime = Date.now()
-        console.log(`=== PROJECT DETAILS API SUCCESS (${endTime - startTime}ms) ===`)
-
         return NextResponse.json({
           project: {
             ...project.toJSON(),
@@ -110,12 +94,6 @@ export const GET = withSecurityLogging(
           },
         })
       } catch (error) {
-        console.error('=== PROJECT DETAILS API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Get project error:', error)
         return NextResponse.json(
           {
@@ -142,11 +120,7 @@ export const GET = withSecurityLogging(
 // PUT /api/projects/[id] - Update project
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
-      const startTime = Date.now()
-      console.log('=== UPDATE PROJECT API DEBUG START ===')
-      console.log('Project ID:', params.id)
-
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       try {
         console.log('Connecting to MongoDB...')
         await connectToMongoDB()
@@ -162,8 +136,10 @@ export const PUT = withSecurityLogging(
           )
         }
 
+        const { id } = await params
+        console.log('Project ID:', id)
         console.log('Checking project access...')
-        const project = await checkProjectAccess(params.id, auth.user.id, 'manage')
+        const project = await checkProjectAccess(id, auth.user.id, 'manage')
 
         if (!project) {
           console.log('Project not found or access denied')
@@ -192,7 +168,7 @@ export const PUT = withSecurityLogging(
         console.log('Updating project...')
         // Update the project
         const updatedProject = await Project.findByIdAndUpdate(
-          params.id,
+          id,
           { ...validationResult.data, updatedAt: new Date() },
           { new: true }
         )
@@ -201,11 +177,10 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'projects.update',
           `Updated project: ${updatedProject?.name}`,
-          { entityType: 'Project', projectId: params.id, changes: validationResult.data }
+          { entityType: 'Project', projectId: id, changes: validationResult.data }
         )
 
         const endTime = Date.now()
-        console.log(`=== UPDATE PROJECT API SUCCESS (${endTime - startTime}ms) ===`)
 
         return NextResponse.json({
           project: updatedProject?.toJSON(),
@@ -243,11 +218,8 @@ export const PUT = withSecurityLogging(
 // DELETE /api/projects/[id] - Delete project
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
-      console.log('=== DELETE PROJECT API DEBUG START ===')
-      console.log('Project ID:', params.id)
-
       try {
         console.log('Connecting to MongoDB...')
         await connectToMongoDB()
@@ -263,8 +235,10 @@ export const DELETE = withSecurityLogging(
           )
         }
 
+        const { id } = await params
+        console.log('Project ID:', id)
         console.log('Checking project access...')
-        const project = await checkProjectAccess(params.id, auth.user.id, 'manage')
+        const project = await checkProjectAccess(id, auth.user.id, 'manage')
 
         if (!project) {
           console.log('Project not found or access denied')
@@ -286,9 +260,9 @@ export const DELETE = withSecurityLogging(
         console.log('Deleting project and related data...')
         // Delete project and related data
         await Promise.all([
-          Project.findByIdAndDelete(params.id),
-          ProjectMember.deleteMany({ projectId: params.id }),
-          Task.deleteMany({ projectId: params.id }),
+          Project.findByIdAndDelete(id),
+          ProjectMember.deleteMany({ projectId: id }),
+          Task.deleteMany({ projectId: id }),
           // We'll add document cleanup when those APIs are ready
         ])
 
@@ -296,7 +270,7 @@ export const DELETE = withSecurityLogging(
           auth.user.id,
           'projects.delete',
           `Deleted project: ${project.name}`,
-          { entityType: 'Project', projectId: params.id }
+          { entityType: 'Project', projectId: id }
         )
 
         const endTime = Date.now()

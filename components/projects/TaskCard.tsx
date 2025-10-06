@@ -84,9 +84,10 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
         </div>
 
         {task.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-            {task.description}
-          </p>
+          <div
+            className="text-xs text-muted-foreground line-clamp-2 mb-3 prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: task.description }}
+          />
         )}
 
         {/* Tags */}

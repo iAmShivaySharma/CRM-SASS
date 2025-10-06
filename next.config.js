@@ -3,10 +3,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images: { unoptimized: true },
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose'],
+  images: { 
+    unoptimized: true 
   },
+  serverExternalPackages: ['mongoose'], // ✅ updated config
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Handle MongoDB optional dependencies
@@ -20,10 +20,10 @@ const nextConfig = {
         socks: 'commonjs socks',
         aws4: 'commonjs aws4',
         'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
-      })
+      });
     }
-    return config
+    return config;
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

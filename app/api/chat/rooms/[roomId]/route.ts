@@ -5,7 +5,7 @@ import { connectToMongoDB } from '@/lib/mongodb/connection'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
     await connectToMongoDB()
@@ -18,7 +18,7 @@ export async function PUT(
       )
     }
 
-    const { roomId } = params
+    const { roomId } = await params
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
 
@@ -90,7 +90,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
     await connectToMongoDB()
@@ -103,7 +103,7 @@ export async function DELETE(
       )
     }
 
-    const { roomId } = params
+    const { roomId } = await params
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
 

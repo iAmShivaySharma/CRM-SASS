@@ -41,8 +41,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 interface TiptapEditorProps {
-  content?: string | object
-  onChange?: (content: object) => void
+  content?: string
+  onChange?: (content: string) => void
   onSave?: () => void
   editable?: boolean
   placeholder?: string
@@ -68,43 +68,13 @@ export function TiptapEditor({
   const [imageAlt, setImageAlt] = useState('')
   const colorDropdownRef = useRef<HTMLDivElement>(null)
 
-  // Get initial content - prefer JSON format for better data integrity
+  // Get initial content - handle HTML strings
   const getInitialContent = useCallback(() => {
-    if (!content) {
+    if (!content || content.trim() === '') {
       return '<p></p>'
     }
-
-    // If content is an empty array, treat as no content
-    if (Array.isArray(content) && content.length === 0) {
-      return '<p></p>'
-    }
-
-    // Handle legacy array format with HTML content inside
-    if (Array.isArray(content) && content.length > 0) {
-      const firstBlock = content[0]
-      if (firstBlock && firstBlock.content && typeof firstBlock.content === 'string') {
-        return firstBlock.content
-      }
-      // If array contains other formats, try to extract content
-      const htmlContent = content.map(block => {
-        if (typeof block === 'string') return block
-        if (block && block.content) return block.content
-        return ''
-      }).join('')
-      return htmlContent || '<p></p>'
-    }
-
-    // If content is already a string (HTML), use it directly
-    if (typeof content === 'string') {
-      return content || '<p></p>'
-    }
-
-    // If content is JSON object from Tiptap, use it directly
-    if (typeof content === 'object' && content !== null && !Array.isArray(content)) {
-      return content
-    }
-
-    return '<p></p>'
+    // Content is now expected to be an HTML string
+    return content
   }, [content])
 
   const editor = useEditor({
@@ -162,9 +132,9 @@ export function TiptapEditor({
     editable,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      // Use JSON format for better data integrity and structure
-      const json = editor.getJSON()
-      onChange?.(json)
+      // Use HTML format for better compatibility and simpler rendering
+      const html = editor.getHTML()
+      onChange?.(html)
     },
     editorProps: {
       attributes: {
@@ -211,11 +181,11 @@ export function TiptapEditor({
   // Update editor content when content prop changes
   useEffect(() => {
     if (editor && !editor.isDestroyed) {
-      const currentContent = editor.getJSON()
+      const currentContent = editor.getHTML()
       const newContent = getInitialContent()
 
       // Only update if content has actually changed
-      if (JSON.stringify(currentContent) !== JSON.stringify(newContent)) {
+      if (currentContent !== newContent) {
         editor.commands.setContent(newContent, { emitUpdate: false })
       }
     }
@@ -826,7 +796,7 @@ export function TiptapReader({
 }) {
   return (
     <TiptapEditor
-      content={content}
+      content={typeof content === 'string' ? content : JSON.stringify(content)}
       editable={false}
       className={className}
       minHeight={minHeight}

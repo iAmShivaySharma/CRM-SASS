@@ -246,7 +246,7 @@ export default function TasksPage() {
           </div>
         </div>
       ) : (
-        <TasksList tasks={tasksData.tasks} />
+        <TasksList tasks={tasksData?.tasks} />
       )}
 
       {/* Create Task Dialog */}

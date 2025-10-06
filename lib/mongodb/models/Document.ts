@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose'
 export interface IProjectDocument extends Document {
   _id: string
   title: string
-  content: any[] | any // Block-based content (JSON array of blocks or Tiptap JSON object)
+  content: string // HTML string for rich text content
   projectId: string
   folderId?: string // For organizing documents in folders
   type: 'document' | 'template' | 'note'
@@ -40,8 +40,8 @@ const ProjectDocumentSchema = new Schema<IProjectDocument>(
       maxlength: 200,
     },
     content: {
-      type: Schema.Types.Mixed,
-      default: [],
+      type: String,
+      default: '',
     },
     projectId: {
       type: String,

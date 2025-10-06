@@ -43,12 +43,9 @@ async function checkTaskAccess(taskId: string, userId: string) {
 // GET /api/tasks/[id] - Get task details
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
-      console.log('=== TASK DETAILS API DEBUG START ===')
-      console.log('Task ID:', params.id)
-
-      try {
+try {
         console.log('Connecting to MongoDB...')
         await connectToMongoDB()
         console.log('MongoDB connected successfully')
@@ -63,8 +60,10 @@ export const GET = withSecurityLogging(
           )
         }
 
+        const { id } = await params
+        console.log('Task ID:', id)
         console.log('Checking task access...')
-        const taskData = await checkTaskAccess(params.id, auth.user.id)
+        const taskData = await checkTaskAccess(id, auth.user.id)
 
         if (!taskData) {
           console.log('Task not found or access denied')
@@ -83,7 +82,7 @@ export const GET = withSecurityLogging(
           auth.user.id,
           'tasks.view',
           `Viewed task: ${taskData.task.title}`,
-          { entityType: 'Task', taskId: params.id }
+          { entityType: 'Task', taskId: id }
         )
 
         const endTime = Date.now()
@@ -128,10 +127,9 @@ export const GET = withSecurityLogging(
 // PUT /api/tasks/[id] - Update task
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
-      console.log('=== UPDATE TASK API DEBUG START ===')
-      console.log('Task ID:', params.id)
+
 
       try {
         console.log('Connecting to MongoDB...')
@@ -148,8 +146,10 @@ export const PUT = withSecurityLogging(
           )
         }
 
+        const { id } = await params
+        console.log('Task ID:', id)
         console.log('Checking task access...')
-        const taskData = await checkTaskAccess(params.id, auth.user.id)
+        const taskData = await checkTaskAccess(id, auth.user.id)
 
         if (!taskData) {
           console.log('Task not found or access denied')
@@ -178,7 +178,7 @@ export const PUT = withSecurityLogging(
         console.log('Updating task...')
         // Update the task
         const updatedTask = await Task.findByIdAndUpdate(
-          params.id,
+          id,
           { ...validationResult.data, updatedAt: new Date() },
           { new: true }
         )
@@ -190,7 +190,7 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'tasks.update',
           `Updated task: ${updatedTask?.title}`,
-          { entityType: 'Task', taskId: params.id, changes: validationResult.data }
+          { entityType: 'Task', taskId: id, changes: validationResult.data }
         )
 
         const endTime = Date.now()
@@ -235,10 +235,9 @@ export const PUT = withSecurityLogging(
 // DELETE /api/tasks/[id] - Delete task
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
-      console.log('=== DELETE TASK API DEBUG START ===')
-      console.log('Task ID:', params.id)
+
 
       try {
         console.log('Connecting to MongoDB...')
@@ -255,8 +254,10 @@ export const DELETE = withSecurityLogging(
           )
         }
 
+        const { id } = await params
+        console.log('Task ID:', id)
         console.log('Checking task access...')
-        const taskData = await checkTaskAccess(params.id, auth.user.id)
+        const taskData = await checkTaskAccess(id, auth.user.id)
 
         if (!taskData) {
           console.log('Task not found or access denied')
@@ -267,13 +268,13 @@ export const DELETE = withSecurityLogging(
         }
 
         console.log('Deleting task...')
-        await Task.findByIdAndDelete(params.id)
+        await Task.findByIdAndDelete(id)
 
         await logUserActivity(
           auth.user.id,
           'tasks.delete',
           `Deleted task: ${taskData.task.title}`,
-          { entityType: 'Task', taskId: params.id }
+          { entityType: 'Task', taskId: id }
         )
 
         const endTime = Date.now()

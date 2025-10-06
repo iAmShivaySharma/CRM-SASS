@@ -83,10 +83,16 @@ export function TasksList({ tasks }: TasksListProps) {
                   </div>
 
                   {task.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                      {task.description}
-                    </p>
+                    <div
+                      className="text-sm text-muted-foreground line-clamp-2 mb-3"
+                      dangerouslySetInnerHTML={{
+                        __html: typeof task.description === "string"
+                          ? task.description
+                          : JSON.stringify(task.description),
+                      }}
+                    />
                   )}
+
 
                   {/* Tags */}
                   {task.tags && task.tags.length > 0 && (

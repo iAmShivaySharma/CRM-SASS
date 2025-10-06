@@ -112,7 +112,7 @@ export function DocumentEditorDialog({
     try {
       const documentData = {
         ...data,
-        content,
+        content: JSON.stringify(content),
         tags,
         projectId,
         workspaceId: currentWorkspace.id,

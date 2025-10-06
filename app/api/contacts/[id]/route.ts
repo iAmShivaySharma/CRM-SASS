@@ -91,7 +91,7 @@ const updateContactSchema = z.object({
 // GET /api/contacts/[id] - Get a specific contact
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       try {
         await connectToMongoDB()
 
@@ -103,7 +103,7 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const contactId = params.id
+        const { id: contactId } = await params
         const url = new URL(request.url)
         const workspaceId = url.searchParams.get('workspaceId')
 
@@ -161,7 +161,7 @@ export const GET = withSecurityLogging(
 // PUT /api/contacts/[id] - Update a contact
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -175,7 +175,7 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        const contactId = params.id
+        const { id: contactId } = await params
         const body = await request.json()
 
         // Get workspaceId from query params
@@ -329,7 +329,7 @@ export const PUT = withSecurityLogging(
 // DELETE /api/contacts/[id] - Delete a contact
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -345,7 +345,7 @@ export const DELETE = withSecurityLogging(
 
         const url = new URL(request.url)
         const workspaceId = url.searchParams.get('workspaceId')
-        const contactId = params.id
+        const { id: contactId } = await params
 
         if (!workspaceId || !contactId) {
           return NextResponse.json(

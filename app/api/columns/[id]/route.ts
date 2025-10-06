@@ -36,10 +36,9 @@ async function checkColumnAccess(columnId: string, userId: string) {
 // PUT /api/columns/[id] - Update column
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
       console.log('=== UPDATE COLUMN API DEBUG START ===')
-      console.log('Column ID:', params.id)
 
       try {
         console.log('Connecting to MongoDB...')
@@ -56,8 +55,10 @@ export const PUT = withSecurityLogging(
           )
         }
 
+        const { id } = await params
+        console.log('Column ID:', id)
         console.log('Checking column access...')
-        const columnData = await checkColumnAccess(params.id, auth.user.id)
+        const columnData = await checkColumnAccess(id, auth.user.id)
 
         if (!columnData) {
           console.log('Column not found or access denied')
@@ -95,7 +96,7 @@ export const PUT = withSecurityLogging(
         }
 
         const updatedColumn = await Column.findByIdAndUpdate(
-          params.id,
+          id,
           { ...validationResult.data, updatedAt: new Date() },
           { new: true }
         )
@@ -104,7 +105,7 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'columns.update',
           `Updated column: ${updatedColumn?.name}`,
-          { changes: validationResult.data, columnId: params.id }
+          { changes: validationResult.data, columnId: id }
         )
 
         const endTime = Date.now()
@@ -149,11 +150,8 @@ export const PUT = withSecurityLogging(
 // DELETE /api/columns/[id] - Delete column
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
-      console.log('=== DELETE COLUMN API DEBUG START ===')
-      console.log('Column ID:', params.id)
-
       try {
         console.log('Connecting to MongoDB...')
         await connectToMongoDB()
@@ -169,8 +167,8 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        console.log('Checking column access...')
-        const columnData = await checkColumnAccess(params.id, auth.user.id)
+        const { id } = await params
+        const columnData = await checkColumnAccess(id, auth.user.id)
 
         if (!columnData) {
           console.log('Column not found or access denied')
@@ -206,13 +204,13 @@ export const DELETE = withSecurityLogging(
         }
 
         console.log('Deleting column...')
-        await Column.findByIdAndDelete(params.id)
+        await Column.findByIdAndDelete(id)
 
         await logUserActivity(
           auth.user.id,
           'columns.delete',
           `Deleted column: ${columnData.column.name}`,
-          { columnId: params.id }
+          { columnId: id }
         )
 
         const endTime = Date.now()

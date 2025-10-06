@@ -13,7 +13,7 @@ import { log } from '@/lib/logging/logger'
 // POST /api/leads/[id]/convert-to-contact - Convert a lead to a contact
 export const POST = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -27,7 +27,7 @@ export const POST = withSecurityLogging(
           )
         }
 
-        const leadId = params.id
+        const { id: leadId } = await params
         const url = new URL(request.url)
         const workspaceId = url.searchParams.get('workspaceId')
 

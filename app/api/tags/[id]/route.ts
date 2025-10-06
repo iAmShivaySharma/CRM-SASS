@@ -23,7 +23,7 @@ const updateTagSchema = z.object({
 // GET /api/tags/[id] - Get tag details
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -37,7 +37,7 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const { id: tagId } = params
+        const { id: tagId } = await params
 
         // Get tag
         const tag = await Tag.findById(tagId)
@@ -89,7 +89,7 @@ export const GET = withSecurityLogging(
 // PUT /api/tags/[id] - Update tag
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -103,7 +103,7 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        const { id: tagId } = params
+        const { id: tagId } = await params
         const body = await request.json()
 
         const validationResult = updateTagSchema.safeParse(body)
@@ -202,7 +202,7 @@ export const PUT = withSecurityLogging(
 // DELETE /api/tags/[id] - Delete tag
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -216,7 +216,7 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        const { id: tagId } = params
+        const { id: tagId } = await params
 
         // Get tag
         const tag = await Tag.findById(tagId)

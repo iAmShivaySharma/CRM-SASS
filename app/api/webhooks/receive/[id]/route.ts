@@ -8,10 +8,10 @@ import crypto from 'crypto'
 // POST /api/webhooks/receive/[id] - Receive webhook data
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now()
-  const webhookId = params.id
+  const { id: webhookId } = await params
 
   let workspaceId = 'unknown'
 

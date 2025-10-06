@@ -8,9 +8,9 @@ import { log } from '@/lib/logging/logger'
 // GET /api/workspaces/[id]/members - Get workspace members
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
-      const workspaceId = params.id
+      const { id: workspaceId } = await params
 
       try {
         await connectToMongoDB()

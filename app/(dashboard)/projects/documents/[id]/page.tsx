@@ -32,7 +32,7 @@ export default function DocumentEditorPage() {
   const documentId = params?.id as string
 
   const [title, setTitle] = useState('')
-  const [content, setContent] = useState<any[]>([])
+  const [content, setContent] = useState<string>('')
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>('draft')
   const [visibility, setVisibility] = useState<'private' | 'project' | 'workspace'>('project')
   const [tags, setTags] = useState<string[]>([])
@@ -58,7 +58,11 @@ export default function DocumentEditorPage() {
       console.log('Document tags:', doc.tags)
 
       setTitle(doc.title)
-      setContent(doc.content || [])
+      // Handle conversion from array format to HTML string
+      const contentToSet = Array.isArray(doc.content)
+        ? doc.content.map(block => typeof block === 'string' ? block : block?.content || '').join('')
+        : doc.content || ''
+      setContent(contentToSet)
       setStatus(doc.status)
       setVisibility(doc.visibility)
       setTags(doc.tags?.map((tag: any) =>
@@ -291,7 +295,7 @@ export default function DocumentEditorPage() {
           <div className="mb-8">
             <TiptapEditor
               content={content}
-              onChange={(newContent) => setContent(newContent as any[])}
+              onChange={setContent}
               onSave={handleSave}
               placeholder="Start writing your document..."
               className="min-h-[600px]"

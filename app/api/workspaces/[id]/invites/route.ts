@@ -45,7 +45,7 @@ function generateInviteToken(): string {
 // GET /api/workspaces/[id]/invites - List pending invitations
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -69,7 +69,7 @@ export const GET = withSecurityLogging(
         }
 
         const userId = authResult.user.id
-        const workspaceId = params.id
+        const { id: workspaceId } = await params
 
         // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
@@ -179,7 +179,7 @@ export const GET = withSecurityLogging(
 // POST /api/workspaces/[id]/invites - Send new invitation
 export const POST = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
       const startTime = Date.now()
 
       try {
@@ -205,7 +205,7 @@ export const POST = withSecurityLogging(
         }
 
         const userId = authResult.user.id
-        const workspaceId = params.id
+        const { id: workspaceId } = await params
 
         // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {

@@ -12,7 +12,7 @@ const getActivitiesSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await verifyAuthToken(request)
@@ -45,7 +45,7 @@ export async function GET(
     }
 
     const { limit } = validation.data
-    const leadId = params.id
+    const { id: leadId } = await params
 
     // Get lead activities
     const activities = await mongoClient.getLeadActivities(leadId, limit)
@@ -70,7 +70,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await verifyAuthToken(request)
@@ -89,7 +89,7 @@ export async function POST(
     }
 
     const body = await request.json()
-    const leadId = params.id
+    const { id: leadId } = await params
 
     const activitySchema = z.object({
       activityType: z.enum([
