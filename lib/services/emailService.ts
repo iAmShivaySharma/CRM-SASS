@@ -31,7 +31,9 @@ class EmailService {
     const apiKey = process.env.RESEND_API_KEY
 
     if (!apiKey) {
-      log.warn('RESEND_API_KEY not found in environment variables. Email service will be disabled.')
+      log.warn(
+        'RESEND_API_KEY not found in environment variables. Email service will be disabled.'
+      )
       return
     }
 
@@ -44,7 +46,9 @@ class EmailService {
     }
   }
 
-  async sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  async sendEmail(
+    options: EmailOptions
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     if (!this.isConfigured || !this.resend) {
       log.warn('Email service not configured. Skipping email send.')
       return { success: false, error: 'Email service not configured' }
@@ -52,7 +56,10 @@ class EmailService {
 
     try {
       const result = await this.resend.emails.send({
-        from: options.from || process.env.EMAIL_FROM_ADDRESS || 'CRM <noreply@yourdomain.com>',
+        from:
+          options.from ||
+          process.env.EMAIL_FROM_ADDRESS ||
+          'CRM <noreply@yourdomain.com>',
         to: options.to,
         subject: options.subject,
         html: options.html,
@@ -66,7 +73,7 @@ class EmailService {
 
       log.info(`Email sent successfully to ${options.to}`, {
         messageId: result.data?.id,
-        subject: options.subject
+        subject: options.subject,
       })
 
       return { success: true, messageId: result.data?.id }
@@ -74,12 +81,14 @@ class EmailService {
       log.error('Email service error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown email error'
+        error: error instanceof Error ? error.message : 'Unknown email error',
       }
     }
   }
 
-  async sendInvitationEmail(data: InvitationEmailData): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  async sendInvitationEmail(
+    data: InvitationEmailData
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     if (!this.isConfigured) {
       log.warn('Email service not configured. Skipping invitation email.')
       return { success: false, error: 'Email service not configured' }
@@ -87,7 +96,9 @@ class EmailService {
 
     try {
       // Import email template
-      const { getInvitationEmailTemplate } = await import('@/lib/templates/email/invitationTemplate')
+      const { getInvitationEmailTemplate } = await import(
+        '@/lib/templates/email/invitationTemplate'
+      )
 
       const { html, text, subject } = getInvitationEmailTemplate(data)
 
@@ -101,7 +112,10 @@ class EmailService {
       log.error('Failed to send invitation email:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to send invitation email'
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to send invitation email',
       }
     }
   }

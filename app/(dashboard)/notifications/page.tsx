@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useMemo } from 'react'
@@ -93,7 +92,10 @@ export default function NotificationsPage() {
   const [updateNotification, { isLoading: updateLoading }] =
     useUpdateNotificationMutation()
 
-  const notifications = notificationsData?.notifications || []
+  const notifications = useMemo(
+    () => notificationsData?.notifications || [],
+    [notificationsData?.notifications]
+  )
   const totalCount = notificationsData?.total || 0
   const unreadCount = notificationsData?.unreadCount || 0
 
@@ -175,7 +177,7 @@ export default function NotificationsPage() {
   }
 
   const filteredNotifications = useMemo(() => {
-    return notifications.filter((notification) => {
+    return notifications.filter(notification => {
       if (activeTab === 'unread' && notification.read) return false
       if (activeTab === 'read' && !notification.read) return false
       return true
@@ -213,7 +215,9 @@ export default function NotificationsPage() {
             onClick={() => refetch()}
             disabled={isLoading}
           >
-            <RefreshCw className={cn('h-4 w-4 mr-2', isLoading && 'animate-spin')} />
+            <RefreshCw
+              className={cn('mr-2 h-4 w-4', isLoading && 'animate-spin')}
+            />
             Refresh
           </Button>
           {unreadCount > 0 && (
@@ -223,7 +227,7 @@ export default function NotificationsPage() {
               onClick={handleMarkAllAsRead}
               disabled={updateLoading}
             >
-              <MailOpen className="h-4 w-4 mr-2" />
+              <MailOpen className="mr-2 h-4 w-4" />
               Mark All Read
             </Button>
           )}
@@ -286,7 +290,7 @@ export default function NotificationsPage() {
             <div className="flex items-center gap-3">
               <Select value={entityFilter} onValueChange={setEntityFilter}>
                 <SelectTrigger className="w-40">
-                  <Filter className="h-4 w-4 mr-2" />
+                  <Filter className="mr-2 h-4 w-4" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -305,12 +309,8 @@ export default function NotificationsPage() {
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">
-                All ({totalCount})
-              </TabsTrigger>
-              <TabsTrigger value="unread">
-                Unread ({unreadCount})
-              </TabsTrigger>
+              <TabsTrigger value="all">All ({totalCount})</TabsTrigger>
+              <TabsTrigger value="unread">Unread ({unreadCount})</TabsTrigger>
               <TabsTrigger value="read">
                 Read ({totalCount - unreadCount})
               </TabsTrigger>
@@ -323,9 +323,11 @@ export default function NotificationsPage() {
                   <span className="ml-2">Loading notifications...</span>
                 </div>
               ) : error ? (
-                <div className="text-center py-8">
+                <div className="py-8 text-center">
                   <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
-                  <h3 className="text-lg font-medium">Error Loading Notifications</h3>
+                  <h3 className="text-lg font-medium">
+                    Error Loading Notifications
+                  </h3>
                   <p className="text-muted-foreground">
                     Failed to load notifications. Please try again.
                   </p>
@@ -334,7 +336,7 @@ export default function NotificationsPage() {
                   </Button>
                 </div>
               ) : filteredNotifications.length === 0 ? (
-                <div className="text-center py-8">
+                <div className="py-8 text-center">
                   <Bell className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
                   <h3 className="text-lg font-medium">No Notifications</h3>
                   <p className="text-muted-foreground">
@@ -347,23 +349,23 @@ export default function NotificationsPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredNotifications.map((notification) => (
+                  {filteredNotifications.map(notification => (
                     <div
                       key={notification.id}
                       className={cn(
                         'rounded-lg border p-4 transition-all hover:shadow-md',
                         !notification.read
-                          ? 'bg-primary/5 border-primary/20'
-                          : 'bg-background border-border',
+                          ? 'border-primary/20 bg-primary/5'
+                          : 'border-border bg-background',
                         getNotificationTypeColor(notification.type)
                       )}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
-                          <div className="flex-shrink-0 mt-1">
+                          <div className="mt-1 flex-shrink-0">
                             {getNotificationIcon(notification.type)}
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center space-x-2">
                               <h4 className="text-sm font-medium text-foreground">
                                 {notification.title}
@@ -386,14 +388,20 @@ export default function NotificationsPage() {
                               {notification.message}
                             </p>
                             <div className="mt-2 flex items-center text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {formatDistanceToNow(new Date(notification.timestamp), {
-                                addSuffix: true,
-                              })}
+                              <Clock className="mr-1 h-3 w-3" />
+                              {formatDistanceToNow(
+                                new Date(notification.timestamp),
+                                {
+                                  addSuffix: true,
+                                }
+                              )}
                               {(notification as any).notificationLevel && (
                                 <>
                                   <span className="mx-2">•</span>
-                                  <Badge variant="outline" className="text-xs capitalize">
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs capitalize"
+                                  >
                                     {(notification as any).notificationLevel}
                                   </Badge>
                                 </>

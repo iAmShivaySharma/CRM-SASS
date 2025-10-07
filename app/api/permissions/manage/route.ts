@@ -5,22 +5,43 @@ import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
   validatePermissionDependencies,
   validatePermissionConflicts,
-  getAvailablePermissions
+  getAvailablePermissions,
 } from '@/lib/mongodb/seedPermissions'
 import {
   logUserActivity,
   logBusinessEvent,
   withLogging,
-  withSecurityLogging
+  withSecurityLogging,
 } from '@/lib/logging/middleware'
 import { z } from 'zod'
 
 const createPermissionSchema = z.object({
-  resource: z.string().min(1).max(50).regex(/^[a-z][a-z0-9_]*$/, 'Resource must be lowercase with underscores only'),
-  action: z.string().min(1).max(50).regex(/^[a-z][a-z0-9_]*$/, 'Action must be lowercase with underscores only'),
+  resource: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(
+      /^[a-z][a-z0-9_]*$/,
+      'Resource must be lowercase with underscores only'
+    ),
+  action: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(
+      /^[a-z][a-z0-9_]*$/,
+      'Action must be lowercase with underscores only'
+    ),
   displayName: z.string().min(1).max(100),
   description: z.string().max(255).optional(),
-  category: z.enum(['Core', 'Sales', 'Admin', 'Analytics', 'Integration', 'Custom']),
+  category: z.enum([
+    'Core',
+    'Sales',
+    'Admin',
+    'Analytics',
+    'Integration',
+    'Custom',
+  ]),
   dependencies: z.array(z.string()).optional(),
   conflictsWith: z.array(z.string()).optional(),
 })
@@ -69,7 +90,10 @@ export const POST = withSecurityLogging(
         !['Owner', 'Admin'].includes(membership.roleId?.name)
       ) {
         return NextResponse.json(
-          { message: 'Access denied. Insufficient permissions to create permissions.' },
+          {
+            message:
+              'Access denied. Insufficient permissions to create permissions.',
+          },
           { status: 403 }
         )
       }
@@ -88,15 +112,23 @@ export const POST = withSecurityLogging(
         )
       }
 
-      const { resource, action, displayName, description, category, dependencies, conflictsWith } = validationResult.data
+      const {
+        resource,
+        action,
+        displayName,
+        description,
+        category,
+        dependencies,
+        conflictsWith,
+      } = validationResult.data
       const name = `${resource}.${action}`
 
       // Check if permission already exists
       const existingPermission = await Permission.findOne({
         $or: [
           { name, workspaceId },
-          { name, isSystemPermission: true }
-        ]
+          { name, isSystemPermission: true },
+        ],
       })
 
       if (existingPermission) {
@@ -109,13 +141,16 @@ export const POST = withSecurityLogging(
       // Validate dependencies if provided
       if (dependencies && dependencies.length > 0) {
         const allPermissions = await getAvailablePermissions(workspaceId)
-        const validation = validatePermissionDependencies(dependencies, allPermissions)
+        const validation = validatePermissionDependencies(
+          dependencies,
+          allPermissions
+        )
 
         if (!validation.valid) {
           return NextResponse.json(
             {
               message: 'Invalid dependencies',
-              missingDependencies: validation.missingDependencies
+              missingDependencies: validation.missingDependencies,
             },
             { status: 400 }
           )
@@ -228,7 +263,10 @@ export const GET = withSecurityLogging(
         !['Owner', 'Admin'].includes(membership.roleId?.name)
       ) {
         return NextResponse.json(
-          { message: 'Access denied. Insufficient permissions to view permissions.' },
+          {
+            message:
+              'Access denied. Insufficient permissions to view permissions.',
+          },
           { status: 403 }
         )
       }
@@ -237,31 +275,34 @@ export const GET = withSecurityLogging(
       const permissions = await Permission.find({
         $or: [
           { workspaceId, isActive: true },
-          { isSystemPermission: true, isActive: true }
-        ]
+          { isSystemPermission: true, isActive: true },
+        ],
       }).sort({ isSystemPermission: -1, category: 1, resource: 1, action: 1 })
 
       // Group by category for easier management
-      const groupedPermissions = permissions.reduce((acc, perm) => {
-        const category = perm.category
-        if (!acc[category]) acc[category] = []
-        acc[category].push({
-          id: perm._id,
-          name: perm.name,
-          displayName: perm.displayName,
-          description: perm.description,
-          resource: perm.resource,
-          action: perm.action,
-          category: perm.category,
-          dependencies: perm.dependencies,
-          conflictsWith: perm.conflictsWith,
-          isSystemPermission: perm.isSystemPermission,
-          isActive: perm.isActive,
-          createdAt: perm.createdAt,
-          updatedAt: perm.updatedAt,
-        })
-        return acc
-      }, {} as Record<string, any[]>)
+      const groupedPermissions = permissions.reduce(
+        (acc, perm) => {
+          const category = perm.category
+          if (!acc[category]) acc[category] = []
+          acc[category].push({
+            id: perm._id,
+            name: perm.name,
+            displayName: perm.displayName,
+            description: perm.description,
+            resource: perm.resource,
+            action: perm.action,
+            category: perm.category,
+            dependencies: perm.dependencies,
+            conflictsWith: perm.conflictsWith,
+            isSystemPermission: perm.isSystemPermission,
+            isActive: perm.isActive,
+            createdAt: perm.createdAt,
+            updatedAt: perm.updatedAt,
+          })
+          return acc
+        },
+        {} as Record<string, any[]>
+      )
 
       logUserActivity(auth.user.id, 'permissions.manage.view', 'permission', {
         workspaceId,

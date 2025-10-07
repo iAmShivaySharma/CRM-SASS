@@ -478,7 +478,11 @@ export const SYSTEM_PERMISSIONS: PermissionDefinition[] = [
     displayName: 'Manage Project Members',
     description: 'Full project member management',
     category: 'Projects',
-    dependencies: ['project_members.view', 'project_members.invite', 'project_members.remove'],
+    dependencies: [
+      'project_members.view',
+      'project_members.invite',
+      'project_members.remove',
+    ],
   },
 
   // Tasks
@@ -614,15 +618,14 @@ export async function seedSystemPermissions() {
   }
 }
 
-
 // Get available permissions for a workspace
 export async function getAvailablePermissions(workspaceId?: string) {
   const query = workspaceId
     ? {
         $or: [
           { workspaceId, isActive: true },
-          { isSystemPermission: true, isActive: true }
-        ]
+          { isSystemPermission: true, isActive: true },
+        ],
       }
     : { isSystemPermission: true, isActive: true }
 
@@ -651,14 +654,17 @@ export function validatePermissionDependencies(
 
   return {
     valid: missingDependencies.length === 0,
-    missingDependencies: Array.from(new Set(missingDependencies))
+    missingDependencies: Array.from(new Set(missingDependencies)),
   }
 }
 
 export function validatePermissionConflicts(
   requestedPermissions: string[],
   allPermissions: any[]
-): { valid: boolean; conflicts: Array<{ permission: string; conflictsWith: string }> } {
+): {
+  valid: boolean
+  conflicts: Array<{ permission: string; conflictsWith: string }>
+} {
   const conflicts: Array<{ permission: string; conflictsWith: string }> = []
 
   for (const permName of requestedPermissions) {
@@ -674,6 +680,6 @@ export function validatePermissionConflicts(
 
   return {
     valid: conflicts.length === 0,
-    conflicts
+    conflicts,
   }
 }

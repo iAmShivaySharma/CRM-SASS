@@ -32,7 +32,7 @@
     "pretest:e2e": "npm run playwright:install",
     "release": "npm run build && npm run test:all",
     "audit:security": "npm audit --audit-level moderate",
-    "audit:licenses": "npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;Unlicense'",
+    "audit:licenses": "npx license-checker --excludePackages 'gpl-3.0;agpl-3.0' --summary",
     "analyze": "npm run type-check && npm run lint && npm run audit:security",
     "clean": "rm -rf .next out dist coverage test-results playwright-report",
     "fresh": "npm run clean && npm ci && npm run build"

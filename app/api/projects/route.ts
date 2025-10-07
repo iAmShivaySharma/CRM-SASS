@@ -19,19 +19,28 @@ import { z } from 'zod'
 const createProjectSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(1000).optional(),
-  slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/),
   icon: z.string().optional(),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i).default('#3b82f6'),
+  color: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i)
+    .default('#3b82f6'),
   visibility: z.enum(['private', 'workspace', 'public']).default('workspace'),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   workspaceId: z.string(),
-  settings: z.object({
-    allowMemberInvite: z.boolean().default(true),
-    allowJoinRequests: z.boolean().default(true),
-    defaultTaskStatus: z.string().default('todo'),
-    enableTimeTracking: z.boolean().default(false),
-  }).default({}),
+  settings: z
+    .object({
+      allowMemberInvite: z.boolean().default(true),
+      allowJoinRequests: z.boolean().default(true),
+      defaultTaskStatus: z.string().default('todo'),
+      enableTimeTracking: z.boolean().default(false),
+    })
+    .default({}),
 })
 
 // GET /api/projects - Get projects for a workspace with pagination and filtering
@@ -65,7 +74,13 @@ export const GET = withSecurityLogging(
         const search = url.searchParams.get('search')
         const skip = (page - 1) * limit
 
-        console.log('Request params:', { workspaceId, page, limit, status, search })
+        console.log('Request params:', {
+          workspaceId,
+          page,
+          limit,
+          status,
+          search,
+        })
 
         if (!workspaceId) {
           return NextResponse.json(
@@ -123,10 +138,13 @@ export const GET = withSecurityLogging(
             { _id: { $in: projectMemberProjects } },
             { visibility: 'workspace' },
             { visibility: 'public' },
-          ]
+          ],
         }
 
-        console.log('Final query with visibility:', JSON.stringify(visibilityQuery))
+        console.log(
+          'Final query with visibility:',
+          JSON.stringify(visibilityQuery)
+        )
 
         // Get total count
         const total = await Project.countDocuments(visibilityQuery)
@@ -143,12 +161,19 @@ export const GET = withSecurityLogging(
 
         // Add member count and task counts for each project
         const projectsWithCounts = await Promise.all(
-          projects.map(async (project) => {
-            const [memberCount, taskCount, completedTaskCount] = await Promise.all([
-              ProjectMember.countDocuments({ projectId: project._id, status: 'active' }),
-              Task.countDocuments({ projectId: project._id }),
-              Task.countDocuments({ projectId: project._id, status: 'completed' }),
-            ])
+          projects.map(async project => {
+            const [memberCount, taskCount, completedTaskCount] =
+              await Promise.all([
+                ProjectMember.countDocuments({
+                  projectId: project._id,
+                  status: 'active',
+                }),
+                Task.countDocuments({ projectId: project._id }),
+                Task.countDocuments({
+                  projectId: project._id,
+                  status: 'completed',
+                }),
+              ])
 
             return {
               ...project,
@@ -318,18 +343,15 @@ export const POST = withSecurityLogging(
           { entityType: 'Project', projectId: project._id }
         )
 
-        await logBusinessEvent(
-          'project_created',
-          auth.user.id,
-          workspaceId,
-          {
-            projectId: project._id,
-            projectName: project.name,
-          }
-        )
+        await logBusinessEvent('project_created', auth.user.id, workspaceId, {
+          projectId: project._id,
+          projectName: project.name,
+        })
 
         const endTime = Date.now()
-        console.log(`=== CREATE PROJECT API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== CREATE PROJECT API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           project: {

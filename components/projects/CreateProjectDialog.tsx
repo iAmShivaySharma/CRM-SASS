@@ -36,7 +36,11 @@ import { toast } from 'sonner'
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   description: z.string().max(1000).optional(),
-  slug: z.string().min(1, 'Slug is required').max(50).regex(/^[a-z0-9-]+$/, 'Invalid slug format'),
+  slug: z
+    .string()
+    .min(1, 'Slug is required')
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, 'Invalid slug format'),
   icon: z.string().optional(),
   color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format'),
   visibility: z.enum(['private', 'workspace', 'public']),
@@ -101,19 +105,12 @@ export function CreateProjectDialog({
         },
       }).unwrap()
 
-      toast(
-
-        'Your project has been created successfully.',
-      )
+      toast('Your project has been created successfully.')
 
       form.reset()
       onOpenChange(false)
     } catch (error: any) {
-      toast(
-        'Error creating project',
-
-
-      )
+      toast('Error creating project')
     }
   }
 
@@ -137,7 +134,7 @@ export function CreateProjectDialog({
                       <Input
                         placeholder="My Awesome Project"
                         {...field}
-                        onChange={(e) => {
+                        onChange={e => {
                           field.onChange(e)
                           handleNameChange(e.target.value)
                         }}
@@ -203,7 +200,7 @@ export function CreateProjectDialog({
                     <FormLabel>Color</FormLabel>
                     <FormControl>
                       <div className="flex items-center space-x-2">
-                        <Input type="color" {...field} className="w-16 h-9" />
+                        <Input type="color" {...field} className="h-9 w-16" />
                         <Input
                           value={field.value}
                           onChange={field.onChange}
@@ -223,7 +220,10 @@ export function CreateProjectDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Visibility</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />

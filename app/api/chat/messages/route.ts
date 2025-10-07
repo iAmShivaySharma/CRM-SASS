@@ -83,15 +83,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
-    const {
-      chatRoomId,
-      content,
-      type,
-      fileUrl,
-      fileName,
-      fileSize,
-      replyTo,
-    } = await request.json()
+    const { chatRoomId, content, type, fileUrl, fileName, fileSize, replyTo } =
+      await request.json()
 
     if (!chatRoomId || !content) {
       return NextResponse.json(
@@ -136,7 +129,8 @@ export async function POST(request: NextRequest) {
     // Update chat room's last message
     await ChatRoom.findByIdAndUpdate(chatRoomId, {
       lastMessage: {
-        content: content.length > 100 ? content.substring(0, 100) + '...' : content,
+        content:
+          content.length > 100 ? content.substring(0, 100) + '...' : content,
         senderId: auth.user._id,
         senderName: auth.user.fullName,
         timestamp: new Date(),
@@ -144,8 +138,10 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const populatedMessage = await Message.findById(message._id)
-      .populate('replyTo', 'content senderName createdAt')
+    const populatedMessage = await Message.findById(message._id).populate(
+      'replyTo',
+      'content senderName createdAt'
+    )
 
     return NextResponse.json({ message: populatedMessage }, { status: 201 })
   } catch (error) {

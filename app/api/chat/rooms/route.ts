@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
-    const { name, description, type, participants, workspaceId } = await request.json()
+    const { name, description, type, participants, workspaceId } =
+      await request.json()
 
     if (!name || !workspaceId) {
       return NextResponse.json(
@@ -119,7 +120,9 @@ export async function POST(request: NextRequest) {
       description,
       type: type || 'general',
       workspaceId,
-      participants: participants ? [auth.user._id, ...participants] : [auth.user._id],
+      participants: participants
+        ? [auth.user._id, ...participants]
+        : [auth.user._id],
       admins: [auth.user._id],
       createdBy: auth.user._id,
     })

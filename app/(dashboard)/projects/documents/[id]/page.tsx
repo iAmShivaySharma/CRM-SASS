@@ -2,9 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Save, Share, MoreVertical, Eye, EyeOff, Users, Globe, Lock } from 'lucide-react'
+import {
+  ArrowLeft,
+  Save,
+  Share,
+  MoreVertical,
+  Eye,
+  EyeOff,
+  Users,
+  Globe,
+  Lock,
+} from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
-import { useGetDocumentQuery, useUpdateDocumentMutation } from '@/lib/api/projectsApi'
+import {
+  useGetDocumentQuery,
+  useUpdateDocumentMutation,
+} from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -33,8 +46,12 @@ export default function DocumentEditorPage() {
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState<string>('')
-  const [status, setStatus] = useState<'draft' | 'published' | 'archived'>('draft')
-  const [visibility, setVisibility] = useState<'private' | 'project' | 'workspace'>('project')
+  const [status, setStatus] = useState<'draft' | 'published' | 'archived'>(
+    'draft'
+  )
+  const [visibility, setVisibility] = useState<
+    'private' | 'project' | 'workspace'
+  >('project')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -60,14 +77,20 @@ export default function DocumentEditorPage() {
       setTitle(doc.title)
       // Handle conversion from array format to HTML string
       const contentToSet = Array.isArray(doc.content)
-        ? doc.content.map(block => typeof block === 'string' ? block : block?.content || '').join('')
+        ? doc.content
+            .map(block =>
+              typeof block === 'string' ? block : block?.content || ''
+            )
+            .join('')
         : doc.content || ''
       setContent(contentToSet)
       setStatus(doc.status)
       setVisibility(doc.visibility)
-      setTags(doc.tags?.map((tag: any) =>
-        typeof tag === 'string' ? tag : (tag.text || String(tag))
-      ) || [])
+      setTags(
+        doc.tags?.map((tag: any) =>
+          typeof tag === 'string' ? tag : tag.text || String(tag)
+        ) || []
+      )
     }
   }, [documentData])
 
@@ -84,7 +107,10 @@ export default function DocumentEditorPage() {
         tags: tags,
       }
 
-      console.log('Frontend preparing to save data:', JSON.stringify(saveData, null, 2))
+      console.log(
+        'Frontend preparing to save data:',
+        JSON.stringify(saveData, null, 2)
+      )
       console.log('Tags being sent:', saveData.tags, typeof saveData.tags)
 
       await updateDocument({
@@ -112,7 +138,6 @@ export default function DocumentEditorPage() {
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove))
   }
-
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -155,8 +180,12 @@ export default function DocumentEditorPage() {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-red-600">Document not found</h2>
-          <p className="text-muted-foreground">The document you&apos;re looking for doesn&apos;t exist.</p>
+          <h2 className="text-lg font-semibold text-red-600">
+            Document not found
+          </h2>
+          <p className="text-muted-foreground">
+            The document you&apos;re looking for doesn&apos;t exist.
+          </p>
           <Button onClick={() => router.back()} className="mt-4">
             Go Back
           </Button>
@@ -166,9 +195,9 @@ export default function DocumentEditorPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="flex h-screen flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-4">
             <Button
@@ -176,7 +205,7 @@ export default function DocumentEditorPage() {
               size="sm"
               onClick={() => router.push('/projects/documents')}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Documents
             </Button>
 
@@ -198,7 +227,10 @@ export default function DocumentEditorPage() {
               </span>
             )}
 
-            <Select value={status} onValueChange={(value) => setStatus(value as any)}>
+            <Select
+              value={status}
+              onValueChange={value => setStatus(value as any)}
+            >
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -209,7 +241,10 @@ export default function DocumentEditorPage() {
               </SelectContent>
             </Select>
 
-            <Select value={visibility} onValueChange={(value) => setVisibility(value as any)}>
+            <Select
+              value={visibility}
+              onValueChange={value => setVisibility(value as any)}
+            >
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -221,7 +256,7 @@ export default function DocumentEditorPage() {
             </Select>
 
             <Button onClick={handleSave} disabled={isLoading}>
-              <Save className="h-4 w-4 mr-2" />
+              <Save className="mr-2 h-4 w-4" />
               {isLoading ? 'Saving...' : 'Save'}
             </Button>
 
@@ -252,20 +287,20 @@ export default function DocumentEditorPage() {
 
       {/* Document Content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto p-8">
+        <div className="mx-auto max-w-4xl p-8">
           {/* Title */}
           <div className="mb-8">
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               placeholder="Untitled Document"
-              className="text-4xl font-bold border-none p-0 h-auto bg-transparent focus-visible:ring-0 placeholder:text-muted-foreground/50"
+              className="h-auto border-none bg-transparent p-0 text-4xl font-bold placeholder:text-muted-foreground/50 focus-visible:ring-0"
             />
           </div>
 
           {/* Tags */}
           <div className="mb-6">
-            <div className="flex flex-wrap gap-2 mb-2">
+            <div className="mb-2 flex flex-wrap gap-2">
               {tags.map((tag, index) => (
                 <Badge
                   key={index}
@@ -277,15 +312,21 @@ export default function DocumentEditorPage() {
                 </Badge>
               ))}
             </div>
-            <div className="flex gap-2 max-w-md">
+            <div className="flex max-w-md gap-2">
               <Input
                 placeholder="Add tags..."
                 value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
+                onChange={e => setTagInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 className="text-sm"
               />
-              <Button type="button" variant="outline" size="sm" onClick={addTag} disabled={!tagInput.trim()}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addTag}
+                disabled={!tagInput.trim()}
+              >
                 Add
               </Button>
             </div>

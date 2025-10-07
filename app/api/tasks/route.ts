@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Task, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { withLogging, withSecurityLogging, logUserActivity } from '@/lib/logging/middleware'
+import {
+  withLogging,
+  withSecurityLogging,
+  logUserActivity,
+} from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { z } from 'zod'
 
@@ -30,7 +34,11 @@ async function checkProjectTaskAccess(projectId: string, userId: string) {
     status: 'active',
   })
 
-  if (!projectMember && project.visibility !== 'workspace' && project.visibility !== 'public') {
+  if (
+    !projectMember &&
+    project.visibility !== 'workspace' &&
+    project.visibility !== 'public'
+  ) {
     return null
   }
 
@@ -66,7 +74,13 @@ export const GET = withSecurityLogging(
         const assigneeId = url.searchParams.get('assigneeId')
         const search = url.searchParams.get('search')
 
-        console.log('Request params:', { projectId, workspaceId, status, assigneeId, search })
+        console.log('Request params:', {
+          projectId,
+          workspaceId,
+          status,
+          assigneeId,
+          search,
+        })
 
         let query: any = {}
 
@@ -95,15 +109,12 @@ export const GET = withSecurityLogging(
 
           const publicProjects = await Project.find({
             workspaceId,
-            $or: [
-              { visibility: 'workspace' },
-              { visibility: 'public' }
-            ]
+            $or: [{ visibility: 'workspace' }, { visibility: 'public' }],
           }).select('_id')
 
           const accessibleProjectIds = [
             ...userProjects.map(pm => pm.projectId),
-            ...publicProjects.map(p => p._id.toString())
+            ...publicProjects.map(p => p._id.toString()),
           ]
 
           if (accessibleProjectIds.length === 0) {
@@ -150,7 +161,12 @@ export const GET = withSecurityLogging(
           projectId
             ? `Listed tasks for project: ${projectId}`
             : `Listed tasks for workspace: ${workspaceId}`,
-          { entityType: 'Task', projectId, workspaceId, filters: { status, assigneeId, search } }
+          {
+            entityType: 'Task',
+            projectId,
+            workspaceId,
+            filters: { status, assigneeId, search },
+          }
         )
 
         const endTime = Date.now()
@@ -226,7 +242,10 @@ export const POST = withSecurityLogging(
         }
 
         console.log('Checking project access...')
-        const project = await checkProjectTaskAccess(validationResult.data.projectId, auth.user.id)
+        const project = await checkProjectTaskAccess(
+          validationResult.data.projectId,
+          auth.user.id
+        )
         if (!project) {
           console.log('Project not found or access denied')
           return NextResponse.json(
@@ -264,11 +283,17 @@ export const POST = withSecurityLogging(
           auth.user.id,
           'tasks.create',
           `Created task: ${task.title}`,
-          { entityType: 'Task', taskId: task._id, projectId: validationResult.data.projectId }
+          {
+            entityType: 'Task',
+            taskId: task._id,
+            projectId: validationResult.data.projectId,
+          }
         )
 
         const endTime = Date.now()
-        console.log(`=== CREATE TASK API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== CREATE TASK API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           task: {

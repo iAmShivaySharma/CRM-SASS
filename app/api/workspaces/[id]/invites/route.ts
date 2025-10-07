@@ -10,7 +10,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/security/auth-middleware'
-import { WorkspaceMember, Role, User, Workspace, Invitation } from '@/lib/mongodb/models'
+import {
+  WorkspaceMember,
+  Role,
+  User,
+  Workspace,
+  Invitation,
+} from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
 import {
@@ -45,7 +51,10 @@ function generateInviteToken(): string {
 // GET /api/workspaces/[id]/invites - List pending invitations
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -179,7 +188,10 @@ export const GET = withSecurityLogging(
 // POST /api/workspaces/[id]/invites - Send new invitation
 export const POST = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -236,7 +248,9 @@ export const POST = withSecurityLogging(
           workspaceId,
           userId,
           status: 'active',
-        }).populate('roleId').populate('userId', 'fullName email')
+        })
+          .populate('roleId')
+          .populate('userId', 'fullName email')
 
         if (!membership) {
           return NextResponse.json(
@@ -339,20 +353,23 @@ export const POST = withSecurityLogging(
             inviterName: membership.userId.fullName || membership.userId.email,
             inviteToken,
             acceptUrl,
-            message
+            message,
           })
 
           if (!emailResult.success) {
-            log.warn('Failed to send invitation email, but continuing with invitation creation', {
-              email,
-              workspaceId,
-              error: emailResult.error
-            })
+            log.warn(
+              'Failed to send invitation email, but continuing with invitation creation',
+              {
+                email,
+                workspaceId,
+                error: emailResult.error,
+              }
+            )
           } else {
             log.info('Invitation email sent successfully', {
               email,
               workspaceId,
-              messageId: emailResult.messageId
+              messageId: emailResult.messageId,
             })
           }
         } catch (emailError) {

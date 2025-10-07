@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { ProjectDocument, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { withLogging, withSecurityLogging, logUserActivity } from '@/lib/logging/middleware'
+import {
+  withLogging,
+  withSecurityLogging,
+  logUserActivity,
+} from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { z } from 'zod'
 
@@ -42,7 +46,10 @@ async function checkDocumentAccess(documentId: string, userId: string) {
     return null
   }
 
-  if (document.visibility === 'workspace' && project.workspaceId !== projectMember?.workspaceId) {
+  if (
+    document.visibility === 'workspace' &&
+    project.workspaceId !== projectMember?.workspaceId
+  ) {
     return null
   }
 
@@ -52,7 +59,10 @@ async function checkDocumentAccess(documentId: string, userId: string) {
 // GET /api/documents/[id] - Get a specific document
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
       console.log('=== GET DOCUMENT API DEBUG START ===')
 
@@ -96,7 +106,10 @@ export const GET = withSecurityLogging(
           ...document.toJSON(),
         }
 
-        console.log('Sending document response:', JSON.stringify(documentResponse, null, 2))
+        console.log(
+          'Sending document response:',
+          JSON.stringify(documentResponse, null, 2)
+        )
 
         await logUserActivity(
           auth.user.id,
@@ -106,7 +119,9 @@ export const GET = withSecurityLogging(
         )
 
         const endTime = Date.now()
-        console.log(`=== GET DOCUMENT API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== GET DOCUMENT API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           document: documentResponse,
@@ -144,7 +159,10 @@ export const GET = withSecurityLogging(
 // PUT /api/documents/[id] - Update a document
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
       console.log('=== UPDATE DOCUMENT API DEBUG START ===')
 
@@ -178,7 +196,7 @@ export const PUT = withSecurityLogging(
               if (Array.isArray(parsed)) {
                 // Extract text from objects, keep strings as-is
                 body.tags = parsed.map(tag =>
-                  typeof tag === 'string' ? tag : (tag.text || String(tag))
+                  typeof tag === 'string' ? tag : tag.text || String(tag)
                 )
               } else {
                 body.tags = [String(parsed)]
@@ -189,7 +207,7 @@ export const PUT = withSecurityLogging(
           } else if (Array.isArray(body.tags)) {
             // Extract text from objects, keep strings as-is
             body.tags = body.tags.map((tag: any) =>
-              typeof tag === 'string' ? tag : (tag.text || String(tag))
+              typeof tag === 'string' ? tag : tag.text || String(tag)
             )
           }
 
@@ -237,7 +255,10 @@ export const PUT = withSecurityLogging(
         }
 
         console.log('Updating document...')
-        console.log('Validation result data:', JSON.stringify(validationResult.data, null, 2))
+        console.log(
+          'Validation result data:',
+          JSON.stringify(validationResult.data, null, 2)
+        )
 
         const updateData = validationResult.data
         console.log('Final update data:', JSON.stringify(updateData, null, 2))
@@ -261,7 +282,10 @@ export const PUT = withSecurityLogging(
 
         // Populate for response
         await updatedDocument.populate('createdBy', 'fullName email avatarUrl')
-        await updatedDocument.populate('lastEditedBy', 'fullName email avatarUrl')
+        await updatedDocument.populate(
+          'lastEditedBy',
+          'fullName email avatarUrl'
+        )
 
         console.log('Document updated successfully')
 
@@ -269,11 +293,17 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'documents.update',
           `Updated document: ${updatedDocument.title}`,
-          { entityType: 'Document', documentId, updatedFields: Object.keys(validationResult.data) }
+          {
+            entityType: 'Document',
+            documentId,
+            updatedFields: Object.keys(validationResult.data),
+          }
         )
 
         const endTime = Date.now()
-        console.log(`=== UPDATE DOCUMENT API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== UPDATE DOCUMENT API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           document: {
@@ -313,7 +343,10 @@ export const PUT = withSecurityLogging(
 // DELETE /api/documents/[id] - Delete a document
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
       console.log('=== DELETE DOCUMENT API DEBUG START ===')
 
@@ -363,7 +396,9 @@ export const DELETE = withSecurityLogging(
         )
 
         const endTime = Date.now()
-        console.log(`=== DELETE DOCUMENT API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== DELETE DOCUMENT API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({ success: true })
       } catch (error) {

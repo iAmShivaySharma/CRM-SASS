@@ -1,12 +1,18 @@
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { formatDistanceToNow, format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Message } from '@/lib/api/chatApi'
 import { useSocket } from '@/lib/context/SocketContext'
 import { useAddReactionMutation } from '@/lib/api/chatApi'
@@ -19,7 +25,7 @@ import {
   File,
   Image as ImageIcon,
   ExternalLink,
-  Smile
+  Smile,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -109,12 +115,12 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     switch (message.type) {
       case 'file':
         return (
-          <div className="flex items-center gap-3 p-4 border border-border rounded-xl bg-muted/30 max-w-sm hover:bg-muted/50 transition-colors">
-            <div className="flex-shrink-0 p-2 bg-background rounded-lg border border-border">
+          <div className="flex max-w-sm items-center gap-3 rounded-xl border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50">
+            <div className="flex-shrink-0 rounded-lg border border-border bg-background p-2">
               <File className="h-6 w-6 text-primary" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-foreground">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-foreground">
                 {message.fileName || 'Unknown file'}
               </p>
               {message.fileSize && (
@@ -141,27 +147,27 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         return (
           <div className="max-w-sm">
             {message.fileUrl ? (
-              <div className="relative group overflow-hidden rounded-xl border border-border">
-                <img
+              <div className="group relative overflow-hidden rounded-xl border border-border">
+                <Image
                   src={message.fileUrl}
                   alt={message.fileName || 'Image'}
-                  className="max-w-full h-auto transition-transform group-hover:scale-105"
-                  loading="lazy"
+                  width={300}
+                  height={200}
+                  className="h-auto max-w-full transition-transform group-hover:scale-105"
+                  style={{ objectFit: 'contain' }}
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
               </div>
             ) : (
-              <div className="flex items-center gap-3 p-4 border border-border rounded-xl bg-muted/30">
-                <div className="flex-shrink-0 p-2 bg-background rounded-lg border border-border">
+              <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
+                <div className="flex-shrink-0 rounded-lg border border-border bg-background p-2">
                   <ImageIcon className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">
                     {message.fileName || 'Image'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Image file
-                  </p>
+                  <p className="text-xs text-muted-foreground">Image file</p>
                 </div>
               </div>
             )}
@@ -171,7 +177,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
       case 'system':
         return (
           <div className="text-center">
-            <Badge variant="secondary" className="text-xs px-3 py-1 rounded-full">
+            <Badge
+              variant="secondary"
+              className="rounded-full px-3 py-1 text-xs"
+            >
               {message.content}
             </Badge>
           </div>
@@ -179,8 +188,8 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
       default:
         return (
-          <div className="prose prose-sm max-w-none dark:prose-invert">
-            <p className="whitespace-pre-wrap break-words m-0 text-foreground leading-relaxed">
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <p className="m-0 whitespace-pre-wrap break-words leading-relaxed text-foreground">
               {message.content}
             </p>
           </div>
@@ -190,17 +199,17 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
   if (message.type === 'system') {
     return (
-      <div className="flex justify-center py-2">
-        {renderMessageContent()}
-      </div>
+      <div className="flex justify-center py-2">{renderMessageContent()}</div>
     )
   }
 
   return (
-    <div className={cn(
-      "group flex gap-3 hover:bg-muted/30 -mx-4 px-4 py-3 rounded-xl transition-all duration-200",
-      !showAvatar && "mt-1"
-    )}>
+    <div
+      className={cn(
+        'group -mx-4 flex gap-3 rounded-xl px-4 py-3 transition-all duration-200 hover:bg-muted/30',
+        !showAvatar && 'mt-1'
+      )}
+    >
       {/* Avatar */}
       <div className="flex-shrink-0">
         {showAvatar ? (
@@ -216,33 +225,35 @@ export const MessageItem: React.FC<MessageItemProps> = ({
       </div>
 
       {/* Message Content */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         {/* Header */}
         {showAvatar && (
-          <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-sm font-semibold">
-              {message.senderName}
-            </span>
+          <div className="mb-1 flex items-baseline gap-2">
+            <span className="text-sm font-semibold">{message.senderName}</span>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
                     onClick={() => setShowFullTimestamp(!showFullTimestamp)}
                   >
                     {formatTimestamp(message.createdAt)}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{(() => {
-                    const date = new Date(message.createdAt)
-                    return isNaN(date.getTime()) ? 'Invalid date' : format(date, 'PPpp')
-                  })()}</p>
+                  <p>
+                    {(() => {
+                      const date = new Date(message.createdAt)
+                      return isNaN(date.getTime())
+                        ? 'Invalid date'
+                        : format(date, 'PPpp')
+                    })()}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
             {message.isEdited && (
-              <Badge variant="outline" className="text-xs h-4 px-1">
+              <Badge variant="outline" className="h-4 px-1 text-xs">
                 edited
               </Badge>
             )}
@@ -251,42 +262,45 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
         {/* Reply indicator */}
         {message.replyTo && (
-          <div className="mb-3 pl-4 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg py-2">
-            <p className="text-xs text-muted-foreground font-medium mb-1">
-              <Reply className="inline h-3 w-3 mr-1" />
-              Replying to {typeof message.replyTo === 'object' ? message.replyTo.senderName : 'a message'}
+          <div className="mb-3 rounded-r-lg border-l-2 border-primary/50 bg-muted/20 py-2 pl-4">
+            <p className="mb-1 text-xs font-medium text-muted-foreground">
+              <Reply className="mr-1 inline h-3 w-3" />
+              Replying to{' '}
+              {typeof message.replyTo === 'object'
+                ? message.replyTo.senderName
+                : 'a message'}
             </p>
-            <p className="text-xs text-foreground/80 truncate">
+            <p className="truncate text-xs text-foreground/80">
               {typeof message.replyTo === 'object'
                 ? message.replyTo.content
-                : 'Original message not available'
-              }
+                : 'Original message not available'}
             </p>
           </div>
         )}
 
         {/* Message content */}
-        <div className="mb-2">
-          {renderMessageContent()}
-        </div>
+        <div className="mb-2">{renderMessageContent()}</div>
 
         {/* Reactions */}
         {message.reactions && message.reactions.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
+          <div className="mt-2 flex flex-wrap gap-1">
             {Object.entries(
-              message.reactions.reduce((acc, reaction) => {
-                if (!acc[reaction.emoji]) {
-                  acc[reaction.emoji] = []
-                }
-                acc[reaction.emoji].push(reaction)
-                return acc
-              }, {} as Record<string, typeof message.reactions>)
+              message.reactions.reduce(
+                (acc, reaction) => {
+                  if (!acc[reaction.emoji]) {
+                    acc[reaction.emoji] = []
+                  }
+                  acc[reaction.emoji].push(reaction)
+                  return acc
+                },
+                {} as Record<string, typeof message.reactions>
+              )
             ).map(([emoji, reactions]) => (
               <Button
                 key={emoji}
                 variant="outline"
                 size="sm"
-                className="h-7 px-2 py-0 text-sm bg-background/50 hover:bg-primary/10 border-primary/20 hover:border-primary/40 transition-all duration-200"
+                className="h-7 border-primary/20 bg-background/50 px-2 py-0 text-sm transition-all duration-200 hover:border-primary/40 hover:bg-primary/10"
                 onClick={() => handleReaction(emoji)}
               >
                 <span className="mr-1">{emoji}</span>
@@ -298,8 +312,8 @@ export const MessageItem: React.FC<MessageItemProps> = ({
       </div>
 
       {/* Message Actions */}
-      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200">
-        <div className="flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-lg p-1 shadow-sm">
+      <div className="flex-shrink-0 opacity-0 transition-all duration-200 group-hover:opacity-100">
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-background/80 p-1 shadow-sm backdrop-blur-sm">
           {/* Quick reactions */}
           <Popover>
             <PopoverTrigger asChild>
@@ -313,7 +327,20 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             </PopoverTrigger>
             <PopoverContent className="w-64 p-3" align="end">
               <div className="grid grid-cols-6 gap-2">
-                {['👍', '❤️', '😂', '😮', '😢', '😡', '🎉', '🔥', '💯', '👏', '✨', '🚀'].map((emoji) => (
+                {[
+                  '👍',
+                  '❤️',
+                  '😂',
+                  '😮',
+                  '😢',
+                  '😡',
+                  '🎉',
+                  '🔥',
+                  '💯',
+                  '👏',
+                  '✨',
+                  '🚀',
+                ].map(emoji => (
                   <Button
                     key={emoji}
                     variant="ghost"
@@ -339,7 +366,11 @@ export const MessageItem: React.FC<MessageItemProps> = ({
           {/* More actions */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-primary/10">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0 hover:bg-primary/10"
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

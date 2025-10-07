@@ -13,7 +13,10 @@ import { log } from '@/lib/logging/logger'
 // DELETE /api/roles/[id] - Delete a role
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {

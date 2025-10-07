@@ -127,14 +127,17 @@ PermissionSchema.statics.getSystemPermissions = function () {
 }
 
 // Static method to get workspace permissions
-PermissionSchema.statics.getWorkspacePermissions = function (workspaceId: string) {
+PermissionSchema.statics.getWorkspacePermissions = function (
+  workspaceId: string
+) {
   return this.find({
     $or: [
       { workspaceId: workspaceId, isActive: true },
-      { isSystemPermission: true, isActive: true }
-    ]
+      { isSystemPermission: true, isActive: true },
+    ],
   }).lean()
 }
 
 export const Permission =
-  mongoose.models?.Permission || mongoose.model<IPermission>('Permission', PermissionSchema)
+  mongoose.models?.Permission ||
+  mongoose.model<IPermission>('Permission', PermissionSchema)

@@ -130,7 +130,11 @@ const ChatRoomSchema = new Schema<IChatRoom>(
 if (typeof window === 'undefined') {
   ChatRoomSchema.index({ workspaceId: 1, type: 1 })
   ChatRoomSchema.index({ participants: 1 })
-  ChatRoomSchema.index({ workspaceId: 1, isArchived: 1, 'lastMessage.timestamp': -1 })
+  ChatRoomSchema.index({
+    workspaceId: 1,
+    isArchived: 1,
+    'lastMessage.timestamp': -1,
+  })
   ChatRoomSchema.index({ workspaceId: 1, type: 1, name: 1 }, { unique: true })
 }
 

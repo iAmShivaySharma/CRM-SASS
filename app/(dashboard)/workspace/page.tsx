@@ -655,7 +655,9 @@ export default function WorkspaceSettingsPage() {
             <Tabs defaultValue="roles" className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="roles">Role Management</TabsTrigger>
-                <TabsTrigger value="permissions">Permission Management</TabsTrigger>
+                <TabsTrigger value="permissions">
+                  Permission Management
+                </TabsTrigger>
               </TabsList>
 
               {/* Roles Tab */}
@@ -669,18 +671,22 @@ export default function WorkspaceSettingsPage() {
                           Create and manage workspace roles.
                         </CardDescription>
                       </div>
-                      <Dialog open={createRoleOpen} onOpenChange={setCreateRoleOpen}>
+                      <Dialog
+                        open={createRoleOpen}
+                        onOpenChange={setCreateRoleOpen}
+                      >
                         <DialogTrigger asChild>
                           <Button>
                             <Plus className="mr-2 h-4 w-4" />
                             Create Role
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                        <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col overflow-hidden">
                           <DialogHeader className="flex-shrink-0">
                             <DialogTitle>Create New Role</DialogTitle>
                             <DialogDescription>
-                              Define a new role with specific permissions for your workspace.
+                              Define a new role with specific permissions for
+                              your workspace.
                             </DialogDescription>
                           </DialogHeader>
                           <div className="flex-1 overflow-y-auto">
@@ -715,7 +721,9 @@ export default function WorkspaceSettingsPage() {
                         {roles.length === 0 ? (
                           <div className="py-8 text-center">
                             <Shield className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                            <p className="text-muted-foreground">No roles found</p>
+                            <p className="text-muted-foreground">
+                              No roles found
+                            </p>
                             <p className="text-sm text-muted-foreground/70">
                               Create your first role to get started
                             </p>
@@ -735,18 +743,37 @@ export default function WorkspaceSettingsPage() {
                                     )}
                                   >
                                     {role.name === 'Owner' ? (
-                                      <Crown className={cn('h-5 w-5', getRoleIconColor(role.name))} />
+                                      <Crown
+                                        className={cn(
+                                          'h-5 w-5',
+                                          getRoleIconColor(role.name)
+                                        )}
+                                      />
                                     ) : role.name === 'Admin' ? (
-                                      <Shield className={cn('h-5 w-5', getRoleIconColor(role.name))} />
+                                      <Shield
+                                        className={cn(
+                                          'h-5 w-5',
+                                          getRoleIconColor(role.name)
+                                        )}
+                                      />
                                     ) : (
-                                      <User className={cn('h-5 w-5', getRoleIconColor(role.name))} />
+                                      <User
+                                        className={cn(
+                                          'h-5 w-5',
+                                          getRoleIconColor(role.name)
+                                        )}
+                                      />
                                     )}
                                   </div>
                                   <div>
                                     <div className="flex items-center space-x-2">
-                                      <h4 className="font-medium">{role.name}</h4>
+                                      <h4 className="font-medium">
+                                        {role.name}
+                                      </h4>
                                       {role.isDefault && (
-                                        <Badge variant="secondary">Default</Badge>
+                                        <Badge variant="secondary">
+                                          Default
+                                        </Badge>
                                       )}
                                     </div>
                                     <p className="text-sm text-muted-foreground">
@@ -810,17 +837,21 @@ export default function WorkspaceSettingsPage() {
                       <div>
                         <CardTitle>Permission Management</CardTitle>
                         <CardDescription>
-                          Create and manage custom permissions for your workspace.
+                          Create and manage custom permissions for your
+                          workspace.
                         </CardDescription>
                       </div>
-                      <Dialog open={createPermissionOpen} onOpenChange={setCreatePermissionOpen}>
+                      <Dialog
+                        open={createPermissionOpen}
+                        onOpenChange={setCreatePermissionOpen}
+                      >
                         <DialogTrigger asChild>
                           <Button>
                             <Plus className="mr-2 h-4 w-4" />
                             Create Permission
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                        <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col overflow-hidden">
                           <DialogHeader className="flex-shrink-0">
                             <DialogTitle>Create New Permission</DialogTitle>
                             <DialogDescription>
@@ -842,23 +873,27 @@ export default function WorkspaceSettingsPage() {
                       <div className="space-y-4">
                         {Array.from({ length: 4 }).map((_, i) => (
                           <div key={i} className="animate-pulse">
-                            <div className="h-4 w-24 bg-gray-200 rounded mb-3"></div>
+                            <div className="mb-3 h-4 w-24 rounded bg-gray-200"></div>
                             <div className="grid grid-cols-2 gap-4">
                               {Array.from({ length: 6 }).map((_, j) => (
-                                <div key={j} className="h-16 bg-gray-200 rounded"></div>
+                                <div
+                                  key={j}
+                                  className="h-16 rounded bg-gray-200"
+                                ></div>
                               ))}
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : permissions.length === 0 ? (
-                      <div className="text-center py-8">
+                      <div className="py-8 text-center">
                         <Shield className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                        <h3 className="text-lg font-medium text-foreground mb-2">
+                        <h3 className="mb-2 text-lg font-medium text-foreground">
                           No Permissions Found
                         </h3>
-                        <p className="text-muted-foreground mb-4">
-                          Create custom permissions to fine-tune access control in your workspace.
+                        <p className="mb-4 text-muted-foreground">
+                          Create custom permissions to fine-tune access control
+                          in your workspace.
                         </p>
                         <Button
                           variant="outline"
@@ -893,7 +928,11 @@ export default function WorkspaceSettingsPage() {
                                   System Permissions
                                 </p>
                                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                  {permissions.filter(p => p.isSystemPermission).length}
+                                  {
+                                    permissions.filter(
+                                      p => p.isSystemPermission
+                                    ).length
+                                  }
                                 </p>
                               </div>
                             </div>
@@ -906,7 +945,11 @@ export default function WorkspaceSettingsPage() {
                                   Custom Permissions
                                 </p>
                                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                  {permissions.filter(p => !p.isSystemPermission).length}
+                                  {
+                                    permissions.filter(
+                                      p => !p.isSystemPermission
+                                    ).length
+                                  }
                                 </p>
                               </div>
                             </div>
@@ -914,93 +957,145 @@ export default function WorkspaceSettingsPage() {
                         </div>
 
                         {/* Permissions by Category */}
-                        <Tabs defaultValue={Object.keys(permissionsByCategory)[0]} className="w-full">
+                        <Tabs
+                          defaultValue={Object.keys(permissionsByCategory)[0]}
+                          className="w-full"
+                        >
                           <TabsList className="grid w-full grid-cols-5">
-                            {Object.keys(permissionsByCategory).map(category => (
-                              <TabsTrigger key={category} value={category}>
-                                {category}
-                              </TabsTrigger>
-                            ))}
+                            {Object.keys(permissionsByCategory).map(
+                              category => (
+                                <TabsTrigger key={category} value={category}>
+                                  {category}
+                                </TabsTrigger>
+                              )
+                            )}
                           </TabsList>
 
-                          {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
-                            <TabsContent key={category} value={category} className="space-y-4">
-                              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                {categoryPermissions.map(permission => (
-                                  <Card key={permission.id} className="transition-shadow hover:shadow-md">
-                                    <CardHeader className="pb-3">
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                          <Shield className="h-5 w-5 text-blue-600" />
-                                          <CardTitle className="text-lg">{permission.name}</CardTitle>
-                                        </div>
-                                        <Badge
-                                          variant={permission.isSystemPermission ? 'secondary' : 'default'}
-                                        >
-                                          {permission.isSystemPermission ? 'System' : 'Custom'}
-                                        </Badge>
-                                      </div>
-                                      <p className="text-sm text-muted-foreground">
-                                        {permission.description}
-                                      </p>
-                                    </CardHeader>
-                                    <CardContent>
-                                      <div className="space-y-3">
+                          {Object.entries(permissionsByCategory).map(
+                            ([category, categoryPermissions]) => (
+                              <TabsContent
+                                key={category}
+                                value={category}
+                                className="space-y-4"
+                              >
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                  {categoryPermissions.map(permission => (
+                                    <Card
+                                      key={permission.id}
+                                      className="transition-shadow hover:shadow-md"
+                                    >
+                                      <CardHeader className="pb-3">
                                         <div className="flex items-center justify-between">
-                                          <span className="text-sm font-medium">Permission Name</span>
-                                          <code className="text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                                            {permission.id}
-                                          </code>
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm font-medium">Resource</span>
-                                          <Badge variant="outline">{permission.resource}</Badge>
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm font-medium">Action</span>
-                                          <Badge variant="outline">{permission.action}</Badge>
-                                        </div>
-
-                                        {permission.dependencies && permission.dependencies.length > 0 && (
-                                          <div className="border-t pt-3">
-                                            <div className="flex items-center space-x-2 mb-2">
-                                              <Shield className="h-4 w-4 text-blue-500" />
-                                              <p className="text-xs text-gray-500">Dependencies:</p>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1">
-                                              {permission.dependencies.map((dep, index) => (
-                                                <Badge key={index} variant="outline" className="text-xs">
-                                                  {dep}
-                                                </Badge>
-                                              ))}
-                                            </div>
+                                          <div className="flex items-center space-x-2">
+                                            <Shield className="h-5 w-5 text-blue-600" />
+                                            <CardTitle className="text-lg">
+                                              {permission.name}
+                                            </CardTitle>
                                           </div>
-                                        )}
-
-                                        {permission.conflictsWith && permission.conflictsWith.length > 0 && (
-                                          <div className="border-t pt-3">
-                                            <div className="flex items-center space-x-2 mb-2">
-                                              <AlertTriangle className="h-4 w-4 text-orange-500" />
-                                              <p className="text-xs text-gray-500">Conflicts with:</p>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1">
-                                              {permission.conflictsWith.map((conflict, index) => (
-                                                <Badge key={index} variant="outline" className="text-xs text-orange-600">
-                                                  {conflict}
-                                                </Badge>
-                                              ))}
-                                            </div>
+                                          <Badge
+                                            variant={
+                                              permission.isSystemPermission
+                                                ? 'secondary'
+                                                : 'default'
+                                            }
+                                          >
+                                            {permission.isSystemPermission
+                                              ? 'System'
+                                              : 'Custom'}
+                                          </Badge>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">
+                                          {permission.description}
+                                        </p>
+                                      </CardHeader>
+                                      <CardContent>
+                                        <div className="space-y-3">
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium">
+                                              Permission Name
+                                            </span>
+                                            <code className="rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-800">
+                                              {permission.id}
+                                            </code>
                                           </div>
-                                        )}
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                ))}
-                              </div>
-                            </TabsContent>
-                          ))}
+
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium">
+                                              Resource
+                                            </span>
+                                            <Badge variant="outline">
+                                              {permission.resource}
+                                            </Badge>
+                                          </div>
+
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium">
+                                              Action
+                                            </span>
+                                            <Badge variant="outline">
+                                              {permission.action}
+                                            </Badge>
+                                          </div>
+
+                                          {permission.dependencies &&
+                                            permission.dependencies.length >
+                                              0 && (
+                                              <div className="border-t pt-3">
+                                                <div className="mb-2 flex items-center space-x-2">
+                                                  <Shield className="h-4 w-4 text-blue-500" />
+                                                  <p className="text-xs text-gray-500">
+                                                    Dependencies:
+                                                  </p>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1">
+                                                  {permission.dependencies.map(
+                                                    (dep, index) => (
+                                                      <Badge
+                                                        key={index}
+                                                        variant="outline"
+                                                        className="text-xs"
+                                                      >
+                                                        {dep}
+                                                      </Badge>
+                                                    )
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )}
+
+                                          {permission.conflictsWith &&
+                                            permission.conflictsWith.length >
+                                              0 && (
+                                              <div className="border-t pt-3">
+                                                <div className="mb-2 flex items-center space-x-2">
+                                                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                                                  <p className="text-xs text-gray-500">
+                                                    Conflicts with:
+                                                  </p>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1">
+                                                  {permission.conflictsWith.map(
+                                                    (conflict, index) => (
+                                                      <Badge
+                                                        key={index}
+                                                        variant="outline"
+                                                        className="text-xs text-orange-600"
+                                                      >
+                                                        {conflict}
+                                                      </Badge>
+                                                    )
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )}
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  ))}
+                                </div>
+                              </TabsContent>
+                            )
+                          )}
                         </Tabs>
                       </div>
                     )}

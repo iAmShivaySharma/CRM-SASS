@@ -49,7 +49,8 @@ export async function POST(
 
     // Check if user already reacted with this emoji
     const existingReactionIndex = message.reactions.findIndex(
-      (reaction: any) => reaction.emoji === emoji && reaction.userId === auth.user._id
+      (reaction: any) =>
+        reaction.emoji === emoji && reaction.userId === auth.user._id
     )
 
     if (existingReactionIndex >= 0) {
@@ -68,9 +69,8 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      reactions: message.reactions
+      reactions: message.reactions,
     })
-
   } catch (error) {
     console.error('Add reaction error:', error)
     return NextResponse.json(
@@ -126,16 +126,16 @@ export async function DELETE(
 
     // Remove the reaction
     message.reactions = message.reactions.filter(
-      (reaction: any) => !(reaction.emoji === emoji && reaction.userId === auth.user._id)
+      (reaction: any) =>
+        !(reaction.emoji === emoji && reaction.userId === auth.user._id)
     )
 
     await message.save()
 
     return NextResponse.json({
       success: true,
-      reactions: message.reactions
+      reactions: message.reactions,
     })
-
   } catch (error) {
     console.error('Remove reaction error:', error)
     return NextResponse.json(

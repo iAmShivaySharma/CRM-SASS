@@ -8,7 +8,7 @@ on:
 
 env:
   NODE_VERSION: '18'
-  MONGODB_URI: 'mongodb://localhost:27017/crm_test'
+  MONGODB_URI: 'mongodb://root:9CJqBIBm4S7IVuPazC4wOE19ANUSSQErfi3SwxMqgf1wQ2PAfC9qjSkAMAxRHC0r@46.202.167.64:27202/?directConnection=true'
   JWT_SECRET: 'test-jwt-secret-for-ci-only-32-characters'
 
 jobs:
@@ -292,7 +292,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'

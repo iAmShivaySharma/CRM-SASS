@@ -19,11 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Search,
-  UserPlus,
-  Loader2
-} from 'lucide-react'
+import { Search, UserPlus, Loader2 } from 'lucide-react'
 
 interface AddParticipantsDialogProps {
   chatRoom: ChatRoom
@@ -52,20 +48,28 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
 
   // Filter out existing participants and search by name/email
   const availableMembers = workspaceMembers.filter(member => {
-    const isAlreadyParticipant = Array.isArray(chatRoom.participants) &&
-      chatRoom.participants.some((p: any) =>
-        (p.id || p._id || p) === ((member.userId as any)?.id || (member.userId as any)?._id || member.userId)
+    const isAlreadyParticipant =
+      Array.isArray(chatRoom.participants) &&
+      chatRoom.participants.some(
+        (p: any) =>
+          (p.id || p._id || p) ===
+          ((member.userId as any)?.id ||
+            (member.userId as any)?._id ||
+            member.userId)
       )
 
     if (isAlreadyParticipant) return false
 
     if (!searchQuery) return true
 
-    const memberName = (member.userId as any)?.name || (member.userId as any)?.email || ''
+    const memberName =
+      (member.userId as any)?.name || (member.userId as any)?.email || ''
     const memberEmail = (member.userId as any)?.email || ''
 
-    return memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           memberEmail.toLowerCase().includes(searchQuery.toLowerCase())
+    return (
+      memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      memberEmail.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   })
 
   const handleMemberToggle = (memberId: string) => {
@@ -123,11 +127,11 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
         <div className="space-y-4">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
             <Input
               placeholder="Search members..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -137,19 +141,29 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2 text-sm text-muted-foreground">Loading members...</span>
+                <span className="ml-2 text-sm text-muted-foreground">
+                  Loading members...
+                </span>
               </div>
             ) : availableMembers.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="py-8 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {searchQuery ? 'No members found matching your search.' : 'All workspace members are already participants.'}
+                  {searchQuery
+                    ? 'No members found matching your search.'
+                    : 'All workspace members are already participants.'}
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
-                {availableMembers.map((member) => {
-                  const memberId = (member.userId as any)?.id || (member.userId as any)?._id || member.userId
-                  const memberName = (member.userId as any)?.name || (member.userId as any)?.email || 'Unknown'
+                {availableMembers.map(member => {
+                  const memberId =
+                    (member.userId as any)?.id ||
+                    (member.userId as any)?._id ||
+                    member.userId
+                  const memberName =
+                    (member.userId as any)?.name ||
+                    (member.userId as any)?.email ||
+                    'Unknown'
                   const memberEmail = (member.userId as any)?.email
                   const isSelected = selectedMembers.includes(memberId)
 
@@ -157,8 +171,8 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
                     <div
                       key={memberId}
                       className={cn(
-                        "flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted/50",
-                        isSelected && "bg-primary/10"
+                        'flex cursor-pointer items-center gap-3 rounded-lg p-3 hover:bg-muted/50',
+                        isSelected && 'bg-primary/10'
                       )}
                       onClick={() => handleMemberToggle(memberId)}
                     >
@@ -172,10 +186,14 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
                           {memberName.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{memberName}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          {memberName}
+                        </p>
                         {memberEmail && memberName !== memberEmail && (
-                          <p className="text-xs text-muted-foreground truncate">{memberEmail}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {memberEmail}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -187,7 +205,8 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
 
           {selectedMembers.length > 0 && (
             <div className="text-sm text-muted-foreground">
-              {selectedMembers.length} member{selectedMembers.length !== 1 ? 's' : ''} selected
+              {selectedMembers.length} member
+              {selectedMembers.length !== 1 ? 's' : ''} selected
             </div>
           )}
         </div>
@@ -201,7 +220,8 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
             disabled={selectedMembers.length === 0 || isAdding}
           >
             {isAdding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add {selectedMembers.length > 0 ? `${selectedMembers.length} ` : ''}Member{selectedMembers.length !== 1 ? 's' : ''}
+            Add {selectedMembers.length > 0 ? `${selectedMembers.length} ` : ''}
+            Member{selectedMembers.length !== 1 ? 's' : ''}
           </Button>
         </DialogFooter>
       </DialogContent>

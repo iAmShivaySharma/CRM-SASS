@@ -16,10 +16,32 @@ import { TaskItem } from '@tiptap/extension-task-item'
 
 import { useCallback, useState, useEffect, useRef } from 'react'
 import {
-  Bold, Italic, Underline, List, ListOrdered, Quote, Code, Save, Undo, Redo,
-  Type, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, CheckSquare,
-  Heading1, Heading2, Heading3, Palette, Image as ImageIcon, Table as TableIcon,
-  Minus, MoreHorizontal, FileText, Strikethrough
+  Bold,
+  Italic,
+  Underline,
+  List,
+  ListOrdered,
+  Quote,
+  Code,
+  Save,
+  Undo,
+  Redo,
+  Type,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Link as LinkIcon,
+  CheckSquare,
+  Heading1,
+  Heading2,
+  Heading3,
+  Palette,
+  Image as ImageIcon,
+  Table as TableIcon,
+  Minus,
+  MoreHorizontal,
+  FileText,
+  Strikethrough,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -169,13 +191,32 @@ export function TiptapEditor({
 
   const insertTable = useCallback(() => {
     if (!editor) return
-    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+    editor
+      .chain()
+      .focus()
+      .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+      .run()
   }, [editor])
 
   const colors = [
-    '#000000', '#374151', '#6B7280', '#9CA3AF', '#DC2626', '#EA580C',
-    '#D97706', '#CA8A04', '#65A30D', '#16A34A', '#059669', '#0891B2',
-    '#0284C7', '#2563EB', '#4F46E5', '#7C3AED', '#C026D3', '#DB2777'
+    '#000000',
+    '#374151',
+    '#6B7280',
+    '#9CA3AF',
+    '#DC2626',
+    '#EA580C',
+    '#D97706',
+    '#CA8A04',
+    '#65A30D',
+    '#16A34A',
+    '#059669',
+    '#0891B2',
+    '#0284C7',
+    '#2563EB',
+    '#4F46E5',
+    '#7C3AED',
+    '#C026D3',
+    '#DB2777',
   ]
 
   // Update editor content when content prop changes
@@ -209,7 +250,10 @@ export function TiptapEditor({
   // Handle outside click for color dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (colorDropdownRef.current && !colorDropdownRef.current.contains(event.target as Node)) {
+      if (
+        colorDropdownRef.current &&
+        !colorDropdownRef.current.contains(event.target as Node)
+      ) {
         setShowColorDropdown(false)
       }
     }
@@ -223,10 +267,10 @@ export function TiptapEditor({
   if (!editor) {
     return (
       <div
-        className={`bg-background border rounded-lg ${className}`}
+        className={`rounded-lg border bg-background ${className}`}
         style={{ minHeight }}
       >
-        <div className="flex items-center justify-center h-full">
+        <div className="flex h-full items-center justify-center">
           <div className="text-sm text-muted-foreground">Loading editor...</div>
         </div>
       </div>
@@ -234,9 +278,9 @@ export function TiptapEditor({
   }
 
   return (
-    <div className={`bg-background border rounded-lg shadow-sm ${className}`}>
+    <div className={`rounded-lg border bg-background shadow-sm ${className}`}>
       {editable && (
-        <div className="flex flex-wrap items-center gap-1 p-3 border-b bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 backdrop-blur-sm sticky top-0 z-10 rounded-t-lg">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-lg border-b bg-gradient-to-r from-gray-50 to-white p-3 backdrop-blur-sm dark:from-gray-900 dark:to-gray-800">
           {/* Undo/Redo */}
           <div className="flex items-center gap-1">
             <Button
@@ -267,24 +311,38 @@ export function TiptapEditor({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8">
-                <Type className="h-4 w-4 mr-1" />
+                <Type className="mr-1 h-4 w-4" />
                 Format
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => editor.chain().focus().setParagraph().run()}>
+              <DropdownMenuItem
+                onClick={() => editor.chain().focus().setParagraph().run()}
+              >
                 <FileText className="mr-2 h-4 w-4" />
                 Paragraph
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
+              <DropdownMenuItem
+                onClick={() =>
+                  editor.chain().focus().toggleHeading({ level: 1 }).run()
+                }
+              >
                 <Heading1 className="mr-2 h-4 w-4" />
                 Heading 1
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+              <DropdownMenuItem
+                onClick={() =>
+                  editor.chain().focus().toggleHeading({ level: 2 }).run()
+                }
+              >
                 <Heading2 className="mr-2 h-4 w-4" />
                 Heading 2
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+              <DropdownMenuItem
+                onClick={() =>
+                  editor.chain().focus().toggleHeading({ level: 3 }).run()
+                }
+              >
                 <Heading3 className="mr-2 h-4 w-4" />
                 Heading 3
               </DropdownMenuItem>
@@ -300,7 +358,7 @@ export function TiptapEditor({
               size="sm"
               onClick={() => editor.chain().focus().toggleBold().run()}
               data-active={editor.isActive('bold')}
-              className="h-8 w-8 p-0 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Bold (Ctrl+B)"
             >
               <Bold className="h-4 w-4" />
@@ -310,7 +368,7 @@ export function TiptapEditor({
               size="sm"
               onClick={() => editor.chain().focus().toggleItalic().run()}
               data-active={editor.isActive('italic')}
-              className="h-8 w-8 p-0 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Italic (Ctrl+I)"
             >
               <Italic className="h-4 w-4" />
@@ -320,7 +378,7 @@ export function TiptapEditor({
               size="sm"
               onClick={() => editor.chain().focus().toggleStrike().run()}
               data-active={editor.isActive('strike')}
-              className="h-8 w-8 p-0 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Strikethrough"
             >
               <Strikethrough className="h-4 w-4" />
@@ -330,7 +388,7 @@ export function TiptapEditor({
               size="sm"
               onClick={() => editor.chain().focus().toggleCode().run()}
               data-active={editor.isActive('code')}
-              className="h-8 w-8 p-0 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Code"
             >
               <Code className="h-4 w-4" />
@@ -352,16 +410,16 @@ export function TiptapEditor({
             </Button>
 
             {showColorDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 p-3">
+              <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                 {/* Text Color Section */}
                 <div className="mb-4">
-                  <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <div className="w-3 h-3 border border-gray-300 dark:border-gray-600 rounded"></div>
+                  <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <div className="h-3 w-3 rounded border border-gray-300 dark:border-gray-600"></div>
                     Text Color
                   </div>
                   <div className="grid grid-cols-6 gap-2">
                     <button
-                      className="w-7 h-7 rounded-md border-2 border-gray-300 dark:border-gray-600 hover:scale-110 transition-all duration-200 flex items-center justify-center bg-white dark:bg-gray-700"
+                      className="flex h-7 w-7 items-center justify-center rounded-md border-2 border-gray-300 bg-white transition-all duration-200 hover:scale-110 dark:border-gray-600 dark:bg-gray-700"
                       onClick={() => {
                         editor.chain().focus().unsetColor().run()
                         setShowColorDropdown(false)
@@ -370,10 +428,10 @@ export function TiptapEditor({
                     >
                       <span className="text-xs font-bold text-gray-500">×</span>
                     </button>
-                    {colors.map((color) => (
+                    {colors.map(color => (
                       <button
                         key={`text-${color}`}
-                        className="w-7 h-7 rounded-md border-2 border-gray-200 dark:border-gray-600 hover:scale-110 hover:border-gray-400 dark:hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="h-7 w-7 rounded-md border-2 border-gray-200 transition-all duration-200 hover:scale-110 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:hover:border-gray-400"
                         style={{ backgroundColor: color }}
                         onClick={() => {
                           editor.chain().focus().setColor(color).run()
@@ -387,13 +445,13 @@ export function TiptapEditor({
 
                 {/* Highlight Section */}
                 <div>
-                  <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <div className="w-3 h-3 bg-yellow-200 border border-yellow-300 rounded"></div>
+                  <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <div className="h-3 w-3 rounded border border-yellow-300 bg-yellow-200"></div>
                     Highlight
                   </div>
                   <div className="grid grid-cols-6 gap-2">
                     <button
-                      className="w-7 h-7 rounded-md border-2 border-gray-300 dark:border-gray-600 hover:scale-110 transition-all duration-200 flex items-center justify-center bg-white dark:bg-gray-700"
+                      className="flex h-7 w-7 items-center justify-center rounded-md border-2 border-gray-300 bg-white transition-all duration-200 hover:scale-110 dark:border-gray-600 dark:bg-gray-700"
                       onClick={() => {
                         editor.chain().focus().unsetHighlight().run()
                         setShowColorDropdown(false)
@@ -402,10 +460,10 @@ export function TiptapEditor({
                     >
                       <span className="text-xs font-bold text-gray-500">×</span>
                     </button>
-                    {colors.map((color) => (
+                    {colors.map(color => (
                       <button
                         key={`highlight-${color}`}
-                        className="w-7 h-7 rounded-md border-2 border-gray-200 dark:border-gray-600 hover:scale-110 hover:border-gray-400 dark:hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="h-7 w-7 rounded-md border-2 border-gray-200 transition-all duration-200 hover:scale-110 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:hover:border-gray-400"
                         style={{ backgroundColor: color }}
                         onClick={() => {
                           editor.chain().focus().setHighlight({ color }).run()
@@ -429,7 +487,7 @@ export function TiptapEditor({
               size="sm"
               onClick={() => editor.chain().focus().toggleBulletList().run()}
               data-active={editor.isActive('bulletList')}
-              className="h-8 w-8 p-0 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Bullet List"
             >
               <List className="h-4 w-4" />
@@ -439,7 +497,7 @@ export function TiptapEditor({
               size="sm"
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
               data-active={editor.isActive('orderedList')}
-              className="h-8 w-8 p-0 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Numbered List"
             >
               <ListOrdered className="h-4 w-4" />
@@ -449,7 +507,7 @@ export function TiptapEditor({
               size="sm"
               onClick={() => editor.chain().focus().toggleTaskList().run()}
               data-active={editor.isActive('taskList')}
-              className="h-8 w-8 p-0 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Task List"
             >
               <CheckSquare className="h-4 w-4" />
@@ -503,25 +561,37 @@ export function TiptapEditor({
           {/* More Options */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="More Options">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                title="More Options"
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+              <DropdownMenuItem
+                onClick={() => editor.chain().focus().toggleBlockquote().run()}
+              >
                 <Quote className="mr-2 h-4 w-4" />
                 Quote Block
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
+              <DropdownMenuItem
+                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+              >
                 <Code className="mr-2 h-4 w-4" />
                 Code Block
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}>
+              <DropdownMenuItem
+                onClick={() =>
+                  editor.chain().focus().clearNodes().unsetAllMarks().run()
+                }
+              >
                 Clear Formatting
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
         </div>
       )}
 
@@ -535,9 +605,7 @@ export function TiptapEditor({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Insert Link</DialogTitle>
-            <DialogDescription>
-              Add a link to your document
-            </DialogDescription>
+            <DialogDescription>Add a link to your document</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -547,10 +615,10 @@ export function TiptapEditor({
               <Input
                 id="link-url"
                 value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
+                onChange={e => setLinkUrl(e.target.value)}
                 placeholder="https://example.com"
                 className="col-span-3"
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                   if (e.key === 'Enter') {
                     insertLink()
                   }
@@ -572,9 +640,7 @@ export function TiptapEditor({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Insert Image</DialogTitle>
-            <DialogDescription>
-              Add an image to your document
-            </DialogDescription>
+            <DialogDescription>Add an image to your document</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -584,7 +650,7 @@ export function TiptapEditor({
               <Input
                 id="image-url"
                 value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
+                onChange={e => setImageUrl(e.target.value)}
                 placeholder="https://example.com/image.jpg"
                 className="col-span-3"
               />
@@ -596,7 +662,7 @@ export function TiptapEditor({
               <Input
                 id="image-alt"
                 value={imageAlt}
-                onChange={(e) => setImageAlt(e.target.value)}
+                onChange={e => setImageAlt(e.target.value)}
                 placeholder="Image description"
                 className="col-span-3"
               />
@@ -618,7 +684,8 @@ export function TiptapEditor({
           outline: none;
           font-size: 16px;
           line-height: 1.6;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family:
+            -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         .ProseMirror p {
@@ -633,12 +700,16 @@ export function TiptapEditor({
           margin-bottom: 0;
         }
 
-        .ProseMirror h1, .ProseMirror h2, .ProseMirror h3 {
+        .ProseMirror h1,
+        .ProseMirror h2,
+        .ProseMirror h3 {
           margin: 2rem 0 1rem 0;
           font-weight: 600;
         }
 
-        .ProseMirror h1:first-child, .ProseMirror h2:first-child, .ProseMirror h3:first-child {
+        .ProseMirror h1:first-child,
+        .ProseMirror h2:first-child,
+        .ProseMirror h3:first-child {
           margin-top: 0;
         }
 
@@ -656,7 +727,8 @@ export function TiptapEditor({
           font-size: 1.25rem;
         }
 
-        .ProseMirror ul, .ProseMirror ol {
+        .ProseMirror ul,
+        .ProseMirror ol {
           margin: 1rem 0;
           padding-left: 2rem;
         }
@@ -720,7 +792,8 @@ export function TiptapEditor({
           width: 100%;
         }
 
-        .ProseMirror td, .ProseMirror th {
+        .ProseMirror td,
+        .ProseMirror th {
           border: 1px solid #d1d5db;
           padding: 0.5rem 0.75rem;
           text-align: left;
@@ -737,22 +810,22 @@ export function TiptapEditor({
           border-top: 1px solid #e2e8f0;
         }
 
-        .ProseMirror ul[data-type="taskList"] {
+        .ProseMirror ul[data-type='taskList'] {
           list-style: none;
           padding: 0;
         }
 
-        .ProseMirror ul[data-type="taskList"] li {
+        .ProseMirror ul[data-type='taskList'] li {
           display: flex;
           align-items: flex-start;
         }
 
-        .ProseMirror ul[data-type="taskList"] li > label {
+        .ProseMirror ul[data-type='taskList'] li > label {
           margin-right: 0.5rem;
           margin-top: 0.1rem;
         }
 
-        .ProseMirror ul[data-type="taskList"] li > div {
+        .ProseMirror ul[data-type='taskList'] li > div {
           flex: 1;
         }
 
@@ -776,7 +849,7 @@ export function TiptapEditor({
         }
 
         /* Color preservation */
-        .ProseMirror [style*="color"] {
+        .ProseMirror [style*='color'] {
           /* Ensure inline color styles are preserved */
         }
       `}</style>
@@ -805,13 +878,19 @@ export function TiptapReader({
 }
 
 // Utility function to safely extract plain text from Tiptap content
-export function extractPlainText(content: string | object, maxLength = 150): string {
+export function extractPlainText(
+  content: string | object,
+  maxLength = 150
+): string {
   if (!content) return 'No content'
 
   // If content is HTML string, strip tags
   if (typeof content === 'string') {
     const plainText = content.replace(/<[^>]*>/g, '')
-    return plainText.substring(0, maxLength) + (plainText.length > maxLength ? '...' : '')
+    return (
+      plainText.substring(0, maxLength) +
+      (plainText.length > maxLength ? '...' : '')
+    )
   }
 
   // If content is JSON, extract text from nodes
@@ -838,7 +917,10 @@ export function extractPlainText(content: string | object, maxLength = 150): str
     }
 
     const plainText = extractTextFromNode(content)
-    return plainText.substring(0, maxLength) + (plainText.length > maxLength ? '...' : '')
+    return (
+      plainText.substring(0, maxLength) +
+      (plainText.length > maxLength ? '...' : '')
+    )
   }
 
   return 'No content'

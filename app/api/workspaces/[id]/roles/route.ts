@@ -23,7 +23,10 @@ import { getClientIP } from '@/lib/utils/ip-utils'
 import { z } from 'zod'
 import mongoose from 'mongoose'
 
-import { getAvailablePermissions, seedSystemPermissions } from '@/lib/mongodb/seedPermissions'
+import {
+  getAvailablePermissions,
+  seedSystemPermissions,
+} from '@/lib/mongodb/seedPermissions'
 
 // Validation schemas
 const createRoleSchema = z.object({
@@ -44,7 +47,10 @@ const createRoleSchema = z.object({
 // GET /api/workspaces/[id]/roles - List workspace roles
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -195,7 +201,10 @@ export const GET = withSecurityLogging(
 // POST /api/workspaces/[id]/roles - Create new role
 export const POST = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -249,7 +258,9 @@ export const POST = withSecurityLogging(
         const availablePermissions = await getAvailablePermissions(workspaceId)
         const availablePermissionNames = availablePermissions.map(p => p.name)
 
-        const invalidPermissions = permissions.filter(p => !availablePermissionNames.includes(p))
+        const invalidPermissions = permissions.filter(
+          p => !availablePermissionNames.includes(p)
+        )
         if (invalidPermissions.length > 0) {
           return NextResponse.json(
             {

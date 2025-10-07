@@ -1,6 +1,13 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useSelector } from 'react-redux'
 import { RootState } from '../store'
@@ -26,10 +33,7 @@ interface SocketContextType {
     emoji: string
     chatRoomId: string
   }) => void
-  deleteMessage: (data: {
-    messageId: string
-    chatRoomId: string
-  }) => void
+  deleteMessage: (data: { messageId: string; chatRoomId: string }) => void
   startTyping: (chatRoomId: string) => void
   stopTyping: (chatRoomId: string) => void
   markMessagesAsRead: (data: {
@@ -38,46 +42,56 @@ interface SocketContextType {
   }) => void
   changeUserStatus: (status: 'online' | 'offline' | 'away') => void
   onNewMessage: (callback: (message: Message) => void) => void
-  onMessageReaction: (callback: (data: {
-    messageId: string
-    emoji: string
-    userId: string
-    userName: string
-  }) => void) => void
-  onMessageDeleted: (callback: (data: {
-    messageId: string
-    deletedBy: string
-  }) => void) => void
-  onUserTyping: (callback: (data: {
-    userId: string
-    userName: string
-    chatRoomId: string
-  }) => void) => void
-  onUserStoppedTyping: (callback: (data: {
-    userId: string
-    chatRoomId: string
-  }) => void) => void
-  onMessagesRead: (callback: (data: {
-    chatRoomId: string
-    messageIds: string[]
-    userId: string
-    userName: string
-  }) => void) => void
-  onUserStatusChanged: (callback: (data: {
-    userId: string
-    userName: string
-    status: 'online' | 'offline' | 'away'
-  }) => void) => void
-  onUserJoinedRoom: (callback: (data: {
-    userId: string
-    userName: string
-    timestamp: string
-  }) => void) => void
-  onUserLeftRoom: (callback: (data: {
-    userId: string
-    userName: string
-    timestamp: string
-  }) => void) => void
+  onMessageReaction: (
+    callback: (data: {
+      messageId: string
+      emoji: string
+      userId: string
+      userName: string
+    }) => void
+  ) => void
+  onMessageDeleted: (
+    callback: (data: { messageId: string; deletedBy: string }) => void
+  ) => void
+  onUserTyping: (
+    callback: (data: {
+      userId: string
+      userName: string
+      chatRoomId: string
+    }) => void
+  ) => void
+  onUserStoppedTyping: (
+    callback: (data: { userId: string; chatRoomId: string }) => void
+  ) => void
+  onMessagesRead: (
+    callback: (data: {
+      chatRoomId: string
+      messageIds: string[]
+      userId: string
+      userName: string
+    }) => void
+  ) => void
+  onUserStatusChanged: (
+    callback: (data: {
+      userId: string
+      userName: string
+      status: 'online' | 'offline' | 'away'
+    }) => void
+  ) => void
+  onUserJoinedRoom: (
+    callback: (data: {
+      userId: string
+      userName: string
+      timestamp: string
+    }) => void
+  ) => void
+  onUserLeftRoom: (
+    callback: (data: {
+      userId: string
+      userName: string
+      timestamp: string
+    }) => void
+  ) => void
 }
 
 const SocketContext = createContext<SocketContextType | null>(null)
@@ -101,19 +115,15 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const workspace = useSelector((state: RootState) => state.workspace)
   const eventListenersRef = useRef<Map<string, Function[]>>(new Map())
 
-  useEffect(() => {
-    if (auth.isAuthenticated && auth.user && workspace.currentWorkspace?.id) {
-      initializeSocket()
-    } else {
-      disconnectSocket()
+  const disconnectSocket = useCallback(() => {
+    if (socket) {
+      socket.disconnect()
+      setSocket(null)
+      setIsConnected(false)
     }
+  }, [socket])
 
-    return () => {
-      disconnectSocket()
-    }
-  }, [auth.isAuthenticated, auth.user, workspace.currentWorkspace?.id])
-
-  const initializeSocket = async () => {
+  const initializeSocket = useCallback(async () => {
     try {
       const newSocket = io({
         path: '/api/socket',
@@ -128,86 +138,84 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         if (auth.user && workspace.currentWorkspace?.id) {
           newSocket.emit('identify-user', {
             userId: auth.user.id,
-            userName: auth.user.fullName || auth.user.email,
             workspaceId: workspace.currentWorkspace.id,
           })
         }
       })
 
-      newSocket.on('user-identified', (data: { success: boolean }) => {
-        if (data.success) {
-          console.log('User successfully identified on server')
+      // Set up other event listeners...
+      newSocket.on(
+        'user-joined-room',
+        (data: { userId: string; userName: string; timestamp: string }) => {
+          console.log(`${data.userName} joined the room`)
         }
-      })
+      )
 
-      newSocket.on('joined-chat', (chatRoomId: string) => {
-        console.log(`Successfully joined chat room: ${chatRoomId}`)
-      })
-
-      newSocket.on('user-joined-room', (data: {
-        userId: string
-        userName: string
-        timestamp: string
-      }) => {
-        console.log(`${data.userName} joined the room`)
-      })
-
-      newSocket.on('user-left-room', (data: {
-        userId: string
-        userName: string
-        timestamp: string
-      }) => {
-        console.log(`${data.userName} left the room`)
-      })
+      newSocket.on(
+        'user-left-room',
+        (data: { userId: string; userName: string; timestamp: string }) => {
+          console.log(`${data.userName} left the room`)
+        }
+      )
 
       newSocket.on('disconnect', () => {
         console.log('Disconnected from Socket.IO server')
         setIsConnected(false)
       })
 
-      newSocket.on('connect_error', (error) => {
+      newSocket.on('connect_error', error => {
         console.error('Socket connection error:', error)
         setIsConnected(false)
       })
 
       // Set up event listeners
+      const setupEventListeners = (socketInstance: Socket) => {
+        // Clean up existing listeners
+        eventListenersRef.current.clear()
+
+        // Set up event handlers that will be exposed through the context
+        const events = [
+          'new-message',
+          'message-reaction-added',
+          'message-deleted',
+          'user-typing',
+          'user-stopped-typing',
+          'messages-read',
+          'user-status-updated',
+          'user-joined-room',
+          'user-left-room',
+        ]
+
+        events.forEach(event => {
+          eventListenersRef.current.set(event, [])
+        })
+      }
+
       setupEventListeners(newSocket)
 
       setSocket(newSocket)
     } catch (error) {
       console.error('Failed to initialize socket:', error)
     }
-  }
+  }, [auth.user, workspace.currentWorkspace])
 
-  const disconnectSocket = () => {
-    if (socket) {
-      socket.disconnect()
-      setSocket(null)
-      setIsConnected(false)
+  useEffect(() => {
+    if (auth.isAuthenticated && auth.user && workspace.currentWorkspace?.id) {
+      initializeSocket()
+    } else {
+      disconnectSocket()
     }
-  }
 
-  const setupEventListeners = (socketInstance: Socket) => {
-    // Clean up existing listeners
-    eventListenersRef.current.clear()
-
-    // Set up event handlers that will be exposed through the context
-    const events = [
-      'new-message',
-      'message-reaction-added',
-      'message-deleted',
-      'user-typing',
-      'user-stopped-typing',
-      'messages-read',
-      'user-status-updated',
-      'user-joined-room',
-      'user-left-room',
-    ]
-
-    events.forEach(event => {
-      eventListenersRef.current.set(event, [])
-    })
-  }
+    return () => {
+      disconnectSocket()
+    }
+  }, [
+    auth.isAuthenticated,
+    auth.user,
+    workspace.currentWorkspace?.id,
+    initializeSocket,
+    disconnectSocket,
+  ])
 
   const joinChatRoom = (chatRoomId: string) => {
     if (socket) {
@@ -246,10 +254,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }
 
-  const deleteMessage = (data: {
-    messageId: string
-    chatRoomId: string
-  }) => {
+  const deleteMessage = (data: { messageId: string; chatRoomId: string }) => {
     if (socket) {
       socket.emit('delete-message', data)
     }
@@ -295,27 +300,29 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }
 
-  const onMessageReaction = (callback: (data: {
-    messageId: string
-    emoji: string
-    userId: string
-    userName: string
-  }) => void) => {
+  const onMessageReaction = (
+    callback: (data: {
+      messageId: string
+      emoji: string
+      userId: string
+      userName: string
+    }) => void
+  ) => {
     if (socket) {
       // Remove existing listener first to prevent duplicates
       socket.off('message-reaction-added', callback)
       socket.on('message-reaction-added', callback)
 
-      const listeners = eventListenersRef.current.get('message-reaction-added') || []
+      const listeners =
+        eventListenersRef.current.get('message-reaction-added') || []
       listeners.push(callback)
       eventListenersRef.current.set('message-reaction-added', listeners)
     }
   }
 
-  const onMessageDeleted = (callback: (data: {
-    messageId: string
-    deletedBy: string
-  }) => void) => {
+  const onMessageDeleted = (
+    callback: (data: { messageId: string; deletedBy: string }) => void
+  ) => {
     if (socket) {
       socket.off('message-deleted', callback)
       socket.on('message-deleted', callback)
@@ -326,11 +333,13 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }
 
-  const onUserTyping = (callback: (data: {
-    userId: string
-    userName: string
-    chatRoomId: string
-  }) => void) => {
+  const onUserTyping = (
+    callback: (data: {
+      userId: string
+      userName: string
+      chatRoomId: string
+    }) => void
+  ) => {
     if (socket) {
       socket.off('user-typing', callback)
       socket.on('user-typing', callback)
@@ -341,26 +350,28 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }
 
-  const onUserStoppedTyping = (callback: (data: {
-    userId: string
-    chatRoomId: string
-  }) => void) => {
+  const onUserStoppedTyping = (
+    callback: (data: { userId: string; chatRoomId: string }) => void
+  ) => {
     if (socket) {
       socket.off('user-stopped-typing', callback)
       socket.on('user-stopped-typing', callback)
 
-      const listeners = eventListenersRef.current.get('user-stopped-typing') || []
+      const listeners =
+        eventListenersRef.current.get('user-stopped-typing') || []
       listeners.push(callback)
       eventListenersRef.current.set('user-stopped-typing', listeners)
     }
   }
 
-  const onMessagesRead = (callback: (data: {
-    chatRoomId: string
-    messageIds: string[]
-    userId: string
-    userName: string
-  }) => void) => {
+  const onMessagesRead = (
+    callback: (data: {
+      chatRoomId: string
+      messageIds: string[]
+      userId: string
+      userName: string
+    }) => void
+  ) => {
     if (socket) {
       socket.on('messages-read', callback)
       const listeners = eventListenersRef.current.get('messages-read') || []
@@ -369,24 +380,29 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }
 
-  const onUserStatusChanged = (callback: (data: {
-    userId: string
-    userName: string
-    status: 'online' | 'offline' | 'away'
-  }) => void) => {
+  const onUserStatusChanged = (
+    callback: (data: {
+      userId: string
+      userName: string
+      status: 'online' | 'offline' | 'away'
+    }) => void
+  ) => {
     if (socket) {
       socket.on('user-status-updated', callback)
-      const listeners = eventListenersRef.current.get('user-status-updated') || []
+      const listeners =
+        eventListenersRef.current.get('user-status-updated') || []
       listeners.push(callback)
       eventListenersRef.current.set('user-status-updated', listeners)
     }
   }
 
-  const onUserJoinedRoom = (callback: (data: {
-    userId: string
-    userName: string
-    timestamp: string
-  }) => void) => {
+  const onUserJoinedRoom = (
+    callback: (data: {
+      userId: string
+      userName: string
+      timestamp: string
+    }) => void
+  ) => {
     if (socket) {
       socket.on('user-joined-room', callback)
       const listeners = eventListenersRef.current.get('user-joined-room') || []
@@ -395,11 +411,13 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }
 
-  const onUserLeftRoom = (callback: (data: {
-    userId: string
-    userName: string
-    timestamp: string
-  }) => void) => {
+  const onUserLeftRoom = (
+    callback: (data: {
+      userId: string
+      userName: string
+      timestamp: string
+    }) => void
+  ) => {
     if (socket) {
       socket.on('user-left-room', callback)
       const listeners = eventListenersRef.current.get('user-left-room') || []
@@ -432,8 +450,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   }
 
   return (
-    <SocketContext.Provider value={value}>
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   )
 }

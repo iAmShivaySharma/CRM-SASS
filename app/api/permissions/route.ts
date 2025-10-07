@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Permission } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { getAvailablePermissions, seedSystemPermissions } from '@/lib/mongodb/seedPermissions'
+import {
+  getAvailablePermissions,
+  seedSystemPermissions,
+} from '@/lib/mongodb/seedPermissions'
 import { logUserActivity } from '@/lib/logging/middleware'
 
 export async function GET(request: NextRequest) {

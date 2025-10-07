@@ -1,6 +1,9 @@
 import { ChatRoom } from '@/lib/mongodb/models'
 
-export async function createDefaultChatRooms(workspaceId: string, createdBy: string) {
+export async function createDefaultChatRooms(
+  workspaceId: string,
+  createdBy: string
+) {
   try {
     // Check if General room already exists
     const existingGeneral = await ChatRoom.findOne({
@@ -10,7 +13,10 @@ export async function createDefaultChatRooms(workspaceId: string, createdBy: str
     })
 
     if (existingGeneral) {
-      console.log('General chat room already exists for workspace:', workspaceId)
+      console.log(
+        'General chat room already exists for workspace:',
+        workspaceId
+      )
       return existingGeneral
     }
 
@@ -42,7 +48,10 @@ export async function createDefaultChatRooms(workspaceId: string, createdBy: str
   }
 }
 
-export async function addUserToDefaultChatRooms(workspaceId: string, userId: string) {
+export async function addUserToDefaultChatRooms(
+  workspaceId: string,
+  userId: string
+) {
   try {
     // Add user to all general (public) chat rooms in the workspace
     const generalRooms = await ChatRoom.find({

@@ -69,4 +69,5 @@ columnSchema.index({ workspaceId: 1, projectId: 1 })
 // Ensure unique slug per project
 columnSchema.index({ projectId: 1, slug: 1 }, { unique: true })
 
-export const Column = mongoose.models.Column || mongoose.model<IColumn>('Column', columnSchema)
+export const Column =
+  mongoose.models.Column || mongoose.model<IColumn>('Column', columnSchema)

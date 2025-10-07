@@ -129,5 +129,4 @@ if (typeof window === 'undefined') {
 }
 
 export const Message =
-  mongoose.models?.Message ||
-  mongoose.model<IMessage>('Message', MessageSchema)
+  mongoose.models?.Message || mongoose.model<IMessage>('Message', MessageSchema)

@@ -72,7 +72,9 @@ export default function ProjectsPage() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Projects
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -82,21 +84,27 @@ export default function ProjectsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Active Projects
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {projectsData?.projects.filter(p => p.status === 'active').length || 0}
+                {projectsData?.projects.filter(p => p.status === 'active')
+                  .length || 0}
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed Projects</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Completed Projects
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {projectsData?.projects.filter(p => p.status === 'completed').length || 0}
+                {projectsData?.projects.filter(p => p.status === 'completed')
+                  .length || 0}
               </div>
             </CardContent>
           </Card>
@@ -106,7 +114,9 @@ export default function ProjectsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {projectsData?.projects.filter(p => p.createdBy === currentWorkspace.id).length || 0}
+                {projectsData?.projects.filter(
+                  p => p.createdBy === currentWorkspace.id
+                ).length || 0}
               </div>
             </CardContent>
           </Card>
@@ -115,19 +125,19 @@ export default function ProjectsPage() {
 
       {/* Filters and Search */}
       <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search projects..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
 
         <select
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={e => setStatus(e.target.value)}
           className="rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
           <option value="">All Status</option>

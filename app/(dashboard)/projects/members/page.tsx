@@ -1,9 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Search, Filter, UserPlus, Crown, Shield, User, MoreVertical } from 'lucide-react'
+import {
+  Plus,
+  Search,
+  Filter,
+  UserPlus,
+  Crown,
+  Shield,
+  User,
+  MoreVertical,
+} from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
-import { useGetProjectsQuery, useGetProjectMembersQuery, useAddProjectMemberMutation, useRemoveProjectMemberMutation } from '@/lib/api/projectsApi'
+import {
+  useGetProjectsQuery,
+  useGetProjectMembersQuery,
+  useAddProjectMemberMutation,
+  useRemoveProjectMemberMutation,
+} from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -52,7 +66,11 @@ export default function ProjectMembersPage() {
       projectId: projectFilter,
     },
     {
-      skip: !currentWorkspace?.id || projectFilter === 'all' || !projectFilter || projectFilter === '',
+      skip:
+        !currentWorkspace?.id ||
+        projectFilter === 'all' ||
+        !projectFilter ||
+        projectFilter === '',
     }
   )
 
@@ -103,12 +121,13 @@ export default function ProjectMembersPage() {
   }
 
   const filteredMembers = members.filter(member => {
-    const matchesSearch = search === '' || (
+    const matchesSearch =
+      search === '' ||
       member.user?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
       member.user?.email?.toLowerCase().includes(search.toLowerCase())
-    )
 
-    const matchesRole = roleFilter === 'all' ||
+    const matchesRole =
+      roleFilter === 'all' ||
       member.role?.name?.toLowerCase() === roleFilter.toLowerCase()
 
     return matchesSearch && matchesRole
@@ -135,7 +154,8 @@ export default function ProjectMembersPage() {
         <div className="flex items-center gap-2">
           {projectFilter !== 'all' && projectFilter && (
             <Badge variant="outline" className="text-sm">
-              {projectsData?.projects.find(p => p.id === projectFilter)?.name || 'Unknown Project'}
+              {projectsData?.projects.find(p => p.id === projectFilter)?.name ||
+                'Unknown Project'}
             </Badge>
           )}
           <Button disabled={projectFilter === 'all' || !projectFilter}>
@@ -152,14 +172,14 @@ export default function ProjectMembersPage() {
             <CardTitle className="text-sm font-medium">Total Members</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {filteredMembers.length}
-            </div>
+            <div className="text-2xl font-bold">{filteredMembers.length}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Members
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -191,12 +211,12 @@ export default function ProjectMembersPage() {
 
       {/* Filters and Search */}
       <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search members..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -243,9 +263,11 @@ export default function ProjectMembersPage() {
               <div>
                 <h3 className="text-lg font-medium">No members found</h3>
                 <p className="text-sm text-muted-foreground">
-                  {search ? 'Try adjusting your search terms' :
-                   projectFilter === 'all' ? 'Select a project to view its members' :
-                   'Invite members to get started'}
+                  {search
+                    ? 'Try adjusting your search terms'
+                    : projectFilter === 'all'
+                      ? 'Select a project to view its members'
+                      : 'Invite members to get started'}
                 </p>
               </div>
               {!search && projectFilter !== 'all' && projectFilter && (
@@ -259,7 +281,7 @@ export default function ProjectMembersPage() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filteredMembers.map((member) => (
+          {filteredMembers.map(member => (
             <Card key={member.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -267,16 +289,23 @@ export default function ProjectMembersPage() {
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={member.user?.avatarUrl || undefined} />
                       <AvatarFallback>
-                        {member.user?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
+                        {member.user?.fullName
+                          ?.split(' ')
+                          .map(n => n[0])
+                          .join('') || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <h3 className="font-medium">{member.user?.fullName || 'Unknown User'}</h3>
+                        <h3 className="font-medium">
+                          {member.user?.fullName || 'Unknown User'}
+                        </h3>
                         {getRoleIcon(member.role?.name || '')}
                       </div>
-                      <p className="text-sm text-muted-foreground">{member.user?.email || ''}</p>
-                      <div className="flex items-center space-x-4 mt-1">
+                      <p className="text-sm text-muted-foreground">
+                        {member.user?.email || ''}
+                      </p>
+                      <div className="mt-1 flex items-center space-x-4">
                         <span className="text-xs text-muted-foreground">
                           Status: {member.status}
                         </span>
@@ -288,11 +317,17 @@ export default function ProjectMembersPage() {
                   </div>
 
                   <div className="flex items-center space-x-4">
-                    <Badge variant="secondary" className={getRoleColor(member.role?.name || '')}>
+                    <Badge
+                      variant="secondary"
+                      className={getRoleColor(member.role?.name || '')}
+                    >
                       {member.role?.name || 'No role'}
                     </Badge>
                     <div className="text-sm text-muted-foreground">
-                      Joined {new Date(member.joinedAt || member.createdAt).toLocaleDateString()}
+                      Joined{' '}
+                      {new Date(
+                        member.joinedAt || member.createdAt
+                      ).toLocaleDateString()}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

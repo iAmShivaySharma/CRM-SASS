@@ -74,7 +74,7 @@ export const tasksApi = createApi({
     credentials: 'include',
   }),
   tagTypes: ['Task'],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getTasks: builder.query<TasksResponse, GetTasksRequest>({
       query: ({ projectId, status, assigneeId, search }) => {
         const params = new URLSearchParams()
@@ -88,11 +88,11 @@ export const tasksApi = createApi({
       providesTags: ['Task'],
     }),
     getTask: builder.query<{ task: Task }, string>({
-      query: (id) => `/${id}`,
+      query: id => `/${id}`,
       providesTags: (result, error, id) => [{ type: 'Task', id }],
     }),
     createTask: builder.mutation<{ task: Task }, CreateTaskRequest>({
-      query: (body) => ({
+      query: body => ({
         url: '',
         method: 'POST',
         body,
@@ -105,10 +105,13 @@ export const tasksApi = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Task', id }, 'Task'],
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Task', id },
+        'Task',
+      ],
     }),
     deleteTask: builder.mutation<{ success: boolean }, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/${id}`,
         method: 'DELETE',
       }),

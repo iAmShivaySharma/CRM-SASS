@@ -27,12 +27,13 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
 
   const visibilityColors = {
     private: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    workspace: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    workspace:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
     public: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   }
 
   const completionPercentage = project.taskCount
-    ? Math.round((project.completedTaskCount || 0) / project.taskCount * 100)
+    ? Math.round(((project.completedTaskCount || 0) / project.taskCount) * 100)
     : 0
 
   return (
@@ -41,7 +42,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/projects">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Projects
             </Link>
           </Button>
@@ -84,37 +85,42 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
           <div className="text-4xl">{project.icon}</div>
         ) : (
           <div
-            className="w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-xl"
+            className="flex h-16 w-16 items-center justify-center rounded-xl text-xl font-bold text-white"
             style={{ backgroundColor: project.color }}
           >
             {project.name.charAt(0).toUpperCase()}
           </div>
         )}
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-3 mb-2">
-            <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center space-x-3">
+            <h1 className="text-3xl font-bold tracking-tight">
+              {project.name}
+            </h1>
             <Badge
               variant="secondary"
-              className={cn("text-sm", statusColors[project.status])}
+              className={cn('text-sm', statusColors[project.status])}
             >
               {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
             </Badge>
             <Badge
               variant="outline"
-              className={cn("text-sm", visibilityColors[project.visibility])}
+              className={cn('text-sm', visibilityColors[project.visibility])}
             >
-              {project.visibility.charAt(0).toUpperCase() + project.visibility.slice(1)}
+              {project.visibility.charAt(0).toUpperCase() +
+                project.visibility.slice(1)}
             </Badge>
           </div>
 
           {project.description && (
-            <p className="text-muted-foreground mb-4">{project.description}</p>
+            <p className="mb-4 text-muted-foreground">{project.description}</p>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             <div>
-              <div className="text-2xl font-bold">{project.memberCount || 0}</div>
+              <div className="text-2xl font-bold">
+                {project.memberCount || 0}
+              </div>
               <div className="text-sm text-muted-foreground">Members</div>
             </div>
             <div>
@@ -127,7 +133,9 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
             </div>
             <div>
               <div className="text-2xl font-bold">
-                {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}
+                {project.startDate
+                  ? new Date(project.startDate).toLocaleDateString()
+                  : 'N/A'}
               </div>
               <div className="text-sm text-muted-foreground">Start Date</div>
             </div>
@@ -136,13 +144,13 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
           {/* Progress Bar */}
           {(project.taskCount || 0) > 0 && (
             <div className="mt-4">
-              <div className="flex items-center justify-between text-sm mb-2">
+              <div className="mb-2 flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Overall Progress</span>
                 <span className="font-medium">{completionPercentage}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+              <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
                 <div
-                  className="bg-primary h-2 rounded-full transition-all"
+                  className="h-2 rounded-full bg-primary transition-all"
                   style={{ width: `${completionPercentage}%` }}
                 />
               </div>

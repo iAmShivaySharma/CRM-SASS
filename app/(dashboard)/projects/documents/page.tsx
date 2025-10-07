@@ -2,9 +2,26 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, FileText, Search, Filter, Grid, List, MoreVertical, Eye, Edit, Download, Folder } from 'lucide-react'
+import {
+  Plus,
+  FileText,
+  Search,
+  Filter,
+  Grid,
+  List,
+  MoreVertical,
+  Eye,
+  Edit,
+  Download,
+  Folder,
+} from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
-import { useGetProjectsQuery, useGetDocumentsQuery, useCreateDocumentMutation, useDeleteDocumentMutation } from '@/lib/api/projectsApi'
+import {
+  useGetProjectsQuery,
+  useGetDocumentsQuery,
+  useCreateDocumentMutation,
+  useDeleteDocumentMutation,
+} from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,7 +42,10 @@ import {
 } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DocumentEditorDialog } from '@/components/projects/DocumentEditorDialog'
-import { TiptapReader, extractPlainText } from '@/components/ui/tiptap-editor-improved'
+import {
+  TiptapReader,
+  extractPlainText,
+} from '@/components/ui/tiptap-editor-improved'
 import { StatsCardSkeleton, CardSkeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 
@@ -61,7 +81,11 @@ export default function ProjectDocumentsPage() {
       search: search || undefined,
     },
     {
-      skip: !currentWorkspace?.id || projectFilter === 'all' || !projectFilter || projectFilter === '',
+      skip:
+        !currentWorkspace?.id ||
+        projectFilter === 'all' ||
+        !projectFilter ||
+        projectFilter === '',
     }
   )
 
@@ -137,10 +161,11 @@ export default function ProjectDocumentsPage() {
 
   // Apply additional filtering on the client side
   const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = search === '' || (
+    const matchesSearch =
+      search === '' ||
       doc.title.toLowerCase().includes(search.toLowerCase()) ||
-      (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
-    )
+      (doc.tags &&
+        doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
 
     const matchesType = typeFilter === 'all' || doc.type === typeFilter
 
@@ -160,7 +185,9 @@ export default function ProjectDocumentsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Project Documents</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Project Documents
+          </h1>
           <p className="text-muted-foreground">
             Create and manage documents with rich text editing
           </p>
@@ -168,10 +195,14 @@ export default function ProjectDocumentsPage() {
         <div className="flex items-center gap-2">
           {projectFilter !== 'all' && projectFilter && (
             <Badge variant="outline" className="text-sm">
-              {projectsData?.projects.find(p => p.id === projectFilter)?.name || 'Unknown Project'}
+              {projectsData?.projects.find(p => p.id === projectFilter)?.name ||
+                'Unknown Project'}
             </Badge>
           )}
-          <Button onClick={handleCreateDocument} disabled={projectFilter === 'all' || !projectFilter}>
+          <Button
+            onClick={handleCreateDocument}
+            disabled={projectFilter === 'all' || !projectFilter}
+          >
             <Plus className="mr-2 h-4 w-4" />
             New Document
           </Button>
@@ -182,12 +213,12 @@ export default function ProjectDocumentsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Documents
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {filteredDocuments.length}
-            </div>
+            <div className="text-2xl font-bold">{filteredDocuments.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -224,12 +255,12 @@ export default function ProjectDocumentsPage() {
 
       {/* Filters and Search */}
       <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search documents..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -310,9 +341,11 @@ export default function ProjectDocumentsPage() {
               <div>
                 <h3 className="text-lg font-medium">No documents found</h3>
                 <p className="text-sm text-muted-foreground">
-                  {search ? 'Try adjusting your search terms' :
-                   projectFilter === 'all' ? 'Select a project to view its documents' :
-                   'Create your first document to get started'}
+                  {search
+                    ? 'Try adjusting your search terms'
+                    : projectFilter === 'all'
+                      ? 'Select a project to view its documents'
+                      : 'Create your first document to get started'}
                 </p>
               </div>
               {!search && projectFilter !== 'all' && projectFilter && (
@@ -326,38 +359,56 @@ export default function ProjectDocumentsPage() {
         </Card>
       ) : viewMode === 'grid' ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredDocuments.map((document) => (
-            <Card key={document.id} className="group transition-all hover:shadow-md">
+          {filteredDocuments.map(document => (
+            <Card
+              key={document.id}
+              className="group transition-all hover:shadow-md"
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3">
-                    <div className="text-2xl">{getDocumentIcon(document.type)}</div>
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base line-clamp-2">
+                    <div className="text-2xl">
+                      {getDocumentIcon(document.type)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="line-clamp-2 text-base">
                         {document.title}
                       </CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary" className={getTypeColor(document.type)}>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Badge
+                          variant="secondary"
+                          className={getTypeColor(document.type)}
+                        >
                           {document.type}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {projectsData?.projects.find(p => p.id === document.projectId)?.name || 'Unknown Project'}
+                          {projectsData?.projects.find(
+                            p => p.id === document.projectId
+                          )?.name || 'Unknown Project'}
                         </span>
                       </div>
                     </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100"
+                      >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleViewDocument(document)}>
+                      <DropdownMenuItem
+                        onClick={() => handleViewDocument(document)}
+                      >
                         <Eye className="mr-2 h-4 w-4" />
                         View
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEditDocument(document)}>
+                      <DropdownMenuItem
+                        onClick={() => handleEditDocument(document)}
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
@@ -378,13 +429,13 @@ export default function ProjectDocumentsPage() {
               </CardHeader>
 
               <CardContent className="pt-0">
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">
                   {extractPlainText(document.content, 150)}
                 </p>
 
                 {/* Tags */}
                 {document.tags && document.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-4">
+                  <div className="mb-4 flex flex-wrap gap-1">
                     {document.tags.slice(0, 3).map((tag, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {tag}
@@ -403,13 +454,13 @@ export default function ProjectDocumentsPage() {
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-5 w-5">
                       <AvatarImage src={undefined} />
-                      <AvatarFallback className="text-xs">
-                        U
-                      </AvatarFallback>
+                      <AvatarFallback className="text-xs">U</AvatarFallback>
                     </Avatar>
                     <span>Unknown User</span>
                   </div>
-                  <span>{new Date(document.updatedAt).toLocaleDateString()}</span>
+                  <span>
+                    {new Date(document.updatedAt).toLocaleDateString()}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -417,20 +468,24 @@ export default function ProjectDocumentsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {filteredDocuments.map((document) => (
+          {filteredDocuments.map(document => (
             <Card key={document.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 flex-1 min-w-0">
-                    <div className="text-xl">{getDocumentIcon(document.type)}</div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{document.title}</h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <p className="text-sm text-muted-foreground truncate">
-                          {projectsData?.projects.find(p => p.id === document.projectId)?.name || 'Unknown Project'}
+                  <div className="flex min-w-0 flex-1 items-center space-x-4">
+                    <div className="text-xl">
+                      {getDocumentIcon(document.type)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate font-medium">{document.title}</h3>
+                      <div className="mt-1 flex items-center space-x-2">
+                        <p className="truncate text-sm text-muted-foreground">
+                          {projectsData?.projects.find(
+                            p => p.id === document.projectId
+                          )?.name || 'Unknown Project'}
                         </p>
                         <span className="text-muted-foreground">•</span>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="truncate text-sm text-muted-foreground">
                           {extractPlainText(document.content, 100)}
                         </p>
                       </div>
@@ -438,7 +493,10 @@ export default function ProjectDocumentsPage() {
                   </div>
 
                   <div className="flex items-center space-x-4">
-                    <Badge variant="secondary" className={getTypeColor(document.type)}>
+                    <Badge
+                      variant="secondary"
+                      className={getTypeColor(document.type)}
+                    >
                       {document.type}
                     </Badge>
                     <div className="text-sm text-muted-foreground">
@@ -451,11 +509,15 @@ export default function ProjectDocumentsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewDocument(document)}>
+                        <DropdownMenuItem
+                          onClick={() => handleViewDocument(document)}
+                        >
                           <Eye className="mr-2 h-4 w-4" />
                           View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditDocument(document)}>
+                        <DropdownMenuItem
+                          onClick={() => handleEditDocument(document)}
+                        >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
@@ -484,7 +546,7 @@ export default function ProjectDocumentsPage() {
       {projectFilter && projectFilter !== 'all' && (
         <DocumentEditorDialog
           open={showEditorDialog}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setShowEditorDialog(open)
             if (!open) {
               setSelectedDocument(null)

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { ProjectDocument, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { withLogging, withSecurityLogging, logUserActivity } from '@/lib/logging/middleware'
+import {
+  withLogging,
+  withSecurityLogging,
+  logUserActivity,
+} from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { z } from 'zod'
 
@@ -28,7 +32,11 @@ async function checkProjectDocumentAccess(projectId: string, userId: string) {
     status: 'active',
   })
 
-  if (!projectMember && project.visibility !== 'workspace' && project.visibility !== 'public') {
+  if (
+    !projectMember &&
+    project.visibility !== 'workspace' &&
+    project.visibility !== 'public'
+  ) {
     return null
   }
 
@@ -72,7 +80,10 @@ export const GET = withSecurityLogging(
         }
 
         console.log('Checking project access...')
-        const project = await checkProjectDocumentAccess(projectId, auth.user.id)
+        const project = await checkProjectDocumentAccess(
+          projectId,
+          auth.user.id
+        )
         if (!project) {
           console.log('Project not found or access denied')
           return NextResponse.json(
@@ -191,7 +202,7 @@ export const POST = withSecurityLogging(
               if (Array.isArray(parsed)) {
                 // Extract text from objects, keep strings as-is
                 body.tags = parsed.map(tag =>
-                  typeof tag === 'string' ? tag : (tag.text || String(tag))
+                  typeof tag === 'string' ? tag : tag.text || String(tag)
                 )
               } else {
                 body.tags = [String(parsed)]
@@ -202,7 +213,7 @@ export const POST = withSecurityLogging(
           } else if (Array.isArray(body.tags)) {
             // Extract text from objects, keep strings as-is
             body.tags = body.tags.map((tag: any) =>
-              typeof tag === 'string' ? tag : (tag.text || String(tag))
+              typeof tag === 'string' ? tag : tag.text || String(tag)
             )
           }
 
@@ -224,7 +235,10 @@ export const POST = withSecurityLogging(
         }
 
         console.log('Checking project access...')
-        const project = await checkProjectDocumentAccess(validationResult.data.projectId, auth.user.id)
+        const project = await checkProjectDocumentAccess(
+          validationResult.data.projectId,
+          auth.user.id
+        )
         if (!project) {
           console.log('Project not found or access denied')
           return NextResponse.json(
@@ -254,11 +268,17 @@ export const POST = withSecurityLogging(
           auth.user.id,
           'documents.create',
           `Created document: ${document.title}`,
-          { entityType: 'Document', documentId: document._id, projectId: validationResult.data.projectId }
+          {
+            entityType: 'Document',
+            documentId: document._id,
+            projectId: validationResult.data.projectId,
+          }
         )
 
         const endTime = Date.now()
-        console.log(`=== CREATE DOCUMENT API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== CREATE DOCUMENT API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           document: {

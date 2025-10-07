@@ -1,7 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, Users, CheckCircle2, MoreVertical, Archive, RotateCcw, FileText, ListTodo } from 'lucide-react'
+import {
+  Calendar,
+  Users,
+  CheckCircle2,
+  MoreVertical,
+  Archive,
+  RotateCcw,
+  FileText,
+  ListTodo,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,7 +47,8 @@ export function ProjectsList({ projects }: ProjectsListProps) {
 
   const visibilityColors = {
     private: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    workspace: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    workspace:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
     public: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   }
 
@@ -47,7 +57,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
       const newStatus = project.status === 'archived' ? 'active' : 'archived'
       await updateProject({
         id: project.id,
-        data: { status: newStatus }
+        data: { status: newStatus },
       }).unwrap()
 
       toast.success(
@@ -76,9 +86,11 @@ export function ProjectsList({ projects }: ProjectsListProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {projects.map((project) => {
+          {projects.map(project => {
             const completionPercentage = project.taskCount
-              ? Math.round((project.completedTaskCount || 0) / project.taskCount * 100)
+              ? Math.round(
+                  ((project.completedTaskCount || 0) / project.taskCount) * 100
+                )
               : 0
 
             return (
@@ -89,7 +101,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                       <div className="text-lg">{project.icon}</div>
                     ) : (
                       <div
-                        className="w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-semibold"
+                        className="flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold text-white"
                         style={{ backgroundColor: project.color }}
                       >
                         {project.name.charAt(0).toUpperCase()}
@@ -98,12 +110,12 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                     <div>
                       <Link
                         href={`/projects/${project.id}`}
-                        className="font-medium hover:text-primary transition-colors"
+                        className="font-medium transition-colors hover:text-primary"
                       >
                         {project.name}
                       </Link>
                       {project.description && (
-                        <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        <p className="max-w-[200px] truncate text-xs text-muted-foreground">
                           {project.description}
                         </p>
                       )}
@@ -114,18 +126,23 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                 <TableCell>
                   <Badge
                     variant="secondary"
-                    className={cn("text-xs", statusColors[project.status])}
+                    className={cn('text-xs', statusColors[project.status])}
                   >
-                    {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                    {project.status.charAt(0).toUpperCase() +
+                      project.status.slice(1)}
                   </Badge>
                 </TableCell>
 
                 <TableCell>
                   <Badge
                     variant="outline"
-                    className={cn("text-xs", visibilityColors[project.visibility])}
+                    className={cn(
+                      'text-xs',
+                      visibilityColors[project.visibility]
+                    )}
                   >
-                    {project.visibility.charAt(0).toUpperCase() + project.visibility.slice(1)}
+                    {project.visibility.charAt(0).toUpperCase() +
+                      project.visibility.slice(1)}
                   </Badge>
                 </TableCell>
 
@@ -148,9 +165,9 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                 <TableCell>
                   {(project.taskCount || 0) > 0 ? (
                     <div className="flex items-center space-x-2">
-                      <div className="w-16 bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+                      <div className="h-1.5 w-16 rounded-full bg-gray-200 dark:bg-gray-700">
                         <div
-                          className="bg-primary h-1.5 rounded-full transition-all"
+                          className="h-1.5 rounded-full bg-primary transition-all"
                           style={{ width: `${completionPercentage}%` }}
                         />
                       </div>
@@ -177,7 +194,9 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                       asChild
                       className="flex-1"
                     >
-                      <Link href={`/projects/documents?projectId=${project.id}`}>
+                      <Link
+                        href={`/projects/documents?projectId=${project.id}`}
+                      >
                         <FileText className="mr-1 h-3 w-3" />
                         Docs
                       </Link>
@@ -202,7 +221,11 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => handleArchiveToggle(project)}
-                          className={project.status === 'archived' ? 'text-blue-600' : 'text-orange-600'}
+                          className={
+                            project.status === 'archived'
+                              ? 'text-blue-600'
+                              : 'text-orange-600'
+                          }
                         >
                           {project.status === 'archived' ? (
                             <>

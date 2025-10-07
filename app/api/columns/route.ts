@@ -2,13 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Column, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { withLogging, withSecurityLogging, logUserActivity } from '@/lib/logging/middleware'
+import {
+  withLogging,
+  withSecurityLogging,
+  logUserActivity,
+} from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { z } from 'zod'
 
 const createColumnSchema = z.object({
   name: z.string().min(1).max(50),
-  slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/),
   color: z.string().min(1).default('bg-blue-100'),
   projectId: z.string(),
   order: z.number().min(0).optional(),
@@ -24,7 +32,11 @@ async function checkProjectColumnAccess(projectId: string, userId: string) {
     status: 'active',
   })
 
-  if (!projectMember && project.visibility !== 'workspace' && project.visibility !== 'public') {
+  if (
+    !projectMember &&
+    project.visibility !== 'workspace' &&
+    project.visibility !== 'public'
+  ) {
     return null
   }
 
@@ -88,7 +100,12 @@ export const GET = withSecurityLogging(
           console.log('Creating default columns...')
           const defaultColumns = [
             { name: 'To Do', slug: 'todo', color: '#gray-100', order: 0 },
-            { name: 'In Progress', slug: 'in-progress', color: '#blue-100', order: 1 },
+            {
+              name: 'In Progress',
+              slug: 'in-progress',
+              color: '#blue-100',
+              order: 1,
+            },
             { name: 'Review', slug: 'review', color: '#yellow-100', order: 2 },
             { name: 'Done', slug: 'done', color: '#green-100', order: 3 },
           ]
@@ -198,7 +215,10 @@ export const POST = withSecurityLogging(
         }
 
         console.log('Checking project access...')
-        const project = await checkProjectColumnAccess(validationResult.data.projectId, auth.user.id)
+        const project = await checkProjectColumnAccess(
+          validationResult.data.projectId,
+          auth.user.id
+        )
         if (!project) {
           console.log('Project not found or access denied')
           return NextResponse.json(
@@ -214,7 +234,8 @@ export const POST = withSecurityLogging(
           projectId: validationResult.data.projectId,
         }).sort({ order: -1 })
 
-        const order = validationResult.data.order ?? (lastColumn ? lastColumn.order + 1 : 0)
+        const order =
+          validationResult.data.order ?? (lastColumn ? lastColumn.order + 1 : 0)
 
         console.log('Creating new column with order:', order)
 
@@ -236,7 +257,9 @@ export const POST = withSecurityLogging(
         )
 
         const endTime = Date.now()
-        console.log(`=== CREATE COLUMN API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== CREATE COLUMN API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           column: {

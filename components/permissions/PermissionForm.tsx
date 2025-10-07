@@ -43,7 +43,15 @@ const CATEGORIES = [
 ]
 
 const COMMON_ACTIONS = [
-  'create', 'read', 'update', 'delete', 'manage', 'view', 'export', 'import', 'assign'
+  'create',
+  'read',
+  'update',
+  'delete',
+  'manage',
+  'view',
+  'export',
+  'import',
+  'assign',
 ]
 
 export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
@@ -125,11 +133,11 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-1">
       {/* Permission Name Preview */}
       {permissionName && (
-        <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <Label className="text-sm font-medium">Permission Name:</Label>
-              <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded text-sm">
+              <code className="rounded bg-white px-2 py-1 text-sm dark:bg-gray-800">
                 {permissionName}
               </code>
             </div>
@@ -147,8 +155,8 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
               required: 'Resource is required',
               pattern: {
                 value: /^[a-z][a-z0-9_]*$/,
-                message: 'Resource must be lowercase with underscores only'
-              }
+                message: 'Resource must be lowercase with underscores only',
+              },
             })}
           />
           {errors.resource && (
@@ -168,8 +176,8 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
               required: 'Action is required',
               pattern: {
                 value: /^[a-z][a-z0-9_]*$/,
-                message: 'Action must be lowercase with underscores only'
-              }
+                message: 'Action must be lowercase with underscores only',
+              },
             })}
           />
           {errors.action && (
@@ -177,15 +185,15 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
           )}
 
           {/* Common Actions */}
-          <div className="flex flex-wrap gap-1 mt-2">
-            <p className="text-xs text-gray-500 w-full mb-1">Common actions:</p>
+          <div className="mt-2 flex flex-wrap gap-1">
+            <p className="mb-1 w-full text-xs text-gray-500">Common actions:</p>
             {COMMON_ACTIONS.map(action => (
               <Button
                 key={action}
                 type="button"
                 variant="outline"
                 size="sm"
-                className="text-xs h-6"
+                className="h-6 text-xs"
                 onClick={() => handleCommonActionSelect(action)}
               >
                 {action}
@@ -224,7 +232,7 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="category">Category</Label>
-        <Select onValueChange={(value) => setValue('category', value)}>
+        <Select onValueChange={value => setValue('category', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
@@ -245,7 +253,8 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
       <div className="space-y-4">
         <Label>Dependencies (Optional)</Label>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Select permissions that must be granted for this permission to work properly
+          Select permissions that must be granted for this permission to work
+          properly
         </p>
         <Card>
           <CardHeader className="pb-3">
@@ -255,15 +264,19 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
             {permissionsLoading ? (
               <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="animate-pulse flex items-center space-x-2">
-                    <div className="h-4 w-4 bg-gray-200 rounded"></div>
-                    <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                  <div
+                    key={i}
+                    className="flex animate-pulse items-center space-x-2"
+                  >
+                    <div className="h-4 w-4 rounded bg-gray-200"></div>
+                    <div className="h-4 w-32 rounded bg-gray-200"></div>
                   </div>
                 ))}
               </div>
             ) : existingPermissions.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                No existing permissions found. Create some permissions first to set up dependencies.
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                No existing permissions found. Create some permissions first to
+                set up dependencies.
               </p>
             ) : (
               <div className="space-y-2">
@@ -271,17 +284,19 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
                   {existingPermissions.map(permission => (
                     <div
                       key={permission.id}
-                      className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50"
+                      className="flex items-center space-x-2 rounded-md p-2 hover:bg-muted/50"
                     >
                       <Checkbox
                         id={permission.id}
                         checked={selectedDependencies.includes(permission.id)}
-                        onCheckedChange={() => handleDependencyToggle(permission.id)}
+                        onCheckedChange={() =>
+                          handleDependencyToggle(permission.id)
+                        }
                       />
                       <div className="min-w-0 flex-1">
                         <Label
                           htmlFor={permission.id}
-                          className="cursor-pointer text-sm font-medium block"
+                          className="block cursor-pointer text-sm font-medium"
                         >
                           {permission.name}
                         </Label>
@@ -300,9 +315,11 @@ export function PermissionForm({ onSuccess, onCancel }: PermissionFormProps) {
 
       {/* Selected Dependencies Preview */}
       {selectedDependencies.length > 0 && (
-        <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
           <CardContent className="p-4">
-            <Label className="text-sm font-medium mb-2 block">Selected Dependencies:</Label>
+            <Label className="mb-2 block text-sm font-medium">
+              Selected Dependencies:
+            </Label>
             <div className="flex flex-wrap gap-1">
               {selectedDependencies.map(dep => (
                 <Badge key={dep} variant="outline" className="text-xs">

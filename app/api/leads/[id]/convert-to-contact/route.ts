@@ -13,7 +13,10 @@ import { log } from '@/lib/logging/logger'
 // POST /api/leads/[id]/convert-to-contact - Convert a lead to a contact
 export const POST = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {

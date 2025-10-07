@@ -41,21 +41,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark messages as read
-    const filter = messageIds && messageIds.length > 0
-      ? { _id: { $in: messageIds }, chatRoomId }
-      : { chatRoomId, senderId: { $ne: auth.user._id } } // Mark all messages not sent by user
+    const filter =
+      messageIds && messageIds.length > 0
+        ? { _id: { $in: messageIds }, chatRoomId }
+        : { chatRoomId, senderId: { $ne: auth.user._id } } // Mark all messages not sent by user
 
-    await Message.updateMany(
-      filter,
-      {
-        $addToSet: {
-          readBy: {
-            userId: auth.user._id,
-            readAt: new Date(),
-          },
+    await Message.updateMany(filter, {
+      $addToSet: {
+        readBy: {
+          userId: auth.user._id,
+          readAt: new Date(),
         },
-      }
-    )
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

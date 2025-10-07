@@ -32,7 +32,12 @@ import { Project, type IProject } from './models/Project'
 import { ProjectMember, type IProjectMember } from './models/ProjectMember'
 import { Task, type ITask } from './models/Task'
 import { ProjectDocument, type IProjectDocument } from './models/Document'
-import { ProjectInvitation, ProjectJoinRequest, type IProjectInvitation, type IProjectJoinRequest } from './models/ProjectInvitation'
+import {
+  ProjectInvitation,
+  ProjectJoinRequest,
+  type IProjectInvitation,
+  type IProjectJoinRequest,
+} from './models/ProjectInvitation'
 import { Column, type IColumn } from './models/Column'
 
 // Database client class to replace Supabase functionality
@@ -260,7 +265,10 @@ export class MongoDBClient {
       .populate('admins', 'name email avatar')
   }
 
-  async getChatRoomsByWorkspace(workspaceId: string, userId: string): Promise<IChatRoom[]> {
+  async getChatRoomsByWorkspace(
+    workspaceId: string,
+    userId: string
+  ): Promise<IChatRoom[]> {
     await this.ensureConnection()
     return await ChatRoom.find({
       workspaceId,
@@ -272,7 +280,10 @@ export class MongoDBClient {
       .sort({ 'lastMessage.timestamp': -1, updatedAt: -1 })
   }
 
-  async updateChatRoom(id: string, updates: Partial<IChatRoom>): Promise<IChatRoom | null> {
+  async updateChatRoom(
+    id: string,
+    updates: Partial<IChatRoom>
+  ): Promise<IChatRoom | null> {
     await this.ensureConnection()
     return await ChatRoom.findByIdAndUpdate(id, updates, { new: true })
       .populate('participants', 'name email avatar')
@@ -294,8 +305,10 @@ export class MongoDBClient {
 
   async getMessageById(id: string): Promise<IMessage | null> {
     await this.ensureConnection()
-    return await Message.findById(id)
-      .populate('replyTo', 'content senderName createdAt')
+    return await Message.findById(id).populate(
+      'replyTo',
+      'content senderName createdAt'
+    )
   }
 
   async getMessagesByChatRoom(
@@ -312,20 +325,25 @@ export class MongoDBClient {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
-      Message.countDocuments({ chatRoomId })
+      Message.countDocuments({ chatRoomId }),
     ])
 
     return {
       messages: messages.reverse(),
       total,
-      hasMore: skip + messages.length < total
+      hasMore: skip + messages.length < total,
     }
   }
 
-  async updateMessage(id: string, updates: Partial<IMessage>): Promise<IMessage | null> {
+  async updateMessage(
+    id: string,
+    updates: Partial<IMessage>
+  ): Promise<IMessage | null> {
     await this.ensureConnection()
-    return await Message.findByIdAndUpdate(id, updates, { new: true })
-      .populate('replyTo', 'content senderName createdAt')
+    return await Message.findByIdAndUpdate(id, updates, { new: true }).populate(
+      'replyTo',
+      'content senderName createdAt'
+    )
   }
 
   async deleteMessage(id: string): Promise<boolean> {
@@ -334,23 +352,25 @@ export class MongoDBClient {
     return !!result
   }
 
-  async markMessagesAsRead(chatRoomId: string, userId: string, messageIds?: string[]): Promise<void> {
+  async markMessagesAsRead(
+    chatRoomId: string,
+    userId: string,
+    messageIds?: string[]
+  ): Promise<void> {
     await this.ensureConnection()
-    const filter = messageIds && messageIds.length > 0
-      ? { _id: { $in: messageIds }, chatRoomId }
-      : { chatRoomId, senderId: { $ne: userId } }
+    const filter =
+      messageIds && messageIds.length > 0
+        ? { _id: { $in: messageIds }, chatRoomId }
+        : { chatRoomId, senderId: { $ne: userId } }
 
-    await Message.updateMany(
-      filter,
-      {
-        $addToSet: {
-          readBy: {
-            userId,
-            readAt: new Date(),
-          },
+    await Message.updateMany(filter, {
+      $addToSet: {
+        readBy: {
+          userId,
+          readAt: new Date(),
         },
-      }
-    )
+      },
+    })
   }
 }
 

@@ -91,3 +91,4 @@ global.fetch = jest.fn()
 process.env.MONGODB_URI = 'mongodb://localhost:27017/crm_test'
 process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only'
 process.env.NODE_ENV = 'test'
+process.env.SUPPRESS_JEST_WARNINGS = 'true'

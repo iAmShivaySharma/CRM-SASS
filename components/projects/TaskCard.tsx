@@ -2,7 +2,14 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Calendar, Clock, User, MessageSquare, Paperclip, MoreVertical } from 'lucide-react'
+import {
+  Calendar,
+  Clock,
+  User,
+  MessageSquare,
+  Paperclip,
+  MoreVertical,
+} from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -52,16 +59,16 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "cursor-grab active:cursor-grabbing transition-all hover:shadow-md",
-        (isDragging || isSortableDragging) && "opacity-50 rotate-3 shadow-lg",
-        isOverdue && "border-red-300 bg-red-50/50"
+        'cursor-grab transition-all hover:shadow-md active:cursor-grabbing',
+        (isDragging || isSortableDragging) && 'rotate-3 opacity-50 shadow-lg',
+        isOverdue && 'border-red-300 bg-red-50/50'
       )}
       {...attributes}
       {...listeners}
     >
       <CardContent className="p-3">
-        <div className="flex items-start justify-between mb-2">
-          <h4 className="font-medium text-sm line-clamp-2 flex-1 pr-2">
+        <div className="mb-2 flex items-start justify-between">
+          <h4 className="line-clamp-2 flex-1 pr-2 text-sm font-medium">
             {task.title}
           </h4>
           <DropdownMenu>
@@ -70,7 +77,7 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                onClick={(e) => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
               >
                 <MoreVertical className="h-3 w-3" />
               </Button>
@@ -78,28 +85,34 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem>Edit Task</DropdownMenuItem>
               <DropdownMenuItem>Duplicate</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">
+                Delete
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
         {task.description && (
           <div
-            className="text-xs text-muted-foreground line-clamp-2 mb-3 prose prose-sm max-w-none"
+            className="prose prose-sm mb-3 line-clamp-2 max-w-none text-xs text-muted-foreground"
             dangerouslySetInnerHTML={{ __html: task.description }}
           />
         )}
 
         {/* Tags */}
         {task.tags && task.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="mb-3 flex flex-wrap gap-1">
             {task.tags.slice(0, 2).map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-xs px-1.5 py-0.5">
+              <Badge
+                key={index}
+                variant="secondary"
+                className="px-1.5 py-0.5 text-xs"
+              >
                 {tag}
               </Badge>
             ))}
             {task.tags.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+              <Badge variant="secondary" className="px-1.5 py-0.5 text-xs">
                 +{task.tags.length - 2}
               </Badge>
             )}
@@ -107,10 +120,10 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
         )}
 
         {/* Priority */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3 flex items-center justify-between">
           <Badge
             variant="secondary"
-            className={cn("text-xs", priorityColors[task.priority])}
+            className={cn('text-xs', priorityColors[task.priority])}
           >
             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
           </Badge>
@@ -118,7 +131,7 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
           {/* Estimated Hours */}
           {task.estimatedHours && (
             <div className="flex items-center text-xs text-muted-foreground">
-              <Clock className="h-3 w-3 mr-1" />
+              <Clock className="mr-1 h-3 w-3" />
               {task.estimatedHours}h
             </div>
           )}
@@ -126,11 +139,13 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
 
         {/* Due Date */}
         {task.dueDate && (
-          <div className={cn(
-            "flex items-center text-xs mb-3",
-            isOverdue ? "text-red-600" : "text-muted-foreground"
-          )}>
-            <Calendar className="h-3 w-3 mr-1" />
+          <div
+            className={cn(
+              'mb-3 flex items-center text-xs',
+              isOverdue ? 'text-red-600' : 'text-muted-foreground'
+            )}
+          >
+            <Calendar className="mr-1 h-3 w-3" />
             Due {new Date(task.dueDate).toLocaleDateString()}
           </div>
         )}
@@ -142,7 +157,10 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
               <Avatar className="h-6 w-6">
                 <AvatarImage src={task.assignee.avatarUrl} />
                 <AvatarFallback className="text-xs">
-                  {task.assignee.fullName.split(' ').map(n => n[0]).join('')}
+                  {task.assignee.fullName
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')}
                 </AvatarFallback>
               </Avatar>
               <span className="text-xs text-muted-foreground">
@@ -159,8 +177,7 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
               )}
               {/* Add comment count when available */}
               <div className="flex items-center text-xs text-muted-foreground">
-                <MessageSquare className="h-3 w-3 mr-1" />
-                0
+                <MessageSquare className="mr-1 h-3 w-3" />0
               </div>
             </div>
           </div>

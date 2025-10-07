@@ -70,7 +70,10 @@ const updateLeadSchema = z.object({
 // PUT /api/leads/[id] - Update a lead
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
       console.log('=== LEAD UPDATE API DEBUG START ===')
 
@@ -439,7 +442,10 @@ export const PUT = withSecurityLogging(
 // DELETE /api/leads/[id] - Delete a lead
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       try {
         await connectToMongoDB()
 

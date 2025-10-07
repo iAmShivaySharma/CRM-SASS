@@ -1,7 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, Users, CheckCircle2, Clock, MoreVertical, FileText, ListTodo, Archive, RotateCcw } from 'lucide-react'
+import {
+  Calendar,
+  Users,
+  CheckCircle2,
+  Clock,
+  MoreVertical,
+  FileText,
+  ListTodo,
+  Archive,
+  RotateCcw,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,20 +41,24 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   const visibilityColors = {
     private: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    workspace: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    workspace:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
     public: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   }
 
-  const completionPercentage = (project.taskCount || 0) > 0
-    ? Math.round((project.completedTaskCount || 0) / (project.taskCount || 1) * 100)
-    : 0
+  const completionPercentage =
+    (project.taskCount || 0) > 0
+      ? Math.round(
+          ((project.completedTaskCount || 0) / (project.taskCount || 1)) * 100
+        )
+      : 0
 
   const handleArchiveToggle = async () => {
     try {
       const newStatus = project.status === 'archived' ? 'active' : 'archived'
       await updateProject({
         id: project.id,
-        data: { status: newStatus }
+        data: { status: newStatus },
       }).unwrap()
 
       toast.success(
@@ -58,7 +72,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
   }
 
   return (
-    <Card className="group transition-all hover:shadow-md hover:-translate-y-1">
+    <Card className="group transition-all hover:-translate-y-1 hover:shadow-md">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
@@ -66,18 +80,18 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <div className="text-2xl">{project.icon}</div>
             ) : (
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold"
+                className="flex h-10 w-10 items-center justify-center rounded-lg font-semibold text-white"
                 style={{ backgroundColor: project.color }}
               >
                 {project.name.charAt(0).toUpperCase()}
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold line-clamp-1">
+            <div className="min-w-0 flex-1">
+              <h3 className="line-clamp-1 text-lg font-semibold">
                 {project.name}
               </h3>
               {project.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                   {project.description}
                 </p>
               )}
@@ -99,7 +113,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <DropdownMenuItem
                 onClick={handleArchiveToggle}
                 disabled={isUpdating}
-                className={project.status === 'archived' ? 'text-blue-600' : 'text-orange-600'}
+                className={
+                  project.status === 'archived'
+                    ? 'text-blue-600'
+                    : 'text-orange-600'
+                }
               >
                 {project.status === 'archived' ? (
                   <>
@@ -117,18 +135,19 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center gap-2 mt-3">
+        <div className="mt-3 flex items-center gap-2">
           <Badge
             variant="secondary"
-            className={cn("text-xs", statusColors[project.status])}
+            className={cn('text-xs', statusColors[project.status])}
           >
             {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
           </Badge>
           <Badge
             variant="outline"
-            className={cn("text-xs", visibilityColors[project.visibility])}
+            className={cn('text-xs', visibilityColors[project.visibility])}
           >
-            {project.visibility.charAt(0).toUpperCase() + project.visibility.slice(1)}
+            {project.visibility.charAt(0).toUpperCase() +
+              project.visibility.slice(1)}
           </Badge>
         </div>
       </CardHeader>
@@ -137,13 +156,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
         {/* Progress */}
         {(project.taskCount || 0) > 0 && (
           <div className="mb-4">
-            <div className="flex items-center justify-between text-sm mb-2">
+            <div className="mb-2 flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Progress</span>
               <span className="font-medium">{completionPercentage}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+            <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
               <div
-                className="bg-primary h-2 rounded-full transition-all"
+                className="h-2 rounded-full bg-primary transition-all"
                 style={{ width: `${completionPercentage}%` }}
               />
             </div>
@@ -155,37 +174,29 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <div className="flex items-center space-x-2">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">
-              {project.memberCount || 0} member{(project.memberCount || 0) !== 1 ? 's' : ''}
+              {project.memberCount || 0} member
+              {(project.memberCount || 0) !== 1 ? 's' : ''}
             </span>
           </div>
           <div className="flex items-center space-x-2">
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">
-              {project.taskCount || 0} task{(project.taskCount || 0) !== 1 ? 's' : ''}
+              {project.taskCount || 0} task
+              {(project.taskCount || 0) !== 1 ? 's' : ''}
             </span>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-4 pt-4 border-t border-border">
+        <div className="mt-4 border-t border-border pt-4">
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="flex-1"
-            >
+            <Button variant="outline" size="sm" asChild className="flex-1">
               <Link href={`/projects/documents?projectId=${project.id}`}>
                 <FileText className="mr-2 h-4 w-4" />
                 Documents
               </Link>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="flex-1"
-            >
+            <Button variant="outline" size="sm" asChild className="flex-1">
               <Link href={`/projects/tasks?projectId=${project.id}`}>
                 <ListTodo className="mr-2 h-4 w-4" />
                 Tasks
@@ -196,18 +207,22 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
         {/* Dates */}
         {(project.startDate || project.endDate) && (
-          <div className="mt-4 pt-4 border-t border-border">
+          <div className="mt-4 border-t border-border pt-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               {project.startDate && (
                 <div className="flex items-center space-x-1">
                   <Calendar className="h-3 w-3" />
-                  <span>Start: {new Date(project.startDate).toLocaleDateString()}</span>
+                  <span>
+                    Start: {new Date(project.startDate).toLocaleDateString()}
+                  </span>
                 </div>
               )}
               {project.endDate && (
                 <div className="flex items-center space-x-1">
                   <Clock className="h-3 w-3" />
-                  <span>Due: {new Date(project.endDate).toLocaleDateString()}</span>
+                  <span>
+                    Due: {new Date(project.endDate).toLocaleDateString()}
+                  </span>
                 </div>
               )}
             </div>

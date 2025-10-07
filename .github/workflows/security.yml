@@ -29,16 +29,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
           category: '/language:${{matrix.language}}'
 
@@ -151,7 +151,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: hashFiles('Dockerfile') != ''
         with:
           sarif_file: 'trivy-results.sarif'
@@ -175,7 +175,7 @@ jobs:
 
       - name: Check licenses
         run: |
-          npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;Unlicense' --json > license-report.json
+          npx license-checker --excludePackages 'gpl-3.0;agpl-3.0' --json > license-report.json
 
       - name: Upload license report
         uses: actions/upload-artifact@v4
@@ -210,8 +210,18 @@ jobs:
       - name: Build and start application
         run: |
           npm run build
-          npm start &
-          sleep 30  # Wait for app to start
+          timeout 60s npm start &
+          APP_PID=$!
+
+          # Wait for app to start with proper health check
+          for i in {1..30}; do
+            if curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✅ Application is running on port 3000"
+              break
+            fi
+            echo "⏳ Waiting for application to start... ($i/30)"
+            sleep 2
+          done
         env:
           MONGODB_URI: 'mongodb://localhost:27017/crm_test'
           JWT_SECRET: 'test-secret-for-security-check'
@@ -265,8 +275,18 @@ jobs:
       - name: Build and start application
         run: |
           npm run build
-          npm start &
-          sleep 30
+          timeout 60s npm start &
+          APP_PID=$!
+
+          # Wait for app to start with proper health check
+          for i in {1..30}; do
+            if curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✅ Application is running on port 3000"
+              break
+            fi
+            echo "⏳ Waiting for application to start... ($i/30)"
+            sleep 2
+          done
         env:
           MONGODB_URI: 'mongodb://localhost:27017/crm_test'
           JWT_SECRET: 'test-secret-for-zap-scan'

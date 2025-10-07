@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           valid: false,
-          message: 'Invalid or expired invitation token'
+          message: 'Invalid or expired invitation token',
         },
         { status: 404 }
       )
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           valid: false,
-          message: 'This invitation has expired'
+          message: 'This invitation has expired',
         },
         { status: 410 }
       )

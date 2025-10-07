@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Task, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { withLogging, withSecurityLogging, logUserActivity } from '@/lib/logging/middleware'
+import {
+  withLogging,
+  withSecurityLogging,
+  logUserActivity,
+} from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { z } from 'zod'
 
@@ -33,7 +37,11 @@ async function checkTaskAccess(taskId: string, userId: string) {
     status: 'active',
   })
 
-  if (!projectMember && project.visibility !== 'workspace' && project.visibility !== 'public') {
+  if (
+    !projectMember &&
+    project.visibility !== 'workspace' &&
+    project.visibility !== 'public'
+  ) {
     return null
   }
 
@@ -43,9 +51,12 @@ async function checkTaskAccess(taskId: string, userId: string) {
 // GET /api/tasks/[id] - Get task details
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
-try {
+      try {
         console.log('Connecting to MongoDB...')
         await connectToMongoDB()
         console.log('MongoDB connected successfully')
@@ -86,7 +97,9 @@ try {
         )
 
         const endTime = Date.now()
-        console.log(`=== TASK DETAILS API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== TASK DETAILS API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           task: {
@@ -127,9 +140,11 @@ try {
 // PUT /api/tasks/[id] - Update task
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
-
 
       try {
         console.log('Connecting to MongoDB...')
@@ -194,7 +209,9 @@ export const PUT = withSecurityLogging(
         )
 
         const endTime = Date.now()
-        console.log(`=== UPDATE TASK API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== UPDATE TASK API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           task: {
@@ -235,9 +252,11 @@ export const PUT = withSecurityLogging(
 // DELETE /api/tasks/[id] - Delete task
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
-
 
       try {
         console.log('Connecting to MongoDB...')
@@ -278,7 +297,9 @@ export const DELETE = withSecurityLogging(
         )
 
         const endTime = Date.now()
-        console.log(`=== DELETE TASK API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== DELETE TASK API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({ success: true })
       } catch (error) {

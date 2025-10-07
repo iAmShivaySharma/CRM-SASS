@@ -134,16 +134,15 @@ export const chatApi = createApi({
       invalidatesTags: ['ChatRoom'],
     }),
 
-    deleteChatRoom: builder.mutation<
-      void,
-      { id: string; workspaceId: string }
-    >({
-      query: ({ id, workspaceId }) => ({
-        url: `rooms/${id}?workspaceId=${workspaceId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['ChatRoom'],
-    }),
+    deleteChatRoom: builder.mutation<void, { id: string; workspaceId: string }>(
+      {
+        query: ({ id, workspaceId }) => ({
+          url: `rooms/${id}?workspaceId=${workspaceId}`,
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['ChatRoom'],
+      }
+    ),
 
     // Messages
     getMessages: builder.query<
@@ -192,10 +191,7 @@ export const chatApi = createApi({
       },
     }),
 
-    createMessage: builder.mutation<
-      { message: Message },
-      CreateMessageData
-    >({
+    createMessage: builder.mutation<{ message: Message }, CreateMessageData>({
       query: messageData => ({
         url: 'messages',
         method: 'POST',

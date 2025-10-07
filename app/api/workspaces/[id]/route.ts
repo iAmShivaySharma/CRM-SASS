@@ -130,7 +130,10 @@ const updateWorkspaceSchema = z.object({
 // GET /api/workspaces/[id] - Get workspace details
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -272,7 +275,10 @@ export const GET = withSecurityLogging(
 // PUT /api/workspaces/[id] - Update workspace
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -470,7 +476,10 @@ export const PUT = withSecurityLogging(
 // DELETE /api/workspaces/[id] - Delete workspace (Owner only)
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {

@@ -23,7 +23,10 @@ const updateTagSchema = z.object({
 // GET /api/tags/[id] - Get tag details
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -89,7 +92,10 @@ export const GET = withSecurityLogging(
 // PUT /api/tags/[id] - Update tag
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -202,7 +208,10 @@ export const PUT = withSecurityLogging(
 // DELETE /api/tags/[id] - Delete tag
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {

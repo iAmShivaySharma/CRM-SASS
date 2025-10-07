@@ -175,7 +175,9 @@ if (typeof window === 'undefined') {
 }
 
 export const ProjectDocument =
-  mongoose.models?.ProjectDocument || mongoose.model<IProjectDocument>('ProjectDocument', ProjectDocumentSchema)
+  mongoose.models?.ProjectDocument ||
+  mongoose.model<IProjectDocument>('ProjectDocument', ProjectDocumentSchema)
 
 export const DocumentVersion =
-  mongoose.models?.DocumentVersion || mongoose.model<IDocumentVersion>('DocumentVersion', DocumentVersionSchema)
+  mongoose.models?.DocumentVersion ||
+  mongoose.model<IDocumentVersion>('DocumentVersion', DocumentVersionSchema)

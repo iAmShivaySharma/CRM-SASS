@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Project, ProjectMember, Task } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { withLogging, withSecurityLogging, logUserActivity } from '@/lib/logging/middleware'
+import {
+  withLogging,
+  withSecurityLogging,
+  logUserActivity,
+} from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { z } from 'zod'
 
@@ -10,20 +14,29 @@ const updateProjectSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(1000).optional(),
   icon: z.string().optional(),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i)
+    .optional(),
   status: z.enum(['active', 'archived', 'completed']).optional(),
   visibility: z.enum(['private', 'workspace', 'public']).optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  settings: z.object({
-    allowMemberInvite: z.boolean().optional(),
-    allowJoinRequests: z.boolean().optional(),
-    defaultTaskStatus: z.string().optional(),
-    enableTimeTracking: z.boolean().optional(),
-  }).optional(),
+  settings: z
+    .object({
+      allowMemberInvite: z.boolean().optional(),
+      allowJoinRequests: z.boolean().optional(),
+      defaultTaskStatus: z.string().optional(),
+      enableTimeTracking: z.boolean().optional(),
+    })
+    .optional(),
 })
 
-async function checkProjectAccess(projectId: string, userId: string, permission: 'read' | 'manage' = 'read') {
+async function checkProjectAccess(
+  projectId: string,
+  userId: string,
+  permission: 'read' | 'manage' = 'read'
+) {
   const project = await Project.findById(projectId)
   if (!project) return null
 
@@ -49,9 +62,12 @@ async function checkProjectAccess(projectId: string, userId: string, permission:
 // GET /api/projects/[id] - Get project details
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
-try {
+      try {
         await connectToMongoDB()
         const auth = await verifyAuthToken(request)
         if (!auth) {
@@ -120,7 +136,10 @@ try {
 // PUT /api/projects/[id] - Update project
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       try {
         console.log('Connecting to MongoDB...')
         await connectToMongoDB()
@@ -177,7 +196,11 @@ export const PUT = withSecurityLogging(
           auth.user.id,
           'projects.update',
           `Updated project: ${updatedProject?.name}`,
-          { entityType: 'Project', projectId: id, changes: validationResult.data }
+          {
+            entityType: 'Project',
+            projectId: id,
+            changes: validationResult.data,
+          }
         )
 
         const endTime = Date.now()
@@ -218,7 +241,10 @@ export const PUT = withSecurityLogging(
 // DELETE /api/projects/[id] - Delete project
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
       try {
         console.log('Connecting to MongoDB...')
@@ -274,7 +300,9 @@ export const DELETE = withSecurityLogging(
         )
 
         const endTime = Date.now()
-        console.log(`=== DELETE PROJECT API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== DELETE PROJECT API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({ success: true })
       } catch (error) {

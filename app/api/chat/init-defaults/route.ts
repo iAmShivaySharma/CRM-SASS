@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { WorkspaceMember } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { createDefaultChatRooms, addUserToDefaultChatRooms } from '@/lib/chat/defaults'
+import {
+  createDefaultChatRooms,
+  addUserToDefaultChatRooms,
+} from '@/lib/chat/defaults'
 
 export async function POST(request: NextRequest) {
   try {

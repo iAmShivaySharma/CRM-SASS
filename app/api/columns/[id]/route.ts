@@ -2,14 +2,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Column, Project, ProjectMember, Task } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { withLogging, withSecurityLogging, logUserActivity } from '@/lib/logging/middleware'
+import {
+  withLogging,
+  withSecurityLogging,
+  logUserActivity,
+} from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { z } from 'zod'
 
 const updateColumnSchema = z.object({
   name: z.string().min(1).max(50).optional(),
-  slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/).optional(),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
+  slug: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i)
+    .optional(),
   order: z.number().min(0).optional(),
 })
 
@@ -26,7 +38,11 @@ async function checkColumnAccess(columnId: string, userId: string) {
     status: 'active',
   })
 
-  if (!projectMember && project.visibility !== 'workspace' && project.visibility !== 'public') {
+  if (
+    !projectMember &&
+    project.visibility !== 'workspace' &&
+    project.visibility !== 'public'
+  ) {
     return null
   }
 
@@ -36,7 +52,10 @@ async function checkColumnAccess(columnId: string, userId: string) {
 // PUT /api/columns/[id] - Update column
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
       console.log('=== UPDATE COLUMN API DEBUG START ===')
 
@@ -87,10 +106,21 @@ export const PUT = withSecurityLogging(
         console.log('Updating column...')
 
         // If slug is being updated, also update all tasks with the old slug
-        if (validationResult.data.slug && validationResult.data.slug !== columnData.column.slug) {
-          console.log('Updating task statuses from', columnData.column.slug, 'to', validationResult.data.slug)
+        if (
+          validationResult.data.slug &&
+          validationResult.data.slug !== columnData.column.slug
+        ) {
+          console.log(
+            'Updating task statuses from',
+            columnData.column.slug,
+            'to',
+            validationResult.data.slug
+          )
           await Task.updateMany(
-            { projectId: columnData.column.projectId, status: columnData.column.slug },
+            {
+              projectId: columnData.column.projectId,
+              status: columnData.column.slug,
+            },
             { status: validationResult.data.slug }
           )
         }
@@ -109,7 +139,9 @@ export const PUT = withSecurityLogging(
         )
 
         const endTime = Date.now()
-        console.log(`=== UPDATE COLUMN API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== UPDATE COLUMN API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({
           column: {
@@ -150,7 +182,10 @@ export const PUT = withSecurityLogging(
 // DELETE /api/columns/[id] - Delete column
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
       try {
         console.log('Connecting to MongoDB...')
@@ -186,7 +221,10 @@ export const DELETE = withSecurityLogging(
 
         if (taskCount > 0) {
           return NextResponse.json(
-            { message: 'Cannot delete column that contains tasks. Move tasks first.' },
+            {
+              message:
+                'Cannot delete column that contains tasks. Move tasks first.',
+            },
             { status: 400 }
           )
         }
@@ -214,7 +252,9 @@ export const DELETE = withSecurityLogging(
         )
 
         const endTime = Date.now()
-        console.log(`=== DELETE COLUMN API SUCCESS (${endTime - startTime}ms) ===`)
+        console.log(
+          `=== DELETE COLUMN API SUCCESS (${endTime - startTime}ms) ===`
+        )
 
         return NextResponse.json({ success: true })
       } catch (error) {

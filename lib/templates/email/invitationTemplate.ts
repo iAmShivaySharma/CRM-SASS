@@ -128,11 +128,15 @@ export function getInvitationEmailTemplate(data: InvitationEmailData) {
                 <p><strong>Invited by:</strong> ${data.inviterName}</p>
             </div>
 
-            ${data.message ? `
+            ${
+              data.message
+                ? `
             <div class="message-box">
                 <p><strong>Personal message:</strong> "${data.message}"</p>
             </div>
-            ` : ''}
+            `
+                : ''
+            }
 
             <p>Click the button below to accept the invitation and join the workspace:</p>
 

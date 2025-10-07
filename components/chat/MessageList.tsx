@@ -17,10 +17,15 @@ interface MessageListProps {
   onReply?: (message: Message) => void
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply }) => {
+export const MessageList: React.FC<MessageListProps> = ({
+  chatRoomId,
+  onReply,
+}) => {
   const [page, setPage] = useState(1)
   const [allMessages, setAllMessages] = useState<Message[]>([])
-  const [typingUsers, setTypingUsers] = useState<Array<{ userId: string; userName: string }>>([])
+  const [typingUsers, setTypingUsers] = useState<
+    Array<{ userId: string; userName: string }>
+  >([])
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -30,7 +35,7 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
     data: messagesData,
     isLoading,
     error,
-    isFetching
+    isFetching,
   } = useGetMessagesQuery(
     { chatRoomId, page, limit: 50 },
     { skip: !chatRoomId }
@@ -42,7 +47,7 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
     onUserStoppedTyping,
     onMessageReaction,
     onMessageDeleted,
-    markMessagesAsRead
+    markMessagesAsRead,
   } = useSocket()
 
   // Update messages when new data comes in
@@ -69,7 +74,11 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
       if (message.chatRoomId === chatRoomId) {
         // Check if message already exists to prevent duplicates
         setAllMessages(prev => {
-          const exists = prev.some(msg => msg.id === message.id || ((message as any).tempId && msg.id === (message as any).tempId))
+          const exists = prev.some(
+            msg =>
+              msg.id === message.id ||
+              ((message as any).tempId && msg.id === (message as any).tempId)
+          )
           if (!exists) {
             return [...prev, message]
           }
@@ -89,25 +98,32 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
       setAllMessages(prev => {
         const updatedMessages = prev.map(message => {
           if (message.id === data.messageId) {
-            const existingReactionIndex = message.reactions.findIndex(r => r.emoji === data.emoji && r.userId === data.userId)
+            const existingReactionIndex = message.reactions.findIndex(
+              r => r.emoji === data.emoji && r.userId === data.userId
+            )
 
             if (existingReactionIndex >= 0) {
               // Remove reaction if it already exists
               console.log('Removing existing reaction')
               return {
                 ...message,
-                reactions: message.reactions.filter((_, index) => index !== existingReactionIndex)
+                reactions: message.reactions.filter(
+                  (_, index) => index !== existingReactionIndex
+                ),
               }
             } else {
               // Add new reaction
               console.log('Adding new reaction')
               return {
                 ...message,
-                reactions: [...message.reactions, {
-                  emoji: data.emoji,
-                  userId: data.userId,
-                  userName: data.userName
-                }]
+                reactions: [
+                  ...message.reactions,
+                  {
+                    emoji: data.emoji,
+                    userId: data.userId,
+                    userName: data.userName,
+                  },
+                ],
               }
             }
           }
@@ -118,11 +134,20 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
       })
     }
 
-    const handleMessageDeleted = (data: { messageId: string; deletedBy: string }) => {
-      setAllMessages(prev => prev.filter(message => message.id !== data.messageId))
+    const handleMessageDeleted = (data: {
+      messageId: string
+      deletedBy: string
+    }) => {
+      setAllMessages(prev =>
+        prev.filter(message => message.id !== data.messageId)
+      )
     }
 
-    const handleUserTyping = (data: { userId: string; userName: string; chatRoomId: string }) => {
+    const handleUserTyping = (data: {
+      userId: string
+      userName: string
+      chatRoomId: string
+    }) => {
       if (data.chatRoomId === chatRoomId) {
         setTypingUsers(prev => {
           const exists = prev.some(user => user.userId === data.userId)
@@ -134,12 +159,17 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
 
         // Remove typing indicator after 3 seconds
         setTimeout(() => {
-          setTypingUsers(prev => prev.filter(user => user.userId !== data.userId))
+          setTypingUsers(prev =>
+            prev.filter(user => user.userId !== data.userId)
+          )
         }, 3000)
       }
     }
 
-    const handleUserStoppedTyping = (data: { userId: string; chatRoomId: string }) => {
+    const handleUserStoppedTyping = (data: {
+      userId: string
+      chatRoomId: string
+    }) => {
       if (data.chatRoomId === chatRoomId) {
         setTypingUsers(prev => prev.filter(user => user.userId !== data.userId))
       }
@@ -157,7 +187,14 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
       // The socket context should handle cleanup, but we can add additional cleanup here if needed
       console.log('Cleaning up message list event listeners')
     }
-  }, [chatRoomId])
+  }, [
+    chatRoomId,
+    onMessageDeleted,
+    onMessageReaction,
+    onNewMessage,
+    onUserStoppedTyping,
+    onUserTyping,
+  ])
 
   // Mark messages as read when component mounts or chatRoomId changes
   useEffect(() => {
@@ -183,9 +220,9 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
 
   if (isLoading && page === 1) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-2" />
+          <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin text-muted-foreground" />
           <p className="text-muted-foreground">Loading messages...</p>
         </div>
       </div>
@@ -194,9 +231,9 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
 
   if (error) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <MessageSquare className="mx-auto h-8 w-8 text-destructive mb-2" />
+          <MessageSquare className="mx-auto mb-2 h-8 w-8 text-destructive" />
           <p className="text-destructive">Failed to load messages</p>
           <Button
             variant="outline"
@@ -212,7 +249,7 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       <ScrollArea
         ref={scrollAreaRef}
         className="flex-1 px-4"
@@ -243,9 +280,9 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
 
           {/* Messages */}
           {allMessages.length === 0 ? (
-            <div className="text-center py-8">
-              <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No messages yet</h3>
+            <div className="py-8 text-center">
+              <MessageSquare className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+              <h3 className="mb-2 text-lg font-medium">No messages yet</h3>
               <p className="text-muted-foreground">
                 Be the first to send a message in this chat room
               </p>
@@ -253,10 +290,14 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
           ) : (
             <div className="space-y-4">
               {allMessages.map((message, index) => {
-                const previousMessage = index > 0 ? allMessages[index - 1] : null
-                const showAvatar = !previousMessage ||
+                const previousMessage =
+                  index > 0 ? allMessages[index - 1] : null
+                const showAvatar =
+                  !previousMessage ||
                   previousMessage.senderId !== message.senderId ||
-                  (new Date(message.createdAt).getTime() - new Date(previousMessage.createdAt).getTime()) > 300000 // 5 minutes
+                  new Date(message.createdAt).getTime() -
+                    new Date(previousMessage.createdAt).getTime() >
+                    300000 // 5 minutes
 
                 return (
                   <MessageItem
@@ -272,9 +313,7 @@ export const MessageList: React.FC<MessageListProps> = ({ chatRoomId, onReply })
           )}
 
           {/* Typing Indicator */}
-          {typingUsers.length > 0 && (
-            <TypingIndicator users={typingUsers} />
-          )}
+          {typingUsers.length > 0 && <TypingIndicator users={typingUsers} />}
 
           {/* Scroll anchor */}
           <div ref={messagesEndRef} />

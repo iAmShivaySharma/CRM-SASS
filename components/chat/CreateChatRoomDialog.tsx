@@ -32,7 +32,9 @@ interface CreateChatRoomDialogProps {
   trigger?: React.ReactNode
 }
 
-export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({ trigger }) => {
+export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
+  trigger,
+}) => {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -50,10 +52,15 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({ trig
   )
 
   const members = membersData?.members || []
-  const filteredMembers = members.filter(member =>
-    member.user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  ).filter(member => member.userId !== auth.user?.id) // Exclude current user
+  const filteredMembers = members
+    .filter(
+      member =>
+        member.user.fullName
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        member.user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter(member => member.userId !== auth.user?.id) // Exclude current user
 
   const handleMemberToggle = (userId: string) => {
     setSelectedMembers(prev =>
@@ -120,7 +127,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({ trig
             <Input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               placeholder="Enter room name..."
               required
             />
@@ -131,7 +138,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({ trig
             <Textarea
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               placeholder="Enter room description..."
               rows={3}
             />
@@ -167,19 +174,21 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({ trig
                 <Input
                   placeholder="Search members..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                 />
-                <ScrollArea className="h-48 border rounded-md p-2">
+                <ScrollArea className="h-48 rounded-md border p-2">
                   <div className="space-y-2">
-                    {filteredMembers.map((member) => (
+                    {filteredMembers.map(member => (
                       <div
                         key={member.userId}
-                        className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md"
+                        className="flex items-center space-x-2 rounded-md p-2 hover:bg-accent"
                       >
                         <Checkbox
                           id={member.userId}
                           checked={selectedMembers.includes(member.userId)}
-                          onCheckedChange={() => handleMemberToggle(member.userId)}
+                          onCheckedChange={() =>
+                            handleMemberToggle(member.userId)
+                          }
                         />
                         <Avatar className="h-8 w-8">
                           <AvatarImage src="" />
@@ -188,13 +197,17 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({ trig
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <p className="text-sm font-medium">{member.user.fullName}</p>
-                          <p className="text-xs text-muted-foreground">{member.user.email}</p>
+                          <p className="text-sm font-medium">
+                            {member.user.fullName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {member.user.email}
+                          </p>
                         </div>
                       </div>
                     ))}
                     {filteredMembers.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">
+                      <p className="py-4 text-center text-sm text-muted-foreground">
                         No members found
                       </p>
                     )}

@@ -52,7 +52,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
     }
   }
 
-  const truncateMessage = (content: string | undefined, maxLength: number = 50) => {
+  const truncateMessage = (
+    content: string | undefined,
+    maxLength: number = 50
+  ) => {
     if (!content) return ''
     if (content.length <= maxLength) return content
     return content.slice(0, maxLength) + '...'
@@ -61,11 +64,11 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
   if (chatRooms.length === 0) {
     return (
       <div className="p-4 text-center text-muted-foreground">
-        <Hash className="mx-auto h-8 w-8 mb-2" />
+        <Hash className="mx-auto mb-2 h-8 w-8" />
         <p className="mb-4">No chat rooms found</p>
         {onInitializeDefaults && (
           <Button onClick={onInitializeDefaults} size="sm" className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create General Room
           </Button>
         )}
@@ -75,7 +78,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
 
   return (
     <div className="space-y-1 p-2">
-      {chatRooms.map((chatRoom) => {
+      {chatRooms.map(chatRoom => {
         const isSelected = selectedChatRoom === chatRoom.id
         const hasUnreadMessages = false // TODO: Implement unread message count
         const unreadCount = 0 // TODO: Implement unread message count
@@ -85,9 +88,9 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
             key={chatRoom.id}
             onClick={() => onChatRoomSelect(chatRoom.id)}
             className={cn(
-              "w-full text-left p-3 rounded-lg transition-colors hover:bg-accent/50",
-              "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-              isSelected && "bg-accent"
+              'w-full rounded-lg p-3 text-left transition-colors hover:bg-accent/50',
+              'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+              isSelected && 'bg-accent'
             )}
           >
             <div className="flex items-start gap-3">
@@ -101,27 +104,31 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <div className={cn(
-                    "h-10 w-10 rounded-full flex items-center justify-center",
-                    "bg-primary/10 text-primary"
-                  )}>
+                  <div
+                    className={cn(
+                      'flex h-10 w-10 items-center justify-center rounded-full',
+                      'bg-primary/10 text-primary'
+                    )}
+                  >
                     {getChatRoomIcon(chatRoom.type)}
                   </div>
                 )}
 
                 {/* Online indicator for direct messages */}
                 {chatRoom.type === 'direct' && (
-                  <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+                  <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-green-500" />
                 )}
               </div>
 
               {/* Chat Room Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className={cn(
-                    "text-sm font-medium truncate",
-                    hasUnreadMessages && "font-semibold"
-                  )}>
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center justify-between">
+                  <h4
+                    className={cn(
+                      'truncate text-sm font-medium',
+                      hasUnreadMessages && 'font-semibold'
+                    )}
+                  >
                     {chatRoom.name}
                   </h4>
 
@@ -133,7 +140,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
                     )}
 
                     {unreadCount > 0 && (
-                      <Badge variant="destructive" className="h-5 min-w-[20px] text-xs">
+                      <Badge
+                        variant="destructive"
+                        className="h-5 min-w-[20px] text-xs"
+                      >
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </Badge>
                     )}
@@ -143,17 +153,18 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
                 {/* Last Message Preview */}
                 {chatRoom.lastMessage ? (
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-muted-foreground font-medium">
+                    <span className="text-xs font-medium text-muted-foreground">
                       {chatRoom.lastMessage.senderName}:
                     </span>
-                    <span className={cn(
-                      "text-xs text-muted-foreground truncate",
-                      hasUnreadMessages && "font-medium text-foreground"
-                    )}>
+                    <span
+                      className={cn(
+                        'truncate text-xs text-muted-foreground',
+                        hasUnreadMessages && 'font-medium text-foreground'
+                      )}
+                    >
                       {chatRoom.lastMessage?.type === 'text'
                         ? truncateMessage(chatRoom.lastMessage?.content)
-                        : `Sent a ${chatRoom.lastMessage?.type || 'file'}`
-                      }
+                        : `Sent a ${chatRoom.lastMessage?.type || 'file'}`}
                     </span>
                   </div>
                 ) : (
@@ -164,19 +175,17 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
 
                 {/* Chat Room Type Badge */}
                 {chatRoom.type !== 'general' && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <Badge
-                      variant="outline"
-                      className="text-xs px-1 py-0 h-4"
-                    >
+                  <div className="mt-1 flex items-center gap-1">
+                    <Badge variant="outline" className="h-4 px-1 py-0 text-xs">
                       {chatRoom.type}
                     </Badge>
 
-                    {chatRoom.participants && Array.isArray(chatRoom.participants) && (
-                      <span className="text-xs text-muted-foreground">
-                        {chatRoom.participants.length} members
-                      </span>
-                    )}
+                    {chatRoom.participants &&
+                      Array.isArray(chatRoom.participants) && (
+                        <span className="text-xs text-muted-foreground">
+                          {chatRoom.participants.length} members
+                        </span>
+                      )}
                   </div>
                 )}
               </div>

@@ -193,11 +193,14 @@ export const projectsApi = createApi({
         if (search) params.append('search', search)
         return `projects?${params}`
       },
-      providesTags: (result) =>
+      providesTags: result =>
         result
           ? [
               { type: 'Project', id: 'LIST' },
-              ...result.projects.map((project) => ({ type: 'Project' as const, id: project.id })),
+              ...result.projects.map(project => ({
+                type: 'Project' as const,
+                id: project.id,
+              })),
             ]
           : [{ type: 'Project', id: 'LIST' }],
     }),
@@ -298,7 +301,8 @@ export const projectsApi = createApi({
     >({
       query: ({ projectId, status, assigneeId, search, workspaceId }) => {
         const params = new URLSearchParams()
-        if (projectId && projectId !== 'all') params.append('projectId', projectId)
+        if (projectId && projectId !== 'all')
+          params.append('projectId', projectId)
         if (workspaceId) params.append('workspaceId', workspaceId)
         if (status) params.append('status', status)
         if (assigneeId) params.append('assigneeId', assigneeId)
@@ -309,9 +313,21 @@ export const projectsApi = createApi({
         result
           ? [
               { type: 'Task', id: 'LIST' },
-              ...(arg.projectId ? [{ type: 'Task' as const, id: `PROJECT_${arg.projectId}` }] : []),
-              ...(arg.workspaceId ? [{ type: 'Task' as const, id: `WORKSPACE_${arg.workspaceId}` }] : []),
-              ...result.tasks.map((task) => ({ type: 'Task' as const, id: task.id })),
+              ...(arg.projectId
+                ? [{ type: 'Task' as const, id: `PROJECT_${arg.projectId}` }]
+                : []),
+              ...(arg.workspaceId
+                ? [
+                    {
+                      type: 'Task' as const,
+                      id: `WORKSPACE_${arg.workspaceId}`,
+                    },
+                  ]
+                : []),
+              ...result.tasks.map(task => ({
+                type: 'Task' as const,
+                id: task.id,
+              })),
             ]
           : [{ type: 'Task', id: 'LIST' }],
     }),
@@ -360,7 +376,10 @@ export const projectsApi = createApi({
 
     reorderTasks: builder.mutation<
       { success: boolean },
-      { projectId: string; tasks: { id: string; status: string; order: number }[] }
+      {
+        projectId: string
+        tasks: { id: string; status: string; order: number }[]
+      }
     >({
       query: ({ projectId, tasks }) => ({
         url: `projects/${projectId}/tasks/reorder`,
@@ -404,11 +423,14 @@ export const projectsApi = createApi({
         // Convert tags to string array only
         if (processedData.tags && Array.isArray(processedData.tags)) {
           processedData.tags = processedData.tags.map((tag: any) =>
-            typeof tag === 'string' ? tag : (tag.text || String(tag))
+            typeof tag === 'string' ? tag : tag.text || String(tag)
           )
         }
 
-        console.log('RTK Query creating document with data:', JSON.stringify(processedData, null, 2))
+        console.log(
+          'RTK Query creating document with data:',
+          JSON.stringify(processedData, null, 2)
+        )
 
         return {
           url: 'documents',
@@ -433,11 +455,14 @@ export const projectsApi = createApi({
         // Convert tags to string array only
         if (processedData.tags && Array.isArray(processedData.tags)) {
           processedData.tags = processedData.tags.map((tag: any) =>
-            typeof tag === 'string' ? tag : (tag.text || String(tag))
+            typeof tag === 'string' ? tag : tag.text || String(tag)
           )
         }
 
-        console.log('RTK Query sending data:', JSON.stringify(processedData, null, 2))
+        console.log(
+          'RTK Query sending data:',
+          JSON.stringify(processedData, null, 2)
+        )
 
         return {
           url: `documents/${id}`,
@@ -529,10 +554,7 @@ export const projectsApi = createApi({
     }),
 
     // Columns
-    getColumns: builder.query<
-      { columns: Column[] },
-      { projectId: string }
-    >({
+    getColumns: builder.query<{ columns: Column[] }, { projectId: string }>({
       query: ({ projectId }) => `columns?projectId=${projectId}`,
       providesTags: ['Column'],
     }),

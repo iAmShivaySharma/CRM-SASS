@@ -3,7 +3,11 @@
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
-import { ChatRoom, useUpdateChatRoomMutation, useDeleteChatRoomMutation } from '@/lib/api/chatApi'
+import {
+  ChatRoom,
+  useUpdateChatRoomMutation,
+  useDeleteChatRoomMutation,
+} from '@/lib/api/chatApi'
 import { ChatDetailsDialog } from './ChatDetailsDialog'
 import { AddParticipantsDialog } from './AddParticipantsDialog'
 import { ChatSettingsDialog } from './ChatSettingsDialog'
@@ -41,7 +45,7 @@ import {
   Trash2,
   Volume2,
   VolumeX,
-  Info
+  Info,
 } from 'lucide-react'
 
 interface ChatHeaderProps {
@@ -55,7 +59,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
-  const [addParticipantsDialogOpen, setAddParticipantsDialogOpen] = useState(false)
+  const [addParticipantsDialogOpen, setAddParticipantsDialogOpen] =
+    useState(false)
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
 
   const workspace = useSelector((state: RootState) => state.workspace)
@@ -135,7 +140,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   }
 
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-background/50 backdrop-blur">
+    <div className="flex items-center justify-between border-b bg-background/50 p-4 backdrop-blur">
       <div className="flex items-center gap-3">
         {/* Mobile menu button */}
         <Button
@@ -157,26 +162,26 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               </AvatarFallback>
             </Avatar>
           ) : (
-            <div className={cn(
-              "h-8 w-8 rounded-full flex items-center justify-center",
-              "bg-primary/10 text-primary"
-            )}>
+            <div
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-full',
+                'bg-primary/10 text-primary'
+              )}
+            >
               {getChatRoomIcon(chatRoom.type)}
             </div>
           )}
 
           {/* Online indicator for direct messages */}
           {chatRoom.type === 'direct' && (
-            <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+            <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-green-500" />
           )}
         </div>
 
         {/* Chat room info */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold truncate">
-              {chatRoom.name}
-            </h1>
+            <h1 className="truncate text-lg font-semibold">{chatRoom.name}</h1>
 
             {/* Chat room type badge */}
             {chatRoom.type !== 'general' && (
@@ -199,7 +204,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               <span className="truncate">{chatRoom.description}</span>
             ) : (
               <span>
-                {getParticipantCount()} member{getParticipantCount() !== 1 ? 's' : ''}
+                {getParticipantCount()} member
+                {getParticipantCount() !== 1 ? 's' : ''}
               </span>
             )}
 
@@ -214,13 +220,21 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       {/* Actions */}
       <div className="flex items-center gap-2">
         {/* Quick actions for larger screens */}
-        <div className="hidden sm:flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => setDetailsDialogOpen(true)}>
+        <div className="hidden items-center gap-1 sm:flex">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setDetailsDialogOpen(true)}
+          >
             <Info className="h-4 w-4" />
           </Button>
 
           {chatRoom.type !== 'direct' && (
-            <Button variant="ghost" size="sm" onClick={() => setAddParticipantsDialogOpen(true)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setAddParticipantsDialogOpen(true)}
+            >
               <UserPlus className="h-4 w-4" />
             </Button>
           )}
@@ -249,7 +263,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
             {chatRoom.type !== 'direct' && (
               <>
-                <DropdownMenuItem onClick={() => setAddParticipantsDialogOpen(true)}>
+                <DropdownMenuItem
+                  onClick={() => setAddParticipantsDialogOpen(true)}
+                >
                   <UserPlus className="mr-2 h-4 w-4" />
                   Add members
                 </DropdownMenuItem>
@@ -311,12 +327,16 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Chat Room</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{chatRoom.name}&quot;? This action cannot be undone and all messages will be permanently lost.
+              Are you sure you want to delete &quot;{chatRoom.name}&quot;? This
+              action cannot be undone and all messages will be permanently lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

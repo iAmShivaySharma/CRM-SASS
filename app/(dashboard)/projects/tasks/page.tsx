@@ -47,8 +47,7 @@ export default function TasksPage() {
     {
       ...(projectFilter === 'all'
         ? { workspaceId: currentWorkspace?.id }
-        : { projectId: projectFilter }
-      ),
+        : { projectId: projectFilter }),
       search: search || undefined,
       status: statusFilter === 'all' ? undefined : statusFilter,
     },
@@ -78,10 +77,14 @@ export default function TasksPage() {
         <div className="flex items-center gap-2">
           {projectFilter !== 'all' && projectFilter && (
             <Badge variant="outline" className="text-sm">
-              {projectsData?.projects.find(p => p.id === projectFilter)?.name || 'Unknown Project'}
+              {projectsData?.projects.find(p => p.id === projectFilter)?.name ||
+                'Unknown Project'}
             </Badge>
           )}
-          <Button onClick={() => setShowCreateDialog(true)} disabled={projectFilter === 'all'}>
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            disabled={projectFilter === 'all'}
+          >
             <Plus className="mr-2 h-4 w-4" />
             New Task
           </Button>
@@ -106,7 +109,8 @@ export default function TasksPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {tasksData?.tasks.filter(t => t.status === 'in-progress').length || 0}
+              {tasksData?.tasks.filter(t => t.status === 'in-progress')
+                .length || 0}
             </div>
           </CardContent>
         </Card>
@@ -134,12 +138,12 @@ export default function TasksPage() {
 
       {/* Filters and Search */}
       <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search tasks..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -150,7 +154,7 @@ export default function TasksPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Projects</SelectItem>
-            {projectsData?.projects.map((project) => (
+            {projectsData?.projects.map(project => (
               <SelectItem key={project.id} value={project.id}>
                 {project.name}
               </SelectItem>
@@ -234,9 +238,13 @@ export default function TasksPage() {
       ) : viewMode === 'kanban' && projectFilter === 'all' ? (
         <div className="flex h-32 flex-col items-center justify-center space-y-4">
           <div className="text-center">
-            <h3 className="text-lg font-medium">Select a Project for Kanban View</h3>
+            <h3 className="text-lg font-medium">
+              Select a Project for Kanban View
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Kanban board is only available for individual projects. Please select a specific project to view the board, or switch to list view to see all tasks.
+              Kanban board is only available for individual projects. Please
+              select a specific project to view the board, or switch to list
+              view to see all tasks.
             </p>
             <div className="mt-4">
               <Button variant="outline" onClick={() => setViewMode('list')}>

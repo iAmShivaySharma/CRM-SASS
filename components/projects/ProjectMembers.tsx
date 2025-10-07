@@ -78,7 +78,7 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
       </div>
 
       <div className="grid gap-4">
-        {members.map((member) => (
+        {members.map(member => (
           <Card key={member.id}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -86,7 +86,10 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={member.avatarUrl || undefined} />
                     <AvatarFallback>
-                      {member.name.split(' ').map(n => n[0]).join('')}
+                      {member.name
+                        .split(' ')
+                        .map(n => n[0])
+                        .join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div>
@@ -94,12 +97,17 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
                       <h3 className="font-medium">{member.name}</h3>
                       {getRoleIcon(member.role)}
                     </div>
-                    <p className="text-sm text-muted-foreground">{member.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {member.email}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-4">
-                  <Badge variant="secondary" className={getRoleColor(member.role)}>
+                  <Badge
+                    variant="secondary"
+                    className={getRoleColor(member.role)}
+                  >
                     {member.role}
                   </Badge>
                   <div className="text-sm text-muted-foreground">

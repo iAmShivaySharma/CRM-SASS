@@ -25,7 +25,7 @@ interface StartDirectChatDialogProps {
 
 export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
   trigger,
-  onChatStarted
+  onChatStarted,
 }) => {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,10 +40,11 @@ export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
   )
 
   const members = membersData?.members || []
-  const filteredMembers = members.filter(member =>
-    (member.user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     member.user.email.toLowerCase().includes(searchQuery.toLowerCase())) &&
-    member.userId !== auth.user?.id // Exclude current user
+  const filteredMembers = members.filter(
+    member =>
+      (member.user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.user.email.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      member.userId !== auth.user?.id // Exclude current user
   )
 
   const handleStartDirectChat = async (member: any) => {
@@ -77,7 +78,7 @@ export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
       <DialogTrigger asChild>
         {trigger || (
           <Button size="sm" variant="outline">
-            <MessageSquare className="h-4 w-4 mr-2" />
+            <MessageSquare className="mr-2 h-4 w-4" />
             Start Chat
           </Button>
         )}
@@ -89,23 +90,23 @@ export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
 
         <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
             <Input
               placeholder="Search workspace members..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
 
-          <ScrollArea className="h-64 border rounded-md">
-            <div className="p-2 space-y-1">
-              {filteredMembers.map((member) => (
+          <ScrollArea className="h-64 rounded-md border">
+            <div className="space-y-1 p-2">
+              {filteredMembers.map(member => (
                 <button
                   key={member.userId}
                   onClick={() => handleStartDirectChat(member)}
                   disabled={isLoading}
-                  className="w-full flex items-center space-x-3 p-3 hover:bg-accent rounded-md transition-colors text-left disabled:opacity-50"
+                  className="flex w-full items-center space-x-3 rounded-md p-3 text-left transition-colors hover:bg-accent disabled:opacity-50"
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage src="" />
@@ -113,11 +114,11 @@ export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
                       {member.user.fullName.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
                       {member.user.fullName}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="truncate text-xs text-muted-foreground">
                       {member.user.email}
                     </p>
                   </div>
@@ -126,7 +127,7 @@ export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
               ))}
 
               {filteredMembers.length === 0 && searchQuery && (
-                <div className="text-center py-8">
+                <div className="py-8 text-center">
                   <p className="text-sm text-muted-foreground">
                     No members found matching &quot;{searchQuery}&quot;
                   </p>
@@ -134,7 +135,7 @@ export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
               )}
 
               {filteredMembers.length === 0 && !searchQuery && (
-                <div className="text-center py-8">
+                <div className="py-8 text-center">
                   <p className="text-sm text-muted-foreground">
                     Start typing to search for workspace members
                   </p>

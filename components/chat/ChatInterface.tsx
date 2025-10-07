@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
 import { useGetChatRoomsQuery, useGetMessagesQuery } from '@/lib/api/chatApi'
@@ -14,7 +14,15 @@ import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { MessageSquare, Send, Plus, Users, Settings, Search, Archive } from 'lucide-react'
+import {
+  MessageSquare,
+  Send,
+  Plus,
+  Users,
+  Settings,
+  Search,
+  Archive,
+} from 'lucide-react'
 import { ChatRoomList } from './ChatRoomList'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
@@ -40,16 +48,19 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   const {
     data: chatRoomsData,
     isLoading: chatRoomsLoading,
-    error: chatRoomsError
+    error: chatRoomsError,
   } = useGetChatRoomsQuery(
     {
       workspaceId: workspace.currentWorkspace?.id || '',
-      includeArchived: showArchived
+      includeArchived: showArchived,
     },
     { skip: !workspace.currentWorkspace?.id }
   )
 
-  const chatRooms = chatRoomsData?.chatRooms || []
+  const chatRooms = useMemo(
+    () => chatRoomsData?.chatRooms || [],
+    [chatRoomsData?.chatRooms]
+  )
 
   // Auto-select first chat room if none selected
   useEffect(() => {
@@ -86,9 +97,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
 
   if (chatRoomsLoading) {
     return (
-      <div className={cn("flex h-full items-center justify-center", className)}>
+      <div className={cn('flex h-full items-center justify-center', className)}>
         <div className="text-center">
-          <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <MessageSquare className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
           <p className="text-muted-foreground">Loading chat rooms...</p>
         </div>
       </div>
@@ -97,9 +108,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
 
   if (chatRoomsError) {
     return (
-      <div className={cn("flex h-full items-center justify-center", className)}>
+      <div className={cn('flex h-full items-center justify-center', className)}>
         <div className="text-center">
-          <MessageSquare className="mx-auto h-12 w-12 text-destructive mb-4" />
+          <MessageSquare className="mx-auto mb-4 h-12 w-12 text-destructive" />
           <p className="text-destructive">Failed to load chat rooms</p>
         </div>
       </div>
@@ -132,15 +143,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   }
 
   return (
-    <div className={cn("flex h-full bg-background", className)}>
+    <div className={cn('flex h-full bg-background', className)}>
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-80 md:flex-col border-r">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="hidden border-r md:flex md:w-80 md:flex-col">
+        <div className="flex items-center justify-between border-b p-4">
           <h2 className="text-lg font-semibold">Chat Rooms</h2>
           <div className="flex items-center gap-2">
             <CreateChatRoomDialog />
             <StartDirectChatDialog
-              onChatStarted={(chatRoomId) => setSelectedChatRoom(chatRoomId)}
+              onChatStarted={chatRoomId => setSelectedChatRoom(chatRoomId)}
               trigger={
                 <Button size="sm" variant="ghost">
                   <Users className="h-4 w-4" />
@@ -150,13 +161,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           </div>
         </div>
 
-        <div className="p-4 border-b space-y-3">
+        <div className="space-y-3 border-b p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
             <Input
               placeholder="Search chat rooms..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -168,7 +179,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
               onCheckedChange={setShowArchived}
             />
             <Label htmlFor="show-archived" className="text-sm font-medium">
-              <Archive className="inline h-3 w-3 mr-1" />
+              <Archive className="mr-1 inline h-3 w-3" />
               Show archived chats
             </Label>
           </div>
@@ -183,13 +194,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           />
         </ScrollArea>
 
-        <div className="p-4 border-t">
+        <div className="border-t p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className={cn(
-              "h-2 w-2 rounded-full",
-              isConnected ? "bg-green-500" : "bg-red-500"
-            )} />
-            {isConnected ? "Connected" : "Disconnected"}
+            <div
+              className={cn(
+                'h-2 w-2 rounded-full',
+                isConnected ? 'bg-green-500' : 'bg-red-500'
+              )}
+            />
+            {isConnected ? 'Connected' : 'Disconnected'}
           </div>
         </div>
       </div>
@@ -197,13 +210,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
       {/* Mobile Sidebar */}
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
         <SheetContent side="left" className="w-80 p-0">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex h-full flex-col">
+            <div className="flex items-center justify-between border-b p-4">
               <h2 className="text-lg font-semibold">Chat Rooms</h2>
               <div className="flex items-center gap-2">
                 <CreateChatRoomDialog />
                 <StartDirectChatDialog
-                  onChatStarted={(chatRoomId) => {
+                  onChatStarted={chatRoomId => {
                     setSelectedChatRoom(chatRoomId)
                     setIsMobileOpen(false)
                   }}
@@ -216,13 +229,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
               </div>
             </div>
 
-            <div className="p-4 border-b space-y-3">
+            <div className="space-y-3 border-b p-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
                 <Input
                   placeholder="Search chat rooms..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -233,8 +246,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
                   checked={showArchived}
                   onCheckedChange={setShowArchived}
                 />
-                <Label htmlFor="show-archived-mobile" className="text-sm font-medium">
-                  <Archive className="inline h-3 w-3 mr-1" />
+                <Label
+                  htmlFor="show-archived-mobile"
+                  className="text-sm font-medium"
+                >
+                  <Archive className="mr-1 inline h-3 w-3" />
                   Show archived chats
                 </Label>
               </div>
@@ -253,7 +269,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
       </Sheet>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex flex-1 flex-col">
         {selectedRoom ? (
           <>
             <ChatHeader
@@ -261,10 +277,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
               onMobileMenuClick={() => setIsMobileOpen(true)}
             />
 
-            <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex min-h-0 flex-1 flex-col">
               <MessageList
                 chatRoomId={selectedRoom.id}
-                onReply={(message) => setReplyingTo(message)}
+                onReply={message => setReplyingTo(message)}
               />
               <MessageInput
                 chatRoomId={selectedRoom.id}
@@ -274,10 +290,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
-              <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Select a chat room</h3>
+              <MessageSquare className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+              <h3 className="mb-2 text-lg font-medium">Select a chat room</h3>
               <p className="text-muted-foreground">
                 Choose a chat room from the sidebar to start messaging
               </p>

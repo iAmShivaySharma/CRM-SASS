@@ -19,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useCreateColumnMutation, useUpdateColumnMutation, useDeleteColumnMutation, type Column } from '@/lib/api/projectsApi'
+import {
+  useCreateColumnMutation,
+  useUpdateColumnMutation,
+  useDeleteColumnMutation,
+  type Column,
+} from '@/lib/api/projectsApi'
 import { useAppSelector } from '@/lib/hooks'
 import { toast } from 'sonner'
 
@@ -64,7 +69,13 @@ export function ColumnManagementDialog({
   const handleNameChange = (value: string) => {
     setName(value)
     if (mode === 'create') {
-      setSlug(value.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''))
+      setSlug(
+        value
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '')
+      )
     }
   }
 
@@ -144,7 +155,8 @@ export function ColumnManagementDialog({
           <DialogDescription>
             {mode === 'create' && 'Create a new column for this project.'}
             {mode === 'edit' && 'Edit the column details.'}
-            {mode === 'delete' && 'Are you sure you want to delete this column? This action cannot be undone.'}
+            {mode === 'delete' &&
+              'Are you sure you want to delete this column? This action cannot be undone.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -155,7 +167,7 @@ export function ColumnManagementDialog({
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
+                onChange={e => handleNameChange(e.target.value)}
                 placeholder="Column name"
                 disabled={isLoading}
               />
@@ -166,31 +178,37 @@ export function ColumnManagementDialog({
               <Input
                 id="slug"
                 value={slug}
-                onChange={(e) => setSlug(e.target.value)}
+                onChange={e => setSlug(e.target.value)}
                 placeholder="column-slug"
                 disabled={isLoading || mode === 'edit'}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                {mode === 'edit' ? 'Slug cannot be changed after creation' : 'Auto-generated from name'}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {mode === 'edit'
+                  ? 'Slug cannot be changed after creation'
+                  : 'Auto-generated from name'}
               </p>
             </div>
 
             <div className="grid gap-2">
               <Label htmlFor="color">Color</Label>
-              <Select value={color} onValueChange={setColor} disabled={isLoading}>
+              <Select
+                value={color}
+                onValueChange={setColor}
+                disabled={isLoading}
+              >
                 <SelectTrigger>
                   <SelectValue>
                     <div className="flex items-center gap-2">
-                      <div className={`w-4 h-4 rounded ${color}`} />
+                      <div className={`h-4 w-4 rounded ${color}`} />
                       {colorOptions.find(opt => opt.value === color)?.label}
                     </div>
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {colorOptions.map((option) => (
+                  {colorOptions.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded ${option.value}`} />
+                        <div className={`h-4 w-4 rounded ${option.value}`} />
                         {option.label}
                       </div>
                     </SelectItem>

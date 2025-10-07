@@ -3,10 +3,23 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, CheckCircle2, Loader2, Mail, UserPlus, LogIn } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Mail,
+  UserPlus,
+  LogIn,
+} from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import Link from 'next/link'
 
@@ -170,27 +183,37 @@ export default function AcceptInvitationPage() {
     setError(null)
 
     try {
-      const response = await fetch('/api/invitations/accept-with-registration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token,
-          fullName: fullName.trim(),
-          password,
-        }),
-      })
+      const response = await fetch(
+        '/api/invitations/accept-with-registration',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token,
+            fullName: fullName.trim(),
+            password,
+          }),
+        }
+      )
 
       const data = await response.json()
 
       if (response.ok) {
         setResult(data)
-        setTimeout(() => router.push('/auth/login?message=account-created'), 3000)
+        setTimeout(
+          () => router.push('/auth/login?message=account-created'),
+          3000
+        )
       } else {
         if (data.requireLogin) {
-          setError('An account already exists. Please log in with the correct account.')
+          setError(
+            'An account already exists. Please log in with the correct account.'
+          )
           setUserState('guest')
         } else {
-          setError(data.message || 'Failed to create account and accept invitation')
+          setError(
+            data.message || 'Failed to create account and accept invitation'
+          )
         }
       }
     } catch (err) {
@@ -204,10 +227,10 @@ export default function AcceptInvitationPage() {
   // Loading state
   if (userState === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md">
           <CardContent className="flex items-center justify-center p-8">
-            <Loader2 className="w-8 h-8 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin" />
             <span className="ml-2">Validating invitation...</span>
           </CardContent>
         </Card>
@@ -218,11 +241,11 @@ export default function AcceptInvitationPage() {
   // Error state
   if (userState === 'error' || !invitation) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <AlertCircle className="w-6 h-6 text-red-600" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
             <CardTitle>Invalid Invitation</CardTitle>
             <CardDescription>
@@ -246,14 +269,16 @@ export default function AcceptInvitationPage() {
   // Success state
   if (result?.success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-6 h-6 text-green-600" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
             </div>
             <CardTitle>
-              {userState === 'guest' ? 'Account Created!' : 'Invitation Accepted!'}
+              {userState === 'guest'
+                ? 'Account Created!'
+                : 'Invitation Accepted!'}
             </CardTitle>
             <CardDescription>
               Welcome to {result.workspace?.name}
@@ -261,7 +286,10 @@ export default function AcceptInvitationPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center text-sm text-gray-600">
-              <p>You&apos;ve been added to the workspace as a <strong>{result.role?.name}</strong>.</p>
+              <p>
+                You&apos;ve been added to the workspace as a{' '}
+                <strong>{result.role?.name}</strong>.
+              </p>
               <p className="mt-2">
                 {userState === 'guest'
                   ? 'Redirecting you to login...'
@@ -269,7 +297,11 @@ export default function AcceptInvitationPage() {
               </p>
             </div>
             <Button
-              onClick={() => router.push(userState === 'guest' ? '/auth/login' : '/dashboard')}
+              onClick={() =>
+                router.push(
+                  userState === 'guest' ? '/auth/login' : '/dashboard'
+                )
+              }
               className="w-full"
             >
               {userState === 'guest' ? 'Go to Login' : 'Go to Dashboard'}
@@ -283,34 +315,44 @@ export default function AcceptInvitationPage() {
   // Wrong user logged in
   if (userState === 'wrong-user') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-              <AlertCircle className="w-6 h-6 text-yellow-600" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
+              <AlertCircle className="h-6 w-6 text-yellow-600" />
             </div>
             <CardTitle>Wrong Account</CardTitle>
             <CardDescription>
-              This invitation was sent to <strong>{invitation.email}</strong>, but you&apos;re logged in as <strong>{currentUserEmail}</strong>.
+              This invitation was sent to <strong>{invitation.email}</strong>,
+              but you&apos;re logged in as <strong>{currentUserEmail}</strong>.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-sm mb-2">Invitation Details:</h3>
+            <div className="rounded-lg bg-blue-50 p-4">
+              <h3 className="mb-2 text-sm font-semibold">
+                Invitation Details:
+              </h3>
               <p className="text-sm text-gray-600">
-                <strong>Workspace:</strong> {invitation.workspace.name}<br />
-                <strong>Role:</strong> {invitation.role.name}<br />
+                <strong>Workspace:</strong> {invitation.workspace.name}
+                <br />
+                <strong>Role:</strong> {invitation.role.name}
+                <br />
                 <strong>Invited by:</strong> {invitation.invitedBy.name}
               </p>
             </div>
 
             <div className="space-y-2">
               <Button
-                onClick={() => router.push('/auth/logout?redirect=' + encodeURIComponent(window.location.href))}
+                onClick={() =>
+                  router.push(
+                    '/auth/logout?redirect=' +
+                      encodeURIComponent(window.location.href)
+                  )
+                }
                 className="w-full"
                 variant="outline"
               >
-                <LogIn className="w-4 h-4 mr-2" />
+                <LogIn className="mr-2 h-4 w-4" />
                 Log Out & Log In as {invitation.email}
               </Button>
               <Button
@@ -330,23 +372,28 @@ export default function AcceptInvitationPage() {
   // Correct user logged in
   if (userState === 'correct-user') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-              <Mail className="w-6 h-6 text-blue-600" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+              <Mail className="h-6 w-6 text-blue-600" />
             </div>
             <CardTitle>Accept Workspace Invitation</CardTitle>
             <CardDescription>
-              You&apos;ve been invited to join <strong>{invitation.workspace.name}</strong>
+              You&apos;ve been invited to join{' '}
+              <strong>{invitation.workspace.name}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-sm mb-2">Invitation Details:</h3>
+            <div className="rounded-lg bg-blue-50 p-4">
+              <h3 className="mb-2 text-sm font-semibold">
+                Invitation Details:
+              </h3>
               <p className="text-sm text-gray-600">
-                <strong>Workspace:</strong> {invitation.workspace.name}<br />
-                <strong>Role:</strong> {invitation.role.name}<br />
+                <strong>Workspace:</strong> {invitation.workspace.name}
+                <br />
+                <strong>Role:</strong> {invitation.role.name}
+                <br />
                 <strong>Invited by:</strong> {invitation.invitedBy.name}
               </p>
             </div>
@@ -365,7 +412,7 @@ export default function AcceptInvitationPage() {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Accepting Invitation...
                 </>
               ) : (
@@ -390,24 +437,28 @@ export default function AcceptInvitationPage() {
 
   // Guest user - show registration form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <UserPlus className="w-6 h-6 text-green-600" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+            <UserPlus className="h-6 w-6 text-green-600" />
           </div>
           <CardTitle>Create Account & Join Workspace</CardTitle>
           <CardDescription>
-            You&apos;ve been invited to join <strong>{invitation.workspace.name}</strong>
+            You&apos;ve been invited to join{' '}
+            <strong>{invitation.workspace.name}</strong>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-sm mb-2">Invitation Details:</h3>
+          <div className="rounded-lg bg-blue-50 p-4">
+            <h3 className="mb-2 text-sm font-semibold">Invitation Details:</h3>
             <p className="text-sm text-gray-600">
-              <strong>Email:</strong> {invitation.email}<br />
-              <strong>Workspace:</strong> {invitation.workspace.name}<br />
-              <strong>Role:</strong> {invitation.role.name}<br />
+              <strong>Email:</strong> {invitation.email}
+              <br />
+              <strong>Workspace:</strong> {invitation.workspace.name}
+              <br />
+              <strong>Role:</strong> {invitation.role.name}
+              <br />
               <strong>Invited by:</strong> {invitation.invitedBy.name}
             </p>
           </div>
@@ -419,7 +470,7 @@ export default function AcceptInvitationPage() {
                 id="fullName"
                 type="text"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={e => setFullName(e.target.value)}
                 placeholder="Enter your full name"
                 required
               />
@@ -431,7 +482,7 @@ export default function AcceptInvitationPage() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 placeholder="Choose a secure password"
                 required
               />
@@ -443,7 +494,7 @@ export default function AcceptInvitationPage() {
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
                 required
               />
@@ -464,7 +515,7 @@ export default function AcceptInvitationPage() {
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Creating Account...
               </>
             ) : (
@@ -472,7 +523,7 @@ export default function AcceptInvitationPage() {
             )}
           </Button>
 
-          <div className="text-center space-y-2">
+          <div className="space-y-2 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
               <Link

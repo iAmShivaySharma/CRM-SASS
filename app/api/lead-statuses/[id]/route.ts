@@ -13,7 +13,10 @@ import { log } from '@/lib/logging/logger'
 // DELETE /api/lead-statuses/[id] - Delete a lead status
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {

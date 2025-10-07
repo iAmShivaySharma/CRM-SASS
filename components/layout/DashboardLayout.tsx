@@ -45,7 +45,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             'ml-0'
           )}
         >
-          <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
+          <Header
+            onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+          />
           <main className="w-full p-4 sm:p-6 lg:p-8">
             <div className="w-full">{children}</div>
           </main>

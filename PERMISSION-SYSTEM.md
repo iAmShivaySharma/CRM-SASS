@@ -13,28 +13,29 @@ This document provides comprehensive guidance on the CRM's granular permission s
 ```typescript
 interface IPermission {
   _id: string
-  workspaceId?: string              // null = system-wide permission
-  name: string                      // Format: "resource.action"
-  displayName: string               // Human-readable name
-  description?: string              // What this permission grants
-  resource: string                  // e.g., "leads", "users", "roles"
-  action: string                    // e.g., "create", "read", "update", "delete"
-  category: string                  // UI grouping: Core, Sales, Admin, etc.
-  isSystemPermission: boolean       // Built-in vs custom permissions
-  isActive: boolean                 // Enable/disable permissions
-  dependencies?: string[]           // Required permissions
-  conflictsWith?: string[]          // Mutually exclusive permissions
-  createdBy?: string               // Creator user ID
+  workspaceId?: string // null = system-wide permission
+  name: string // Format: "resource.action"
+  displayName: string // Human-readable name
+  description?: string // What this permission grants
+  resource: string // e.g., "leads", "users", "roles"
+  action: string // e.g., "create", "read", "update", "delete"
+  category: string // UI grouping: Core, Sales, Admin, etc.
+  isSystemPermission: boolean // Built-in vs custom permissions
+  isActive: boolean // Enable/disable permissions
+  dependencies?: string[] // Required permissions
+  conflictsWith?: string[] // Mutually exclusive permissions
+  createdBy?: string // Creator user ID
   createdAt: Date
   updatedAt: Date
 }
 ```
 
 #### Role Model (Extended)
+
 ```typescript
 interface IRole {
   // ... existing fields
-  permissions: string[]  // Array of permission names (e.g., ["leads.create", "users.read"])
+  permissions: string[] // Array of permission names (e.g., ["leads.create", "users.read"])
 }
 ```
 
@@ -43,6 +44,7 @@ interface IRole {
 **Format**: `{resource}.{action}`
 
 **Examples**:
+
 - `leads.create` - Create new leads
 - `leads.read` - View leads
 - `users.delete` - Delete users
@@ -63,22 +65,24 @@ interface IRole {
 ### Getting Permissions
 
 #### `GET /api/permissions`
+
 Returns permissions in legacy format for backward compatibility.
 
 ```javascript
 // Response format (legacy compatible)
-[
+;[
   {
-    id: "leads.create",
-    name: "Create Leads",
-    resource: "leads",
-    action: "create",
-    category: "Sales"
-  }
+    id: 'leads.create',
+    name: 'Create Leads',
+    resource: 'leads',
+    action: 'create',
+    category: 'Sales',
+  },
 ]
 ```
 
 #### `GET /api/permissions/manage?workspaceId={id}`
+
 Returns detailed permission management data.
 
 ```javascript
@@ -197,7 +201,7 @@ export async function POST(request: NextRequest) {
   // Get user's role permissions
   const member = await WorkspaceMember.findOne({
     userId: auth.user.id,
-    workspaceId
+    workspaceId,
   }).populate('roleId')
 
   const userPermissions = member.roleId?.permissions || []
@@ -242,11 +246,19 @@ const defaultRoles = [
   {
     name: 'Admin',
     permissions: [
-      'leads.create', 'leads.read', 'leads.update', 'leads.delete',
-      'users.create', 'users.read', 'users.update', 'users.delete',
-      'workspace.manage', 'roles.manage', 'permissions.view'
-    ]
-  }
+      'leads.create',
+      'leads.read',
+      'leads.update',
+      'leads.delete',
+      'users.create',
+      'users.read',
+      'users.update',
+      'users.delete',
+      'workspace.manage',
+      'roles.manage',
+      'permissions.view',
+    ],
+  },
 ]
 ```
 
@@ -257,6 +269,7 @@ const defaultRoles = [
 To set up the permission system in a new environment:
 
 1. **Run permission migration** to populate system permissions:
+
    ```bash
    npm run db:migrate-permissions
    ```
@@ -271,6 +284,7 @@ To set up the permission system in a new environment:
 If migrating from the old hardcoded permission system:
 
 1. **Run permission migration** with force flag to recreate permissions:
+
    ```bash
    npm run db:migrate-permissions -- --force
    ```
@@ -324,7 +338,7 @@ Some permissions are mutually exclusive:
 ```typescript
 import {
   validatePermissionDependencies,
-  validatePermissionConflicts
+  validatePermissionConflicts,
 } from '@/lib/mongodb/seedPermissions'
 
 const validation = validatePermissionDependencies(
@@ -347,14 +361,14 @@ if (!validation.valid) {
 
 ```typescript
 // Good
-"leads.create"
-"users.delete"
-"reports.export"
+'leads.create'
+'users.delete'
+'reports.export'
 
 // Bad
-"CreateLead"
-"user_delete"
-"reports-view"
+'CreateLead'
+'user_delete'
+'reports-view'
 ```
 
 ### 2. Resource Granularity
@@ -365,13 +379,13 @@ if (!validation.valid) {
 
 ```typescript
 // Good granularity
-"leads.create", "leads.read", "leads.update", "leads.delete"
+;('leads.create', 'leads.read', 'leads.update', 'leads.delete')
 
 // Too granular
-"leads.create.form", "leads.create.submit", "leads.create.validate"
+;('leads.create.form', 'leads.create.submit', 'leads.create.validate')
 
 // Too broad
-"leads.all"
+;('leads.all')
 ```
 
 ### 3. Categories
@@ -395,7 +409,7 @@ if (!hasPermission(userPermissions, 'leads.create')) {
     {
       message: 'Insufficient permissions to create leads',
       required: 'leads.create',
-      userPermissions
+      userPermissions,
     },
     { status: 403 }
   )
@@ -407,16 +421,19 @@ if (!hasPermission(userPermissions, 'leads.create')) {
 ### Common Issues
 
 #### 1. Permission Not Working
+
 - Check if permission exists in database
 - Verify user's role has the permission
 - Check permission name spelling/format
 
 #### 2. UI Not Updating
+
 - Ensure permission data is being fetched
 - Check if component is using correct permission name
 - Verify state management updates
 
 #### 3. API Returning 403
+
 - Confirm user authentication
 - Check workspace membership
 - Verify permission checking logic

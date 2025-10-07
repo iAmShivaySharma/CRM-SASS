@@ -168,7 +168,10 @@ const ProjectJoinRequestSchema = new Schema<IProjectJoinRequest>(
 
 // Optimized indexes for performance
 if (typeof window === 'undefined') {
-  ProjectInvitationSchema.index({ projectId: 1, inviteeEmail: 1 }, { unique: true })
+  ProjectInvitationSchema.index(
+    { projectId: 1, inviteeEmail: 1 },
+    { unique: true }
+  )
   ProjectInvitationSchema.index({ token: 1 }, { unique: true })
   ProjectInvitationSchema.index({ status: 1, expiresAt: 1 })
   ProjectInvitationSchema.index({ inviterId: 1 })
@@ -180,8 +183,14 @@ if (typeof window === 'undefined') {
 
 export const ProjectInvitation =
   mongoose.models?.ProjectInvitation ||
-  mongoose.model<IProjectInvitation>('ProjectInvitation', ProjectInvitationSchema)
+  mongoose.model<IProjectInvitation>(
+    'ProjectInvitation',
+    ProjectInvitationSchema
+  )
 
 export const ProjectJoinRequest =
   mongoose.models?.ProjectJoinRequest ||
-  mongoose.model<IProjectJoinRequest>('ProjectJoinRequest', ProjectJoinRequestSchema)
+  mongoose.model<IProjectJoinRequest>(
+    'ProjectJoinRequest',
+    ProjectJoinRequestSchema
+  )

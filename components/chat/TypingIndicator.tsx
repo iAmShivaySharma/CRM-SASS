@@ -25,21 +25,19 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
   }
 
   return (
-    <div className={cn("flex items-center gap-3 px-4 py-2", className)}>
+    <div className={cn('flex items-center gap-3 px-4 py-2', className)}>
       {/* Avatar placeholder */}
       <div className="h-8 w-8" />
 
       {/* Typing content */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
-          {getTypingText()}
-        </span>
+        <span className="text-sm text-muted-foreground">{getTypingText()}</span>
 
         {/* Animated dots */}
         <div className="flex items-center gap-1">
-          <div className="h-1 w-1 rounded-full bg-muted-foreground animate-bounce" />
-          <div className="h-1 w-1 rounded-full bg-muted-foreground animate-bounce [animation-delay:0.1s]" />
-          <div className="h-1 w-1 rounded-full bg-muted-foreground animate-bounce [animation-delay:0.2s]" />
+          <div className="h-1 w-1 animate-bounce rounded-full bg-muted-foreground" />
+          <div className="h-1 w-1 animate-bounce rounded-full bg-muted-foreground [animation-delay:0.1s]" />
+          <div className="h-1 w-1 animate-bounce rounded-full bg-muted-foreground [animation-delay:0.2s]" />
         </div>
       </div>
     </div>

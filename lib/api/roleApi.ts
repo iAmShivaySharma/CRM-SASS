@@ -80,7 +80,8 @@ export const roleApi = createApi({
       invalidatesTags: ['Role'],
     }),
     getPermissions: builder.query<Permission[], string | void>({
-      query: (workspaceId) => `../permissions${workspaceId ? `?workspaceId=${workspaceId}` : ''}`,
+      query: workspaceId =>
+        `../permissions${workspaceId ? `?workspaceId=${workspaceId}` : ''}`,
       providesTags: ['Permission'],
     }),
   }),

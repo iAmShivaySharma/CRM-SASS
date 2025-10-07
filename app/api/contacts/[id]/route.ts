@@ -91,7 +91,10 @@ const updateContactSchema = z.object({
 // GET /api/contacts/[id] - Get a specific contact
 export const GET = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       try {
         await connectToMongoDB()
 
@@ -161,7 +164,10 @@ export const GET = withSecurityLogging(
 // PUT /api/contacts/[id] - Update a contact
 export const PUT = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {
@@ -329,7 +335,10 @@ export const PUT = withSecurityLogging(
 // DELETE /api/contacts/[id] - Delete a contact
 export const DELETE = withSecurityLogging(
   withLogging(
-    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
       const startTime = Date.now()
 
       try {

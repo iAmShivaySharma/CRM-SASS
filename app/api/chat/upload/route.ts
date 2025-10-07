@@ -8,7 +8,7 @@ import {
   validateFile,
   initializeBucket,
   ALL_ALLOWED_TYPES,
-  MAX_FILE_SIZE
+  MAX_FILE_SIZE,
 } from '@/lib/storage/minio'
 
 export async function POST(request: NextRequest) {
@@ -31,7 +31,11 @@ export async function POST(request: NextRequest) {
     const workspaceId = searchParams.get('workspaceId')
     const chatRoomId = searchParams.get('chatRoomId')
 
-    console.log('Upload params:', { workspaceId, chatRoomId, userId: auth.user._id })
+    console.log('Upload params:', {
+      workspaceId,
+      chatRoomId,
+      userId: auth.user._id,
+    })
 
     if (!workspaceId || !chatRoomId) {
       return NextResponse.json(
@@ -59,19 +63,20 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File
 
     if (!file) {
-      return NextResponse.json(
-        { message: 'No file uploaded' },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: 'No file uploaded' }, { status: 400 })
     }
 
-    console.log('File details:', { name: file.name, size: file.size, type: file.type })
+    console.log('File details:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    })
 
     // Security validation
     const validation = validateFile({
       mimetype: file.type,
       size: file.size,
-      name: file.name
+      name: file.name,
     })
 
     if (!validation.isValid) {
@@ -79,7 +84,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message: 'File validation failed',
-          errors: validation.errors
+          errors: validation.errors,
         },
         { status: 400 }
       )
@@ -96,7 +101,7 @@ export async function POST(request: NextRequest) {
         {
           message: 'MinIO service unavailable',
           error: `Bucket initialization failed: ${bucketError instanceof Error ? bucketError.message : 'Unknown bucket error'}`,
-          details: 'Please check MinIO server is running and accessible'
+          details: 'Please check MinIO server is running and accessible',
         },
         { status: 503 }
       )
@@ -128,7 +133,7 @@ export async function POST(request: NextRequest) {
         'workspace-id': workspaceId,
         'chat-room-id': chatRoomId,
         'original-name': file.name,
-        'upload-date': new Date().toISOString()
+        'upload-date': new Date().toISOString(),
       }
     )
 
@@ -139,7 +144,7 @@ export async function POST(request: NextRequest) {
         {
           message: 'File upload to MinIO failed',
           error: uploadResult.error,
-          details: 'MinIO server connection or upload error'
+          details: 'MinIO server connection or upload error',
         },
         { status: 500 }
       )
@@ -155,17 +160,21 @@ export async function POST(request: NextRequest) {
         name: file.name,
         size: file.size,
         type: file.type,
-        path: secureFilePath
-      }
+        path: secureFilePath,
+      },
     })
-
   } catch (error) {
     console.error('File upload error:', error)
     return NextResponse.json(
       {
         message: 'Internal server error',
         error: error instanceof Error ? error.message : 'Unknown error',
-        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : '') : undefined
+        stack:
+          process.env.NODE_ENV === 'development'
+            ? error instanceof Error
+              ? error.stack
+              : ''
+            : undefined,
       },
       { status: 500 }
     )
@@ -192,12 +201,21 @@ export async function GET(request: NextRequest) {
         maxFileSizeMB: MAX_FILE_SIZE / 1024 / 1024,
         allowedExtensions: {
           images: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'],
-          documents: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.csv'],
-          archives: ['.zip', '.rar', '.7z']
-        }
-      }
+          documents: [
+            '.pdf',
+            '.doc',
+            '.docx',
+            '.xls',
+            '.xlsx',
+            '.ppt',
+            '.pptx',
+            '.txt',
+            '.csv',
+          ],
+          archives: ['.zip', '.rar', '.7z'],
+        },
+      },
     })
-
   } catch (error) {
     console.error('Get upload config error:', error)
     return NextResponse.json(

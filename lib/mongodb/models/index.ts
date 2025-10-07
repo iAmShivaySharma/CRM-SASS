@@ -20,6 +20,16 @@ export { Message, type IMessage } from './Message'
 export { Project, type IProject } from './Project'
 export { ProjectMember, type IProjectMember } from './ProjectMember'
 export { Task, type ITask } from './Task'
-export { ProjectDocument, DocumentVersion, type IProjectDocument, type IDocumentVersion } from './Document'
-export { ProjectInvitation, ProjectJoinRequest, type IProjectInvitation, type IProjectJoinRequest } from './ProjectInvitation'
+export {
+  ProjectDocument,
+  DocumentVersion,
+  type IProjectDocument,
+  type IDocumentVersion,
+} from './Document'
+export {
+  ProjectInvitation,
+  ProjectJoinRequest,
+  type IProjectInvitation,
+  type IProjectJoinRequest,
+} from './ProjectInvitation'
 export { Column, type IColumn } from './Column'

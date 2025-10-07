@@ -25,31 +25,32 @@ export default function handler(req: NextApiRequest, res: SocketApiResponse) {
     })
 
     // Handle client connections
-    io.on('connection', (socket) => {
+    io.on('connection', socket => {
       console.log('User connected:', socket.id)
 
       // Store user data when they identify themselves
-      socket.on('identify-user', (data: {
-        userId: string
-        userName: string
-        workspaceId: string
-      }) => {
-        console.log(`User identified: ${data.userName} (${data.userId}) in workspace ${data.workspaceId}`)
+      socket.on(
+        'identify-user',
+        (data: { userId: string; userName: string; workspaceId: string }) => {
+          console.log(
+            `User identified: ${data.userName} (${data.userId}) in workspace ${data.workspaceId}`
+          )
 
-        // Store user data in socket
-        socket.data = {
-          userId: data.userId,
-          userName: data.userName,
-          workspaceId: data.workspaceId,
-          rooms: new Set()
+          // Store user data in socket
+          socket.data = {
+            userId: data.userId,
+            userName: data.userName,
+            workspaceId: data.workspaceId,
+            rooms: new Set(),
+          }
+
+          // Join workspace room
+          socket.join(`workspace:${data.workspaceId}`)
+
+          // Emit success
+          socket.emit('user-identified', { success: true })
         }
-
-        // Join workspace room
-        socket.join(`workspace:${data.workspaceId}`)
-
-        // Emit success
-        socket.emit('user-identified', { success: true })
-      })
+      )
 
       // Join a specific chat room
       socket.on('join-chat', (chatRoomId: string) => {
@@ -89,40 +90,43 @@ export default function handler(req: NextApiRequest, res: SocketApiResponse) {
       })
 
       // Handle new message
-      socket.on('send-message', (data: {
-        chatRoomId: string
-        content: string
-        type?: 'text' | 'file' | 'image'
-        replyTo?: string
-        fileUrl?: string
-        fileName?: string
-        fileSize?: number
-        tempId?: string
-      }) => {
-        console.log('Broadcasting message to chat:', data.chatRoomId)
+      socket.on(
+        'send-message',
+        (data: {
+          chatRoomId: string
+          content: string
+          type?: 'text' | 'file' | 'image'
+          replyTo?: string
+          fileUrl?: string
+          fileName?: string
+          fileSize?: number
+          tempId?: string
+        }) => {
+          console.log('Broadcasting message to chat:', data.chatRoomId)
 
-        if (!socket.data?.userId) {
-          socket.emit('error', { message: 'User not identified' })
-          return
+          if (!socket.data?.userId) {
+            socket.emit('error', { message: 'User not identified' })
+            return
+          }
+
+          const messageData = {
+            chatRoomId: data.chatRoomId,
+            content: data.content,
+            type: data.type || 'text',
+            senderId: socket.data.userId,
+            senderName: socket.data.userName,
+            replyTo: data.replyTo,
+            fileUrl: data.fileUrl,
+            fileName: data.fileName,
+            fileSize: data.fileSize,
+            timestamp: new Date().toISOString(),
+            tempId: data.tempId,
+          }
+
+          // Broadcast to all users in the chat room
+          io.to(`chat:${data.chatRoomId}`).emit('new-message', messageData)
         }
-
-        const messageData = {
-          chatRoomId: data.chatRoomId,
-          content: data.content,
-          type: data.type || 'text',
-          senderId: socket.data.userId,
-          senderName: socket.data.userName,
-          replyTo: data.replyTo,
-          fileUrl: data.fileUrl,
-          fileName: data.fileName,
-          fileSize: data.fileSize,
-          timestamp: new Date().toISOString(),
-          tempId: data.tempId,
-        }
-
-        // Broadcast to all users in the chat room
-        io.to(`chat:${data.chatRoomId}`).emit('new-message', messageData)
-      })
+      )
 
       // Handle typing indicators
       socket.on('typing-start', (data: { chatRoomId: string }) => {
@@ -147,74 +151,92 @@ export default function handler(req: NextApiRequest, res: SocketApiResponse) {
       })
 
       // Handle message reactions
-      socket.on('add-reaction', async (data: {
-        messageId: string
-        emoji: string
-        chatRoomId: string
-      }) => {
-        console.log('Socket received add-reaction:', data, 'from user:', socket.data?.userName)
+      socket.on(
+        'add-reaction',
+        async (data: {
+          messageId: string
+          emoji: string
+          chatRoomId: string
+        }) => {
+          console.log(
+            'Socket received add-reaction:',
+            data,
+            'from user:',
+            socket.data?.userName
+          )
 
-        if (!socket.data?.userId) {
-          console.log('No user data found for reaction')
-          return
+          if (!socket.data?.userId) {
+            console.log('No user data found for reaction')
+            return
+          }
+
+          const reactionData = {
+            messageId: data.messageId,
+            emoji: data.emoji,
+            userId: socket.data.userId,
+            userName: socket.data.userName,
+          }
+
+          console.log(
+            'Broadcasting reaction to chat room:',
+            data.chatRoomId,
+            reactionData
+          )
+
+          // Broadcast to all users in the chat room including sender
+          io.to(`chat:${data.chatRoomId}`).emit(
+            'message-reaction-added',
+            reactionData
+          )
         }
-
-        const reactionData = {
-          messageId: data.messageId,
-          emoji: data.emoji,
-          userId: socket.data.userId,
-          userName: socket.data.userName,
-        }
-
-        console.log('Broadcasting reaction to chat room:', data.chatRoomId, reactionData)
-
-        // Broadcast to all users in the chat room including sender
-        io.to(`chat:${data.chatRoomId}`).emit('message-reaction-added', reactionData)
-      })
+      )
 
       // Handle message deletion
-      socket.on('delete-message', (data: {
-        messageId: string
-        chatRoomId: string
-      }) => {
-        if (!socket.data?.userId) return
+      socket.on(
+        'delete-message',
+        (data: { messageId: string; chatRoomId: string }) => {
+          if (!socket.data?.userId) return
 
-        // Broadcast to all users in the chat room including sender
-        io.to(`chat:${data.chatRoomId}`).emit('message-deleted', {
-          messageId: data.messageId,
-          deletedBy: socket.data.userId,
-        })
-      })
+          // Broadcast to all users in the chat room including sender
+          io.to(`chat:${data.chatRoomId}`).emit('message-deleted', {
+            messageId: data.messageId,
+            deletedBy: socket.data.userId,
+          })
+        }
+      )
 
       // Handle user presence updates
-      socket.on('user-status-change', (data: {
-        status: 'online' | 'offline' | 'away'
-      }) => {
-        if (!socket.data?.userId || !socket.data?.workspaceId) return
+      socket.on(
+        'user-status-change',
+        (data: { status: 'online' | 'offline' | 'away' }) => {
+          if (!socket.data?.userId || !socket.data?.workspaceId) return
 
-        socket.to(`workspace:${socket.data.workspaceId}`).emit('user-status-updated', {
-          userId: socket.data.userId,
-          userName: socket.data.userName,
-          status: data.status,
-          timestamp: new Date().toISOString(),
-        })
-      })
+          socket
+            .to(`workspace:${socket.data.workspaceId}`)
+            .emit('user-status-updated', {
+              userId: socket.data.userId,
+              userName: socket.data.userName,
+              status: data.status,
+              timestamp: new Date().toISOString(),
+            })
+        }
+      )
 
       // Handle read receipts
-      socket.on('mark-messages-read', (data: {
-        chatRoomId: string
-        messageIds: string[]
-      }) => {
-        if (!socket.data?.userId) return
+      socket.on(
+        'mark-messages-read',
+        (data: { chatRoomId: string; messageIds: string[] }) => {
+          if (!socket.data?.userId) return
 
-        socket.to(`chat:${data.chatRoomId}`).emit('messages-read', {
-          chatRoomId: data.chatRoomId,
-          messageIds: data.messageIds,
-          userId: socket.data.userId,
-          userName: socket.data.userName,
-          timestamp: new Date().toISOString(),
-        })
-      })
+          socket.to(`chat:${data.chatRoomId}`).emit('messages-read', {
+            chatRoomId: data.chatRoomId,
+            messageIds: data.messageIds,
+            userId: socket.data.userId,
+            userName: socket.data.userName,
+            timestamp: new Date().toISOString(),
+          })
+        }
+      )
 
       // Handle disconnection
       socket.on('disconnect', () => {
@@ -232,12 +254,14 @@ export default function handler(req: NextApiRequest, res: SocketApiResponse) {
 
           // Notify workspace of offline status
           if (socket.data?.workspaceId) {
-            socket.to(`workspace:${socket.data.workspaceId}`).emit('user-status-updated', {
-              userId: socket.data.userId,
-              userName: socket.data.userName,
-              status: 'offline',
-              timestamp: new Date().toISOString(),
-            })
+            socket
+              .to(`workspace:${socket.data.workspaceId}`)
+              .emit('user-status-updated', {
+                userId: socket.data.userId,
+                userName: socket.data.userName,
+                status: 'offline',
+                timestamp: new Date().toISOString(),
+              })
           }
         }
       })

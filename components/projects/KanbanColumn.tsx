@@ -2,10 +2,7 @@
 
 import { useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Plus, MoreVertical, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,7 +31,16 @@ interface KanbanColumnProps {
   onAddTask?: () => void
 }
 
-export function KanbanColumn({ id, title, color, tasks, taskCount, column, projectId, onAddTask }: KanbanColumnProps) {
+export function KanbanColumn({
+  id,
+  title,
+  color,
+  tasks,
+  taskCount,
+  column,
+  projectId,
+  onAddTask,
+}: KanbanColumnProps) {
   const [dialogMode, setDialogMode] = useState<'edit' | 'delete' | null>(null)
 
   const { setNodeRef, isOver } = useDroppable({
@@ -45,14 +51,14 @@ export function KanbanColumn({ id, title, color, tasks, taskCount, column, proje
     <Card
       ref={setNodeRef}
       className={cn(
-        "flex flex-col h-full transition-colors",
-        isOver && "ring-2 ring-primary ring-offset-2"
+        'flex h-full flex-col transition-colors',
+        isOver && 'ring-2 ring-primary ring-offset-2'
       )}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className={cn("w-3 h-3 rounded-full", color)} />
+            <div className={cn('h-3 w-3 rounded-full', color)} />
             <CardTitle className="text-sm font-medium">{title}</CardTitle>
             <Badge variant="secondary" className="text-xs">
               {taskCount}
@@ -88,15 +94,25 @@ export function KanbanColumn({ id, title, color, tasks, taskCount, column, proje
 
       <CardContent className="flex-1 pt-0">
         <ScrollArea className="h-full max-h-[calc(100vh-300px)]">
-          <SortableContext items={tasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext
+            items={tasks.map(task => task.id)}
+            strategy={verticalListSortingStrategy}
+          >
             <div className="space-y-3">
               {tasks.map(task => (
                 <TaskCard key={task.id} task={task} />
               ))}
               {tasks.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="text-sm text-muted-foreground mb-2">No tasks</div>
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={onAddTask}>
+                  <div className="mb-2 text-sm text-muted-foreground">
+                    No tasks
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs"
+                    onClick={onAddTask}
+                  >
                     <Plus className="mr-1 h-3 w-3" />
                     Add task
                   </Button>
@@ -110,7 +126,7 @@ export function KanbanColumn({ id, title, color, tasks, taskCount, column, proje
       {/* Column Management Dialog */}
       <ColumnManagementDialog
         open={!!dialogMode}
-        onOpenChange={(open) => !open && setDialogMode(null)}
+        onOpenChange={open => !open && setDialogMode(null)}
         projectId={projectId}
         column={column}
         mode={dialogMode || 'edit'}

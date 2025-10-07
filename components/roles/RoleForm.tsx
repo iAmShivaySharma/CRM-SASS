@@ -37,7 +37,8 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
   const [createRole, { isLoading }] = useCreateRoleMutation()
 
   // Fetch available permissions
-  const { data: permissionsData, isLoading: permissionsLoading } = useGetPermissionsQuery(currentWorkspace?.id)
+  const { data: permissionsData, isLoading: permissionsLoading } =
+    useGetPermissionsQuery(currentWorkspace?.id)
   const permissions = permissionsData || []
 
   const onSubmit = async (data: RoleFormData) => {
@@ -74,7 +75,7 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
   const resources = Array.from(new Set(permissions.map(p => p.category)))
 
   if (permissionsLoading) {
-    return <div className="text-center py-4">Loading permissions...</div>
+    return <div className="py-4 text-center">Loading permissions...</div>
   }
 
   return (
@@ -109,12 +110,12 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
 
       <div className="space-y-4">
         <Label>Permissions</Label>
-        <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto rounded-lg border p-4">
           <div className="space-y-4">
             {resources.map(resource => (
               <div key={resource} className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">
+                  <h4 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     {resource}
                   </h4>
                   <div className="flex space-x-2">
@@ -135,8 +136,10 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
                           )
                         } else {
                           setSelectedPermissions(prev => [
-                            ...prev.filter(id => !categoryPermissions.includes(id)),
-                            ...categoryPermissions
+                            ...prev.filter(
+                              id => !categoryPermissions.includes(id)
+                            ),
+                            ...categoryPermissions,
                           ])
                         }
                       }}
@@ -145,8 +148,7 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
                         .filter(p => p.category === resource)
                         .every(p => selectedPermissions.includes(p.id))
                         ? 'Deselect All'
-                        : 'Select All'
-                      }
+                        : 'Select All'}
                     </Button>
                   </div>
                 </div>
@@ -156,7 +158,7 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
                     .map(permission => (
                       <div
                         key={permission.id}
-                        className="flex items-start space-x-2 p-2 rounded-md hover:bg-muted/50"
+                        className="flex items-start space-x-2 rounded-md p-2 hover:bg-muted/50"
                       >
                         <Checkbox
                           id={permission.id}
@@ -166,7 +168,7 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
                           }
                           className="mt-0.5"
                         />
-                        <div className="space-y-1 min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 space-y-1">
                           <Label
                             htmlFor={permission.id}
                             className="cursor-pointer text-sm font-medium leading-none"
@@ -174,11 +176,11 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
                             {permission.name}
                           </Label>
                           {permission.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-2">
+                            <p className="line-clamp-2 text-xs text-muted-foreground">
                               {permission.description}
                             </p>
                           )}
-                          <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                          <code className="rounded bg-muted px-1 py-0.5 text-xs">
                             {permission.id}
                           </code>
                         </div>
@@ -186,7 +188,7 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
                     ))}
                 </div>
                 {resource !== resources[resources.length - 1] && (
-                  <div className="border-b border-border mt-4" />
+                  <div className="mt-4 border-b border-border" />
                 )}
               </div>
             ))}
@@ -195,7 +197,7 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
 
         {/* Selected permissions summary */}
         {selectedPermissions.length > 0 && (
-          <div className="bg-muted/50 p-3 rounded-lg">
+          <div className="rounded-lg bg-muted/50 p-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
                 Selected Permissions: {selectedPermissions.length}
@@ -209,7 +211,7 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
                 Clear All
               </Button>
             </div>
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="mt-2 flex flex-wrap gap-1">
               {selectedPermissions.slice(0, 5).map(permId => {
                 const perm = permissions.find(p => p.id === permId)
                 return perm ? (

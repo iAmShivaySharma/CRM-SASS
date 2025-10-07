@@ -25,7 +25,12 @@ import { KanbanColumn } from './KanbanColumn'
 import { TaskCard } from './TaskCard'
 import { ColumnManagementDialog } from './ColumnManagementDialog'
 import { CreateTaskDialog } from './CreateTaskDialog'
-import { useUpdateTaskMutation, useGetColumnsQuery, type Task, type Column } from '@/lib/api/projectsApi'
+import {
+  useUpdateTaskMutation,
+  useGetColumnsQuery,
+  type Task,
+  type Column,
+} from '@/lib/api/projectsApi'
 
 interface KanbanBoardProps {
   tasks: Task[]
@@ -34,7 +39,12 @@ interface KanbanBoardProps {
   error?: any
 }
 
-export function KanbanBoard({ tasks, projectId, isLoading, error }: KanbanBoardProps) {
+export function KanbanBoard({
+  tasks,
+  projectId,
+  isLoading,
+  error,
+}: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [showCreateColumn, setShowCreateColumn] = useState(false)
   const [showCreateTask, setShowCreateTask] = useState(false)
@@ -116,9 +126,13 @@ export function KanbanBoard({ tasks, projectId, isLoading, error }: KanbanBoardP
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h3 className="text-lg font-semibold">Project Board</h3>
-        <Button onClick={() => setShowCreateColumn(true)} variant="outline" size="sm">
+        <Button
+          onClick={() => setShowCreateColumn(true)}
+          variant="outline"
+          size="sm"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Column
         </Button>
@@ -130,7 +144,7 @@ export function KanbanBoard({ tasks, projectId, isLoading, error }: KanbanBoardP
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-h-[600px]">
+        <div className="grid min-h-[600px] grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {columns.map(column => (
             <KanbanColumn
               key={column.id}

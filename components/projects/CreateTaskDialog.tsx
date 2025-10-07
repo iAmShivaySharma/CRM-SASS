@@ -34,7 +34,11 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Badge } from '@/components/ui/badge'
-import { useCreateTaskMutation, useGetProjectsQuery, useGetColumnsQuery } from '@/lib/api/projectsApi'
+import {
+  useCreateTaskMutation,
+  useGetProjectsQuery,
+  useGetColumnsQuery,
+} from '@/lib/api/projectsApi'
 import { useAppSelector } from '@/lib/hooks'
 import { toast } from 'sonner'
 
@@ -59,7 +63,12 @@ interface CreateTaskDialogProps {
   defaultStatus?: string
 }
 
-export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus }: CreateTaskDialogProps) {
+export function CreateTaskDialog({
+  open,
+  onOpenChange,
+  projectId,
+  defaultStatus,
+}: CreateTaskDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
@@ -100,11 +109,11 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
   // Set default status to first column when columns are loaded
   React.useEffect(() => {
     if (columnsData?.columns.length && !form.getValues('status')) {
-      const firstColumn = columnsData.columns.find(col => col.isDefault) || columnsData.columns[0]
+      const firstColumn =
+        columnsData.columns.find(col => col.isDefault) || columnsData.columns[0]
       form.setValue('status', firstColumn.slug)
     }
   }, [columnsData, form])
-
 
   const onSubmit = async (data: CreateTaskFormData) => {
     if (!currentWorkspace) return
@@ -117,7 +126,9 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
         projectId: data.projectId,
         workspaceId: currentWorkspace.id,
         tags,
-        estimatedHours: data.estimatedHours ? Number(data.estimatedHours) : undefined,
+        estimatedHours: data.estimatedHours
+          ? Number(data.estimatedHours)
+          : undefined,
       }).unwrap()
 
       toast.success('Task created successfully')
@@ -154,7 +165,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
           <DialogDescription>
@@ -172,10 +183,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                   <FormItem>
                     <FormLabel>Task Title</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter task title..."
-                        {...field}
-                      />
+                      <Input placeholder="Enter task title..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -189,14 +197,17 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Project</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select project" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {projectsData?.projects.map((project) => (
+                          {projectsData?.projects.map(project => (
                             <SelectItem key={project.id} value={project.id}>
                               {project.name}
                             </SelectItem>
@@ -226,14 +237,17 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {columnsData?.columns.map((column) => (
+                          {columnsData?.columns.map(column => (
                             <SelectItem key={column.id} value={column.slug}>
                               {column.name}
                             </SelectItem>
@@ -256,7 +270,10 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Priority</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select priority" />
@@ -283,10 +300,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                     <FormItem>
                       <FormLabel>Due Date (Optional)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
-                        />
+                        <Input type="date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -306,7 +320,13 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                           step="0.5"
                           placeholder="e.g. 2.5"
                           {...field}
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                          onChange={e =>
+                            field.onChange(
+                              e.target.value
+                                ? Number(e.target.value)
+                                : undefined
+                            )
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -318,7 +338,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
               {/* Tags */}
               <div>
                 <Label>Tags (Optional)</Label>
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="mb-2 flex flex-wrap gap-2">
                   {tags.map((tag, index) => (
                     <Badge
                       key={index}
@@ -334,7 +354,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, defaultStatus 
                   <Input
                     placeholder="Add tags..."
                     value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
+                    onChange={e => setTagInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                   />
                   <Button type="button" variant="outline" onClick={addTag}>

@@ -3,12 +3,22 @@
 import React, { useState, useRef, useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
-import { useCreateMessageMutation, useUploadFileMutation, useGetUploadConfigQuery, Message } from '@/lib/api/chatApi'
+import {
+  useCreateMessageMutation,
+  useUploadFileMutation,
+  useGetUploadConfigQuery,
+  Message,
+} from '@/lib/api/chatApi'
 import { useSocket } from '@/lib/context/SocketContext'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   Send,
   Paperclip,
@@ -22,7 +32,7 @@ import {
   Reply,
   FileText,
   Image,
-  Trash2
+  Trash2,
 } from 'lucide-react'
 import {
   Popover,
@@ -44,7 +54,11 @@ interface AttachedFile {
   id: string
 }
 
-export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replyingTo, onCancelReply }) => {
+export const MessageInput: React.FC<MessageInputProps> = ({
+  chatRoomId,
+  replyingTo,
+  onCancelReply,
+}) => {
   const [message, setMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -127,7 +141,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
       if (hasAttachments) {
         for (const file of filesToSend) {
           const messageType = file.type.startsWith('image/') ? 'image' : 'file'
-          const fileContent = trimmedMessage || `Shared ${messageType === 'image' ? 'an image' : 'a file'}: ${file.name}`
+          const fileContent =
+            trimmedMessage ||
+            `Shared ${messageType === 'image' ? 'an image' : 'a file'}: ${file.name}`
           const tempId = `temp-file-${Date.now()}-${Math.random()}`
 
           // Send via WebSocket for real-time updates
@@ -231,7 +247,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
       console.error('File upload failed:', error)
 
       // Show user-friendly error message
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred'
       console.error('Detailed error:', errorMessage)
 
       // You could add a toast notification here for better UX
@@ -255,7 +272,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
       const allowedTypes = uploadConfig?.config.allowedTypes || []
 
       if (file.size > maxSize) {
-        alert(`File size too large. Maximum allowed: ${(maxSize / 1024 / 1024).toFixed(2)}MB`)
+        alert(
+          `File size too large. Maximum allowed: ${(maxSize / 1024 / 1024).toFixed(2)}MB`
+        )
         return
       }
 
@@ -313,7 +332,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
         break
     }
 
-    const newMessage = message.slice(0, start) + formattedText + message.slice(end)
+    const newMessage =
+      message.slice(0, start) + formattedText + message.slice(end)
     setMessage(newMessage)
 
     // Set cursor position
@@ -322,7 +342,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
         textarea.selectionStart = start
         textarea.selectionEnd = start + formattedText.length
       } else {
-        const cursorPos = start + formattedText.length - (type === 'code' && !selectedText.includes('\n') ? 1 : selectedText ? 0 : formattedText.length / 2)
+        const cursorPos =
+          start +
+          formattedText.length -
+          (type === 'code' && !selectedText.includes('\n')
+            ? 1
+            : selectedText
+              ? 0
+              : formattedText.length / 2)
         textarea.selectionStart = textarea.selectionEnd = cursorPos
       }
       textarea.focus()
@@ -346,15 +373,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
     <div className="bg-background">
       {/* Reply Preview */}
       {replyingTo && (
-        <div className="px-4 pt-3 pb-2 border-b border-border">
-          <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
-            <div className="flex items-start gap-2 flex-1 min-w-0">
-              <Reply className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+        <div className="border-b border-border px-4 pb-2 pt-3">
+          <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+            <div className="flex min-w-0 flex-1 items-start gap-2">
+              <Reply className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-muted-foreground mb-1">
+                <p className="mb-1 text-xs font-medium text-muted-foreground">
                   Replying to {replyingTo.senderName}
                 </p>
-                <p className="text-sm text-foreground truncate">
+                <p className="truncate text-sm text-foreground">
                   {replyingTo.content}
                 </p>
               </div>
@@ -362,7 +389,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 flex-shrink-0"
+              className="h-6 w-6 flex-shrink-0 p-0"
               onClick={onCancelReply}
             >
               <X className="h-4 w-4" />
@@ -373,26 +400,27 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
 
       {/* File Attachments Preview */}
       {attachedFiles.length > 0 && (
-        <div className="px-4 pt-3 pb-2 border-b border-border">
+        <div className="border-b border-border px-4 pb-2 pt-3">
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground">
               Attached Files ({attachedFiles.length})
             </p>
             <div className="flex flex-wrap gap-2">
-              {attachedFiles.map((file) => (
+              {attachedFiles.map(file => (
                 <div
                   key={file.id}
-                  className="flex items-center gap-2 bg-muted/50 rounded-lg p-2 max-w-xs"
+                  className="flex max-w-xs items-center gap-2 rounded-lg bg-muted/50 p-2"
                 >
                   <div className="flex-shrink-0">
                     {file.type.startsWith('image/') ? (
+                      /* eslint-disable-next-line jsx-a11y/alt-text */
                       <Image className="h-4 w-4 text-blue-500" />
                     ) : (
                       <FileText className="h-4 w-4 text-gray-500" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{file.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{file.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
@@ -400,7 +428,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-6 w-6 p-0 flex-shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                    className="h-6 w-6 flex-shrink-0 p-0 hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => removeAttachedFile(file.id)}
                   >
                     <Trash2 className="h-3 w-3" />
@@ -414,205 +442,233 @@ export const MessageInput: React.FC<MessageInputProps> = ({ chatRoomId, replying
 
       <div className="p-4">
         <div className="flex items-end gap-2">
-        {/* File attachment button */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-9 w-9 p-0"
-                disabled={isSending || isUploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Paperclip className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Attach file</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          onChange={handleFileSelect}
-          accept={uploadConfig?.config.allowedTypes.join(',') || 'image/*,application/pdf,.doc,.docx,.txt'}
-        />
-
-        {/* Main input area */}
-        <div className="flex-1 relative">
-          {/* Formatting toolbar */}
-          <div className="flex items-center gap-1 pb-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => handleFormatting('bold')}
-                  >
-                    <Bold className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Bold</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => handleFormatting('italic')}
-                  >
-                    <Italic className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Italic</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => handleFormatting('code')}
-                  >
-                    <Code className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Code</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => insertAtCursor('@')}
-                  >
-                    <AtSign className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Mention someone</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => insertAtCursor('#')}
-                  >
-                    <Hash className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Reference channel</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-
-          {/* Text input */}
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onBlur={handleTypingStop}
-            placeholder={attachedFiles.length > 0 ? "Add a message (optional)..." : "Type a message..."}
-            className={cn(
-              "min-h-[40px] max-h-[120px] resize-none pr-12",
-              "focus:ring-2 focus:ring-primary/20"
-            )}
-            disabled={isSending}
-            rows={1}
-          />
-
-          {/* Emoji picker */}
-          <div className="absolute right-2 bottom-2">
-            <Popover>
-              <PopoverTrigger asChild>
+          {/* File attachment button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-6 w-6 p-0"
-                  disabled={isSending}
+                  className="h-9 w-9 p-0"
+                  disabled={isSending || isUploading}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <Smile className="h-4 w-4" />
+                  <Paperclip className="h-4 w-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="end">
-                <div className="p-4">
-                  <h4 className="text-sm font-medium mb-3">Quick Emojis</h4>
-                  <div className="grid grid-cols-8 gap-2">
-                    {['😀', '😂', '😍', '🤔', '👍', '👎', '❤️', '🎉', '🔥', '💯', '😢', '😡', '🤯', '🎯', '✨', '🚀'].map((emoji) => (
-                      <Button
-                        key={emoji}
-                        variant="ghost"
-                        className="h-8 w-8 p-0 text-lg"
-                        onClick={() => insertAtCursor(emoji)}
-                      >
-                        {emoji}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Attach file</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-        {/* Send button */}
-        <Button
-          size="sm"
-          onClick={handleSendMessage}
-          disabled={(!message.trim() && attachedFiles.length === 0) || isSending || isUploading}
-          className="h-9 w-9 p-0"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
-      </div>
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileSelect}
+            accept={
+              uploadConfig?.config.allowedTypes.join(',') ||
+              'image/*,application/pdf,.doc,.docx,.txt'
+            }
+          />
 
-      {/* Character counter and hints */}
-      <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-4">
-          {isUploading ? (
-            <div className="flex items-center gap-2 text-blue-500">
-              <div className="animate-spin rounded-full h-3 w-3 border border-blue-500 border-t-transparent"></div>
-              <span>{uploadProgress || 'Uploading file...'}</span>
+          {/* Main input area */}
+          <div className="relative flex-1">
+            {/* Formatting toolbar */}
+            <div className="flex items-center gap-1 pb-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={() => handleFormatting('bold')}
+                    >
+                      <Bold className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Bold</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={() => handleFormatting('italic')}
+                    >
+                      <Italic className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Italic</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={() => handleFormatting('code')}
+                    >
+                      <Code className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Code</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={() => insertAtCursor('@')}
+                    >
+                      <AtSign className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mention someone</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={() => insertAtCursor('#')}
+                    >
+                      <Hash className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Reference channel</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-          ) : (
-            <span>Press Enter to send, Shift+Enter for new line</span>
-          )}
+
+            {/* Text input */}
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              onBlur={handleTypingStop}
+              placeholder={
+                attachedFiles.length > 0
+                  ? 'Add a message (optional)...'
+                  : 'Type a message...'
+              }
+              className={cn(
+                'max-h-[120px] min-h-[40px] resize-none pr-12',
+                'focus:ring-2 focus:ring-primary/20'
+              )}
+              disabled={isSending}
+              rows={1}
+            />
+
+            {/* Emoji picker */}
+            <div className="absolute bottom-2 right-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    disabled={isSending}
+                  >
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <div className="p-4">
+                    <h4 className="mb-3 text-sm font-medium">Quick Emojis</h4>
+                    <div className="grid grid-cols-8 gap-2">
+                      {[
+                        '😀',
+                        '😂',
+                        '😍',
+                        '🤔',
+                        '👍',
+                        '👎',
+                        '❤️',
+                        '🎉',
+                        '🔥',
+                        '💯',
+                        '😢',
+                        '😡',
+                        '🤯',
+                        '🎯',
+                        '✨',
+                        '🚀',
+                      ].map(emoji => (
+                        <Button
+                          key={emoji}
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-lg"
+                          onClick={() => insertAtCursor(emoji)}
+                        >
+                          {emoji}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Send button */}
+          <Button
+            size="sm"
+            onClick={handleSendMessage}
+            disabled={
+              (!message.trim() && attachedFiles.length === 0) ||
+              isSending ||
+              isUploading
+            }
+            className="h-9 w-9 p-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
-        <span>{message.length}/10000</span>
-      </div>
+
+        {/* Character counter and hints */}
+        <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-4">
+            {isUploading ? (
+              <div className="flex items-center gap-2 text-blue-500">
+                <div className="h-3 w-3 animate-spin rounded-full border border-blue-500 border-t-transparent"></div>
+                <span>{uploadProgress || 'Uploading file...'}</span>
+              </div>
+            ) : (
+              <span>Press Enter to send, Shift+Enter for new line</span>
+            )}
+          </div>
+          <span>{message.length}/10000</span>
+        </div>
       </div>
     </div>
   )

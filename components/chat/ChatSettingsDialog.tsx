@@ -25,11 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Settings,
-  Loader2,
-  Save
-} from 'lucide-react'
+import { Settings, Loader2, Save } from 'lucide-react'
 
 interface ChatSettingsDialogProps {
   chatRoom: ChatRoom
@@ -112,7 +108,8 @@ export const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
     return (
       formData.name !== chatRoom.name ||
       formData.description !== (chatRoom.description || '') ||
-      formData.allowFileSharing !== (chatRoom.settings?.allowFileSharing ?? true) ||
+      formData.allowFileSharing !==
+        (chatRoom.settings?.allowFileSharing ?? true) ||
       formData.allowReactions !== (chatRoom.settings?.allowReactions ?? true) ||
       formData.notifications !== (chatRoom.settings?.notifications ?? true) ||
       formData.retentionDays !== (chatRoom.settings?.retentionDays || 90)
@@ -142,12 +139,16 @@ export const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
               <Input
                 id="chat-name"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={e =>
+                  setFormData(prev => ({ ...prev, name: e.target.value }))
+                }
                 placeholder="Enter chat name"
                 disabled={chatRoom.type === 'general'}
               />
               {chatRoom.type === 'general' && (
-                <p className="text-xs text-muted-foreground">General chat name cannot be changed</p>
+                <p className="text-xs text-muted-foreground">
+                  General chat name cannot be changed
+                </p>
               )}
             </div>
 
@@ -156,7 +157,12 @@ export const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
               <Textarea
                 id="chat-description"
                 value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
                 placeholder="Enter chat description"
                 rows={3}
               />
@@ -178,7 +184,12 @@ export const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
                 <Switch
                   id="allow-file-sharing"
                   checked={formData.allowFileSharing}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, allowFileSharing: checked }))}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({
+                      ...prev,
+                      allowFileSharing: checked,
+                    }))
+                  }
                 />
               </div>
 
@@ -192,7 +203,9 @@ export const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
                 <Switch
                   id="allow-reactions"
                   checked={formData.allowReactions}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, allowReactions: checked }))}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({ ...prev, allowReactions: checked }))
+                  }
                 />
               </div>
 
@@ -206,7 +219,9 @@ export const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
                 <Switch
                   id="notifications"
                   checked={formData.notifications}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, notifications: checked }))}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({ ...prev, notifications: checked }))
+                  }
                 />
               </div>
             </div>
@@ -220,7 +235,12 @@ export const ChatSettingsDialog: React.FC<ChatSettingsDialogProps> = ({
               <Label htmlFor="retention-days">Message Retention Period</Label>
               <Select
                 value={formData.retentionDays.toString()}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, retentionDays: parseInt(value) }))}
+                onValueChange={value =>
+                  setFormData(prev => ({
+                    ...prev,
+                    retentionDays: parseInt(value),
+                  }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />

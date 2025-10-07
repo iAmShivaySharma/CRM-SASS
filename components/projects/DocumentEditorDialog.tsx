@@ -25,7 +25,10 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { BlockEditor } from '@/components/ui/block-editor'
-import { useCreateDocumentMutation, useUpdateDocumentMutation } from '@/lib/api/projectsApi'
+import {
+  useCreateDocumentMutation,
+  useUpdateDocumentMutation,
+} from '@/lib/api/projectsApi'
 import { useAppSelector } from '@/lib/hooks'
 import { toast } from 'sonner'
 
@@ -168,18 +171,23 @@ export function DocumentEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="flex max-h-[90vh] max-w-4xl flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>
             {document ? 'Edit Document' : 'Create New Document'}
           </DialogTitle>
           <DialogDescription>
-            {document ? 'Edit your document content and settings' : 'Create a new document for your project'}
+            {document
+              ? 'Edit your document content and settings'
+              : 'Create a new document for your project'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 gap-4 mb-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-1 flex-col overflow-hidden"
+        >
+          <div className="mb-4 grid grid-cols-1 gap-4">
             {/* Title */}
             <div>
               <Label htmlFor="title">Title</Label>
@@ -189,7 +197,7 @@ export function DocumentEditorDialog({
                 {...form.register('title')}
               />
               {form.formState.errors.title && (
-                <p className="text-sm text-red-500 mt-1">
+                <p className="mt-1 text-sm text-red-500">
                   {form.formState.errors.title.message}
                 </p>
               )}
@@ -201,7 +209,7 @@ export function DocumentEditorDialog({
                 <Label htmlFor="type">Type</Label>
                 <Select
                   value={form.watch('type')}
-                  onValueChange={(value) => form.setValue('type', value as any)}
+                  onValueChange={value => form.setValue('type', value as any)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
@@ -218,7 +226,7 @@ export function DocumentEditorDialog({
                 <Label htmlFor="status">Status</Label>
                 <Select
                   value={form.watch('status')}
-                  onValueChange={(value) => form.setValue('status', value as any)}
+                  onValueChange={value => form.setValue('status', value as any)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -235,7 +243,9 @@ export function DocumentEditorDialog({
                 <Label htmlFor="visibility">Visibility</Label>
                 <Select
                   value={form.watch('visibility')}
-                  onValueChange={(value) => form.setValue('visibility', value as any)}
+                  onValueChange={value =>
+                    form.setValue('visibility', value as any)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select visibility" />
@@ -252,7 +262,7 @@ export function DocumentEditorDialog({
             {/* Tags */}
             <div>
               <Label>Tags</Label>
-              <div className="flex flex-wrap gap-2 mb-2">
+              <div className="mb-2 flex flex-wrap gap-2">
                 {tags.map((tag, index) => (
                   <Badge
                     key={index}
@@ -268,7 +278,7 @@ export function DocumentEditorDialog({
                 <Input
                   placeholder="Add tags..."
                   value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
+                  onChange={e => setTagInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                 />
                 <Button type="button" variant="outline" onClick={addTag}>
@@ -281,7 +291,7 @@ export function DocumentEditorDialog({
           {/* Rich Text Editor */}
           <div className="flex-1 overflow-hidden">
             <Label>Content</Label>
-            <div className="mt-2 border rounded-lg overflow-hidden h-full">
+            <div className="mt-2 h-full overflow-hidden rounded-lg border">
               <BlockEditor
                 content={content}
                 onChange={setContent}
@@ -302,7 +312,9 @@ export function DocumentEditorDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : (
+              {isLoading ? (
+                'Saving...'
+              ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
                   {document ? 'Update' : 'Create'} Document
