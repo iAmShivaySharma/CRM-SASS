@@ -23,10 +23,7 @@ import { getClientIP } from '@/lib/utils/ip-utils'
 import { z } from 'zod'
 import mongoose from 'mongoose'
 
-import {
-  getAvailablePermissions,
-  seedSystemPermissions,
-} from '@/lib/mongodb/seedPermissions'
+import { getPermissionsForAPI } from '@/lib/permissions/constants'
 
 // Validation schemas
 const createRoleSchema = z.object({
@@ -153,26 +150,8 @@ export const GET = withSecurityLogging(
           }
         )
 
-        // Get available permissions for this workspace
-        let availablePermissions = await getAvailablePermissions(workspaceId)
-
-        // If no permissions exist, seed them first
-        if (!availablePermissions || availablePermissions.length === 0) {
-          await seedSystemPermissions()
-          availablePermissions = await getAvailablePermissions(workspaceId)
-        }
-
-        // Format permissions for frontend
-        const formattedPermissions = availablePermissions.map(perm => ({
-          id: perm.name,
-          name: perm.displayName,
-          resource: perm.resource,
-          action: perm.action,
-          category: perm.category,
-          description: perm.description,
-          dependencies: perm.dependencies,
-          isSystemPermission: perm.isSystemPermission,
-        }))
+        // Get available permissions from constants (no database operations)
+        const formattedPermissions = getPermissionsForAPI()
 
         return NextResponse.json({
           success: true,
@@ -255,8 +234,8 @@ export const POST = withSecurityLogging(
         const { name, description, permissions } = validationResult.data
 
         // Validate permissions exist
-        const availablePermissions = await getAvailablePermissions(workspaceId)
-        const availablePermissionNames = availablePermissions.map(p => p.name)
+        const availablePermissions = getPermissionsForAPI()
+        const availablePermissionNames = availablePermissions.map(p => p.id)
 
         const invalidPermissions = permissions.filter(
           p => !availablePermissionNames.includes(p)

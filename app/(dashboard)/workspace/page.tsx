@@ -83,8 +83,7 @@ import {
   ListItemSkeleton,
 } from '@/components/ui/skeleton'
 import { RoleForm } from '@/components/roles/RoleForm'
-import { PermissionForm } from '@/components/permissions/PermissionForm'
-import { useGetPermissionsQuery } from '@/lib/api/roleApi'
+import { getPermissionsForAPI } from '@/lib/permissions/constants'
 
 // Types for API responses
 interface WorkspaceMember {
@@ -135,8 +134,8 @@ export default function WorkspaceSettingsPage() {
     useGetWorkspaceRolesQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
-  const { data: permissionsData, isLoading: permissionsLoading } =
-    useGetPermissionsQuery(currentWorkspace?.id)
+  // Get permissions from constants (no API call needed)
+  const permissionsData = getPermissionsForAPI()
   const [inviteToWorkspace, { isLoading: inviteLoading }] =
     useInviteToWorkspaceMutation()
   const [updateWorkspace, { isLoading: updateLoading }] =
@@ -149,7 +148,6 @@ export default function WorkspaceSettingsPage() {
 
   // Role and Permission dialogs
   const [createRoleOpen, setCreateRoleOpen] = useState(false)
-  const [createPermissionOpen, setCreatePermissionOpen] = useState(false)
 
   // Extract data from RTK Query responses
   const workspaceDetails = workspaceData?.workspace
@@ -841,35 +839,20 @@ export default function WorkspaceSettingsPage() {
                           workspace.
                         </CardDescription>
                       </div>
-                      <Dialog
-                        open={createPermissionOpen}
-                        onOpenChange={setCreatePermissionOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Create Permission
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col overflow-hidden">
-                          <DialogHeader className="flex-shrink-0">
-                            <DialogTitle>Create New Permission</DialogTitle>
-                            <DialogDescription>
-                              Define a new custom permission for your workspace.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="flex-1 overflow-y-auto">
-                            <PermissionForm
-                              onSuccess={() => setCreatePermissionOpen(false)}
-                              onCancel={() => setCreatePermissionOpen(false)}
-                            />
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      {/* Permission creation disabled - permissions are managed through code deployment */}
+                      <div className="text-sm text-muted-foreground bg-muted p-3 rounded border border-dashed">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          <span className="font-medium">Permissions are managed by developers</span>
+                        </div>
+                        <p className="mt-1 text-xs">
+                          All permissions are defined in code and deployed through releases. Runtime permission creation is disabled for security.
+                        </p>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {permissionsLoading ? (
+                    {false ? (
                       <div className="space-y-4">
                         {Array.from({ length: 4 }).map((_, i) => (
                           <div key={i} className="animate-pulse">

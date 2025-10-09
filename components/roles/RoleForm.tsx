@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { useAppSelector } from '@/lib/hooks'
 import { toast } from 'sonner'
 import { useCreateRoleMutation } from '@/lib/api/mongoApi'
-import { useGetPermissionsQuery } from '@/lib/api/roleApi'
+import { getPermissionsForAPI } from '@/lib/permissions/constants'
 
 interface RoleFormProps {
   onSuccess?: () => void
@@ -36,10 +36,8 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [createRole, { isLoading }] = useCreateRoleMutation()
 
-  // Fetch available permissions
-  const { data: permissionsData, isLoading: permissionsLoading } =
-    useGetPermissionsQuery(currentWorkspace?.id)
-  const permissions = permissionsData || []
+  // Get permissions from constants (no API call needed)
+  const permissions = getPermissionsForAPI()
 
   const onSubmit = async (data: RoleFormData) => {
     if (!currentWorkspace?.id) {
@@ -73,10 +71,6 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
   }
 
   const resources = Array.from(new Set(permissions.map(p => p.category)))
-
-  if (permissionsLoading) {
-    return <div className="py-4 text-center">Loading permissions...</div>
-  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-1">
