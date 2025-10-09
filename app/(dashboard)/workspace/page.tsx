@@ -878,13 +878,7 @@ export default function WorkspaceSettingsPage() {
                           Create custom permissions to fine-tune access control
                           in your workspace.
                         </p>
-                        <Button
-                          variant="outline"
-                          onClick={() => setCreatePermissionOpen(true)}
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Create Your First Permission
-                        </Button>
+                      
                       </div>
                     ) : (
                       <div className="space-y-6">
