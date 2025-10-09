@@ -116,12 +116,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const eventListenersRef = useRef<Map<string, Function[]>>(new Map())
 
   const disconnectSocket = useCallback(() => {
-    if (socket) {
-      socket.disconnect()
-      setSocket(null)
-      setIsConnected(false)
-    }
-  }, [socket])
+    setSocket(currentSocket => {
+      if (currentSocket) {
+        currentSocket.disconnect()
+      }
+      return null
+    })
+    setIsConnected(false)
+  }, [])
 
   const initializeSocket = useCallback(async () => {
     try {
@@ -135,10 +137,12 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         setIsConnected(true)
 
         // Identify user with server
-        if (auth.user && workspace.currentWorkspace?.id) {
+        const currentAuth = auth
+        const currentWorkspace = workspace
+        if (currentAuth.user && currentWorkspace.currentWorkspace?.id) {
           newSocket.emit('identify-user', {
-            userId: auth.user.id,
-            workspaceId: workspace.currentWorkspace.id,
+            userId: currentAuth.user.id,
+            workspaceId: currentWorkspace.currentWorkspace.id,
           })
         }
       })
@@ -197,7 +201,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Failed to initialize socket:', error)
     }
-  }, [auth.user, workspace.currentWorkspace])
+  }, [])
 
   useEffect(() => {
     if (auth.isAuthenticated && auth.user && workspace.currentWorkspace?.id) {
@@ -211,10 +215,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }, [
     auth.isAuthenticated,
-    auth.user,
+    auth.user?.id,
     workspace.currentWorkspace?.id,
-    initializeSocket,
-    disconnectSocket,
   ])
 
   const joinChatRoom = (chatRoomId: string) => {
