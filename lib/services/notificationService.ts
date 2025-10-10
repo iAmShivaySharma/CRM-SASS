@@ -272,6 +272,10 @@ export class NotificationService {
         return `/roles`
       case 'webhook':
         return `/webhooks`
+      case 'workflow_execution':
+        return `/engines/executions/${entityId}`
+      case 'workflow_input':
+        return `/engines/executions/${entityId}/input`
       default:
         return undefined
     }
@@ -359,6 +363,222 @@ export class NotificationService {
     } catch (error) {
       console.error('Error getting user notifications:', error)
       return { notifications: [], total: 0, unreadCount: 0 }
+    }
+  }
+
+  /**
+   * Create notification for workflow input required
+   */
+  static async notifyInputRequired(
+    userInput: any,
+    execution: any,
+    workflow: any,
+    user: any
+  ): Promise<void> {
+    try {
+      await this.createNotification({
+        workspaceId: execution.workspaceId.toString(),
+        title: 'Input Required',
+        message: `Your workflow "${workflow.name}" is waiting for input at step ${userInput.step}`,
+        type: 'warning',
+        entityType: 'workflow_input',
+        entityId: execution._id.toString(),
+        targetUserIds: [user._id.toString()],
+        metadata: {
+          executionId: execution._id.toString(),
+          workflowName: workflow.name,
+          step: userInput.step,
+          timeoutAt: userInput.timeoutAt,
+          webhookUrl: userInput.webhookUrl,
+          priority: userInput.metadata.priority,
+          timeRemaining: Math.floor(userInput.timeRemaining / (1000 * 60)) // minutes
+        }
+      })
+
+      console.log(`Input required notification created for execution ${execution._id}`)
+    } catch (error) {
+      console.error('Error creating input required notification:', error)
+    }
+  }
+
+  /**
+   * Create notification for workflow timeout warning
+   */
+  static async notifyTimeoutWarning(
+    userInput: any,
+    execution: any,
+    workflow: any,
+    user: any
+  ): Promise<void> {
+    try {
+      await this.createNotification({
+        workspaceId: execution.workspaceId.toString(),
+        title: 'Input Timeout Warning',
+        message: `Your workflow "${workflow.name}" will timeout in ${Math.floor(userInput.timeRemaining / (1000 * 60))} minutes. Please provide input.`,
+        type: 'error',
+        entityType: 'workflow_input',
+        entityId: execution._id.toString(),
+        targetUserIds: [user._id.toString()],
+        metadata: {
+          executionId: execution._id.toString(),
+          workflowName: workflow.name,
+          step: userInput.step,
+          timeoutAt: userInput.timeoutAt,
+          timeRemaining: Math.floor(userInput.timeRemaining / (1000 * 60)),
+          urgent: true
+        }
+      })
+
+      console.log(`Timeout warning notification created for execution ${execution._id}`)
+    } catch (error) {
+      console.error('Error creating timeout warning notification:', error)
+    }
+  }
+
+  /**
+   * Create notification for workflow execution completed
+   */
+  static async notifyExecutionCompleted(
+    execution: any,
+    workflow: any,
+    user: any
+  ): Promise<void> {
+    try {
+      await this.createNotification({
+        workspaceId: execution.workspaceId.toString(),
+        title: 'Workflow Completed',
+        message: `Your workflow "${workflow.name}" has completed successfully`,
+        type: 'success',
+        entityType: 'workflow_execution',
+        entityId: execution._id.toString(),
+        targetUserIds: [user._id.toString()],
+        metadata: {
+          executionId: execution._id.toString(),
+          workflowName: workflow.name,
+          executionTime: execution.executionTimeMs,
+          completedAt: execution.completedAt,
+          hasOutput: !!execution.outputData && Object.keys(execution.outputData).length > 0
+        }
+      })
+
+      console.log(`Completion notification created for execution ${execution._id}`)
+    } catch (error) {
+      console.error('Error creating completion notification:', error)
+    }
+  }
+
+  /**
+   * Create notification for workflow execution failed
+   */
+  static async notifyExecutionFailed(
+    execution: any,
+    workflow: any,
+    user: any
+  ): Promise<void> {
+    try {
+      await this.createNotification({
+        workspaceId: execution.workspaceId.toString(),
+        title: 'Workflow Failed',
+        message: `Your workflow "${workflow.name}" has failed: ${execution.errorMessage || 'Unknown error'}`,
+        type: 'error',
+        entityType: 'workflow_execution',
+        entityId: execution._id.toString(),
+        targetUserIds: [user._id.toString()],
+        metadata: {
+          executionId: execution._id.toString(),
+          workflowName: workflow.name,
+          errorMessage: execution.errorMessage,
+          failedAt: execution.completedAt
+        }
+      })
+
+      console.log(`Failure notification created for execution ${execution._id}`)
+    } catch (error) {
+      console.error('Error creating failure notification:', error)
+    }
+  }
+
+  /**
+   * Process pending workflow notifications
+   */
+  static async processWorkflowNotifications(): Promise<void> {
+    try {
+      // Import models dynamically to avoid circular dependencies
+      const { UserInput, WorkflowExecution } = await import('@/lib/mongodb/models')
+
+      // Find high priority pending inputs that need timeout warnings (expiring in 15 minutes)
+      const urgentInputs = await UserInput.find({
+        status: 'pending',
+        timeoutAt: {
+          $gt: new Date(),
+          $lt: new Date(Date.now() + (15 * 60 * 1000)) // Expiring in 15 minutes
+        },
+        'metadata.priority': 'high'
+      })
+      .populate('executionId')
+      .populate({
+        path: 'executionId',
+        populate: [
+          { path: 'workflowCatalogId', select: 'name description' },
+          { path: 'userId', select: 'name email' }
+        ]
+      })
+
+      for (const userInput of urgentInputs) {
+        const execution = userInput.executionId as any
+        const workflow = execution.workflowCatalogId
+        const user = execution.userId
+
+        // Check if we haven't sent a timeout warning recently
+        const recentWarning = await this.constructor.prototype.constructor.model('Notification').findOne({
+          entityType: 'workflow_input',
+          entityId: execution._id.toString(),
+          type: 'error',
+          'metadata.urgent': true,
+          createdAt: { $gte: new Date(Date.now() - (10 * 60 * 1000)) } // Within last 10 minutes
+        })
+
+        if (!recentWarning) {
+          await this.notifyTimeoutWarning(userInput, execution, workflow, user)
+        }
+      }
+
+      // Find new input requests that need notifications (created in last 5 minutes, no notification sent)
+      const newInputs = await UserInput.find({
+        status: 'pending',
+        timeoutAt: { $gt: new Date() },
+        createdAt: { $gte: new Date(Date.now() - (5 * 60 * 1000)) } // Created in last 5 minutes
+      })
+      .populate('executionId')
+      .populate({
+        path: 'executionId',
+        populate: [
+          { path: 'workflowCatalogId', select: 'name description' },
+          { path: 'userId', select: 'name email' }
+        ]
+      })
+
+      for (const userInput of newInputs) {
+        const execution = userInput.executionId as any
+        const workflow = execution.workflowCatalogId
+        const user = execution.userId
+
+        // Check if we haven't sent an input required notification for this execution step
+        const existingNotification = await this.constructor.prototype.constructor.model('Notification').findOne({
+          entityType: 'workflow_input',
+          entityId: execution._id.toString(),
+          'metadata.step': userInput.step
+        })
+
+        if (!existingNotification) {
+          await this.notifyInputRequired(userInput, execution, workflow, user)
+        }
+      }
+
+      console.log(`Processed ${urgentInputs.length} urgent and ${newInputs.length} new workflow notifications`)
+
+    } catch (error) {
+      console.error('Error processing workflow notifications:', error)
     }
   }
 }

@@ -32,3 +32,10 @@ export {
   type IProjectJoinRequest,
 } from './ProjectInvitation'
 export { Column, type IColumn } from './Column'
+
+// Execution Engine Models
+export { default as WorkflowCatalog, type IWorkflowCatalog } from './WorkflowCatalog'
+export { default as WorkflowCategory, type IWorkflowCategory } from './WorkflowCategory'
+export { default as WorkflowExecution, type IWorkflowExecution } from './WorkflowExecution'
+export { default as CustomerApiKey, type ICustomerApiKey } from './CustomerApiKey'
+export { default as UserInput, type IUserInput } from './UserInput'

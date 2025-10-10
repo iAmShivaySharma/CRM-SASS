@@ -63,6 +63,8 @@ const NotificationSchema = new Schema<INotification>(
         'role',
         'invitation',
         'webhook',
+        'workflow_execution',
+        'workflow_input',
       ],
     },
     entityId: {
