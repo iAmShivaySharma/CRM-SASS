@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -65,7 +65,7 @@ const registerSchema = z
       .min(8, 'Password must be at least 8 characters')
       .max(128, 'Password is too long')
       .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]*$/,
         'Password must contain uppercase, lowercase, number, and special character'
       ),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
@@ -115,6 +115,7 @@ export function ModernRegisterForm() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors, isValid, isDirty },
     setError,
     clearErrors,
@@ -200,6 +201,10 @@ export function ModernRegisterForm() {
   // Enhanced submit function with security and performance optimizations
   const onSubmit = useCallback(
     async (data: RegisterFormData) => {
+      console.log('Form submitted with data:', data)
+      console.log('Password strength:', passwordStrength)
+      console.log('Is blocked:', isBlocked)
+
       // Security: Check if blocked
       if (isBlocked) {
         toast.error(
@@ -209,7 +214,7 @@ export function ModernRegisterForm() {
       }
 
       // Additional client-side validation
-      if (passwordStrength < 3) {
+      if (passwordStrength < 2) {
         toast.error('Please choose a stronger password')
         return
       }
@@ -222,6 +227,7 @@ export function ModernRegisterForm() {
           name: data.fullName.trim(),
           email: data.email.toLowerCase().trim(),
           password: data.password,
+          workspaceName: data.workspaceName.trim(),
         }).unwrap()
 
         // Update Redux state (token is now in HTTP-only cookie)
@@ -315,13 +321,14 @@ export function ModernRegisterForm() {
         }
 
       const strength = calculatePasswordStrength(password)
-      const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong']
+      const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong']
       const colors = [
         'bg-red-500',
         'bg-orange-500',
         'bg-yellow-500',
         'bg-blue-500',
         'bg-green-500',
+        'bg-green-600',
       ]
 
       return {
@@ -640,9 +647,16 @@ export function ModernRegisterForm() {
 
                 {/* Terms and Conditions */}
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="agreeToTerms"
-                    {...register('agreeToTerms', { required: true })}
+                  <Controller
+                    name="agreeToTerms"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="agreeToTerms"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    )}
                   />
                   <Label
                     htmlFor="agreeToTerms"
@@ -664,12 +678,17 @@ export function ModernRegisterForm() {
                     </Link>
                   </Label>
                 </div>
+                {errors.agreeToTerms && (
+                  <p className="text-sm text-red-600">
+                    You must agree to the terms and conditions
+                  </p>
+                )}
 
                 <Button
                   type="submit"
-                  className="h-12 w-full rounded-lg bg-green-600 font-medium text-white shadow-lg transition-all duration-200 hover:bg-green-700 hover:shadow-xl"
+                  className="h-12 w-full rounded-lg bg-green-600 font-medium text-white shadow-lg transition-all duration-200 hover:bg-green-700 hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={
-                    loading || currentPasswordStrength.strength < 3 || isBlocked
+                    loading || currentPasswordStrength.strength < 2 || isBlocked || !isValid
                   }
                 >
                   {loading ? (

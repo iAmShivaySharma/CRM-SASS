@@ -108,6 +108,7 @@ export async function signUp({
         name: workspaceName,
         slug,
         planId: 'free',
+        createdBy: user._id,
       })
       await workspace.save()
 
