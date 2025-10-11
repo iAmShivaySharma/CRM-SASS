@@ -3,19 +3,19 @@ import { signUp } from '@/lib/mongodb/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, fullName, workspaceName } = await request.json()
+    const { email, password, name, workspaceName } = await request.json()
 
-    if (!email || !password || !fullName) {
+    if (!email || !password || !name) {
       return NextResponse.json(
         {
-          message: 'Email, password, and full name are required',
+          message: 'Email, password, and name are required',
         },
         { status: 400 }
       )
     }
 
     // Sign up user using MongoDB
-    const result = await signUp({ email, password, fullName, workspaceName })
+    const result = await signUp({ email, password, fullName: name, workspaceName })
 
     if (result.error) {
       return NextResponse.json({ message: result.error }, { status: 400 })
