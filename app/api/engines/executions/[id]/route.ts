@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { WorkflowExecution } from '@/lib/mongodb/models'
+import { WorkflowExecution, WorkspaceMember } from '@/lib/mongodb/models'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToMongoDB()
@@ -18,16 +18,28 @@ export async function GET(
       )
     }
 
-    const { id } = params
+    const { id } = await params
+
+    // Get user's current workspace
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).sort({ createdAt: -1 })
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
 
     // Find execution
     const execution = await WorkflowExecution.findOne({
       _id: id,
       userId: auth.user.id,
-      workspaceId: auth.workspace.id
+      workspaceId: workspaceMember.workspaceId
     })
-      .populate('workflowId', 'name description category')
-      .lean()
+      .populate('workflowCatalogId', 'name description category')
 
     if (!execution) {
       return NextResponse.json(
@@ -45,11 +57,12 @@ export async function GET(
       executionTimeMs: execution.executionTimeMs,
       apiKeyUsed: execution.apiKeyUsed,
       errorMessage: execution.errorMessage,
-      emailResults: execution.emailResults,
+      emailSent: execution.emailSent,
+      emailSentAt: execution.emailSentAt,
       createdAt: execution.createdAt,
       startedAt: execution.startedAt,
       completedAt: execution.completedAt,
-      workflow: execution.workflowId
+      workflow: execution.workflowCatalogId
     }
 
     return NextResponse.json({

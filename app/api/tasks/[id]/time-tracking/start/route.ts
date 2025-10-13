@@ -115,7 +115,12 @@ export async function POST(
         timeTracking: {
           isActive: task.timeTracking.isActive,
           totalTracked: task.timeTracking.totalTracked,
-          sessions: task.timeTracking.sessions.map(session => ({
+          sessions: task.timeTracking.sessions.map((session: {
+            startedAt: Date
+            endedAt?: Date
+            duration?: number
+            userId: string
+          }) => ({
             startedAt: session.startedAt.toISOString(),
             endedAt: session.endedAt?.toISOString(),
             duration: session.duration,

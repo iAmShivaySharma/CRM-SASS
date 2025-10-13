@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface IUserInput extends Document {
   executionId: mongoose.Types.ObjectId
@@ -24,7 +24,32 @@ export interface IUserInput extends Document {
   }
   createdAt: Date
   updatedAt: Date
+
+  // Virtuals
+  timeRemaining: number
+  timeRemainingMinutes: number
+  isExpired: boolean
+
+  // Instance methods
+  markReceived(inputData: any): Promise<IUserInput>
+  markExpired(): Promise<IUserInput>
+  markCancelled(): Promise<IUserInput>
+  markNotificationSent(type: 'email' | 'sms' | 'realtime'): Promise<IUserInput>
+  generateInputUrl(baseUrl: string): string
+  generateSecureToken(): string
+  validateToken(token: string): boolean
 }
+
+export interface IUserInputStatics {
+  findByUser(userId: string, workspaceId: string, options?: any): Promise<IUserInput[]>
+  findPendingByUser(userId: string, workspaceId: string, options?: any): Promise<IUserInput[]>
+  findExpired(): Promise<IUserInput[]>
+  findByWebhookUrl(webhookUrl: string): Promise<IUserInput | null>
+  findHighPriorityPending(minutes?: number): Promise<IUserInput[]>
+  getInputStats(userId: string, workspaceId: string, days?: number): Promise<any[]>
+}
+
+export interface IUserInputModel extends Model<IUserInput>, IUserInputStatics {}
 
 const UserInputSchema = new Schema<IUserInput>(
   {
@@ -300,5 +325,5 @@ UserInputSchema.post('save', function(doc) {
   }
 })
 
-export default mongoose.models.UserInput ||
-  mongoose.model<IUserInput>('UserInput', UserInputSchema)
+export default (mongoose.models.UserInput ||
+  mongoose.model<IUserInput, IUserInputModel>('UserInput', UserInputSchema)) as IUserInputModel

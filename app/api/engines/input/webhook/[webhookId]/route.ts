@@ -4,9 +4,9 @@ import { WorkflowExecution, UserInput } from '@/lib/mongodb/models'
 import { createN8nClient } from '@/lib/n8n/client'
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     webhookId: string
-  }
+  }>
 }
 
 // Public webhook endpoint for n8n callbacks
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
     await connectToMongoDB()
 
-    const { webhookId } = params
+    const { webhookId } = await params
     const webhookUrl = `${process.env.N8N_BASE_URL}/webhook/${webhookId}`
 
     // Get the execution waiting for this webhook
@@ -134,13 +134,16 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     await connectToMongoDB()
 
-    const { webhookId } = params
+    const { webhookId } = await params
     const webhookUrl = `${process.env.N8N_BASE_URL}/webhook/${webhookId}`
 
     // Get the execution waiting for this webhook
     const execution = await WorkflowExecution.findByWebhookUrl(webhookUrl)
-      .populate('workflowCatalogId', 'name description')
-      .populate('userId', 'name email')
+
+    if (execution) {
+      await execution.populate('workflowCatalogId', 'name description')
+      await execution.populate('userId', 'name email')
+    }
 
     if (!execution) {
       return NextResponse.json(
@@ -164,11 +167,11 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       data: {
         execution: {
           _id: execution._id,
-          workflowName: execution.workflowCatalogId?.name,
+          workflowName: (execution.workflowCatalogId as any)?.name,
           status: execution.status,
           user: {
-            name: execution.userId?.name,
-            email: execution.userId?.email
+            name: (execution.userId as any)?.name,
+            email: (execution.userId as any)?.email
           }
         },
         inputRequirement: inputRequirement ? {

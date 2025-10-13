@@ -140,7 +140,7 @@ export function TimeTracker({
                 >
                   <Pause className={cn(iconSizes[size], 'text-orange-500')} />
                 </Button>
-              ) : task.timeTracking?.totalTracked > 0 ? (
+              ) : (task.timeTracking?.totalTracked || 0) > 0 ? (
                 <Button
                   variant="outline"
                   size="sm"
@@ -232,7 +232,7 @@ export function TimeTracker({
             <Pause className="mr-2 h-4 w-4" />
             Pause
           </Button>
-        ) : task.timeTracking?.totalTracked > 0 ? (
+        ) : (task.timeTracking?.totalTracked || 0) > 0 ? (
           <Button
             variant="outline"
             size="sm"

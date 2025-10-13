@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { WorkflowCatalog, WorkflowExecution, CustomerApiKey } from '@/lib/mongodb/models'
+import { WorkflowCatalog, WorkflowExecution, CustomerApiKey, WorkspaceMember } from '@/lib/mongodb/models'
 import { createN8nClient } from '@/lib/n8n/client'
 import mongoose from 'mongoose'
 
@@ -27,6 +27,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get user's current workspace
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).sort({ createdAt: -1 })
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
+
     // Get workflow from catalog
     const workflow = await WorkflowCatalog.findById(workflowId).populate('category')
     if (!workflow) {
@@ -38,9 +51,9 @@ export async function POST(request: NextRequest) {
 
     // Initialize execution record
     const execution = new WorkflowExecution({
-      workflowId: workflow._id,
+      workflowCatalogId: workflow._id,
       userId: auth.user.id,
-      workspaceId: auth.workspace.id,
+      workspaceId: workspaceMember.workspaceId,
       inputData: inputData || {},
       apiKeyType,
       apiKeyId,
@@ -65,7 +78,7 @@ export async function POST(request: NextRequest) {
       customerApiKey = await CustomerApiKey.findOne({
         _id: apiKeyId,
         userId: auth.user.id,
-        workspaceId: auth.workspace.id,
+        workspaceId: workspaceMember.workspaceId,
         isActive: true
       })
 
@@ -117,7 +130,7 @@ export async function POST(request: NextRequest) {
       let inputsRequired: any[] = []
 
       // Check if workflow has wait nodes that might require dynamic input
-      const hasWaitNodes = workflow.n8nData?.nodes?.some(node =>
+      const hasWaitNodes = workflow.n8nData?.nodes?.some((node: any) =>
         node.type.toLowerCase().includes('wait') ||
         node.type.toLowerCase().includes('webhook')
       )
@@ -136,7 +149,7 @@ export async function POST(request: NextRequest) {
             const userInputRecord = new UserInput({
               executionId: execution._id,
               userId: auth.user.id,
-              workspaceId: auth.workspace.id,
+              workspaceId: workspaceMember.workspaceId,
               step: execution.dynamicInput.currentStep + 1,
               webhookUrl,
               inputSchema,

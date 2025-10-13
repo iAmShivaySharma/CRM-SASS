@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface IWorkflowExecution extends Document {
   workflowCatalogId: mongoose.Types.ObjectId
@@ -35,7 +35,29 @@ export interface IWorkflowExecution extends Document {
   startedAt?: Date
   createdAt: Date
   completedAt?: Date
+
+  // Instance methods
+  markAsRunning(): Promise<IWorkflowExecution>
+  markAsCompleted(outputData: any, executionTimeMs: number): Promise<IWorkflowExecution>
+  markAsFailed(errorMessage: string, executionTimeMs?: number): Promise<IWorkflowExecution>
+  markEmailSent(): Promise<IWorkflowExecution>
+  markWaitingForInput(webhookUrl: string, inputSchema: any, timeoutMinutes?: number): Promise<IWorkflowExecution>
+  receiveInput(inputData: any): Promise<IWorkflowExecution>
+  markTimeout(): Promise<IWorkflowExecution>
+  getCurrentInputRequirement(): any
 }
+
+export interface IWorkflowExecutionStatics {
+  findByUser(userId: string, workspaceId: string, options?: any): Promise<IWorkflowExecution[]>
+  findByWorkflow(workflowCatalogId: string, options?: any): Promise<IWorkflowExecution[]>
+  getUsageStats(userId: string, workspaceId: string, timeframe?: number): Promise<any[]>
+  getMonthlyCosts(userId: string, workspaceId: string): Promise<any[]>
+  findWaitingForInput(options?: any): Promise<IWorkflowExecution[]>
+  findExpiredInputs(): Promise<IWorkflowExecution[]>
+  findByWebhookUrl(webhookUrl: string): Promise<IWorkflowExecution | null>
+}
+
+export interface IWorkflowExecutionModel extends Model<IWorkflowExecution>, IWorkflowExecutionStatics {}
 
 const WorkflowExecutionSchema = new Schema<IWorkflowExecution>(
   {
@@ -361,7 +383,7 @@ WorkflowExecutionSchema.statics.getMonthlyCosts = function(userId: string, works
 }
 
 WorkflowExecutionSchema.statics.findWaitingForInput = function(options: any = {}) {
-  const query = {
+  const query: any = {
     'dynamicInput.isWaitingForInput': true,
     'dynamicInput.timeoutAt': { $gt: new Date() }
   }
@@ -414,5 +436,5 @@ WorkflowExecutionSchema.pre('save', async function(next) {
   next()
 })
 
-export default mongoose.models.WorkflowExecution ||
-  mongoose.model<IWorkflowExecution>('WorkflowExecution', WorkflowExecutionSchema)
+export default (mongoose.models.WorkflowExecution ||
+  mongoose.model<IWorkflowExecution, IWorkflowExecutionModel>('WorkflowExecution', WorkflowExecutionSchema)) as IWorkflowExecutionModel

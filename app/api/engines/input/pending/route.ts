@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { UserInput, WorkflowExecution } from '@/lib/mongodb/models'
+import { UserInput, WorkflowExecution, WorkspaceMember } from '@/lib/mongodb/models'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,10 +21,23 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get('priority')
     const workflowId = searchParams.get('workflowId')
 
+    // Get user's current workspace
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).sort({ createdAt: -1 })
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
+
     // Build query
     const query: any = {
       userId: auth.user.id,
-      workspaceId: auth.workspace.id,
+      workspaceId: workspaceMember.workspaceId,
       status: 'pending',
       timeoutAt: { $gt: new Date() }
     }
@@ -38,7 +51,7 @@ export async function GET(request: NextRequest) {
       const executions = await WorkflowExecution.find({
         workflowCatalogId: workflowId,
         userId: auth.user.id,
-        workspaceId: auth.workspace.id
+        workspaceId: workspaceMember.workspaceId
       }).select('_id')
 
       const executionIds = executions.map(e => e._id)
@@ -62,10 +75,10 @@ export async function GET(request: NextRequest) {
     const formattedInputs = pendingInputs.map(input => ({
       _id: input._id,
       execution: {
-        _id: input.executionId._id,
-        workflowName: input.executionId.workflowCatalogId?.name,
-        status: input.executionId.status,
-        startedAt: input.executionId.startedAt
+        _id: (input.executionId as any)._id,
+        workflowName: (input.executionId as any).workflowCatalogId?.name,
+        status: (input.executionId as any).status,
+        startedAt: (input.executionId as any).startedAt
       },
       step: input.step,
       inputSchema: input.inputSchema,
@@ -82,14 +95,14 @@ export async function GET(request: NextRequest) {
     // Get summary stats
     const totalPending = await UserInput.countDocuments({
       userId: auth.user.id,
-      workspaceId: auth.workspace.id,
+      workspaceId: workspaceMember.workspaceId,
       status: 'pending',
       timeoutAt: { $gt: new Date() }
     })
 
     const highPriorityCount = await UserInput.countDocuments({
       userId: auth.user.id,
-      workspaceId: auth.workspace.id,
+      workspaceId: workspaceMember.workspaceId,
       status: 'pending',
       timeoutAt: { $gt: new Date() },
       'metadata.priority': 'high'
@@ -97,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     const expiringCount = await UserInput.countDocuments({
       userId: auth.user.id,
-      workspaceId: auth.workspace.id,
+      workspaceId: workspaceMember.workspaceId,
       status: 'pending',
       timeoutAt: {
         $gt: new Date(),

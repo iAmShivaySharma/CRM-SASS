@@ -5,7 +5,7 @@ import { verifyAuthToken } from '@/lib/mongodb/auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToMongoDB()
@@ -18,7 +18,8 @@ export async function GET(
       )
     }
 
-    const workflow = await WorkflowCatalog.findById(params.id)
+    const { id } = await params
+    const workflow = await WorkflowCatalog.findById(id)
       .populate('category', 'name description icon')
 
     if (!workflow) {

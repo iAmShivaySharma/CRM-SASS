@@ -76,7 +76,7 @@ export function ExecuteWorkflowModal({ workflow, isOpen, onClose }: ExecuteWorkf
   // Set default selected key
   React.useEffect(() => {
     if (allApiKeys.length > 0 && !selectedApiKey) {
-      const defaultKey = allApiKeys.find(key => key.isDefault) || allApiKeys[0]
+      const defaultKey = allApiKeys.find(key => 'isDefault' in key && key.isDefault) || allApiKeys[0]
       setSelectedApiKey(defaultKey.id)
     }
   }, [allApiKeys, selectedApiKey])
@@ -205,8 +205,8 @@ export function ExecuteWorkflowModal({ workflow, isOpen, onClose }: ExecuteWorkf
 
   const getExecutionStatus = () => {
     if (isExecuting) return 'running'
-    if (executionResult?.data?.status === 'waiting_for_input') return 'waiting_for_input'
-    if (executionResult?.data) return 'completed'
+    if ((executionResult as any)?.data?.status === 'waiting_for_input') return 'waiting_for_input'
+    if ((executionResult as any)?.data) return 'completed'
     if (executionError) return 'failed'
     return 'idle'
   }
@@ -237,7 +237,7 @@ export function ExecuteWorkflowModal({ workflow, isOpen, onClose }: ExecuteWorkf
       case 'completed':
         return 'Execution completed successfully!'
       case 'failed':
-        return `Execution failed: ${executionError?.data?.error || 'Unknown error'}`
+        return `Execution failed: ${(executionError as any)?.data?.error || 'Unknown error'}`
       default:
         return ''
     }
@@ -271,33 +271,33 @@ export function ExecuteWorkflowModal({ workflow, isOpen, onClose }: ExecuteWorkf
                   {getStatusText()}
                 </AlertDescription>
               </div>
-              {executionResult?.data && (
+              {(executionResult as any)?.data && (
                 <div className="mt-3 space-y-2 text-sm">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="font-medium">Tokens Used:</span> {executionResult.data.apiKeyUsed?.tokensUsed || 0}
+                      <span className="font-medium">Tokens Used:</span> {(executionResult as any).data.apiKeyUsed?.tokensUsed || 0}
                     </div>
                     <div>
-                      <span className="font-medium">Execution Time:</span> {((executionResult.data.executionTimeMs || 0) / 1000).toFixed(1)}s
+                      <span className="font-medium">Execution Time:</span> {(((executionResult as any).data.executionTimeMs || 0) / 1000).toFixed(1)}s
                     </div>
                     <div>
-                      <span className="font-medium">Actual Cost:</span> ${(executionResult.data.apiKeyUsed?.cost || 0).toFixed(3)}
+                      <span className="font-medium">Actual Cost:</span> ${((executionResult as any).data.apiKeyUsed?.cost || 0).toFixed(3)}
                     </div>
                   </div>
                   <div>
                     <span className="font-medium">Output:</span>
                     <div className="mt-1 p-2 bg-muted rounded border text-xs">
-                      {JSON.stringify(executionResult.data.outputData, null, 2)}
+                      {JSON.stringify((executionResult as any).data.outputData, null, 2)}
                     </div>
                   </div>
                 </div>
               )}
-              {getExecutionStatus() === 'waiting_for_input' && executionResult?.data?.dynamicInput && (
+              {getExecutionStatus() === 'waiting_for_input' && (executionResult as any)?.data?.dynamicInput && (
                 <div className="mt-4 space-y-3">
                   <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded border border-orange-200">
                     <h4 className="font-medium text-orange-800 dark:text-orange-200 mb-2">Input Required</h4>
                     <p className="text-sm text-orange-700 dark:text-orange-300 mb-3">
-                      Step {executionResult.data.dynamicInput.currentStep}: The workflow is waiting for your input to continue.
+                      Step {(executionResult as any).data.dynamicInput.currentStep}: The workflow is waiting for your input to continue.
                     </p>
                     <div className="flex space-x-2">
                       <Button
@@ -306,7 +306,7 @@ export function ExecuteWorkflowModal({ workflow, isOpen, onClose }: ExecuteWorkf
                         className="bg-orange-600 hover:bg-orange-700 text-white"
                       >
                         <a
-                          href={`/engines/executions/${executionResult.data._id}/input`}
+                          href={`/engines/executions/${(executionResult as any).data._id}/input`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -316,7 +316,7 @@ export function ExecuteWorkflowModal({ workflow, isOpen, onClose }: ExecuteWorkf
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(`/engines/executions/${executionResult.data._id}`, '_blank')}
+                        onClick={() => window.open(`/engines/executions/${(executionResult as any).data._id}`, '_blank')}
                       >
                         View Execution
                       </Button>
@@ -366,7 +366,7 @@ export function ExecuteWorkflowModal({ workflow, isOpen, onClose }: ExecuteWorkf
             <Checkbox
               id="email-results"
               checked={emailResults}
-              onCheckedChange={setEmailResults}
+              onCheckedChange={(checked) => setEmailResults(checked === true)}
             />
             <Label htmlFor="email-results" className="text-sm">
               Email results to me when execution completes

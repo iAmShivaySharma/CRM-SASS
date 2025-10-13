@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { WorkflowExecution, UserInput } from '@/lib/mongodb/models'
+import { WorkflowExecution, UserInput, WorkspaceMember } from '@/lib/mongodb/models'
 import { createN8nClient } from '@/lib/n8n/client'
 import mongoose from 'mongoose'
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteContext) {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    const { id } = params
+    const { id } = await params
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -33,11 +33,24 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       )
     }
 
+    // Get user's current workspace
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).sort({ createdAt: -1 })
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
+
     // Get execution
     const execution = await WorkflowExecution.findOne({
       _id: id,
       userId: auth.user.id,
-      workspaceId: auth.workspace.id
+      workspaceId: workspaceMember.workspaceId
     }).populate('workflowCatalogId', 'name description')
 
     if (!execution) {
@@ -74,7 +87,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         execution: {
           _id: execution._id,
           status: execution.status,
-          workflowName: execution.workflowCatalogId?.name,
+          workflowName: (execution.workflowCatalogId as any)?.name,
           createdAt: execution.createdAt
         },
         inputRequirement: {
@@ -117,7 +130,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    const { id } = params
+    const { id } = await params
     const { inputData, validateOnly = false } = await request.json()
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -134,11 +147,24 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
+    // Get user's current workspace
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).sort({ createdAt: -1 })
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
+
     // Get execution
     const execution = await WorkflowExecution.findOne({
       _id: id,
       userId: auth.user.id,
-      workspaceId: auth.workspace.id
+      workspaceId: workspaceMember.workspaceId
     }).populate('workflowCatalogId', 'name description')
 
     if (!execution) {

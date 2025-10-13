@@ -58,10 +58,10 @@ export class WorkflowSyncService {
           }
 
           result.workflows.push(n8nWorkflow.name)
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error syncing workflow ${n8nWorkflow.name}:`, error)
           result.errorCount++
-          result.errors.push(`${n8nWorkflow.name}: ${error.message}`)
+          result.errors.push(`${n8nWorkflow.name}: ${error?.message || 'Unknown error'}`)
         }
       }
 
@@ -70,9 +70,9 @@ export class WorkflowSyncService {
       console.log(`Sync completed: ${result.syncedCount} new, ${result.updatedCount} updated, ${result.errorCount} errors`)
 
       return result
-    } catch (error) {
+    } catch (error: any) {
       console.error('Workflow sync failed:', error)
-      result.errors.push(error.message)
+      result.errors.push(error?.message || 'Unknown error')
       return result
     }
   }

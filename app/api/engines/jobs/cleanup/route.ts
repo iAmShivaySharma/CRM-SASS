@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { WorkspaceMember } from '@/lib/mongodb/models'
 import { CleanupExpiredInputsJob, runManualCleanup } from '@/lib/jobs/cleanupExpiredInputs'
 
 export async function GET(request: NextRequest) {
@@ -13,10 +14,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check if user has admin permissions
-    // This assumes your auth system has a way to check admin status
-    // Adjust according to your actual permission system
-    const isAdmin = auth.user.role === 'admin' || auth.user.permissions?.includes('admin:*')
+    // Check if user has admin permissions through workspace membership
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).populate('roleId')
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
+
+    const userPermissions = workspaceMember.roleId?.permissions || []
+    const isAdmin = userPermissions.includes('*:*') || userPermissions.includes('admin:*')
+
     if (!isAdmin) {
       return NextResponse.json(
         { error: 'Admin permissions required' },
@@ -60,8 +73,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user has admin permissions
-    const isAdmin = auth.user.role === 'admin' || auth.user.permissions?.includes('admin:*')
+    // Check if user has admin permissions through workspace membership
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).populate('roleId')
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
+
+    const userPermissions = workspaceMember.roleId?.permissions || []
+    const isAdmin = userPermissions.includes('*:*') || userPermissions.includes('admin:*')
+
     if (!isAdmin) {
       return NextResponse.json(
         { error: 'Admin permissions required' },

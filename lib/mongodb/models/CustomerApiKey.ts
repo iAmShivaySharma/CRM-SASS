@@ -17,6 +17,12 @@ export interface ICustomerApiKey extends Document {
   }
   createdAt: Date
   updatedAt: Date
+
+  // Methods
+  encryptApiKey(apiKey: string): string
+  decryptApiKey(): string
+  setApiKey(apiKey: string): void
+  getPlainApiKey(): string
 }
 
 const CustomerApiKeySchema = new Schema<ICustomerApiKey>(
@@ -116,9 +122,9 @@ CustomerApiKeySchema.methods.encryptApiKey = function(apiKey: string): string {
     throw new Error('API_KEY_ENCRYPTION_SECRET must be a 64-character hex string')
   }
 
-  const key = Buffer.from(secretKey, 'hex')
+  const key = Buffer.from(secretKey, 'hex') as any
   const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipher(algorithm, key)
+  const cipher = crypto.createCipheriv(algorithm, key, iv as any)
 
   let encrypted = cipher.update(apiKey, 'utf8', 'hex')
   encrypted += cipher.final('hex')
@@ -136,7 +142,7 @@ CustomerApiKeySchema.methods.decryptApiKey = function(): string {
     throw new Error('API_KEY_ENCRYPTION_SECRET must be a 64-character hex string')
   }
 
-  const key = Buffer.from(secretKey, 'hex')
+  const key = Buffer.from(secretKey, 'hex') as any
   const [ivHex, authTagHex, encrypted] = this.encryptedApiKey.split(':')
 
   if (!ivHex || !authTagHex || !encrypted) {
@@ -145,9 +151,9 @@ CustomerApiKeySchema.methods.decryptApiKey = function(): string {
 
   const iv = Buffer.from(ivHex, 'hex')
   const authTag = Buffer.from(authTagHex, 'hex')
-  const decipher = crypto.createDecipher(algorithm, key)
+  const decipher = crypto.createDecipheriv(algorithm, key, iv as any)
 
-  decipher.setAuthTag(authTag)
+  decipher.setAuthTag(authTag as any)
 
   let decrypted = decipher.update(encrypted, 'hex', 'utf8')
   decrypted += decipher.final('utf8')
@@ -248,7 +254,7 @@ CustomerApiKeySchema.statics.getUsageStatsByUser = function(userId: string, work
 CustomerApiKeySchema.pre('save', async function(next) {
   if (this.isModified('isDefault') && this.isDefault) {
     // Remove default flag from other keys
-    await this.constructor.updateMany(
+    await (this.constructor as any).updateMany(
       {
         userId: this.userId,
         workspaceId: this.workspaceId,

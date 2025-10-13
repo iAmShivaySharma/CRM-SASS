@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { CustomerApiKey } from '@/lib/mongodb/models'
+import { CustomerApiKey, WorkspaceMember } from '@/lib/mongodb/models'
 
 // PATCH - Update API key
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToMongoDB()
@@ -20,13 +20,26 @@ export async function PATCH(
     }
 
     const { keyName, isDefault, isActive } = await request.json()
-    const { id } = params
+    const { id } = await params
+
+    // Get user's current workspace
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).sort({ createdAt: -1 }) // Get most recent active membership
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
 
     // Find the API key
     const apiKey = await CustomerApiKey.findOne({
       _id: id,
       userId: auth.user.id,
-      workspaceId: auth.workspace.id
+      workspaceId: workspaceMember.workspaceId
     })
 
     if (!apiKey) {
@@ -41,7 +54,7 @@ export async function PATCH(
       // Check if new name already exists
       const existingKey = await CustomerApiKey.findOne({
         userId: auth.user.id,
-        workspaceId: auth.workspace.id,
+        workspaceId: workspaceMember.workspaceId,
         keyName,
         _id: { $ne: id },
         isActive: true
@@ -92,7 +105,7 @@ export async function PATCH(
 // DELETE - Remove API key
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToMongoDB()
@@ -105,13 +118,26 @@ export async function DELETE(
       )
     }
 
-    const { id } = params
+    const { id } = await params
+
+    // Get user's current workspace
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).sort({ createdAt: -1 })
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
 
     // Find and delete the API key
     const apiKey = await CustomerApiKey.findOneAndDelete({
       _id: id,
       userId: auth.user.id,
-      workspaceId: auth.workspace.id
+      workspaceId: workspaceMember.workspaceId
     })
 
     if (!apiKey) {

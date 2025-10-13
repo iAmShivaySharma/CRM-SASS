@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { WorkflowExecution } from '@/lib/mongodb/models'
+import { WorkflowExecution, WorkspaceMember } from '@/lib/mongodb/models'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,14 +21,27 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
+    // Get user's current workspace
+    const workspaceMember = await WorkspaceMember.findOne({
+      userId: auth.user.id,
+      status: 'active'
+    }).sort({ createdAt: -1 })
+
+    if (!workspaceMember) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 403 }
+      )
+    }
+
     // Build query
     const query: any = {
       userId: auth.user.id,
-      workspaceId: auth.workspace.id
+      workspaceId: workspaceMember.workspaceId
     }
 
     if (workflowId) {
-      query.workflowId = workflowId
+      query.workflowCatalogId = workflowId
     }
 
     if (status) {
@@ -40,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     // Get executions with pagination
     const executions = await WorkflowExecution.find(query)
-      .populate('workflowId', 'name description')
+      .populate('workflowCatalogId', 'name description')
       .sort({ createdAt: -1 })
       .skip(offset)
       .limit(limit)
@@ -56,7 +69,7 @@ export async function GET(request: NextRequest) {
       errorMessage: execution.errorMessage,
       createdAt: execution.createdAt,
       completedAt: execution.completedAt,
-      workflow: execution.workflowId
+      workflow: execution.workflowCatalogId
     }))
 
     return NextResponse.json({

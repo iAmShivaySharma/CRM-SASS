@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
     const total = countResult[0]?.total || 0
 
     // Get categories for filtering
-    const categories = await WorkflowCategory.findActiveCategories()
+    const categories = await WorkflowCategory.find({ isActive: true }).sort({ name: 1 })
 
     return NextResponse.json({
       success: true,

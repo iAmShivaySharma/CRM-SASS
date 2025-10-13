@@ -345,9 +345,9 @@ export class N8nApiClient {
         data: options.data,
         credentials: options.credentials
       })
-    } catch (error) {
+    } catch (error: any) {
       // If the workflow requires input and fails immediately, it might be waiting
-      if (error.message.includes('waiting') || error.message.includes('input')) {
+      if (error?.message?.includes('waiting') || error?.message?.includes('input')) {
         // Handle the case where workflow is waiting for input
         const webhookUrl = this.generateDynamicWebhookUrl(workflowId)
         const inputSchema = await this.extractWaitNodeSchema(workflowId)
