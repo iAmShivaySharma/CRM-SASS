@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Search, Filter, List, Grid, LayoutGrid } from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
 import { useGetTasksQuery, useGetProjectsQuery } from '@/lib/api/projectsApi'
+import { useGetUserPreferencesQuery, usePatchUserPreferencesMutation } from '@/lib/api/userPreferencesApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -27,6 +28,11 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('list')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [editingTask, setEditingTask] = useState<any>(null)
+
+  // Get user preferences for project selection persistence
+  const { data: userPreferences } = useGetUserPreferencesQuery()
+  const [patchUserPreferences] = usePatchUserPreferencesMutation()
 
   // Get available projects
   const { data: projectsData } = useGetProjectsQuery(
@@ -37,6 +43,35 @@ export default function TasksPage() {
       skip: !currentWorkspace?.id,
     }
   )
+
+  // Load saved project selection from preferences
+  useEffect(() => {
+    if (userPreferences?.preferences?.workspace?.selectedProjectId && projectsData?.projects) {
+      const savedProjectId = userPreferences.preferences.workspace.selectedProjectId
+      const projectExists = projectsData.projects.some(p => p.id === savedProjectId)
+      if (projectExists) {
+        setProjectFilter(savedProjectId)
+      }
+    }
+  }, [userPreferences, projectsData])
+
+  // Save project selection to preferences
+  const handleProjectFilterChange = async (projectId: string) => {
+    setProjectFilter(projectId)
+
+    if (projectId !== 'all') {
+      try {
+        await patchUserPreferences({
+          workspace: {
+            selectedProjectId: projectId,
+            lastActiveProjectId: projectId
+          }
+        })
+      } catch (error) {
+        console.error('Failed to save project selection:', error)
+      }
+    }
+  }
 
   // Get tasks for selected project or all projects
   const {
@@ -55,6 +90,18 @@ export default function TasksPage() {
       skip: !currentWorkspace?.id || !projectFilter,
     }
   )
+
+  const handleEditTask = (task: any) => {
+    setEditingTask(task)
+    setShowCreateDialog(true)
+  }
+
+  const handleCloseDialog = (open: boolean) => {
+    setShowCreateDialog(open)
+    if (!open) {
+      setEditingTask(null)
+    }
+  }
 
   if (!currentWorkspace) {
     return (
@@ -148,7 +195,7 @@ export default function TasksPage() {
           />
         </div>
 
-        <Select value={projectFilter} onValueChange={setProjectFilter}>
+        <Select value={projectFilter} onValueChange={handleProjectFilterChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Select Project" />
           </SelectTrigger>
@@ -234,6 +281,7 @@ export default function TasksPage() {
           projectId={projectFilter}
           isLoading={isLoading}
           error={error}
+          onEditTask={handleEditTask}
         />
       ) : viewMode === 'kanban' && projectFilter === 'all' ? (
         <div className="flex h-32 flex-col items-center justify-center space-y-4">
@@ -254,14 +302,15 @@ export default function TasksPage() {
           </div>
         </div>
       ) : (
-        <TasksList tasks={tasksData?.tasks} />
+        <TasksList tasks={tasksData?.tasks} onEditTask={handleEditTask} />
       )}
 
       {/* Create Task Dialog */}
       <CreateTaskDialog
         open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
+        onOpenChange={handleCloseDialog}
         projectId={projectFilter !== 'all' ? projectFilter : undefined}
+        task={editingTask}
       />
     </div>
   )

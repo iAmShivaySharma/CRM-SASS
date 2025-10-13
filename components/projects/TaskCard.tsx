@@ -21,14 +21,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { TimeTracker } from './TimeTracker'
 import type { Task } from '@/lib/api/projectsApi'
 
 interface TaskCardProps {
   task: Task
   isDragging?: boolean
+  onEdit?: (task: Task) => void
 }
 
-export function TaskCard({ task, isDragging = false }: TaskCardProps) {
+export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
   const {
     attributes,
     listeners,
@@ -54,6 +56,16 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
 
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date()
 
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onEdit?.(task)
+  }
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onEdit?.(task)
+  }
+
   return (
     <Card
       ref={setNodeRef}
@@ -65,6 +77,7 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
       )}
       {...attributes}
       {...listeners}
+      onDoubleClick={handleDoubleClick}
     >
       <CardContent className="p-3">
         <div className="mb-2 flex items-start justify-between">
@@ -83,7 +96,7 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Edit Task</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEditClick}>Edit Task</DropdownMenuItem>
               <DropdownMenuItem>Duplicate</DropdownMenuItem>
               <DropdownMenuItem className="text-red-600">
                 Delete
@@ -149,6 +162,11 @@ export function TaskCard({ task, isDragging = false }: TaskCardProps) {
             Due {new Date(task.dueDate).toLocaleDateString()}
           </div>
         )}
+
+        {/* Time Tracker */}
+        <div className="mb-3">
+          <TimeTracker task={task} size="sm" variant="compact" />
+        </div>
 
         {/* Assignee */}
         {task.assignee && (

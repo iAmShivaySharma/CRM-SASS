@@ -170,7 +170,11 @@ export default function EnginesPage() {
       {/* Results Count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {isLoading ? 'Loading...' : `Showing ${workflows.length} workflows`}
+          {isLoading ? (
+            <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+          ) : (
+            `Showing ${workflows.length} workflows`
+          )}
         </p>
       </div>
 

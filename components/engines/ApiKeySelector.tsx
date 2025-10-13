@@ -207,7 +207,7 @@ export function ApiKeySelector({
                 ) : (
                   <Alert>
                     <AlertDescription>
-                      Platform keys are automatically managed. You'll be charged for usage.
+                      Platform keys are automatically managed. You&apos;ll be charged for usage.
                     </AlertDescription>
                   </Alert>
                 )}

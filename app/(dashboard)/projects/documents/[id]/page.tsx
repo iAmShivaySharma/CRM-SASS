@@ -170,8 +170,45 @@ export default function DocumentEditorPage() {
 
   if (documentLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-lg text-muted-foreground">Loading document...</div>
+      <div className="flex h-screen flex-col bg-background">
+        {/* Header Skeleton */}
+        <div className="border-b bg-background/95 backdrop-blur p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-16 bg-muted rounded animate-pulse" />
+                <div className="h-6 w-20 bg-muted rounded animate-pulse" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-24 bg-muted rounded animate-pulse" />
+              <div className="h-10 w-20 bg-muted rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="flex-1 overflow-auto">
+          <div className="mx-auto max-w-4xl p-8 space-y-8">
+            <div className="h-12 w-96 bg-muted rounded animate-pulse" />
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className="h-6 w-20 bg-muted rounded animate-pulse" />
+                <div className="h-6 w-24 bg-muted rounded animate-pulse" />
+                <div className="h-6 w-16 bg-muted rounded animate-pulse" />
+              </div>
+              <div className="h-10 w-full max-w-md bg-muted rounded animate-pulse" />
+            </div>
+            <div className="space-y-4">
+              <div className="h-4 w-full bg-muted rounded animate-pulse" />
+              <div className="h-4 w-5/6 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-4/6 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-full bg-muted rounded animate-pulse" />
+              <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

@@ -19,13 +19,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { TimeTracker } from './TimeTracker'
 import type { Task } from '@/lib/api/projectsApi'
 
 interface TasksListProps {
   tasks: Task[]
+  onEditTask?: (task: Task) => void
 }
 
-export function TasksList({ tasks }: TasksListProps) {
+export function TasksList({ tasks, onEditTask }: TasksListProps) {
   const priorityColors = {
     low: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
     medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -57,6 +59,16 @@ export function TasksList({ tasks }: TasksListProps) {
     }
   }
 
+  const handleEditClick = (task: Task) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onEditTask?.(task)
+  }
+
+  const handleDoubleClick = (task: Task) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onEditTask?.(task)
+  }
+
   return (
     <div className="space-y-3">
       {tasks.map(task => {
@@ -66,9 +78,10 @@ export function TasksList({ tasks }: TasksListProps) {
           <Card
             key={task.id}
             className={cn(
-              'transition-all hover:shadow-md',
+              'transition-all hover:shadow-md cursor-pointer',
               isOverdue && 'border-red-300 bg-red-50/50'
             )}
+            onDoubleClick={handleDoubleClick(task)}
           >
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
@@ -88,7 +101,7 @@ export function TasksList({ tasks }: TasksListProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit Task</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleEditClick(task)}>Edit Task</DropdownMenuItem>
                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600">
                           Delete
@@ -179,6 +192,9 @@ export function TasksList({ tasks }: TasksListProps) {
                     </div>
 
                     <div className="flex items-center space-x-3">
+                      {/* Time Tracker */}
+                      <TimeTracker task={task} size="sm" variant="compact" />
+
                       {/* Stats */}
                       <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                         {task.dependencies && task.dependencies.length > 0 && (

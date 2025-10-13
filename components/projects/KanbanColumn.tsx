@@ -29,6 +29,7 @@ interface KanbanColumnProps {
   column: Column
   projectId: string
   onAddTask?: () => void
+  onEditTask?: (task: Task) => void
 }
 
 export function KanbanColumn({
@@ -40,6 +41,7 @@ export function KanbanColumn({
   column,
   projectId,
   onAddTask,
+  onEditTask,
 }: KanbanColumnProps) {
   const [dialogMode, setDialogMode] = useState<'edit' | 'delete' | null>(null)
 
@@ -100,7 +102,7 @@ export function KanbanColumn({
           >
             <div className="space-y-3">
               {tasks.map(task => (
-                <TaskCard key={task.id} task={task} />
+                <TaskCard key={task.id} task={task} onEdit={onEditTask} />
               ))}
               {tasks.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-8 text-center">

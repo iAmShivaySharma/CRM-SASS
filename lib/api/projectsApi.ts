@@ -64,6 +64,17 @@ export interface Task {
   dueDate?: string
   estimatedHours?: number
   actualHours?: number
+  timeTracking?: {
+    isActive: boolean
+    totalTracked: number // Total time tracked in seconds
+    sessions: {
+      startedAt: string
+      endedAt?: string
+      duration?: number // Duration in seconds
+      userId: string
+    }[]
+    currentSessionStart?: string
+  }
   order: number
   dependencies?: string[]
   attachments?: {
@@ -590,6 +601,131 @@ export const projectsApi = createApi({
       }),
       invalidatesTags: ['Column'],
     }),
+
+    // Time Tracking
+    startTimeTracking: builder.mutation<
+      { task: Task },
+      { taskId: string }
+    >({
+      query: ({ taskId }) => ({
+        url: `tasks/${taskId}/time-tracking/start`,
+        method: 'POST',
+      }),
+      onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          console.log('Start time tracking - updating cache for task:', data.task.id, 'isActive:', data.task.timeTracking?.isActive)
+
+          // Update all possible getTasks query variations
+          const queries = [
+            { projectId: data.task.projectId },
+            { workspaceId: data.task.workspaceId },
+          ]
+
+          queries.forEach(queryArgs => {
+            dispatch(
+              projectsApi.util.updateQueryData('getTasks', queryArgs, (draft) => {
+                const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
+                if (taskIndex !== -1) {
+                  draft.tasks[taskIndex] = data.task
+                  console.log('Updated task in cache:', draft.tasks[taskIndex].id, 'isActive:', draft.tasks[taskIndex].timeTracking?.isActive)
+                }
+              })
+            )
+          })
+        } catch (error) {
+          console.error('Error updating cache after start:', error)
+        }
+      },
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Task', id: 'LIST' },
+        { type: 'Task', id: arg.taskId },
+      ],
+    }),
+
+    stopTimeTracking: builder.mutation<
+      { task: Task },
+      { taskId: string }
+    >({
+      query: ({ taskId }) => ({
+        url: `tasks/${taskId}/time-tracking/stop`,
+        method: 'POST',
+      }),
+      onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          // Update the specific task in any getTasks queries
+          dispatch(
+            projectsApi.util.updateQueryData('getTasks', { projectId: data.task.projectId }, (draft) => {
+              const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
+              if (taskIndex !== -1) {
+                draft.tasks[taskIndex] = data.task
+              }
+            })
+          )
+        } catch {}
+      },
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Task', id: 'LIST' },
+        { type: 'Task', id: arg.taskId },
+      ],
+    }),
+
+    pauseTimeTracking: builder.mutation<
+      { task: Task },
+      { taskId: string }
+    >({
+      query: ({ taskId }) => ({
+        url: `tasks/${taskId}/time-tracking/pause`,
+        method: 'POST',
+      }),
+      onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          // Update the specific task in any getTasks queries
+          dispatch(
+            projectsApi.util.updateQueryData('getTasks', { projectId: data.task.projectId }, (draft) => {
+              const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
+              if (taskIndex !== -1) {
+                draft.tasks[taskIndex] = data.task
+              }
+            })
+          )
+        } catch {}
+      },
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Task', id: 'LIST' },
+        { type: 'Task', id: arg.taskId },
+      ],
+    }),
+
+    resumeTimeTracking: builder.mutation<
+      { task: Task },
+      { taskId: string }
+    >({
+      query: ({ taskId }) => ({
+        url: `tasks/${taskId}/time-tracking/resume`,
+        method: 'POST',
+      }),
+      onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          // Update the specific task in any getTasks queries
+          dispatch(
+            projectsApi.util.updateQueryData('getTasks', { projectId: data.task.projectId }, (draft) => {
+              const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
+              if (taskIndex !== -1) {
+                draft.tasks[taskIndex] = data.task
+              }
+            })
+          )
+        } catch {}
+      },
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Task', id: 'LIST' },
+        { type: 'Task', id: arg.taskId },
+      ],
+    }),
   }),
 })
 
@@ -613,6 +749,12 @@ export const {
   useUpdateTaskMutation,
   useDeleteTaskMutation,
   useReorderTasksMutation,
+
+  // Time Tracking
+  useStartTimeTrackingMutation,
+  useStopTimeTrackingMutation,
+  usePauseTimeTrackingMutation,
+  useResumeTimeTrackingMutation,
 
   // Documents
   useGetDocumentsQuery,

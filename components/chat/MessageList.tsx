@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ChatMessagesListSkeleton, ChatMessageSkeleton } from '@/components/ui/skeleton'
 import { MessageItem } from './MessageItem'
 import { TypingIndicator } from './TypingIndicator'
 import { Loader2, MessageSquare } from 'lucide-react'
@@ -220,11 +221,8 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   if (isLoading && page === 1) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-muted-foreground">Loading messages...</p>
-        </div>
+      <div className="flex-1 px-4 py-4">
+        <ChatMessagesListSkeleton />
       </div>
     )
   }
@@ -259,22 +257,18 @@ export const MessageList: React.FC<MessageListProps> = ({
           {/* Load More Button */}
           {messagesData?.pagination.hasMore && (
             <div className="text-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLoadMore}
-                disabled={isFetching}
-                className="text-muted-foreground"
-              >
-                {isFetching ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  'Load more messages'
-                )}
-              </Button>
+              {isFetching ? (
+                <ChatMessageSkeleton />
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLoadMore}
+                  className="text-muted-foreground"
+                >
+                  Load more messages
+                </Button>
+              )}
             </div>
           )}
 

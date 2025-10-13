@@ -168,7 +168,7 @@ export function AddApiKeyModal({ isOpen, onClose }: AddApiKeyModalProps) {
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                Your API key should start with "sk-or-v1-". We'll validate it with OpenRouter.
+                Your API key should start with &quot;sk-or-v1-&quot;. We&apos;ll validate it with OpenRouter.
               </p>
             </div>
 

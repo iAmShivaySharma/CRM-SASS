@@ -125,7 +125,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const trimmedMessage = message.trim()
     const hasAttachments = attachedFiles.length > 0
 
-    // Don't send if no message and no attachments
+    // Don't send if no message and no attachments, or if already sending
     if (!trimmedMessage && !hasAttachments) return
     if (isSending) return
 
@@ -570,24 +570,43 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             </div>
 
             {/* Text input */}
-            <Textarea
-              ref={textareaRef}
-              value={message}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              onBlur={handleTypingStop}
-              placeholder={
-                attachedFiles.length > 0
-                  ? 'Add a message (optional)...'
-                  : 'Type a message...'
-              }
-              className={cn(
-                'max-h-[120px] min-h-[40px] resize-none pr-12',
-                'focus:ring-2 focus:ring-primary/20'
+            <div className="relative">
+              <Textarea
+                ref={textareaRef}
+                value={message}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                onBlur={handleTypingStop}
+                placeholder={
+                  isSending
+                    ? 'Sending...'
+                    : attachedFiles.length > 0
+                      ? 'Add a message (optional)...'
+                      : 'Type a message...'
+                }
+                className={cn(
+                  'max-h-[120px] min-h-[40px] resize-none pr-12',
+                  'focus:ring-2 focus:ring-primary/20 transition-all',
+                  isSending && 'bg-muted/30 border-primary/30'
+                )}
+                disabled={isSending || isUploading}
+                rows={1}
+              />
+
+              {/* Sending overlay */}
+              {isSending && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px] rounded-md">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                    <div className="flex items-center gap-1">
+                      <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60"></div>
+                      <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60 [animation-delay:0.2s]"></div>
+                      <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60 [animation-delay:0.4s]"></div>
+                    </div>
+                    <span className="text-xs font-medium text-primary">Sending</span>
+                  </div>
+                </div>
               )}
-              disabled={isSending}
-              rows={1}
-            />
+            </div>
 
             {/* Emoji picker */}
             <div className="absolute bottom-2 right-2">
@@ -649,9 +668,20 @@ export const MessageInput: React.FC<MessageInputProps> = ({
               isSending ||
               isUploading
             }
-            className="h-9 w-9 p-0"
+            className={cn(
+              "h-9 w-9 p-0 transition-all",
+              isSending && "animate-pulse bg-primary/80"
+            )}
           >
-            <Send className="h-4 w-4" />
+            {isSending ? (
+              <div className="flex h-4 w-4 items-center justify-center">
+                <div className="h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:-0.3s]"></div>
+                <div className="mx-0.5 h-1 w-1 animate-bounce rounded-full bg-current [animation-delay:-0.15s]"></div>
+                <div className="h-1 w-1 animate-bounce rounded-full bg-current"></div>
+              </div>
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </Button>
         </div>
 
@@ -662,6 +692,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
               <div className="flex items-center gap-2 text-blue-500">
                 <div className="h-3 w-3 animate-spin rounded-full border border-blue-500 border-t-transparent"></div>
                 <span>{uploadProgress || 'Uploading file...'}</span>
+              </div>
+            ) : isSending ? (
+              <div className="flex items-center gap-2 text-primary">
+                <div className="flex items-center gap-0.5">
+                  <div className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]"></div>
+                  <div className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]"></div>
+                  <div className="h-1 w-1 animate-bounce rounded-full bg-primary"></div>
+                </div>
+                <span className="font-medium">Message being sent</span>
               </div>
             ) : (
               <span>Press Enter to send, Shift+Enter for new line</span>

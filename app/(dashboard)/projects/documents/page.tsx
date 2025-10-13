@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Plus,
@@ -22,6 +22,7 @@ import {
   useCreateDocumentMutation,
   useDeleteDocumentMutation,
 } from '@/lib/api/projectsApi'
+import { useGetUserPreferencesQuery, usePatchUserPreferencesMutation } from '@/lib/api/userPreferencesApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -59,6 +60,10 @@ export default function ProjectDocumentsPage() {
   const [showEditorDialog, setShowEditorDialog] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
 
+  // Get user preferences for project selection persistence
+  const { data: userPreferences } = useGetUserPreferencesQuery()
+  const [patchUserPreferences] = usePatchUserPreferencesMutation()
+
   // Get available projects
   const { data: projectsData } = useGetProjectsQuery(
     {
@@ -91,6 +96,35 @@ export default function ProjectDocumentsPage() {
 
   const [createDocument] = useCreateDocumentMutation()
   const [deleteDocument] = useDeleteDocumentMutation()
+
+  // Load saved project selection from preferences
+  useEffect(() => {
+    if (userPreferences?.preferences?.workspace?.selectedProjectId && projectsData?.projects) {
+      const savedProjectId = userPreferences.preferences.workspace.selectedProjectId
+      const projectExists = projectsData.projects.some(p => p.id === savedProjectId)
+      if (projectExists) {
+        setProjectFilter(savedProjectId)
+      }
+    }
+  }, [userPreferences, projectsData])
+
+  // Save project selection to preferences
+  const handleProjectFilterChange = async (projectId: string) => {
+    setProjectFilter(projectId)
+
+    if (projectId !== 'all') {
+      try {
+        await patchUserPreferences({
+          workspace: {
+            selectedProjectId: projectId,
+            lastActiveProjectId: projectId
+          }
+        })
+      } catch (error) {
+        console.error('Failed to save project selection:', error)
+      }
+    }
+  }
 
   const documents = documentsData?.documents || []
 
@@ -277,7 +311,7 @@ export default function ProjectDocumentsPage() {
           </SelectContent>
         </Select>
 
-        <Select value={projectFilter} onValueChange={setProjectFilter}>
+        <Select value={projectFilter} onValueChange={handleProjectFilterChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="All Projects" />
           </SelectTrigger>

@@ -28,9 +28,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface ProjectDocumentsProps {
   projectId: string
+  onEditDocument?: (document: any) => void
 }
 
-export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
+export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocumentsProps) {
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
@@ -87,6 +88,16 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
       doc.title.toLowerCase().includes(search.toLowerCase()) ||
       doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
   )
+
+  const handleEditClick = (document: any) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onEditDocument?.(document)
+  }
+
+  const handleDoubleClick = (document: any) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onEditDocument?.(document)
+  }
 
   return (
     <div className="space-y-6">
@@ -163,7 +174,8 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
           {filteredDocuments.map(document => (
             <Card
               key={document.id}
-              className="group transition-all hover:shadow-md"
+              className="group transition-all hover:shadow-md cursor-pointer"
+              onDoubleClick={handleDoubleClick(document)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -200,7 +212,7 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
                         <Eye className="mr-2 h-4 w-4" />
                         View
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleEditClick(document)}>
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
@@ -265,7 +277,11 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
       ) : (
         <div className="space-y-2">
           {filteredDocuments.map(document => (
-            <Card key={document.id}>
+            <Card
+              key={document.id}
+              className="cursor-pointer hover:shadow-md transition-all"
+              onDoubleClick={handleDoubleClick(document)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex min-w-0 flex-1 items-center space-x-4">
@@ -301,7 +317,7 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
                           <Eye className="mr-2 h-4 w-4" />
                           View
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleEditClick(document)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>

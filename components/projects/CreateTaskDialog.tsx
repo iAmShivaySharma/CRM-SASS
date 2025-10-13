@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { TiptapEditor } from '@/components/ui/tiptap-editor-improved'
+import { TimeTracker } from './TimeTracker'
 import {
   Select,
   SelectContent,
@@ -36,8 +37,10 @@ import {
 import { Badge } from '@/components/ui/badge'
 import {
   useCreateTaskMutation,
+  useUpdateTaskMutation,
   useGetProjectsQuery,
   useGetColumnsQuery,
+  type Task,
 } from '@/lib/api/projectsApi'
 import { useAppSelector } from '@/lib/hooks'
 import { toast } from 'sonner'
@@ -61,6 +64,7 @@ interface CreateTaskDialogProps {
   onOpenChange: (open: boolean) => void
   projectId?: string
   defaultStatus?: string
+  task?: Task | null
 }
 
 export function CreateTaskDialog({
@@ -68,6 +72,7 @@ export function CreateTaskDialog({
   onOpenChange,
   projectId,
   defaultStatus,
+  task,
 }: CreateTaskDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [tags, setTags] = useState<string[]>([])
@@ -76,6 +81,7 @@ export function CreateTaskDialog({
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
   const [createTask] = useCreateTaskMutation()
+  const [updateTask] = useUpdateTaskMutation()
 
   // Get projects for dropdown when no specific project is provided
   const { data: projectsData } = useGetProjectsQuery(
@@ -90,14 +96,52 @@ export function CreateTaskDialog({
   const form = useForm<CreateTaskFormData>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      projectId: projectId || '',
-      status: defaultStatus || '',
-      priority: 'medium',
-      tags: [],
+      title: task?.title || '',
+      description: task?.description || '',
+      projectId: projectId || task?.projectId || '',
+      status: defaultStatus || task?.status || '',
+      priority: task?.priority || 'medium',
+      tags: task?.tags || [],
+      dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+      estimatedHours: task?.estimatedHours || undefined,
     },
   })
+
+  // Reset form when task or dialog state changes
+  React.useEffect(() => {
+    if (open) {
+      if (task) {
+        // Editing existing task
+        form.reset({
+          title: task.title,
+          description: task.description || '',
+          projectId: task.projectId,
+          status: task.status,
+          priority: task.priority,
+          tags: task.tags || [],
+          dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+          estimatedHours: task.estimatedHours || undefined,
+        })
+        setDescription(task.description || '')
+        setTags(task.tags || [])
+      } else {
+        // Creating new task
+        form.reset({
+          title: '',
+          description: '',
+          projectId: projectId || '',
+          status: defaultStatus || '',
+          priority: 'medium',
+          tags: [],
+          dueDate: '',
+          estimatedHours: undefined,
+        })
+        setDescription('')
+        setTags([])
+        setTagInput('')
+      }
+    }
+  }, [open, task, projectId, defaultStatus, form])
 
   // Get columns for the selected project to populate status options
   const selectedProjectId = projectId || form.watch('projectId')
@@ -120,7 +164,7 @@ export function CreateTaskDialog({
 
     setIsLoading(true)
     try {
-      await createTask({
+      const taskData = {
         ...data,
         description: description,
         projectId: data.projectId,
@@ -129,17 +173,29 @@ export function CreateTaskDialog({
         estimatedHours: data.estimatedHours
           ? Number(data.estimatedHours)
           : undefined,
-      }).unwrap()
+      }
 
-      toast.success('Task created successfully')
+      if (task) {
+        // Update existing task
+        await updateTask({
+          id: task.id,
+          data: taskData,
+        }).unwrap()
+        toast.success('Task updated successfully')
+      } else {
+        // Create new task
+        await createTask(taskData).unwrap()
+        toast.success('Task created successfully')
+      }
+
       onOpenChange(false)
       form.reset()
       setTags([])
       setTagInput('')
       setDescription('')
     } catch (error) {
-      console.error('Failed to create task:', error)
-      toast.error('Failed to create task')
+      console.error(task ? 'Failed to update task:' : 'Failed to create task:', error)
+      toast.error(task ? 'Failed to update task' : 'Failed to create task')
     } finally {
       setIsLoading(false)
     }
@@ -167,9 +223,12 @@ export function CreateTaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>{task ? 'Edit Task' : 'Create New Task'}</DialogTitle>
           <DialogDescription>
-            Add a new task to your project. Fill in the details below.
+            {task
+              ? 'Update task details and save your changes.'
+              : 'Add a new task to your project. Fill in the details below.'
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -226,7 +285,7 @@ export function CreateTaskDialog({
                   content={description}
                   onChange={setDescription}
                   placeholder="Describe the task..."
-                  className="min-h-[150px]"
+                  className="min-h-[100px]"
                 />
               </div>
 
@@ -335,6 +394,14 @@ export function CreateTaskDialog({
                 />
               </div>
 
+              {/* Time Tracking - Only show for existing tasks */}
+              {task && (
+                <div className="rounded-lg border p-4">
+                  <Label className="mb-3 block">Time Tracking</Label>
+                  <TimeTracker task={task} variant="full" />
+                </div>
+              )}
+
               {/* Tags */}
               <div>
                 <Label>Tags (Optional)</Label>
@@ -374,7 +441,10 @@ export function CreateTaskDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Task'}
+                {isLoading
+                  ? (task ? 'Updating...' : 'Creating...')
+                  : (task ? 'Update Task' : 'Create Task')
+                }
               </Button>
             </DialogFooter>
           </form>

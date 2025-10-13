@@ -13,6 +13,17 @@ export interface ITask extends Document {
   dueDate?: Date
   estimatedHours?: number
   actualHours?: number
+  timeTracking?: {
+    isActive: boolean
+    totalTracked: number // Total time tracked in seconds
+    sessions: {
+      startedAt: Date
+      endedAt?: Date
+      duration?: number // Duration in seconds
+      userId: string
+    }[]
+    currentSessionStart?: Date
+  }
   order: number // For Kanban ordering within status
   dependencies?: string[] // Task IDs that must be completed first
   attachments?: {
@@ -79,6 +90,32 @@ const TaskSchema = new Schema<ITask>(
     actualHours: {
       type: Number,
       min: 0,
+    },
+    timeTracking: {
+      isActive: {
+        type: Boolean,
+        default: false,
+      },
+      totalTracked: {
+        type: Number,
+        default: 0, // Total seconds tracked
+      },
+      sessions: [
+        {
+          startedAt: {
+            type: Date,
+            required: true,
+          },
+          endedAt: Date,
+          duration: Number, // Duration in seconds
+          userId: {
+            type: String,
+            ref: 'User',
+            required: true,
+          },
+        },
+      ],
+      currentSessionStart: Date,
     },
     order: {
       type: Number,

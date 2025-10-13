@@ -25,6 +25,7 @@ import { KanbanColumn } from './KanbanColumn'
 import { TaskCard } from './TaskCard'
 import { ColumnManagementDialog } from './ColumnManagementDialog'
 import { CreateTaskDialog } from './CreateTaskDialog'
+import { KanbanBoardSkeleton } from '@/components/ui/skeleton'
 import {
   useUpdateTaskMutation,
   useGetColumnsQuery,
@@ -37,6 +38,7 @@ interface KanbanBoardProps {
   projectId: string
   isLoading: boolean
   error?: any
+  onEditTask?: (task: Task) => void
 }
 
 export function KanbanBoard({
@@ -44,6 +46,7 @@ export function KanbanBoard({
   projectId,
   isLoading,
   error,
+  onEditTask,
 }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [showCreateColumn, setShowCreateColumn] = useState(false)
@@ -109,11 +112,7 @@ export function KanbanBoard({
   }
 
   if (isLoading || columnsLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="text-sm text-muted-foreground">Loading tasks...</div>
-      </div>
-    )
+    return <KanbanBoardSkeleton />
   }
 
   if (error) {
@@ -156,6 +155,7 @@ export function KanbanBoard({
               column={column}
               projectId={projectId}
               onAddTask={() => handleAddTaskToColumn(column.slug)}
+              onEditTask={onEditTask}
             />
           ))}
         </div>

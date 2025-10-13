@@ -36,6 +36,10 @@ export interface UserPreferences {
     teamActivity?: boolean
     weeklyReports?: boolean
   }
+  workspace?: {
+    selectedProjectId?: string
+    lastActiveProjectId?: string
+  }
   timezone?: string
   language?: string
   updatedAt?: Date
