@@ -22,6 +22,12 @@ const updateTaskSchema = z.object({
   order: z.number().optional(),
   dependencies: z.array(z.string()).optional(),
   customFields: z.record(z.any()).optional(),
+  attachments: z.array(z.object({
+    name: z.string(),
+    url: z.string(),
+    type: z.string(),
+    size: z.number(),
+  })).optional(),
 })
 
 async function checkTaskAccess(taskId: string, userId: string) {

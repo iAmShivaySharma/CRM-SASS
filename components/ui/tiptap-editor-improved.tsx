@@ -286,7 +286,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().undo().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().undo().run()
+              }}
               disabled={!editor.can().undo()}
               title="Undo (Ctrl+Z)"
               className="h-8 w-8 p-0"
@@ -296,7 +300,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().redo().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().redo().run()
+              }}
               disabled={!editor.can().redo()}
               title="Redo (Ctrl+Y)"
               className="h-8 w-8 p-0"
@@ -317,31 +325,41 @@ export function TiptapEditor({
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem
-                onClick={() => editor.chain().focus().setParagraph().run()}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  editor.chain().focus().setParagraph().run()
+                }}
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Paragraph
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() =>
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
                   editor.chain().focus().toggleHeading({ level: 1 }).run()
-                }
+                }}
               >
                 <Heading1 className="mr-2 h-4 w-4" />
                 Heading 1
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() =>
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
                   editor.chain().focus().toggleHeading({ level: 2 }).run()
-                }
+                }}
               >
                 <Heading2 className="mr-2 h-4 w-4" />
                 Heading 2
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() =>
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
                   editor.chain().focus().toggleHeading({ level: 3 }).run()
-                }
+                }}
               >
                 <Heading3 className="mr-2 h-4 w-4" />
                 Heading 3
@@ -356,7 +374,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().toggleBold().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().toggleBold().run()
+              }}
               data-active={editor.isActive('bold')}
               className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Bold (Ctrl+B)"
@@ -366,7 +388,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().toggleItalic().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().toggleItalic().run()
+              }}
               data-active={editor.isActive('italic')}
               className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Italic (Ctrl+I)"
@@ -376,7 +402,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().toggleStrike().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().toggleStrike().run()
+              }}
               data-active={editor.isActive('strike')}
               className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Strikethrough"
@@ -386,7 +416,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().toggleCode().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().toggleCode().run()
+              }}
               data-active={editor.isActive('code')}
               className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Code"
@@ -404,7 +438,11 @@ export function TiptapEditor({
               size="sm"
               className="h-8 w-8 p-0"
               title="Text Color & Highlight"
-              onClick={() => setShowColorDropdown(!showColorDropdown)}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setShowColorDropdown(!showColorDropdown)
+              }}
             >
               <Palette className="h-4 w-4" />
             </Button>
@@ -485,7 +523,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().toggleBulletList().run()
+              }}
               data-active={editor.isActive('bulletList')}
               className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Bullet List"
@@ -495,7 +537,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().toggleOrderedList().run()
+              }}
               data-active={editor.isActive('orderedList')}
               className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Numbered List"
@@ -505,7 +551,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().toggleTaskList().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().toggleTaskList().run()
+              }}
               data-active={editor.isActive('taskList')}
               className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Task List"
@@ -521,7 +571,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowLinkDialog(true)}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setShowLinkDialog(true)
+              }}
               title="Insert Link"
               className="h-8 w-8 p-0"
             >
@@ -530,7 +584,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowImageDialog(true)}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setShowImageDialog(true)
+              }}
               title="Insert Image"
               className="h-8 w-8 p-0"
             >
@@ -539,7 +597,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={insertTable}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                insertTable()
+              }}
               title="Insert Table"
               className="h-8 w-8 p-0"
             >
@@ -548,7 +610,11 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editor.chain().focus().setHorizontalRule().run()}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                editor.chain().focus().setHorizontalRule().run()
+              }}
               title="Insert Divider"
               className="h-8 w-8 p-0"
             >
@@ -572,21 +638,31 @@ export function TiptapEditor({
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  editor.chain().focus().toggleBlockquote().run()
+                }}
               >
                 <Quote className="mr-2 h-4 w-4" />
                 Quote Block
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  editor.chain().focus().toggleCodeBlock().run()
+                }}
               >
                 <Code className="mr-2 h-4 w-4" />
                 Code Block
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() =>
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
                   editor.chain().focus().clearNodes().unsetAllMarks().run()
-                }
+                }}
               >
                 Clear Formatting
               </DropdownMenuItem>

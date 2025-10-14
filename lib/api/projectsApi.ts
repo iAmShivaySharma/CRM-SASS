@@ -64,6 +64,9 @@ export interface Task {
   dueDate?: string
   estimatedHours?: number
   actualHours?: number
+  completed: boolean
+  completedAt?: string
+  completedBy?: string
   timeTracking?: {
     isActive: boolean
     totalTracked: number // Total time tracked in seconds
@@ -181,6 +184,7 @@ export const projectsApi = createApi({
     'ProjectInvitation',
     'ProjectJoinRequest',
     'Column',
+    'Tag',
   ],
   endpoints: builder => ({
     // Projects
@@ -726,6 +730,15 @@ export const projectsApi = createApi({
         { type: 'Task', id: arg.taskId },
       ],
     }),
+
+    // Tags endpoints
+    getTags: builder.query<{ tags: { id: string; name: string; color: string; description?: string }[] }, { workspaceId: string }>({
+      query: ({ workspaceId }) => ({
+        url: `/tags?workspaceId=${workspaceId}`,
+        method: 'GET',
+      }),
+      providesTags: ['Tag'],
+    }),
   }),
 })
 
@@ -776,4 +789,7 @@ export const {
   useCreateColumnMutation,
   useUpdateColumnMutation,
   useDeleteColumnMutation,
+
+  // Tags
+  useGetTagsQuery,
 } = projectsApi

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Calendar, Clock, User, Tag, AlertCircle } from 'lucide-react'
+import { Calendar, Clock, User, Tag, AlertCircle, CheckCircle2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -35,15 +35,19 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import {
   useCreateTaskMutation,
   useUpdateTaskMutation,
   useGetProjectsQuery,
   useGetColumnsQuery,
+  useGetTagsQuery,
   type Task,
 } from '@/lib/api/projectsApi'
+import { useToggleTaskCompletionMutation } from '@/lib/api/tasksApi'
 import { useAppSelector } from '@/lib/hooks'
 import { toast } from 'sonner'
+import { TaskFileUploader } from '@/components/tasks/TaskFileUploader'
 
 const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -54,7 +58,11 @@ const createTaskSchema = z.object({
   assigneeId: z.string().optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.string().optional(),
-  estimatedHours: z.number().min(0).optional(),
+  estimatedHours: z.union([z.number(), z.string()]).optional().transform(val => {
+    if (val === undefined || val === '') return undefined
+    const num = typeof val === 'string' ? parseFloat(val) : val
+    return isNaN(num) ? undefined : num
+  }),
 })
 
 type CreateTaskFormData = z.infer<typeof createTaskSchema>
@@ -78,10 +86,13 @@ export function CreateTaskDialog({
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [description, setDescription] = useState('')
+  const [attachments, setAttachments] = useState<{ name: string; url: string; type: string; size: number }[]>([])
+  const [isCompleted, setIsCompleted] = useState(false)
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
   const [createTask] = useCreateTaskMutation()
   const [updateTask] = useUpdateTaskMutation()
+  const [toggleTaskCompletion] = useToggleTaskCompletionMutation()
 
   // Get projects for dropdown when no specific project is provided
   const { data: projectsData } = useGetProjectsQuery(
@@ -124,6 +135,8 @@ export function CreateTaskDialog({
         })
         setDescription(task.description || '')
         setTags(task.tags || [])
+        setAttachments(task.attachments || [])
+        setIsCompleted(task.completed || false)
       } else {
         // Creating new task
         form.reset({
@@ -139,6 +152,8 @@ export function CreateTaskDialog({
         setDescription('')
         setTags([])
         setTagInput('')
+        setAttachments([])
+        setIsCompleted(false)
       }
     }
   }, [open, task, projectId, defaultStatus, form])
@@ -148,6 +163,12 @@ export function CreateTaskDialog({
   const { data: columnsData } = useGetColumnsQuery(
     { projectId: selectedProjectId },
     { skip: !selectedProjectId }
+  )
+
+  // Get tags for workspace
+  const { data: tagsData } = useGetTagsQuery(
+    { workspaceId: currentWorkspace?.id || '' },
+    { skip: !currentWorkspace?.id }
   )
 
   // Set default status to first column when columns are loaded
@@ -170,9 +191,8 @@ export function CreateTaskDialog({
         projectId: data.projectId,
         workspaceId: currentWorkspace.id,
         tags,
-        estimatedHours: data.estimatedHours
-          ? Number(data.estimatedHours)
-          : undefined,
+        attachments,
+        estimatedHours: data.estimatedHours,
       }
 
       if (task) {
@@ -181,6 +201,15 @@ export function CreateTaskDialog({
           id: task.id,
           data: taskData,
         }).unwrap()
+
+        // Handle completion status change if it's different
+        if (task && task.completed !== isCompleted) {
+          await toggleTaskCompletion({
+            id: task.id,
+            completed: isCompleted,
+          }).unwrap()
+        }
+
         toast.success('Task updated successfully')
       } else {
         // Create new task
@@ -193,6 +222,8 @@ export function CreateTaskDialog({
       setTags([])
       setTagInput('')
       setDescription('')
+      setAttachments([])
+      setIsCompleted(false)
     } catch (error) {
       console.error(task ? 'Failed to update task:' : 'Failed to create task:', error)
       toast.error(task ? 'Failed to update task' : 'Failed to create task')
@@ -285,7 +316,8 @@ export function CreateTaskDialog({
                   content={description}
                   onChange={setDescription}
                   placeholder="Describe the task..."
-                  className="min-h-[100px]"
+                  className="min-h-[80px]"
+                  minHeight="80px"
                 />
               </div>
 
@@ -394,6 +426,46 @@ export function CreateTaskDialog({
                 />
               </div>
 
+              {/* File Attachments */}
+              <div>
+                <Label className="mb-3 block">Attachments (Optional)</Label>
+                <TaskFileUploader
+                  onFilesChange={setAttachments}
+                  existingFiles={attachments}
+                  maxFiles={5}
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Task Completion - Only show for existing tasks */}
+              {task && (
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-1">
+                    <Label className="text-base font-medium">Task Completion</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Mark this task as completed
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={isCompleted}
+                      onCheckedChange={setIsCompleted}
+                      disabled={isLoading}
+                      id="task-completion"
+                    />
+                    <Label
+                      htmlFor="task-completion"
+                      className={`flex items-center space-x-1 text-sm font-medium ${
+                        isCompleted ? 'text-green-600 dark:text-green-400' : 'text-gray-500'
+                      }`}
+                    >
+                      <CheckCircle2 className={`h-4 w-4 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`} />
+                      <span>{isCompleted ? 'Completed' : 'Not completed'}</span>
+                    </Label>
+                  </div>
+                </div>
+              )}
+
               {/* Time Tracking - Only show for existing tasks */}
               {task && (
                 <div className="rounded-lg border p-4">
@@ -405,21 +477,63 @@ export function CreateTaskDialog({
               {/* Tags */}
               <div>
                 <Label>Tags (Optional)</Label>
+
+                {/* Selected Tags */}
                 <div className="mb-2 flex flex-wrap gap-2">
-                  {tags.map((tag, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="cursor-pointer"
-                      onClick={() => removeTag(tag)}
-                    >
-                      {tag} ×
-                    </Badge>
-                  ))}
+                  {tags.map((tag, index) => {
+                    const workspaceTag = tagsData?.tags.find(t => t.name === tag)
+                    return (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="cursor-pointer"
+                        style={workspaceTag ? {
+                          backgroundColor: workspaceTag.color,
+                          borderColor: workspaceTag.color,
+                          color: 'white'
+                        } : {}}
+                        onClick={() => removeTag(tag)}
+                      >
+                        {tag} ×
+                      </Badge>
+                    )
+                  })}
                 </div>
+
+                {/* Available Workspace Tags */}
+                {tagsData?.tags && tagsData.tags.length > 0 && (
+                  <div className="mb-3">
+                    <Label className="text-sm text-muted-foreground">Available Tags:</Label>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {tagsData.tags
+                        .filter(workspaceTag => !tags.includes(workspaceTag.name))
+                        .map((workspaceTag) => (
+                          <Badge
+                            key={workspaceTag.id}
+                            variant="outline"
+                            className="cursor-pointer hover:opacity-80"
+                            style={{
+                              backgroundColor: workspaceTag.color,
+                              borderColor: workspaceTag.color,
+                              color: 'white'
+                            }}
+                            onClick={() => {
+                              if (!tags.includes(workspaceTag.name)) {
+                                setTags([...tags, workspaceTag.name])
+                              }
+                            }}
+                          >
+                            + {workspaceTag.name}
+                          </Badge>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Custom Tag */}
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Add tags..."
+                    placeholder="Add custom tag..."
                     value={tagInput}
                     onChange={e => setTagInput(e.target.value)}
                     onKeyPress={handleKeyPress}

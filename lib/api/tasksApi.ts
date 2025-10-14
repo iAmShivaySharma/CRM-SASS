@@ -22,6 +22,15 @@ export interface Task {
   order: number
   dependencies?: string[]
   customFields?: Record<string, any>
+  completed: boolean
+  completedAt?: string
+  completedBy?: string
+  attachments?: {
+    name: string
+    url: string
+    type: string
+    size: number
+  }[]
   createdBy: string
   createdAt: string
   updatedAt: string
@@ -58,6 +67,13 @@ export interface UpdateTaskRequest {
   order?: number
   dependencies?: string[]
   customFields?: Record<string, any>
+  completed?: boolean
+  attachments?: {
+    name: string
+    url: string
+    type: string
+    size: number
+  }[]
 }
 
 export interface GetTasksRequest {
@@ -117,6 +133,17 @@ export const tasksApi = createApi({
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Task', id }, 'Task'],
     }),
+    toggleTaskCompletion: builder.mutation<{ task: Task }, { id: string; completed: boolean }>({
+      query: ({ id, completed }) => ({
+        url: `/${id}/toggle-completion`,
+        method: 'PATCH',
+        body: { completed },
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Task', id },
+        'Task',
+      ],
+    }),
   }),
 })
 
@@ -126,4 +153,5 @@ export const {
   useCreateTaskMutation,
   useUpdateTaskMutation,
   useDeleteTaskMutation,
+  useToggleTaskCompletionMutation,
 } = tasksApi

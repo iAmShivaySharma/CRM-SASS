@@ -9,6 +9,8 @@ import {
   MessageSquare,
   Paperclip,
   MoreVertical,
+  CheckCircle2,
+  Circle,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +24,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { TimeTracker } from './TimeTracker'
-import type { Task } from '@/lib/api/projectsApi'
+import { type Task, useGetTagsQuery } from '@/lib/api/projectsApi'
+import { useToggleTaskCompletionMutation } from '@/lib/api/tasksApi'
+import { useAppSelector } from '@/lib/hooks'
+import { toast } from 'sonner'
 
 interface TaskCardProps {
   task: Task
@@ -31,6 +36,15 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
+  const [toggleTaskCompletion] = useToggleTaskCompletionMutation()
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
+
+  // Get tags for workspace to show proper colors
+  const { data: tagsData } = useGetTagsQuery(
+    { workspaceId: currentWorkspace?.id || '' },
+    { skip: !currentWorkspace?.id }
+  )
+
   const {
     attributes,
     listeners,
@@ -56,6 +70,29 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
 
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date()
 
+  // Define status-based colors based on the actual column system
+  const getStatusColors = () => {
+    // Only use green for completed tasks with 'done' status
+    if (task.completed && task.status === 'done') {
+      return 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+    }
+
+    // Status-based colors matching the column system
+    switch (task.status?.toLowerCase()) {
+      case 'todo':
+        return 'bg-gray-50/50 border-gray-200 dark:bg-gray-950/20 dark:border-gray-800'
+      case 'in-progress':
+        return 'bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800'
+      case 'review':
+        return 'bg-yellow-50/50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800'
+      case 'done':
+        return 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+      default:
+        // For any other status (including 'pending'), use neutral colors
+        return 'bg-slate-50/50 border-slate-200 dark:bg-slate-950/20 dark:border-slate-800'
+    }
+  }
+
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     onEdit?.(task)
@@ -66,6 +103,22 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
     onEdit?.(task)
   }
 
+  const handleToggleCompletion = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      await toggleTaskCompletion({
+        id: task.id,
+        completed: !task.completed,
+      }).unwrap()
+      toast.success(
+        task.completed ? 'Task marked as not completed' : 'Task marked as completed'
+      )
+    } catch (error) {
+      console.error('Failed to toggle task completion:', error)
+      toast.error('Failed to update task completion status')
+    }
+  }
+
   return (
     <Card
       ref={setNodeRef}
@@ -73,7 +126,8 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
       className={cn(
         'cursor-grab transition-all hover:shadow-md active:cursor-grabbing',
         (isDragging || isSortableDragging) && 'rotate-3 opacity-50 shadow-lg',
-        isOverdue && 'border-red-300 bg-red-50/50'
+        isOverdue && 'border-red-300 bg-red-50/50',
+        getStatusColors()
       )}
       {...attributes}
       {...listeners}
@@ -81,9 +135,27 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
     >
       <CardContent className="p-3">
         <div className="mb-2 flex items-start justify-between">
-          <h4 className="line-clamp-2 flex-1 pr-2 text-sm font-medium">
-            {task.title}
-          </h4>
+          <div className="flex items-start gap-2 flex-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 mt-0.5"
+              onClick={handleToggleCompletion}
+              title={task.completed ? 'Mark as not completed' : 'Mark as completed'}
+            >
+              {task.completed ? (
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+              ) : (
+                <Circle className="h-4 w-4 text-gray-400" />
+              )}
+            </Button>
+            <h4 className={cn(
+              "line-clamp-2 flex-1 pr-2 text-sm font-medium",
+              task.completed && "line-through text-muted-foreground"
+            )}>
+              {task.title}
+            </h4>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -115,15 +187,23 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
         {/* Tags */}
         {task.tags && task.tags.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-1">
-            {task.tags.slice(0, 2).map((tag, index) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="px-1.5 py-0.5 text-xs"
-              >
-                {tag}
-              </Badge>
-            ))}
+            {task.tags.slice(0, 2).map((tag, index) => {
+              const workspaceTag = tagsData?.tags.find(t => t.name === tag)
+              return (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="px-1.5 py-0.5 text-xs"
+                  style={workspaceTag ? {
+                    backgroundColor: workspaceTag.color,
+                    borderColor: workspaceTag.color,
+                    color: 'white'
+                  } : {}}
+                >
+                  {tag}
+                </Badge>
+              )
+            })}
             {task.tags.length > 2 && (
               <Badge variant="secondary" className="px-1.5 py-0.5 text-xs">
                 +{task.tags.length - 2}
@@ -188,8 +268,26 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
 
             {/* Stats */}
             <div className="flex items-center space-x-2">
+              {task.attachments && task.attachments.length > 0 && (
+                <div
+                  className="flex items-center text-xs text-muted-foreground cursor-pointer hover:text-blue-600"
+                  title={`${task.attachments.length} attachment(s) - Click to view`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    // Open first attachment in new tab or show all in edit dialog
+                    if (task.attachments && task.attachments.length === 1) {
+                      window.open(task.attachments[0].url, '_blank')
+                    } else {
+                      onEdit?.(task) // Open edit dialog to show all attachments
+                    }
+                  }}
+                >
+                  <Paperclip className="mr-1 h-3 w-3" />
+                  {task.attachments.length}
+                </div>
+              )}
               {task.dependencies && task.dependencies.length > 0 && (
-                <div className="flex items-center text-xs text-muted-foreground">
+                <div className="flex items-center text-xs text-muted-foreground" title={`${task.dependencies.length} dependency(ies)`}>
                   <Paperclip className="h-3 w-3" />
                 </div>
               )}

@@ -13,6 +13,9 @@ export interface ITask extends Document {
   dueDate?: Date
   estimatedHours?: number
   actualHours?: number
+  completed: boolean // Task completion status
+  completedAt?: Date // When task was marked as completed
+  completedBy?: string // Who marked the task as completed
   timeTracking?: {
     isActive: boolean
     totalTracked: number // Total time tracked in seconds
@@ -90,6 +93,17 @@ const TaskSchema = new Schema<ITask>(
     actualHours: {
       type: Number,
       min: 0,
+    },
+    completed: {
+      type: Boolean,
+      default: false,
+    },
+    completedAt: {
+      type: Date,
+    },
+    completedBy: {
+      type: String,
+      ref: 'User',
     },
     timeTracking: {
       isActive: {
