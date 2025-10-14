@@ -39,3 +39,8 @@ export { default as WorkflowCategory, type IWorkflowCategory } from './WorkflowC
 export { default as WorkflowExecution, type IWorkflowExecution } from './WorkflowExecution'
 export { default as CustomerApiKey, type ICustomerApiKey } from './CustomerApiKey'
 export { default as UserInput, type IUserInput } from './UserInput'
+
+// Email Integration Models
+export { default as EmailAccount, type IEmailAccount } from './EmailAccount'
+export { default as EmailMessage, type IEmailMessage } from './EmailMessage'
+export { default as EmailTemplate, type IEmailTemplate } from './EmailTemplate'
