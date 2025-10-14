@@ -11,6 +11,8 @@ import {
   Check,
   Plus,
   X,
+  Settings,
+  LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,6 +34,7 @@ import {
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NotificationBell } from '@/components/ui/notification-bell'
+import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { logout } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
@@ -172,7 +175,12 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           {/* Notifications */}
           <NotificationBell />
 
-          {/* User Menu - responsive */}
+          {/* Attendance Widget - Hidden on mobile for space */}
+          <div className="hidden lg:block">
+            <AttendanceWidget compact={true} showDetails={false} />
+          </div>
+
+          {/* User Menu - Simple dropdown for settings and logout */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -192,12 +200,30 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+
+              {/* Mobile Attendance Widget */}
+              <div className="lg:hidden p-2 border-b">
+                <AttendanceWidget compact={true} showDetails={false} />
+              </div>
+
+              <DropdownMenuItem onClick={() => router.push('/settings')}>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/profile')}>
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>

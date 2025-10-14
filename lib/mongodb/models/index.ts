@@ -39,3 +39,16 @@ export { default as WorkflowCategory, type IWorkflowCategory } from './WorkflowC
 export { default as WorkflowExecution, type IWorkflowExecution } from './WorkflowExecution'
 export { default as CustomerApiKey, type ICustomerApiKey } from './CustomerApiKey'
 export { default as UserInput, type IUserInput } from './UserInput'
+// HR & Attendance Models
+export { default as Attendance, type IAttendance } from './Attendance'
+export { default as Shift, type IShift } from './Shift'
+
+// Leave Management Models
+export { LeavePolicy } from './LeavePolicy'
+export { LeaveRequest } from './LeaveRequest'
+export { LeaveBalance } from './LeaveBalance'
+
+// Asset Management Models
+export { Asset } from './Asset'
+export { AssetAllocation } from './AssetAllocation'
+export { AssetMaintenance } from './AssetMaintenance'

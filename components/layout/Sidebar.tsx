@@ -30,6 +30,10 @@ import {
   Folder,
   CheckSquare,
   FileText,
+  Clock,
+  Calendar,
+  Laptop,
+  User,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -95,8 +99,44 @@ const navigation = [
     parent: 'sales',
   },
 
-  // HR and Engines as regular tabs
-  { name: 'HR', href: '/hr', icon: UserPlus, category: 'main' },
+  // HR Section
+  {
+    name: 'Human Resources',
+    href: '/hr',
+    icon: UserPlus,
+    category: 'section',
+    id: 'hr',
+  },
+  {
+    name: 'Attendance',
+    href: '/attendance',
+    icon: Clock,
+    category: 'hr',
+    parent: 'hr',
+  },
+  {
+    name: 'Employees',
+    href: '/employees',
+    icon: User,
+    category: 'hr',
+    parent: 'hr',
+  },
+  {
+    name: 'Leaves',
+    href: '/leaves',
+    icon: Calendar,
+    category: 'hr',
+    parent: 'hr',
+  },
+  {
+    name: 'Assets',
+    href: '/assets',
+    icon: Laptop,
+    category: 'hr',
+    parent: 'hr',
+  },
+
+  // Engines
   { name: 'Engines', href: '/engines', icon: Settings2, category: 'main' },
 
   // Communication

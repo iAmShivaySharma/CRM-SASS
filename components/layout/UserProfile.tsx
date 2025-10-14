@@ -39,8 +39,11 @@ import {
   ChevronUp,
   Zap,
   Star,
+  Clock,
+  Timer,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
 
 interface UserProfileProps {
   compact?: boolean
@@ -269,6 +272,11 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
                     {currentUser.email}
                   </p>
                 </div>
+              </div>
+
+              {/* Attendance Widget */}
+              <div className="border-t pt-3">
+                <AttendanceWidget compact={true} showDetails={false} />
               </div>
 
               {/* Plan Usage */}
