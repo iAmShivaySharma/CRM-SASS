@@ -24,103 +24,49 @@ import {
   AlertTriangle,
   CheckCircle,
   Timer,
-  MoreVertical
+  MoreVertical,
+  Loader2
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-
-interface Shift {
-  id: string
-  name: string
-  startTime: string
-  endTime: string
-  workingDays: string[]
-  totalHours: number
-  breakDuration: number
-  overtimeAfter: number
-  gracePeriod: number
-  isDefault: boolean
-  isActive: boolean
-  description?: string
-  employeeCount: number
-}
+import { useGetShiftsQuery, useCreateShiftMutation, useUpdateShiftMutation, useDeleteShiftMutation, useSetDefaultShiftMutation, type Shift } from '@/lib/api/shiftsApi'
+import { useAppSelector } from '@/lib/hooks'
 
 interface ShiftTemplate {
   id: string
   name: string
-  shifts: Shift[]
+  shifts: Partial<Shift>[]
   description: string
 }
 
 export function ShiftManagement() {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [selectedTab, setSelectedTab] = useState('shifts')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showTemplateDialog, setShowTemplateDialog] = useState(false)
   const [editingShift, setEditingShift] = useState<Shift | null>(null)
 
-  // Mock shift data
-  const [shifts, setShifts] = useState<Shift[]>([
-    {
-      id: '1',
-      name: 'Morning Shift',
-      startTime: '09:00',
-      endTime: '17:00',
-      workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-      totalHours: 8,
-      breakDuration: 60,
-      overtimeAfter: 8,
-      gracePeriod: 15,
-      isDefault: true,
-      isActive: true,
-      description: 'Standard office hours',
-      employeeCount: 35
-    },
-    {
-      id: '2',
-      name: 'Evening Shift',
-      startTime: '14:00',
-      endTime: '22:00',
-      workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-      totalHours: 8,
-      breakDuration: 60,
-      overtimeAfter: 8,
-      gracePeriod: 15,
-      isDefault: false,
-      isActive: true,
-      description: 'Evening operations shift',
-      employeeCount: 12
-    },
-    {
-      id: '3',
-      name: 'Night Shift',
-      startTime: '22:00',
-      endTime: '06:00',
-      workingDays: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'],
-      totalHours: 8,
-      breakDuration: 60,
-      overtimeAfter: 8,
-      gracePeriod: 20,
-      isDefault: false,
-      isActive: true,
-      description: '24/7 operations coverage',
-      employeeCount: 8
-    },
-    {
-      id: '4',
-      name: 'Part Time',
-      startTime: '10:00',
-      endTime: '14:00',
-      workingDays: ['monday', 'wednesday', 'friday'],
-      totalHours: 4,
-      breakDuration: 30,
-      overtimeAfter: 4,
-      gracePeriod: 10,
-      isDefault: false,
-      isActive: true,
-      description: 'Part-time flexible hours',
-      employeeCount: 5
-    }
-  ])
+  // API hooks
+  const { data: shiftsData, isLoading, error, refetch } = useGetShiftsQuery({ includeInactive: true })
+  const [createShift, { isLoading: isCreating }] = useCreateShiftMutation()
+  const [updateShift, { isLoading: isUpdating }] = useUpdateShiftMutation()
+  const [deleteShift, { isLoading: isDeleting }] = useDeleteShiftMutation()
+  const [setDefaultShift] = useSetDefaultShiftMutation()
+
+  const shifts = shiftsData?.shifts || []
+
+  // Check workspace
+  if (!currentWorkspace) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">No Workspace Selected</h3>
+          <p className="text-muted-foreground">Please select a workspace to manage shifts.</p>
+        </div>
+      </div>
+    )
+  }
+
 
   const shiftTemplates: ShiftTemplate[] = [
     {
@@ -129,18 +75,15 @@ export function ShiftManagement() {
       description: '9-to-5 weekday schedule with standard breaks',
       shifts: [
         {
-          id: 'template-1',
           name: 'Business Hours',
           startTime: '09:00',
           endTime: '17:00',
-          workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-          totalHours: 8,
+          workingDays: [1, 2, 3, 4, 5], // Monday to Friday
           breakDuration: 60,
-          overtimeAfter: 8,
-          gracePeriod: 15,
+          graceTime: 15,
           isDefault: true,
           isActive: true,
-          employeeCount: 0
+          description: 'Standard office hours'
         }
       ]
     },
@@ -150,46 +93,37 @@ export function ShiftManagement() {
       description: 'Three-shift rotation for continuous operations',
       shifts: [
         {
-          id: 'template-2a',
           name: 'Day Shift',
           startTime: '06:00',
           endTime: '14:00',
-          workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-          totalHours: 8,
+          workingDays: [0, 1, 2, 3, 4, 5, 6], // All days
           breakDuration: 60,
-          overtimeAfter: 8,
-          gracePeriod: 15,
+          graceTime: 15,
           isDefault: false,
           isActive: true,
-          employeeCount: 0
+          description: 'Morning operations shift'
         },
         {
-          id: 'template-2b',
           name: 'Evening Shift',
           startTime: '14:00',
           endTime: '22:00',
-          workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-          totalHours: 8,
+          workingDays: [0, 1, 2, 3, 4, 5, 6], // All days
           breakDuration: 60,
-          overtimeAfter: 8,
-          gracePeriod: 15,
+          graceTime: 15,
           isDefault: false,
           isActive: true,
-          employeeCount: 0
+          description: 'Evening operations shift'
         },
         {
-          id: 'template-2c',
           name: 'Night Shift',
           startTime: '22:00',
           endTime: '06:00',
-          workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-          totalHours: 8,
+          workingDays: [0, 1, 2, 3, 4, 5, 6], // All days
           breakDuration: 60,
-          overtimeAfter: 8,
-          gracePeriod: 20,
+          graceTime: 20,
           isDefault: false,
           isActive: true,
-          employeeCount: 0
+          description: 'Night operations shift'
         }
       ]
     },
@@ -199,32 +133,26 @@ export function ShiftManagement() {
       description: 'Mixed full-time and part-time options',
       shifts: [
         {
-          id: 'template-3a',
           name: 'Full Time Flexible',
           startTime: '08:00',
           endTime: '16:00',
-          workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-          totalHours: 8,
+          workingDays: [1, 2, 3, 4, 5], // Weekdays
           breakDuration: 60,
-          overtimeAfter: 8,
-          gracePeriod: 30,
+          graceTime: 30,
           isDefault: false,
           isActive: true,
-          employeeCount: 0
+          description: 'Flexible full-time hours'
         },
         {
-          id: 'template-3b',
           name: 'Part Time Morning',
           startTime: '09:00',
           endTime: '13:00',
-          workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-          totalHours: 4,
+          workingDays: [1, 2, 3, 4, 5], // Weekdays
           breakDuration: 30,
-          overtimeAfter: 4,
-          gracePeriod: 15,
+          graceTime: 15,
           isDefault: false,
           isActive: true,
-          employeeCount: 0
+          description: 'Part-time morning hours'
         }
       ]
     }
@@ -234,22 +162,22 @@ export function ShiftManagement() {
     name: '',
     startTime: '09:00',
     endTime: '17:00',
-    workingDays: [] as string[],
+    workingDays: [] as number[],
     breakDuration: 60,
-    overtimeAfter: 8,
-    gracePeriod: 15,
+    graceTime: 15,
     description: '',
-    isActive: true
+    isActive: true,
+    isDefault: false
   })
 
   const daysOfWeek = [
-    { value: 'monday', label: 'Monday' },
-    { value: 'tuesday', label: 'Tuesday' },
-    { value: 'wednesday', label: 'Wednesday' },
-    { value: 'thursday', label: 'Thursday' },
-    { value: 'friday', label: 'Friday' },
-    { value: 'saturday', label: 'Saturday' },
-    { value: 'sunday', label: 'Sunday' }
+    { value: 1, label: 'Monday' },
+    { value: 2, label: 'Tuesday' },
+    { value: 3, label: 'Wednesday' },
+    { value: 4, label: 'Thursday' },
+    { value: 5, label: 'Friday' },
+    { value: 6, label: 'Saturday' },
+    { value: 0, label: 'Sunday' }
   ]
 
   const calculateTotalHours = (start: string, end: string) => {
@@ -267,29 +195,27 @@ export function ShiftManagement() {
     return (endMinutes - startMinutes) / 60
   }
 
-  const handleCreateShift = () => {
-    const totalHours = calculateTotalHours(formData.startTime, formData.endTime)
+  const handleCreateShift = async () => {
+    try {
+      const result = await createShift({
+        name: formData.name,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        workingDays: formData.workingDays,
+        breakDuration: formData.breakDuration,
+        graceTime: formData.graceTime,
+        description: formData.description,
+        isDefault: formData.isDefault,
+        isActive: formData.isActive
+      }).unwrap()
 
-    const newShift: Shift = {
-      id: Date.now().toString(),
-      name: formData.name,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-      workingDays: formData.workingDays,
-      totalHours,
-      breakDuration: formData.breakDuration,
-      overtimeAfter: formData.overtimeAfter,
-      gracePeriod: formData.gracePeriod,
-      description: formData.description,
-      isDefault: shifts.length === 0,
-      isActive: formData.isActive,
-      employeeCount: 0
+      setShowCreateDialog(false)
+      setEditingShift(null)
+      resetForm()
+      toast.success(result.message)
+    } catch (error: any) {
+      toast.error(error.data?.error || 'Failed to create shift')
     }
-
-    setShifts([...shifts, newShift])
-    setShowCreateDialog(false)
-    resetForm()
-    toast.success('Shift created successfully')
   }
 
   const handleEditShift = (shift: Shift) => {
@@ -300,79 +226,107 @@ export function ShiftManagement() {
       endTime: shift.endTime,
       workingDays: shift.workingDays,
       breakDuration: shift.breakDuration,
-      overtimeAfter: shift.overtimeAfter,
-      gracePeriod: shift.gracePeriod,
+      graceTime: shift.graceTime,
       description: shift.description || '',
-      isActive: shift.isActive
+      isActive: shift.isActive,
+      isDefault: shift.isDefault
     })
     setShowCreateDialog(true)
   }
 
-  const handleUpdateShift = () => {
+  const handleUpdateShift = async () => {
     if (!editingShift) return
 
-    const totalHours = calculateTotalHours(formData.startTime, formData.endTime)
+    try {
+      const result = await updateShift({
+        id: editingShift._id,
+        name: formData.name,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        workingDays: formData.workingDays,
+        breakDuration: formData.breakDuration,
+        graceTime: formData.graceTime,
+        description: formData.description,
+        isActive: formData.isActive,
+        isDefault: formData.isDefault
+      }).unwrap()
 
-    const updatedShift: Shift = {
-      ...editingShift,
-      name: formData.name,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-      workingDays: formData.workingDays,
-      totalHours,
-      breakDuration: formData.breakDuration,
-      overtimeAfter: formData.overtimeAfter,
-      gracePeriod: formData.gracePeriod,
-      description: formData.description,
-      isActive: formData.isActive
+      setShowCreateDialog(false)
+      setEditingShift(null)
+      resetForm()
+      toast.success(result.message)
+    } catch (error: any) {
+      toast.error(error.data?.error || 'Failed to update shift')
     }
-
-    setShifts(shifts.map(s => s.id === editingShift.id ? updatedShift : s))
-    setShowCreateDialog(false)
-    setEditingShift(null)
-    resetForm()
-    toast.success('Shift updated successfully')
   }
 
-  const handleDeleteShift = (shiftId: string) => {
-    const shift = shifts.find(s => s.id === shiftId)
+  const handleDeleteShift = async (shiftId: string) => {
+    const shift = shifts.find(s => s._id === shiftId)
     if (shift?.employeeCount > 0) {
       toast.error('Cannot delete shift with assigned employees')
       return
     }
 
-    setShifts(shifts.filter(s => s.id !== shiftId))
-    toast.success('Shift deleted successfully')
-  }
-
-  const handleDuplicateShift = (shift: Shift) => {
-    const newShift: Shift = {
-      ...shift,
-      id: Date.now().toString(),
-      name: `${shift.name} (Copy)`,
-      isDefault: false,
-      employeeCount: 0
+    try {
+      const result = await deleteShift(shiftId).unwrap()
+      toast.success(result.message)
+    } catch (error: any) {
+      toast.error(error.data?.error || 'Failed to delete shift')
     }
-
-    setShifts([...shifts, newShift])
-    toast.success('Shift duplicated successfully')
   }
 
-  const handleSetDefaultShift = (shiftId: string) => {
-    setShifts(shifts.map(s => ({ ...s, isDefault: s.id === shiftId })))
-    toast.success('Default shift updated')
+  const handleDuplicateShift = async (shift: Shift) => {
+    try {
+      const result = await createShift({
+        name: `${shift.name} (Copy)`,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        workingDays: shift.workingDays,
+        breakDuration: shift.breakDuration,
+        graceTime: shift.graceTime,
+        description: shift.description,
+        isDefault: false,
+        isActive: shift.isActive
+      }).unwrap()
+
+      toast.success(result.message)
+    } catch (error: any) {
+      toast.error(error.data?.error || 'Failed to duplicate shift')
+    }
   }
 
-  const applyTemplate = (template: ShiftTemplate) => {
-    const newShifts = template.shifts.map(shift => ({
-      ...shift,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      isDefault: shifts.length === 0 && shift.isDefault
-    }))
+  const handleSetDefaultShift = async (shiftId: string) => {
+    try {
+      const result = await setDefaultShift(shiftId).unwrap()
+      toast.success(result.message)
+    } catch (error: any) {
+      toast.error(error.data?.error || 'Failed to set default shift')
+    }
+  }
 
-    setShifts([...shifts, ...newShifts])
-    setShowTemplateDialog(false)
-    toast.success(`Applied template: ${template.name}`)
+  const applyTemplate = async (template: ShiftTemplate) => {
+    try {
+      // Create all shifts from template
+      const createPromises = template.shifts.map((shift, index) =>
+        createShift({
+          name: shift.name!,
+          startTime: shift.startTime!,
+          endTime: shift.endTime!,
+          workingDays: shift.workingDays!,
+          breakDuration: shift.breakDuration!,
+          graceTime: shift.graceTime!,
+          description: shift.description,
+          isDefault: shifts.length === 0 && index === 0, // Make first shift default if no shifts exist
+          isActive: shift.isActive!
+        }).unwrap()
+      )
+
+      await Promise.all(createPromises)
+      setShowTemplateDialog(false)
+      toast.success(`Applied template: ${template.name}`)
+    } catch (error: any) {
+      toast.error(error.data?.error || 'Failed to apply template')
+    }
   }
 
   const resetForm = () => {
@@ -382,14 +336,14 @@ export function ShiftManagement() {
       endTime: '17:00',
       workingDays: [],
       breakDuration: 60,
-      overtimeAfter: 8,
-      gracePeriod: 15,
+      graceTime: 15,
       description: '',
-      isActive: true
+      isActive: true,
+      isDefault: false
     })
   }
 
-  const handleWorkingDayChange = (day: string, checked: boolean) => {
+  const handleWorkingDayChange = (day: number, checked: boolean) => {
     if (checked) {
       setFormData({ ...formData, workingDays: [...formData.workingDays, day] })
     } else {
@@ -397,11 +351,13 @@ export function ShiftManagement() {
     }
   }
 
-  const formatWorkingDays = (days: string[]) => {
+  const formatWorkingDays = (days: number[]) => {
     if (days.length === 7) return 'All days'
-    if (days.length === 5 && !days.includes('saturday') && !days.includes('sunday')) return 'Weekdays'
-    if (days.length === 2 && days.includes('saturday') && days.includes('sunday')) return 'Weekends'
-    return days.map(day => day.slice(0, 3)).join(', ')
+    if (days.length === 5 && !days.includes(0) && !days.includes(6)) return 'Weekdays'
+    if (days.length === 2 && days.includes(0) && days.includes(6)) return 'Weekends'
+
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    return days.sort().map(day => dayNames[day]).join(', ')
   }
 
   return (
@@ -438,11 +394,11 @@ export function ShiftManagement() {
                     </CardHeader>
                     <CardContent>
                       <div className="grid gap-2">
-                        {template.shifts.map((shift) => (
-                          <div key={shift.id} className="flex items-center justify-between text-sm">
+                        {template.shifts.map((shift, index) => (
+                          <div key={index} className="flex items-center justify-between text-sm">
                             <span className="font-medium">{shift.name}</span>
                             <span className="text-muted-foreground">
-                              {shift.startTime} - {shift.endTime} ({shift.totalHours}h)
+                              {shift.startTime} - {shift.endTime}
                             </span>
                           </div>
                         ))}
@@ -519,21 +475,22 @@ export function ShiftManagement() {
                     />
                   </div>
                   <div>
-                    <Label>Overtime After (hours)</Label>
-                    <Input
-                      type="number"
-                      step="0.5"
-                      value={formData.overtimeAfter}
-                      onChange={(e) => setFormData({ ...formData, overtimeAfter: Number(e.target.value) })}
-                    />
-                  </div>
-                  <div>
                     <Label>Grace Period (minutes)</Label>
                     <Input
                       type="number"
-                      value={formData.gracePeriod}
-                      onChange={(e) => setFormData({ ...formData, gracePeriod: Number(e.target.value) })}
+                      value={formData.graceTime}
+                      onChange={(e) => setFormData({ ...formData, graceTime: Number(e.target.value) })}
                     />
+                  </div>
+                  <div>
+                    <Label>Default Shift</Label>
+                    <div className="flex items-center space-x-2 mt-2">
+                      <Switch
+                        checked={formData.isDefault}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isDefault: checked })}
+                      />
+                      <Label className="text-sm">Set as default shift for new employees</Label>
+                    </div>
                   </div>
                 </div>
 
@@ -563,7 +520,13 @@ export function ShiftManagement() {
                   }}>
                     Cancel
                   </Button>
-                  <Button onClick={editingShift ? handleUpdateShift : handleCreateShift}>
+                  <Button
+                    onClick={editingShift ? handleUpdateShift : handleCreateShift}
+                    disabled={isCreating || isUpdating}
+                  >
+                    {(isCreating || isUpdating) && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
                     {editingShift ? 'Update Shift' : 'Create Shift'}
                   </Button>
                 </div>
@@ -582,20 +545,41 @@ export function ShiftManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Shift Name</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Working Days</TableHead>
-                <TableHead>Employees</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shifts.map((shift) => (
-                <TableRow key={shift.id}>
+          {isLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Loading shifts...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-500 mb-2">Failed to load shifts</p>
+              <Button onClick={refetch} variant="outline" size="sm">
+                Try Again
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Shift Name</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Working Days</TableHead>
+                  <TableHead>Employees</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-12"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {shifts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <p className="text-muted-foreground">No shifts found for this workspace.</p>
+                      <p className="text-sm text-muted-foreground mt-1">Create your first shift to get started.</p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  shifts.map((shift) => (
+                    <TableRow key={shift._id}>
                   <TableCell>
                     <div>
                       <div className="font-medium flex items-center space-x-2">
@@ -666,13 +650,13 @@ export function ShiftManagement() {
                           Duplicate
                         </DropdownMenuItem>
                         {!shift.isDefault && (
-                          <DropdownMenuItem onClick={() => handleSetDefaultShift(shift.id)}>
+                          <DropdownMenuItem onClick={() => handleSetDefaultShift(shift._id)}>
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Set as Default
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
-                          onClick={() => handleDeleteShift(shift.id)}
+                          onClick={() => handleDeleteShift(shift._id)}
                           className="text-red-600"
                           disabled={shift.employeeCount > 0}
                         >
@@ -683,9 +667,11 @@ export function ShiftManagement() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

@@ -60,7 +60,7 @@ export default function EmployeesPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[
           {
             name: 'Administrator',
@@ -136,12 +136,12 @@ export default function EmployeesPage() {
   )
 
   return (
-    <div className="flex flex-col space-y-6 p-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Employee Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Employee Management</h1>
+          <p className="mt-1 text-muted-foreground">
             Manage employees and roles for {currentWorkspace.name}
           </p>
         </div>
@@ -158,7 +158,7 @@ export default function EmployeesPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Employees</CardTitle>

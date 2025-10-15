@@ -176,9 +176,8 @@ const AttendanceSchema = new Schema<IAttendance>(
 )
 
 // Compound indexes for efficient queries
-AttendanceSchema.index({ userId: 1, workspaceId: 1, date: -1 })
 AttendanceSchema.index({ workspaceId: 1, date: -1, status: 1 })
-AttendanceSchema.index({ userId: 1, date: -1 }, { unique: true })
+AttendanceSchema.index({ userId: 1, workspaceId: 1, date: -1 }, { unique: true })
 
 // Virtual for formatted work duration
 AttendanceSchema.virtual('workDuration').get(function() {
@@ -206,15 +205,19 @@ AttendanceSchema.virtual('displayStatus').get(function() {
 
 // Instance method to calculate total work time
 AttendanceSchema.methods.calculateTotalWorkTime = function(): number {
+  if (!this.clockIn) {
+    return 0
+  }
+
   if (!this.clockOut) {
     // Still working - calculate current work time
     const now = new Date()
     const workTime = Math.floor((now.getTime() - this.clockIn.getTime()) / (1000 * 60))
-    return Math.max(0, workTime - this.totalBreakTime)
+    return Math.max(0, workTime - (this.totalBreakTime || 0))
   }
 
   const workTime = Math.floor((this.clockOut.getTime() - this.clockIn.getTime()) / (1000 * 60))
-  return Math.max(0, workTime - this.totalBreakTime)
+  return Math.max(0, workTime - (this.totalBreakTime || 0))
 }
 
 // Instance method to calculate overtime

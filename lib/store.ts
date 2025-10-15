@@ -15,6 +15,7 @@ import { tasksApi } from './api/tasksApi'
 import { enginesApi } from './api/enginesApi'
 import { emailApi } from './api/emailApi'
 import { attendanceApi } from './api/attendanceApi'
+import { shiftsApi } from './api/shiftsApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -39,6 +40,7 @@ export const store = configureStore({
     [tasksApi.reducerPath]: tasksApi.reducer,
     [enginesApi.reducerPath]: enginesApi.reducer,
     [attendanceApi.reducerPath]: attendanceApi.reducer,
+    [shiftsApi.reducerPath]: shiftsApi.reducer,
     [emailApi.reducerPath]: emailApi.reducer,
   } as any,
   middleware: getDefaultMiddleware =>
@@ -57,6 +59,7 @@ export const store = configureStore({
       tasksApi.middleware,
       enginesApi.middleware,
       attendanceApi.middleware,
+      shiftsApi.middleware,
       emailApi.middleware
     ),
 })

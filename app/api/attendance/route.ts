@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const auth = await requireAuth(request)
     const { searchParams } = new URL(request.url)
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await requireAuth(request)
     const body = await request.json()
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = body.workspaceId || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
@@ -167,7 +167,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Calculate work time and overtime
-        attendance.totalWorkTime = attendance.calculateTotalWorkTime()
+        const calculatedWorkTime = attendance.calculateTotalWorkTime()
+        attendance.totalWorkTime = calculatedWorkTime
         attendance.overtimeMinutes = attendance.calculateOvertime()
         attendance.overtime = attendance.overtimeMinutes > 0
 
@@ -178,7 +179,11 @@ export async function POST(request: NextRequest) {
           workspaceId,
           attendanceId: attendance._id,
           clockOutTime: now,
-          totalWorkTime: attendance.totalWorkTime
+          clockInTime: attendance.clockIn,
+          totalBreakTime: attendance.totalBreakTime,
+          calculatedWorkTime,
+          totalWorkTime: attendance.totalWorkTime,
+          overtimeMinutes: attendance.overtimeMinutes
         })
 
         break

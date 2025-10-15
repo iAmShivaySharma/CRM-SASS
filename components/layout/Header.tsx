@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NotificationBell } from '@/components/ui/notification-bell'
-import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
+import { TimeTrackingCard } from './TimeTrackingCard'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { logout } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
@@ -175,10 +175,6 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           {/* Notifications */}
           <NotificationBell />
 
-          {/* Attendance Widget - Hidden on mobile for space */}
-          <div className="hidden lg:block">
-            <AttendanceWidget compact={true} showDetails={false} />
-          </div>
 
           {/* User Menu - Simple dropdown for settings and logout */}
           <DropdownMenu>
@@ -208,10 +204,12 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
 
-              {/* Mobile Attendance Widget */}
-              <div className="lg:hidden p-2 border-b">
-                <AttendanceWidget compact={true} showDetails={false} />
+              {/* Time Tracking Card */}
+              <div className="p-2">
+                <TimeTrackingCard />
               </div>
+              <DropdownMenuSeparator />
+
 
               <DropdownMenuItem onClick={() => router.push('/settings')}>
                 <Settings className="mr-2 h-4 w-4" />

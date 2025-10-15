@@ -20,107 +20,47 @@ import {
   MapPin,
   Calendar,
   Clock,
-  MoreVertical
+  MoreVertical,
+  Loader2
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
-
-interface Employee {
-  id: string
-  name: string
-  email: string
-  phone: string
-  position: string
-  department: string
-  hireDate: Date
-  status: 'active' | 'inactive' | 'on_leave'
-  avatar?: string
-  workType: 'office' | 'remote' | 'hybrid'
-  shift: string
-  attendanceRate: number
-  totalWorkHours: number
-}
+import { useGetEmployeesQuery } from '@/lib/api/attendanceApi'
+import { useAppSelector } from '@/lib/hooks'
 
 export function EmployeeList() {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [searchQuery, setSearchQuery] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
 
-  // Mock employee data
-  const employees: Employee[] = [
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john.doe@company.com',
-      phone: '+1 (555) 123-4567',
-      position: 'Software Engineer',
-      department: 'Engineering',
-      hireDate: new Date('2022-01-15'),
-      status: 'active',
-      workType: 'hybrid',
-      shift: 'Morning Shift (9:00 AM - 5:00 PM)',
-      attendanceRate: 94.5,
-      totalWorkHours: 1680
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane.smith@company.com',
-      phone: '+1 (555) 234-5678',
-      position: 'Product Manager',
-      department: 'Product',
-      hireDate: new Date('2021-08-22'),
-      status: 'active',
-      workType: 'remote',
-      shift: 'Morning Shift (9:00 AM - 5:00 PM)',
-      attendanceRate: 97.2,
-      totalWorkHours: 1720
-    },
-    {
-      id: '3',
-      name: 'Mike Johnson',
-      email: 'mike.johnson@company.com',
-      phone: '+1 (555) 345-6789',
-      position: 'Sales Representative',
-      department: 'Sales',
-      hireDate: new Date('2023-03-10'),
-      status: 'active',
-      workType: 'office',
-      shift: 'Morning Shift (9:00 AM - 5:00 PM)',
-      attendanceRate: 89.3,
-      totalWorkHours: 1540
-    },
-    {
-      id: '4',
-      name: 'Sarah Wilson',
-      email: 'sarah.wilson@company.com',
-      phone: '+1 (555) 456-7890',
-      position: 'HR Specialist',
-      department: 'Human Resources',
-      hireDate: new Date('2022-06-01'),
-      status: 'on_leave',
-      workType: 'office',
-      shift: 'Morning Shift (9:00 AM - 5:00 PM)',
-      attendanceRate: 91.8,
-      totalWorkHours: 1620
-    },
-    {
-      id: '5',
-      name: 'Tom Brown',
-      email: 'tom.brown@company.com',
-      phone: '+1 (555) 567-8901',
-      position: 'Marketing Coordinator',
-      department: 'Marketing',
-      hireDate: new Date('2023-01-20'),
-      status: 'active',
-      workType: 'hybrid',
-      shift: 'Morning Shift (9:00 AM - 5:00 PM)',
-      attendanceRate: 92.7,
-      totalWorkHours: 1580
-    }
-  ]
+  // API integration
+  const { data: employeesData, isLoading, error, refetch } = useGetEmployeesQuery({
+    limit: 50,
+    includeAttendance: true,
+    search: searchQuery || undefined,
+    workspaceId: currentWorkspace?.id || ''
+  }, {
+    skip: !currentWorkspace?.id
+  })
 
-  const departments = ['all', 'Engineering', 'Product', 'Sales', 'Human Resources', 'Marketing']
+  const employees = employeesData?.employees || []
+
+  // Check workspace
+  if (!currentWorkspace) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">No Workspace Selected</h3>
+          <p className="text-muted-foreground">Please select a workspace to view employees.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Get unique departments from employees
+  const departments = ['all', ...Array.from(new Set(employees.map(emp => emp.role?.name || 'No Role').filter(Boolean)))]
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -131,7 +71,7 @@ export function EmployeeList() {
       case 'on_leave':
         return <Badge className="bg-yellow-100 text-yellow-800">On Leave</Badge>
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary">{status || 'Active'}</Badge>
     }
   }
 
@@ -143,8 +83,10 @@ export function EmployeeList() {
         return <Badge variant="outline">🏠 Remote</Badge>
       case 'hybrid':
         return <Badge variant="outline">🔄 Hybrid</Badge>
+      case 'field':
+        return <Badge variant="outline">🚗 Field</Badge>
       default:
-        return <Badge variant="outline">{workType}</Badge>
+        return <Badge variant="outline">{workType || 'Office'}</Badge>
     }
   }
 
@@ -155,12 +97,11 @@ export function EmployeeList() {
   }
 
   const filteredEmployees = employees.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         employee.position.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = employee.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         employee.email.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesDepartment = departmentFilter === 'all' || employee.department === departmentFilter
-    const matchesStatus = statusFilter === 'all' || employee.status === statusFilter
+    const matchesDepartment = departmentFilter === 'all' || (employee.role?.name || 'No Role') === departmentFilter
+    const matchesStatus = statusFilter === 'all' || (employee.status || 'active') === statusFilter
 
     return matchesSearch && matchesDepartment && matchesStatus
   })
@@ -217,63 +158,87 @@ export function EmployeeList() {
         </div>
 
         {/* Employee Table */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Work Type</TableHead>
-                <TableHead>Hire Date</TableHead>
-                <TableHead>Attendance Rate</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEmployees.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={employee.avatar} />
-                        <AvatarFallback>
-                          {employee.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{employee.name}</div>
-                        <div className="text-sm text-muted-foreground flex items-center space-x-2">
-                          <Mail className="h-3 w-3" />
-                          <span>{employee.email}</span>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-32">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2">Loading employees...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-red-500 mb-2">Failed to load employees</p>
+            <Button onClick={refetch} variant="outline" size="sm">
+              Try Again
+            </Button>
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Work Type</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead>Last Active</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-12"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <p className="text-muted-foreground">No employees found.</p>
+                      <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters.</p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredEmployees.map((employee) => (
+                    <TableRow key={employee._id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={employee.avatar} />
+                          <AvatarFallback>
+                            {employee.fullName.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{employee.fullName}</div>
+                          <div className="text-sm text-muted-foreground flex items-center space-x-2">
+                            <Mail className="h-3 w-3" />
+                            <span>{employee.email}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{employee.position}</div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{employee.department}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {getWorkTypeBadge(employee.workType)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="h-3 w-3 text-muted-foreground" />
-                      <span>{format(employee.hireDate, 'MMM dd, yyyy')}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className={`font-medium ${getAttendanceRateColor(employee.attendanceRate)}`}>
-                      {employee.attendanceRate}%
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(employee.status)}
-                  </TableCell>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{employee.role?.name || 'No Role'}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {employee.todayAttendance?.workType ?
+                        getWorkTypeBadge(employee.todayAttendance.workType) :
+                        <Badge variant="outline">-</Badge>
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        <span>{format(new Date(employee.joinedAt), 'MMM dd, yyyy')}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {employee.lastActive ? (
+                        <div className="text-sm">
+                          {format(new Date(employee.lastActive), 'MMM dd, yyyy')}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Never</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(employee.status)}
+                    </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -300,12 +265,14 @@ export function EmployeeList() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                    </TableCell>
+                  </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
 
         {/* Pagination */}
         <div className="flex items-center justify-between">

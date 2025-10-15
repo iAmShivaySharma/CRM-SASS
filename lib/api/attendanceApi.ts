@@ -83,6 +83,7 @@ export interface AttendanceActionRequest {
     address?: string
   }
   notes?: string
+  workspaceId?: string
 }
 
 export interface AttendanceQuery {
@@ -91,6 +92,7 @@ export interface AttendanceQuery {
   endDate?: string
   page?: number
   limit?: number
+  workspaceId: string
 }
 
 export const attendanceApi = createApi({
@@ -99,11 +101,15 @@ export const attendanceApi = createApi({
     baseUrl: '/api/attendance',
     credentials: 'include',
   }),
-  tagTypes: ['Attendance', 'TodayAttendance'],
+  tagTypes: ['Attendance', 'TodayAttendance', 'Employees'],
   endpoints: (builder) => ({
     // Get today's attendance status
-    getTodayAttendance: builder.query<TodayAttendanceResponse, void>({
-      query: () => '/today',
+    getTodayAttendance: builder.query<TodayAttendanceResponse, { workspaceId: string }>({
+      query: (params) => {
+        const searchParams = new URLSearchParams()
+        searchParams.append('workspaceId', params.workspaceId)
+        return `/today?${searchParams.toString()}`
+      },
       providesTags: ['TodayAttendance'],
     }),
 
@@ -139,7 +145,7 @@ export const attendanceApi = createApi({
         attendance: AttendanceRecord
         message: string
       },
-      AttendanceActionRequest
+      AttendanceActionRequest & { workspaceId: string }
     >({
       query: (action) => ({
         url: '',
@@ -152,26 +158,89 @@ export const attendanceApi = createApi({
     // Get attendance summary for date range
     getAttendanceSummary: builder.query<
       {
-        totalDays: number
-        workingDays: number
-        presentDays: number
-        absentDays: number
-        lateDays: number
-        totalWorkHours: number
-        totalOvertimeHours: number
-        averageWorkHours: number
-        attendanceRate: number
+        summary: {
+          totalDays: number
+          workingDays: number
+          presentDays: number
+          absentDays: number
+          lateDays: number
+          totalWorkHours: number
+          totalOvertimeHours: number
+          averageWorkHours: number
+          attendanceRate: number
+        }
+        todayAttendance: {
+          total: number
+          byStatus: Record<string, any[]>
+          records: any[]
+        }
+        dateRange: {
+          start: string
+          end: string
+        }
       },
-      { userId?: string; startDate: string; endDate: string }
+      { userId?: string; startDate?: string; endDate?: string; workspaceId: string }
     >({
       query: (params) => {
         const searchParams = new URLSearchParams()
         Object.entries(params).forEach(([key, value]) => {
-          searchParams.append(key, value)
+          if (value) {
+            searchParams.append(key, value)
+          }
         })
         return `/summary?${searchParams.toString()}`
       },
       providesTags: ['Attendance'],
+    }),
+
+    // Get employees/users in workspace
+    getEmployees: builder.query<
+      {
+        employees: Array<{
+          _id: string
+          userId: string
+          fullName: string
+          email: string
+          avatar?: string
+          role: {
+            _id: string
+            name: string
+          }
+          joinedAt: string
+          status: string
+          lastActive?: string
+          todayAttendance?: {
+            _id: string
+            status: string
+            clockIn: string
+            clockOut?: string
+            totalWorkTime: number
+            workType: string
+            shift?: any
+          }
+        }>
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pages: number
+        }
+      },
+      { page?: number; limit?: number; search?: string; includeAttendance?: boolean; workspaceId: string }
+    >({
+      query: (params) => {
+        const searchParams = new URLSearchParams()
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined) {
+            searchParams.append(key, value.toString())
+          }
+        })
+        return {
+          url: `../employees?${searchParams.toString()}`,
+          method: 'GET'
+        }
+      },
+      providesTags: ['Employees'],
     }),
   }),
 })
@@ -181,4 +250,5 @@ export const {
   useGetAttendanceRecordsQuery,
   useAttendanceActionMutation,
   useGetAttendanceSummaryQuery,
+  useGetEmployeesQuery,
 } = attendanceApi

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useGetTodayAttendanceQuery, useAttendanceActionMutation } from '@/lib/api/attendanceApi'
+import { useAppSelector } from '@/lib/hooks'
 import { format } from 'date-fns'
 
 interface AttendanceWidgetProps {
@@ -31,13 +32,17 @@ interface AttendanceWidgetProps {
 }
 
 export function AttendanceWidget({ compact = false, showDetails = true }: AttendanceWidgetProps) {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [workType, setWorkType] = useState<'office' | 'remote' | 'hybrid' | 'field'>('office')
   const [notes, setNotes] = useState('')
   const [location, setLocation] = useState<{ latitude: number; longitude: number; address?: string } | null>(null)
   const [showLocationDialog, setShowLocationDialog] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
 
-  const { data: todayData, isLoading, refetch } = useGetTodayAttendanceQuery()
+  const { data: todayData, isLoading, refetch } = useGetTodayAttendanceQuery(
+    { workspaceId: currentWorkspace?.id || '' },
+    { skip: !currentWorkspace?.id }
+  )
   const [attendanceAction, { isLoading: isActionLoading }] = useAttendanceActionMutation()
 
   // Update current time every second
@@ -98,7 +103,8 @@ export function AttendanceWidget({ compact = false, showDetails = true }: Attend
         action,
         workType: action === 'clock_in' ? workType : undefined,
         location: locationData || undefined,
-        notes: notes || undefined
+        notes: notes || undefined,
+        workspaceId: currentWorkspace?.id || ''
       }).unwrap()
 
       toast.success(result.message)
@@ -142,8 +148,8 @@ export function AttendanceWidget({ compact = false, showDetails = true }: Attend
 
   if (isLoading) {
     return (
-      <Card className={compact ? 'w-full' : 'w-full max-w-md'}>
-        <CardContent className="p-6">
+      <Card className={compact ? 'w-full' : 'w-full max-w-md h-full min-h-[400px]'}>
+        <CardContent className="p-6 flex items-center justify-center h-full">
           <div className="flex items-center justify-center space-x-2">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Loading attendance...</span>
@@ -287,7 +293,7 @@ export function AttendanceWidget({ compact = false, showDetails = true }: Attend
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md h-full min-h-[400px]">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-lg">
           <div className="flex items-center space-x-2">
@@ -299,7 +305,7 @@ export function AttendanceWidget({ compact = false, showDetails = true }: Attend
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1">
         {/* Current Time */}
         <div className="text-center">
           <div className="text-3xl font-bold">{format(currentTime, 'HH:mm:ss')}</div>

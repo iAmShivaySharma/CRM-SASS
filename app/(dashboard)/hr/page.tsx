@@ -116,12 +116,12 @@ export default function HRPage() {
   }
 
   return (
-    <div className="flex flex-col space-y-6 p-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Human Resources</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Human Resources</h1>
+          <p className="mt-1 text-muted-foreground">
             Comprehensive HR management system for {currentWorkspace.name}
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function HRPage() {
       </div>
 
       {/* Quick Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -193,7 +193,7 @@ export default function HRPage() {
       </div>
 
       {/* Today's Quick Overview */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
           <AttendanceWidget compact={false} showDetails={true} />
         </div>
@@ -244,9 +244,9 @@ export default function HRPage() {
       </div>
 
       {/* HR Modules */}
-      <div>
+      <div className="w-full">
         <h2 className="text-xl font-semibold mb-4">HR Modules</h2>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
           {hrModules.map((module) => {
             const Icon = module.icon
             return (

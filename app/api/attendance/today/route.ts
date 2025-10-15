@@ -6,7 +6,8 @@ import { log } from '@/lib/logging/logger'
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAuth(request)
-    const workspaceId = auth.user.currentWorkspace
+    const { searchParams } = new URL(request.url)
+    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
@@ -61,11 +62,35 @@ export async function GET(request: NextRequest) {
     if (attendance && attendance.status !== 'clocked_out') {
       currentWorkTime = attendance.calculateTotalWorkTime()
 
+      // Debug logging
+      log.info('Current work time calculation', {
+        userId: auth.user.id,
+        workspaceId,
+        status: attendance.status,
+        clockIn: attendance.clockIn,
+        clockOut: attendance.clockOut,
+        totalBreakTime: attendance.totalBreakTime,
+        calculatedWorkTime: currentWorkTime
+      })
+
+      // Also update the totalWorkTime field for current work time display
+      attendance.totalWorkTime = currentWorkTime
+
       // Calculate expected clock out time
       if (shift && attendance.clockIn) {
         const shiftDurationMs = shift.totalHours * 60 * 60 * 1000
         expectedClockOut = new Date(attendance.clockIn.getTime() + shiftDurationMs)
       }
+    } else if (attendance && attendance.status === 'clocked_out') {
+      // For clocked out status, use the saved totalWorkTime
+      currentWorkTime = attendance.totalWorkTime || 0
+
+      log.info('Clocked out work time', {
+        userId: auth.user.id,
+        workspaceId,
+        savedTotalWorkTime: attendance.totalWorkTime,
+        currentWorkTime
+      })
     }
 
     // Get workspace attendance summary for today

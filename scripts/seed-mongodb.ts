@@ -392,6 +392,36 @@ async function seedDatabase() {
         ],
         isDefault: false,
       },
+      {
+        workspaceId: adminWorkspace._id,
+        name: 'Employee',
+        description: 'Basic employee access for projects, tasks, and communication',
+        permissions: [
+          Permission.WORKSPACE_VIEW,
+          Permission.LEADS_VIEW,
+          Permission.CONTACTS_VIEW,
+          Permission.LEAD_NOTES_VIEW,
+          Permission.LEAD_ACTIVITIES_VIEW,
+          Permission.ACTIVITIES_VIEW,
+          Permission.TAGS_VIEW,
+          Permission.LEAD_STATUSES_VIEW,
+          Permission.NOTIFICATIONS_VIEW,
+          Permission.SETTINGS_VIEW,
+          Permission.PROJECTS_VIEW,
+          Permission.TASKS_VIEW,
+          Permission.TASKS_CREATE,
+          Permission.TASKS_EDIT,
+          Permission.DOCUMENTS_VIEW,
+          Permission.DOCUMENTS_CREATE,
+          Permission.DOCUMENTS_EDIT,
+          Permission.COLUMNS_VIEW,
+          Permission.PROJECT_MEMBERS_VIEW,
+          Permission.CHAT_VIEW,
+          Permission.CHAT_SEND,
+          Permission.CHAT_UPLOAD_FILES,
+        ],
+        isDefault: false,
+      },
     ]
 
     const createdRoles = await (Role as any).insertMany(roles)
@@ -466,7 +496,7 @@ async function seedDatabase() {
     console.log(
       `- Admin Workspace: ${adminWorkspace.name} (${adminWorkspace.slug})`
     )
-    console.log(`- Roles: ${roles.length}`)
+    console.log(`- Roles: ${roles.length} (Owner, Admin, Manager, Sales Rep, Viewer, Employee)`)
     console.log(`- Workspace Members: ${1 + createdTestUsers.length}`)
     console.log(`- Subscription: Enterprise plan for admin workspace`)
     console.log('\n🔐 Security Features:')

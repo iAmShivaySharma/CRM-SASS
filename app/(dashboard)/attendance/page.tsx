@@ -65,12 +65,12 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="flex flex-col space-y-6 p-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Attendance Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Attendance Management</h1>
+          <p className="mt-1 text-muted-foreground">
             Track employee attendance and work hours for {currentWorkspace.name}
           </p>
         </div>
@@ -87,7 +87,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Present Today</CardTitle>
@@ -165,7 +165,7 @@ export default function AttendancePage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
             {/* Attendance Widget */}
             <div className="lg:col-span-1">
               <AttendanceWidget compact={false} showDetails={true} />
@@ -173,7 +173,7 @@ export default function AttendancePage() {
 
             {/* Today's Overview */}
             <div className="lg:col-span-2">
-              <Card>
+              <Card className="h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Calendar className="h-5 w-5" />
