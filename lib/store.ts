@@ -13,6 +13,7 @@ import { roleApi } from './api/roleApi'
 import { projectsApi } from './api/projectsApi'
 import { tasksApi } from './api/tasksApi'
 import { enginesApi } from './api/enginesApi'
+import { emailApi } from './api/emailApi'
 import { attendanceApi } from './api/attendanceApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
@@ -38,6 +39,7 @@ export const store = configureStore({
     [tasksApi.reducerPath]: tasksApi.reducer,
     [enginesApi.reducerPath]: enginesApi.reducer,
     [attendanceApi.reducerPath]: attendanceApi.reducer,
+    [emailApi.reducerPath]: emailApi.reducer,
   } as any,
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
@@ -54,7 +56,8 @@ export const store = configureStore({
       projectsApi.middleware,
       tasksApi.middleware,
       enginesApi.middleware,
-      attendanceApi.middleware
+      attendanceApi.middleware,
+      emailApi.middleware
     ),
 })
 

@@ -52,3 +52,8 @@ export { LeaveBalance } from './LeaveBalance'
 export { Asset } from './Asset'
 export { AssetAllocation } from './AssetAllocation'
 export { AssetMaintenance } from './AssetMaintenance'
+
+// Email Integration Models
+export { default as EmailAccount, type IEmailAccount } from './EmailAccount'
+export { default as EmailMessage, type IEmailMessage } from './EmailMessage'
+export { default as EmailTemplate, type IEmailTemplate } from './EmailTemplate'
