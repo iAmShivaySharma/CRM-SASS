@@ -137,7 +137,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
+      <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 sm:px-6">
         <div className="flex flex-1 items-center space-x-2 sm:space-x-4">
           {/* Mobile menu button */}
           <Button
@@ -152,7 +152,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
 
           {/* Search bar - responsive */}
           <div className="relative hidden max-w-md flex-1 sm:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search leads, contacts..."
@@ -220,7 +220,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
               </DropdownMenuItem>
@@ -255,10 +255,10 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 id="workspace-name"
                 placeholder="Enter workspace name"
                 {...register('name')}
-                className={errors.name ? 'border-red-500' : ''}
+                className={errors.name ? 'border-destructive' : ''}
               />
               {errors.name && (
-                <p className="text-sm text-red-600">{errors.name.message}</p>
+                <p className="text-sm text-destructive">{errors.name.message}</p>
               )}
             </div>
 
@@ -270,10 +270,10 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 id="workspace-description"
                 placeholder="Describe your workspace"
                 {...register('description')}
-                className={errors.description ? 'border-red-500' : ''}
+                className={errors.description ? 'border-destructive' : ''}
               />
               {errors.description && (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-destructive">
                   {errors.description.message}
                 </p>
               )}
@@ -298,7 +298,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
               >
                 {isCreatingWorkspace ? (
                   <div className="flex items-center space-x-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-primary-foreground"></div>
                     <span>Creating...</span>
                   </div>
                 ) : (

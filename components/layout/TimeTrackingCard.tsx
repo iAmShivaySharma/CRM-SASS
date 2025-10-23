@@ -119,11 +119,11 @@ export function TimeTrackingCard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'clocked_in': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-      case 'on_break': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-      case 'clocked_out': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
-      case 'late': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+      case 'clocked_in': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+      case 'on_break': return 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+      case 'clocked_out': return 'bg-muted text-muted-foreground'
+      case 'late': return 'bg-destructive/10 text-destructive'
+      default: return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -148,11 +148,11 @@ export function TimeTrackingCard() {
 
   if (isLoading) {
     return (
-      <Card className="w-full">
+      <Card className="w-full bg-gradient-to-br from-background to-primary/5">
         <CardContent className="p-3">
           <div className="flex items-center justify-center space-x-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm">Loading...</span>
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <span className="text-sm text-muted-foreground">Loading attendance...</span>
           </div>
         </CardContent>
       </Card>
@@ -173,15 +173,17 @@ export function TimeTrackingCard() {
   const finalActions = actions || (error ? defaultActions : null)
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-gradient-to-br from-background to-primary/5 border-primary/10 shadow-md">
       <CardContent className="p-3 space-y-3">
         {/* Header with current time */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Timer className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Time Tracking</span>
+            <div className="p-1 bg-primary/10 rounded">
+              <Timer className="h-3 w-3 text-primary" />
+            </div>
+            <span className="text-sm font-medium text-foreground">Time Tracking</span>
           </div>
-          <span className="text-xs text-muted-foreground font-mono">
+          <span className="text-xs text-primary font-mono font-bold tabular-nums">
             {format(currentTime, 'HH:mm:ss')}
           </span>
         </div>
@@ -190,17 +192,17 @@ export function TimeTrackingCard() {
         {attendance && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Status</span>
-            <Badge className={getStatusColor(attendance.status)} variant="secondary">
+            <Badge className={`${getStatusColor(attendance.status)} border-0 shadow-sm`}>
               {getStatusIcon(attendance.status)}
-              <span className="ml-1 text-xs">{attendance.displayStatus}</span>
+              <span className="ml-1 text-xs font-medium">{attendance.displayStatus}</span>
             </Badge>
           </div>
         )}
 
         {/* Work Time Display */}
         {attendance && attendance.status !== 'clocked_out' && (
-          <div className="text-center py-2">
-            <div className="text-lg font-bold text-primary">
+          <div className="text-center py-2 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg">
+            <div className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
               {formatDuration(calculateLiveWorkTime(attendance))}
             </div>
             <div className="text-xs text-muted-foreground">Today's work time</div>
@@ -209,8 +211,8 @@ export function TimeTrackingCard() {
 
         {/* Work Time Display for Clocked Out */}
         {attendance && attendance.status === 'clocked_out' && (
-          <div className="text-center py-2">
-            <div className="text-lg font-bold text-gray-600">
+          <div className="text-center py-2 bg-gradient-to-r from-muted/20 to-muted/10 rounded-lg">
+            <div className="text-lg font-bold text-muted-foreground">
               {formatDuration(attendance.totalWorkTime || 0)}
             </div>
             <div className="text-xs text-muted-foreground">Total work time</div>
@@ -247,8 +249,8 @@ export function TimeTrackingCard() {
 
         {/* Show error message if API failed */}
         {error && (
-          <div className="text-center py-2">
-            <p className="text-xs text-red-500">Please login to track time</p>
+          <div className="text-center py-2 bg-destructive/5 rounded-lg border border-destructive/20">
+            <p className="text-xs text-destructive">Please login to track time</p>
           </div>
         )}
 
@@ -257,7 +259,7 @@ export function TimeTrackingCard() {
           {finalActions?.canClockIn && (
             <Dialog open={showClockInDialog} onOpenChange={setShowClockInDialog}>
               <DialogTrigger asChild>
-                <Button size="sm" className="text-xs py-1 h-7">
+                <Button size="sm" className="text-xs py-1 h-7 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border-0 shadow-sm">
                   <Play className="h-3 w-3 mr-1" />
                   In
                 </Button>
@@ -265,7 +267,9 @@ export function TimeTrackingCard() {
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center space-x-2">
-                    <Play className="h-4 w-4" />
+                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg">
+                      <Play className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
                     <span>Clock In</span>
                   </DialogTitle>
                 </DialogHeader>
@@ -298,7 +302,7 @@ export function TimeTrackingCard() {
                   <Button
                     onClick={() => handleAttendanceAction('clock_in')}
                     disabled={isActionLoading}
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
                   >
                     {isActionLoading ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -316,9 +320,8 @@ export function TimeTrackingCard() {
             <Button
               onClick={() => handleAttendanceAction('clock_out')}
               disabled={isActionLoading}
-              variant="destructive"
               size="sm"
-              className="text-xs py-1 h-7"
+              className="text-xs py-1 h-7 bg-gradient-to-r from-destructive to-destructive/90 hover:from-destructive/90 hover:to-destructive text-destructive-foreground border-0 shadow-sm"
             >
               {isActionLoading ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -335,7 +338,7 @@ export function TimeTrackingCard() {
               disabled={isActionLoading}
               variant="outline"
               size="sm"
-              className="text-xs py-1 h-7"
+              className="text-xs py-1 h-7 border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 hover:from-amber-100 hover:to-amber-200 dark:hover:from-amber-900 dark:hover:to-amber-800 text-amber-700 dark:text-amber-300 shadow-sm"
             >
               <Coffee className="h-3 w-3 mr-1" />
               Break
@@ -347,7 +350,7 @@ export function TimeTrackingCard() {
               onClick={() => handleAttendanceAction('break_end')}
               disabled={isActionLoading}
               size="sm"
-              className="text-xs py-1 h-7"
+              className="text-xs py-1 h-7 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground border-0 shadow-sm"
             >
               <Play className="h-3 w-3 mr-1" />
               Resume
@@ -357,10 +360,10 @@ export function TimeTrackingCard() {
 
         {/* Message when no actions are available */}
         {finalActions && !finalActions.canClockIn && !finalActions.canClockOut && !finalActions.canStartBreak && !finalActions.canEndBreak && (
-          <div className="text-center py-2">
+          <div className="text-center py-2 bg-muted/20 rounded-lg">
             <p className="text-xs text-muted-foreground">
               {attendance?.status === 'clocked_out'
-                ? "Work day completed"
+                ? "Work day completed ✅"
                 : "No actions available"
               }
             </p>
@@ -369,8 +372,9 @@ export function TimeTrackingCard() {
 
         {/* No attendance today message */}
         {!attendance && !isLoading && !error && (
-          <div className="text-center py-2">
+          <div className="text-center py-2 bg-primary/5 rounded-lg border border-primary/20">
             <p className="text-xs text-muted-foreground">No attendance recorded today</p>
+            <p className="text-xs text-primary mt-1">Click "In" to start tracking</p>
           </div>
         )}
       </CardContent>
