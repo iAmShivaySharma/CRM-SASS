@@ -47,6 +47,7 @@ import {
   useCreateWorkspaceMutation,
   Workspace as ApiWorkspace,
 } from '@/lib/api/mongoApi'
+import { projectsApi } from '@/lib/api/projectsApi'
 import {
   useGetLastActiveWorkspaceQuery,
   useUpdateLastActiveWorkspaceMutation,
@@ -209,6 +210,16 @@ export function WorkspaceSwitcher({
           createdAt: workspace.createdAt,
         })
       )
+
+      // Clear cached data for old workspace to prevent showing stale data
+      if (currentWorkspace?.id) {
+        // Invalidate all workspace-specific cached data
+        dispatch(projectsApi.util.invalidateTags([
+          { type: 'Task', id: `WORKSPACE_${currentWorkspace.id}` },
+          { type: 'Project', id: 'LIST' },
+          { type: 'Task', id: 'LIST' }
+        ]))
+      }
 
       // Update the database with the new last active workspace
       await updateLastActiveWorkspace({ workspaceId: workspace.id }).unwrap()
