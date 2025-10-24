@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { Project, ProjectMember, Task } from '@/lib/mongodb/client'
+import { Project, ProjectMember, Task, WorkspaceMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
   withLogging,
@@ -39,6 +39,15 @@ async function checkProjectAccess(
 ) {
   const project = await Project.findById(projectId)
   if (!project) return null
+
+  // First check if user is a member of the workspace
+  const workspaceMember = await WorkspaceMember.findOne({
+    userId,
+    workspaceId: project.workspaceId,
+    status: 'active',
+  })
+
+  if (!workspaceMember) return null
 
   const projectMember = await ProjectMember.findOne({
     projectId,
@@ -90,7 +99,7 @@ export const GET = withSecurityLogging(
         const [memberCount, taskCount, completedTaskCount] = await Promise.all([
           ProjectMember.countDocuments({ projectId: id, status: 'active' }),
           Task.countDocuments({ projectId: id }),
-          Task.countDocuments({ projectId: id, status: 'completed' }),
+          Task.countDocuments({ projectId: id, completed: true }),
         ])
 
         await logUserActivity(

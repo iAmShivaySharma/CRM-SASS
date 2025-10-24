@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Plus,
   FileText,
@@ -13,6 +14,12 @@ import {
   Edit,
   Download,
 } from 'lucide-react'
+import jsPDF from 'jspdf'
+import { useAppSelector } from '@/lib/hooks'
+import {
+  useCreateDocumentMutation,
+  useDeleteDocumentMutation,
+} from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -25,41 +32,26 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { CardSkeleton } from '@/components/ui/skeleton'
+import { extractPlainText } from '@/components/ui/tiptap-editor-improved'
+import { toast } from 'sonner'
+import type { Document } from '@/lib/api/projectsApi'
 
 interface ProjectDocumentsProps {
   projectId: string
-  onEditDocument?: (document: any) => void
+  documents: Document[]
+  isLoading: boolean
+  onEditDocument?: (document: Document) => void
 }
 
-export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocumentsProps) {
+export function ProjectDocuments({ projectId, documents, isLoading, onEditDocument }: ProjectDocumentsProps) {
+  const router = useRouter()
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  // Placeholder data - this will be replaced with actual API calls
-  const documents = [
-    {
-      id: '1',
-      title: 'Project Requirements',
-      type: 'document',
-      content: 'Detailed project requirements and specifications...',
-      createdBy: { id: '1', name: 'John Doe', avatarUrl: null },
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-20T14:30:00Z',
-      visibility: 'project',
-      tags: ['requirements', 'specs'],
-    },
-    {
-      id: '2',
-      title: 'Meeting Notes Template',
-      type: 'template',
-      content: 'Standard template for project meeting notes...',
-      createdBy: { id: '2', name: 'Jane Smith', avatarUrl: null },
-      createdAt: '2024-01-18T09:15:00Z',
-      updatedAt: '2024-01-18T09:15:00Z',
-      visibility: 'workspace',
-      tags: ['template', 'meetings'],
-    },
-  ]
+  const [createDocument] = useCreateDocumentMutation()
+  const [deleteDocument] = useDeleteDocumentMutation()
 
   const getDocumentIcon = (type: string) => {
     switch (type) {
@@ -86,17 +78,160 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
   const filteredDocuments = documents.filter(
     doc =>
       doc.title.toLowerCase().includes(search.toLowerCase()) ||
-      doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+      (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
   )
 
-  const handleEditClick = (document: any) => (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onEditDocument?.(document)
+  const handleCreateDocument = async () => {
+    if (!currentWorkspace || !projectId) {
+      toast.error('Unable to create document - missing project information')
+      return
+    }
+
+    try {
+      const result = await createDocument({
+        title: 'Untitled Document',
+        content: '',
+        projectId: projectId,
+        workspaceId: currentWorkspace.id,
+        type: 'document',
+        status: 'draft',
+        visibility: 'project',
+      }).unwrap()
+
+      toast.success('Document created successfully')
+      router.push(`/projects/documents/${result.document.id}`)
+    } catch (error) {
+      console.error('Failed to create document:', error)
+      toast.error('Failed to create document')
+    }
   }
 
-  const handleDoubleClick = (document: any) => (e: React.MouseEvent) => {
+  const handleEditDocument = (document: Document) => {
+    router.push(`/projects/documents/${document.id}`)
+  }
+
+  const handleViewDocument = (document: Document) => {
+    router.push(`/projects/documents/${document.id}`)
+  }
+
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      await deleteDocument({ id: documentId }).unwrap()
+      toast.success('Document deleted successfully')
+    } catch (error) {
+      console.error('Failed to delete document:', error)
+      toast.error('Failed to delete document')
+    }
+  }
+
+  const handleDownloadDocument = (doc: Document) => {
+    try {
+      // Create PDF
+      const pdf = new jsPDF()
+      const content = extractPlainText(doc.content)
+      const filename = `${doc.title.replace(/[^a-z0-9\s]/gi, '_').replace(/\s+/g, '_')}.pdf`
+
+      // Add title
+      pdf.setFontSize(20)
+      pdf.text(doc.title, 20, 30)
+
+      // Add creation date
+      pdf.setFontSize(12)
+      pdf.text(`Created: ${new Date(doc.createdAt).toLocaleDateString()}`, 20, 45)
+      pdf.text(`Updated: ${new Date(doc.updatedAt).toLocaleDateString()}`, 20, 55)
+
+      // Add content
+      pdf.setFontSize(11)
+
+      // Split content into lines that fit the page width
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const margins = 20
+      const maxLineWidth = pageWidth - (margins * 2)
+
+      const lines = pdf.splitTextToSize(content, maxLineWidth)
+
+      let currentY = 75
+      const lineHeight = 7
+      const pageHeight = pdf.internal.pageSize.getHeight()
+
+      lines.forEach((line: string) => {
+        if (currentY + lineHeight > pageHeight - margins) {
+          pdf.addPage()
+          currentY = margins
+        }
+        pdf.text(line, margins, currentY)
+        currentY += lineHeight
+      })
+
+      // Download the PDF
+      pdf.save(filename)
+      toast.success('Document downloaded as PDF')
+    } catch (error) {
+      console.error('PDF generation failed:', error)
+      toast.error('Failed to generate PDF')
+    }
+  }
+
+  const handleEditClick = (document: Document) => (e: React.MouseEvent) => {
     e.stopPropagation()
-    onEditDocument?.(document)
+    handleEditDocument(document)
+  }
+
+  const handleDoubleClick = (document: Document) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    handleEditDocument(document)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">
+              Project Documents
+            </h2>
+            <p className="text-muted-foreground">
+              Create and manage project documentation
+            </p>
+          </div>
+          <Button disabled>
+            <Plus className="mr-2 h-4 w-4" />
+            New Document
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search documents..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-10"
+              disabled
+            />
+          </div>
+          <div className="flex items-center gap-1 rounded-md border border-input p-1">
+            <Button variant="ghost" size="sm" disabled>
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" disabled>
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -110,7 +245,7 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
             Create and manage project documentation
           </p>
         </div>
-        <Button>
+        <Button onClick={handleCreateDocument}>
           <Plus className="mr-2 h-4 w-4" />
           New Document
         </Button>
@@ -161,7 +296,7 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
                 </p>
               </div>
               {!search && (
-                <Button>
+                <Button onClick={handleCreateDocument}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Document
                 </Button>
@@ -208,7 +343,9 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleViewDocument(document)}
+                      >
                         <Eye className="mr-2 h-4 w-4" />
                         View
                       </DropdownMenuItem>
@@ -216,12 +353,17 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDownloadDocument(document)}
+                      >
                         <Download className="mr-2 h-4 w-4" />
                         Download
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() => handleDeleteDocument(document.id)}
+                      >
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -231,11 +373,11 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
 
               <CardContent className="pt-0">
                 <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">
-                  {document.content}
+                  {extractPlainText(document.content, 150)}
                 </p>
 
                 {/* Tags */}
-                {document.tags.length > 0 && (
+                {document.tags && document.tags.length > 0 && (
                   <div className="mb-4 flex flex-wrap gap-1">
                     {document.tags.slice(0, 3).map((tag, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
@@ -253,18 +395,10 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
                 {/* Author and Date */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-2">
-                    <Avatar className="h-5 w-5">
-                      <AvatarImage
-                        src={document.createdBy.avatarUrl || undefined}
-                      />
-                      <AvatarFallback className="text-xs">
-                        {document.createdBy.name
-                          .split(' ')
-                          .map(n => n[0])
-                          .join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span>{document.createdBy.name}</span>
+                    <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-xs font-medium">U</span>
+                    </div>
+                    <span>Created by user</span>
                   </div>
                   <span>
                     {new Date(document.updatedAt).toLocaleDateString()}
@@ -291,7 +425,7 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate font-medium">{document.title}</h3>
                       <p className="truncate text-sm text-muted-foreground">
-                        {document.content}
+                        {extractPlainText(document.content, 100)}
                       </p>
                     </div>
                   </div>
@@ -313,7 +447,9 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleViewDocument(document)}
+                        >
                           <Eye className="mr-2 h-4 w-4" />
                           View
                         </DropdownMenuItem>
@@ -321,12 +457,17 @@ export function ProjectDocuments({ projectId, onEditDocument }: ProjectDocuments
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDownloadDocument(document)}
+                        >
                           <Download className="mr-2 h-4 w-4" />
                           Download
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() => handleDeleteDocument(document.id)}
+                        >
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>

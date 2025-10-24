@@ -171,7 +171,7 @@ export const GET = withSecurityLogging(
                 Task.countDocuments({ projectId: project._id }),
                 Task.countDocuments({
                   projectId: project._id,
-                  status: 'completed',
+                  completed: true,
                 }),
               ])
 
