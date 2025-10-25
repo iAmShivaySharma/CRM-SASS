@@ -400,7 +400,7 @@ EmailMessageSchema.methods.addLabel = function(label: string) {
 }
 
 EmailMessageSchema.methods.removeLabel = function(label: string) {
-  this.labels = this.labels.filter(l => l !== label)
+  this.labels = this.labels.filter((l: string) => l !== label)
   return this.save()
 }
 

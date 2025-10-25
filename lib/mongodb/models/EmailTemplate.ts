@@ -234,7 +234,7 @@ EmailTemplateSchema.methods.renderTemplate = function(variables: Record<string, 
   let bodyText = this.bodyText || ''
 
   // Replace variables in subject
-  this.variables.forEach(variable => {
+  this.variables.forEach((variable: { name: string; placeholder: string; defaultValue?: string; required: boolean; type: string }) => {
     const value = variables[variable.name] || variable.defaultValue || variable.placeholder
     const regex = new RegExp(`{{\\s*${variable.name}\\s*}}`, 'g')
 
@@ -253,7 +253,7 @@ EmailTemplateSchema.methods.renderTemplate = function(variables: Record<string, 
 EmailTemplateSchema.methods.validateVariables = function(variables: Record<string, any>) {
   const errors: string[] = []
 
-  this.variables.forEach(variable => {
+  this.variables.forEach((variable: { name: string; placeholder: string; defaultValue?: string; required: boolean; type: string }) => {
     if (variable.required && !variables[variable.name]) {
       errors.push(`Variable '${variable.name}' is required`)
       return

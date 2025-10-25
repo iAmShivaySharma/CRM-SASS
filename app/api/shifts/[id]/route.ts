@@ -1,22 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Shift, Attendance } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
     }
 
+    const { id } = await params
     const shift = await Shift.findOne({
-      _id: params.id,
+      _id: id,
       workspaceId
     }).populate('createdBy', 'name email')
 
@@ -46,10 +54,17 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
@@ -73,8 +88,9 @@ export async function PUT(
       overtimeRules
     } = body
 
+    const { id } = await params
     const shift = await Shift.findOne({
-      _id: params.id,
+      _id: id,
       workspaceId
     })
 
@@ -85,7 +101,7 @@ export async function PUT(
     // If this is being set as default, unset other defaults
     if (isDefault && !shift.isDefault) {
       await Shift.updateMany(
-        { workspaceId, _id: { $ne: params.id } },
+        { workspaceId, _id: { $ne: id } },
         { isDefault: false }
       )
     }
@@ -109,7 +125,7 @@ export async function PUT(
     await shift.populate('createdBy', 'name email')
 
     log.info('Shift updated', {
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       shiftId: shift._id,
       shiftName: shift.name
@@ -131,18 +147,26 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
     }
 
+    const { id } = await params
     const shift = await Shift.findOne({
-      _id: params.id,
+      _id: id,
       workspaceId
     })
 
@@ -167,7 +191,7 @@ export async function DELETE(
     if (shift.isDefault) {
       const anotherShift = await Shift.findOne({
         workspaceId,
-        _id: { $ne: params.id },
+        _id: { $ne: id },
         isActive: true
       })
 
@@ -177,12 +201,12 @@ export async function DELETE(
       }
     }
 
-    await Shift.deleteOne({ _id: params.id })
+    await Shift.deleteOne({ _id: id })
 
     log.info('Shift deleted', {
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
-      shiftId: params.id,
+      shiftId: id,
       shiftName: shift.name
     })
 

@@ -237,7 +237,7 @@ export const POST = withSecurityLogging(
         const populatedMember = await ProjectMember.findById(newMember._id)
           .populate('userId', 'fullName email avatarUrl')
           .populate('roleId', 'name permissions')
-          .lean()
+          .lean() as any
 
         const transformedMember = {
           id: populatedMember!._id,

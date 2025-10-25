@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount, EmailMessage } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
@@ -8,13 +8,20 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const { id: accountId } = await params
     const workspaceId = auth.user.currentWorkspace
 
     const account = await EmailAccount.findOne({
       _id: accountId,
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       isActive: true
     })
@@ -50,14 +57,21 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const { id: accountId } = await params
     const body = await request.json()
     const workspaceId = auth.user.currentWorkspace
 
     const account = await EmailAccount.findOne({
       _id: accountId,
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       isActive: true
     })
@@ -106,7 +120,7 @@ export async function PUT(
     await account.save()
 
     log.info(`Email account updated: ${account.emailAddress}`, {
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       accountId
     })
@@ -129,13 +143,20 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const { id: accountId } = await params
     const workspaceId = auth.user.currentWorkspace
 
     const account = await EmailAccount.findOne({
       _id: accountId,
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       isActive: true
     })
@@ -155,7 +176,7 @@ export async function DELETE(
     )
 
     log.info(`Email account deleted: ${account.emailAddress}`, {
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       accountId
     })

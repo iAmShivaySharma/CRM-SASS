@@ -448,7 +448,7 @@ export function EmailCompose({
                 placeholder="Email subject"
                 className="flex-1"
               />
-              <Select value={priority} onValueChange={setPriority}>
+              <Select value={priority} onValueChange={(value) => setPriority(value as 'low' | 'normal' | 'high')}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>

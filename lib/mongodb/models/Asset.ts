@@ -201,16 +201,17 @@ assetSchema.pre('save', function(next) {
 
 // Virtual for current value (with depreciation)
 assetSchema.virtual('currentValue').get(function() {
-  if (!this.depreciation.usefulLife || this.depreciation.method === 'none') {
+  if (!this.depreciation?.usefulLife || this.depreciation?.method === 'none') {
     return this.purchasePrice
   }
 
-  const ageInYears = (Date.now() - this.purchaseDate.getTime()) / (1000 * 60 * 60 * 24 * 365)
+  const ageInYears = (Date.now() - this.purchaseDate?.getTime()) / (1000 * 60 * 60 * 24 * 365)
 
-  if (this.depreciation.method === 'straight_line') {
-    const annualDepreciation = (this.purchasePrice - this.depreciation.salvageValue) / this.depreciation.usefulLife
-    const totalDepreciation = Math.min(annualDepreciation * ageInYears, this.purchasePrice - this.depreciation.salvageValue)
-    return Math.max(this.purchasePrice - totalDepreciation, this.depreciation.salvageValue)
+  if (this.depreciation?.method === 'straight_line') {
+    const salvageValue = this.depreciation?.salvageValue || 0
+    const annualDepreciation = (this.purchasePrice - salvageValue) / this.depreciation.usefulLife
+    const totalDepreciation = Math.min(annualDepreciation * ageInYears, this.purchasePrice - salvageValue)
+    return Math.max(this.purchasePrice - totalDepreciation, salvageValue)
   }
 
   return this.purchasePrice
@@ -218,7 +219,7 @@ assetSchema.virtual('currentValue').get(function() {
 
 // Virtual for warranty status
 assetSchema.virtual('warrantyStatus').get(function() {
-  if (!this.warranty.expiryDate) return 'none'
+  if (!this.warranty?.expiryDate) return 'none'
 
   const now = new Date()
   if (this.warranty.expiryDate > now) {

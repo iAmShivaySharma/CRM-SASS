@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Model } from 'mongoose'
 import crypto from 'crypto'
 
 export interface IEmailAccount extends Document {
@@ -21,16 +21,16 @@ export interface IEmailAccount extends Document {
     host: string
     port: number
     secure: boolean
-    encryptedUsername: string
-    encryptedPassword: string
+    encryptedUsername?: string
+    encryptedPassword?: string
   }
 
   imapConfig?: {
     host: string
     port: number
     secure: boolean
-    encryptedUsername: string
-    encryptedPassword: string
+    encryptedUsername?: string
+    encryptedPassword?: string
   }
 
   // Provider-specific settings
@@ -59,6 +59,9 @@ export interface IEmailAccount extends Document {
     quotaLimit?: number
   }
 
+  // Connection status
+  connectionStatus?: 'connected' | 'disconnected' | 'error' | 'testing'
+
   createdAt: Date
   updatedAt: Date
 
@@ -74,6 +77,10 @@ export interface IEmailAccount extends Document {
   isOAuthTokenExpired(): boolean
   recordEmailSent(): void
   recordEmailReceived(): void
+}
+
+export interface IEmailAccountModel extends Model<IEmailAccount> {
+  setAsDefault(accountId: string, userId: string, workspaceId: string): Promise<void>
 }
 
 const EmailAccountSchema = new Schema<IEmailAccount>(
@@ -179,6 +186,11 @@ const EmailAccountSchema = new Schema<IEmailAccount>(
       lastUsedAt: { type: Date },
       quotaUsed: { type: Number, default: 0, min: 0 },
       quotaLimit: { type: Number }
+    },
+    connectionStatus: {
+      type: String,
+      enum: ['connected', 'disconnected', 'error', 'testing'],
+      default: 'disconnected'
     }
   },
   {
@@ -194,8 +206,8 @@ EmailAccountSchema.index({ userId: 1, workspaceId: 1, isDefault: 1 })
 EmailAccountSchema.index({ provider: 1, isActive: 1 })
 EmailAccountSchema.index({ emailAddress: 1, workspaceId: 1 }, { unique: true })
 
-// Virtual for connection status
-EmailAccountSchema.virtual('connectionStatus').get(function() {
+// Virtual for computed connection status
+EmailAccountSchema.virtual('computedConnectionStatus').get(function() {
   if (this.provider === 'gmail' || this.provider === 'outlook') {
     return this.isOAuthTokenExpired() ? 'expired' : 'connected'
   }
@@ -226,8 +238,8 @@ EmailAccountSchema.methods.encryptCredentials = function(data: string): string {
     throw new Error('EMAIL_ENCRYPTION_SECRET must be a 64-character hex string')
   }
 
-  const key = Buffer.from(secretKey, 'hex')
-  const iv = crypto.randomBytes(16)
+  const key = new Uint8Array(Buffer.from(secretKey, 'hex'))
+  const iv = new Uint8Array(crypto.randomBytes(16))
   const cipher = crypto.createCipheriv(algorithm, key, iv)
 
   let encrypted = cipher.update(data, 'utf8', 'hex')
@@ -235,7 +247,7 @@ EmailAccountSchema.methods.encryptCredentials = function(data: string): string {
 
   const authTag = cipher.getAuthTag()
 
-  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`
+  return `${Buffer.from(iv).toString('hex')}:${authTag.toString('hex')}:${encrypted}`
 }
 
 EmailAccountSchema.methods.decryptCredentials = function(encrypted: string): string {
@@ -246,18 +258,18 @@ EmailAccountSchema.methods.decryptCredentials = function(encrypted: string): str
     throw new Error('EMAIL_ENCRYPTION_SECRET must be a 64-character hex string')
   }
 
-  const key = Buffer.from(secretKey, 'hex')
+  const key = new Uint8Array(Buffer.from(secretKey, 'hex'))
   const [ivHex, authTagHex, encryptedData] = encrypted.split(':')
 
   if (!ivHex || !authTagHex || !encryptedData) {
     throw new Error('Invalid encrypted credential format')
   }
 
-  const iv = Buffer.from(ivHex, 'hex')
+  const iv = new Uint8Array(Buffer.from(ivHex, 'hex'))
   const authTag = Buffer.from(authTagHex, 'hex')
   const decipher = crypto.createDecipheriv(algorithm, key, iv)
 
-  decipher.setAuthTag(authTag)
+  decipher.setAuthTag(new Uint8Array(authTag))
 
   let decrypted = decipher.update(encryptedData, 'hex', 'utf8')
   decrypted += decipher.final('utf8')
@@ -408,5 +420,20 @@ EmailAccountSchema.pre('save', async function(next) {
   next()
 })
 
-export default mongoose.models.EmailAccount ||
-  mongoose.model<IEmailAccount>('EmailAccount', EmailAccountSchema)
+// Static method to set an account as default
+EmailAccountSchema.statics.setAsDefault = async function(accountId: string, userId: string, workspaceId: string) {
+  // First, unset all other accounts as default for this workspace and user
+  await this.updateMany(
+    { workspaceId, userId, _id: { $ne: accountId } },
+    { isDefault: false }
+  )
+
+  // Then set the specified account as default
+  await this.updateOne(
+    { _id: accountId, userId, workspaceId },
+    { isDefault: true }
+  )
+}
+
+export default (mongoose.models.EmailAccount as IEmailAccountModel) ||
+  mongoose.model<IEmailAccount, IEmailAccountModel>('EmailAccount', EmailAccountSchema)

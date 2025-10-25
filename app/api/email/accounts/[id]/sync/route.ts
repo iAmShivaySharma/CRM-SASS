@@ -1,22 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount } from '@/lib/mongodb/models'
 import { EmailService } from '@/lib/services/emailProviderService'
 import { log } from '@/lib/logging/logger'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(request)
-    const accountId = params.id
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const { id: accountId } = await params
     const workspaceId = auth.user.currentWorkspace
     const body = await request.json()
 
     const account = await EmailAccount.findOne({
       _id: accountId,
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       isActive: true
     })
@@ -62,7 +69,7 @@ export async function POST(
     await account.save()
 
     log.info(`Email sync completed for account: ${account.emailAddress}`, {
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       accountId,
       syncedCount: result.count,

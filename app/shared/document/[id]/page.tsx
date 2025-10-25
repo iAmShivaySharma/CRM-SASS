@@ -18,7 +18,7 @@ interface PublicDocument {
 }
 
 export default function PublicDocumentPage() {
-  const params = useParams()
+  const params = useParams<{ id: string }>()
   const [document, setDocument] = useState<PublicDocument | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +26,7 @@ export default function PublicDocumentPage() {
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        const response = await fetch(`/api/shared/documents/${params.id}`)
+        const response = await fetch(`/api/shared/documents/${params?.id}`)
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -47,10 +47,10 @@ export default function PublicDocumentPage() {
       }
     }
 
-    if (params.id) {
+    if (params?.id) {
       fetchDocument()
     }
-  }, [params.id])
+  }, [params?.id])
 
   const getDocumentIcon = (type: string) => {
     switch (type) {

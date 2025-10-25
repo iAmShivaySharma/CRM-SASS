@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const workspaceId = auth.user.currentWorkspace
 
@@ -14,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     const accounts = await EmailAccount.find({
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       isActive: true
     }).sort({ isDefault: -1, createdAt: -1 })
@@ -47,7 +54,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const workspaceId = auth.user.currentWorkspace
 
@@ -88,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     // Check if this is the first account (make it default)
     const accountCount = await EmailAccount.countDocuments({
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       isActive: true
     })
@@ -97,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     // Create new email account
     const account = new EmailAccount({
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       provider,
       displayName,
@@ -139,7 +153,7 @@ export async function POST(request: NextRequest) {
     await account.save()
 
     log.info(`Email account created: ${emailAddress}`, {
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       provider,
       accountId: account._id

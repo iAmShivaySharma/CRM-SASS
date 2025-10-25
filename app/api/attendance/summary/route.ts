@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Attendance, WorkspaceMember } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
     const { searchParams } = new URL(request.url)
     const workspaceId = auth.user.lastActiveWorkspaceId
 

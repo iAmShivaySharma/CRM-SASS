@@ -64,7 +64,14 @@ export function DocumentEditorDialog({
   document,
 }: DocumentEditorDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [content, setContent] = useState<any[]>(document?.content || [])
+  const [content, setContent] = useState<any[]>(() => {
+    if (!document?.content) return []
+    try {
+      return typeof document.content === 'string' ? JSON.parse(document.content) : document.content
+    } catch {
+      return []
+    }
+  })
   const [tags, setTags] = useState<string[]>(document?.tags || [])
   const [tagInput, setTagInput] = useState('')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
@@ -132,7 +139,7 @@ export function DocumentEditorDialog({
     try {
       const documentData = {
         ...data,
-        content,
+        content: JSON.stringify(content),
         tags,
         projectId,
         workspaceId: currentWorkspace.id,

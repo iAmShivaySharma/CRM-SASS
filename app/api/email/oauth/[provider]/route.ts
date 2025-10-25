@@ -5,10 +5,10 @@ import { log } from '@/lib/logging/logger'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { provider: string } }
+  { params }: { params: Promise<{ provider: string }> }
 ) {
   try {
-    const provider = params.provider
+    const { provider } = await params
 
     // Verify user is authenticated
     const auth = await requireAuth(request)

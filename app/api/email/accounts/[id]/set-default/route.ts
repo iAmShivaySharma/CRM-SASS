@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
@@ -8,7 +8,14 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const { id: accountId } = await params
     const workspaceId = auth.user.currentWorkspace
 
@@ -19,7 +26,7 @@ export async function POST(
     // Verify the account exists and belongs to the user
     const account = await EmailAccount.findOne({
       _id: accountId,
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       isActive: true
     })
@@ -29,10 +36,10 @@ export async function POST(
     }
 
     // Use the static method to set as default
-    await EmailAccount.setAsDefault(accountId, auth.user.id, workspaceId)
+    await EmailAccount.setAsDefault(accountId, auth.user._id, workspaceId)
 
     log.info(`Email account set as default: ${account.emailAddress}`, {
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       accountId
     })

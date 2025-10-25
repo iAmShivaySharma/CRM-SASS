@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { User, WorkspaceMember, Attendance } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
@@ -25,7 +31,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get workspace members with user details
-    const membersAggregation = [
+    const membersAggregation: any[] = [
       { $match: memberQuery },
       {
         $lookup: {
@@ -135,7 +141,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
     const body = await request.json()
     const workspaceId = auth.user.lastActiveWorkspaceId
 

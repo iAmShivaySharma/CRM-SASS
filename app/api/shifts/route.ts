@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Shift } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
@@ -71,7 +77,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
@@ -152,14 +164,14 @@ export async function POST(request: NextRequest) {
       allowedWorkTypes,
       overtimeRules,
       totalHours,
-      createdBy: auth.user.id
+      createdBy: auth.user._id
     })
 
     await shift.save()
     await shift.populate('createdBy', 'name email')
 
     log.info('Shift created', {
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       shiftId: shift._id,
       shiftName: shift.name

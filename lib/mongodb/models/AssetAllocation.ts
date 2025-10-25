@@ -1,4 +1,22 @@
-import mongoose from 'mongoose'
+import mongoose, { Document } from 'mongoose'
+
+export interface IAssetAllocation extends Document {
+  workspaceId: mongoose.Types.ObjectId
+  assetId: mongoose.Types.ObjectId
+  employeeId: mongoose.Types.ObjectId
+  allocatedBy: mongoose.Types.ObjectId
+  allocatedDate: Date
+  expectedReturnDate?: Date
+  actualReturnDate?: Date
+  status: 'allocated' | 'returned' | 'overdue' | 'lost' | 'damaged'
+  condition: 'excellent' | 'good' | 'fair' | 'poor' | 'damaged'
+  allocationNotes?: string
+  returnNotes?: string
+
+  // Virtual properties
+  daysOverdue: number
+  isOverdue: boolean
+}
 
 const assetAllocationSchema = new mongoose.Schema({
   workspaceId: {
@@ -184,7 +202,7 @@ assetAllocationSchema.virtual('daysOverdue').get(function() {
 
 // Virtual for is overdue
 assetAllocationSchema.virtual('isOverdue').get(function() {
-  return this.daysOverdue > 0
+  return (this as any).daysOverdue > 0
 })
 
 // Instance methods
@@ -280,4 +298,4 @@ assetAllocationSchema.statics.getAllocationStats = function(workspaceId: string)
   ])
 }
 
-export const AssetAllocation = mongoose.models.AssetAllocation || mongoose.model('AssetAllocation', assetAllocationSchema)
+export const AssetAllocation = mongoose.models.AssetAllocation || mongoose.model<IAssetAllocation>('AssetAllocation', assetAllocationSchema)

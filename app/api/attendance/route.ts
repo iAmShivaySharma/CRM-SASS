@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Attendance, Shift } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
@@ -13,7 +19,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
     }
 
-    const userId = searchParams.get('userId') || auth.user.id
+    const userId = searchParams.get('userId') || auth.user._id
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
     const page = parseInt(searchParams.get('page') || '1')
@@ -64,7 +70,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
     const body = await request.json()
     const workspaceId = body.workspaceId || auth.user.lastActiveWorkspaceId
 
@@ -90,7 +102,7 @@ export async function POST(request: NextRequest) {
     today.setHours(0, 0, 0, 0)
 
     let attendance = await Attendance.findOne({
-      userId: auth.user.id,
+      userId: auth.user._id,
       workspaceId,
       date: { $gte: today, $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) }
     })
@@ -110,7 +122,7 @@ export async function POST(request: NextRequest) {
         const shift = await Shift.getDefaultShift(workspaceId)
 
         attendance = new Attendance({
-          userId: auth.user.id,
+          userId: auth.user._id,
           workspaceId,
           date: today,
           clockIn: now,
@@ -134,7 +146,7 @@ export async function POST(request: NextRequest) {
         await attendance.save()
 
         log.info('User clocked in', {
-          userId: auth.user.id,
+          userId: auth.user._id,
           workspaceId,
           attendanceId: attendance._id,
           clockInTime: now
@@ -175,7 +187,7 @@ export async function POST(request: NextRequest) {
         await attendance.save()
 
         log.info('User clocked out', {
-          userId: auth.user.id,
+          userId: auth.user._id,
           workspaceId,
           attendanceId: attendance._id,
           clockOutTime: now,

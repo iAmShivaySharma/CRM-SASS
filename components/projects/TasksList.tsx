@@ -24,10 +24,13 @@ import type { Task } from '@/lib/api/projectsApi'
 
 interface TasksListProps {
   tasks: Task[]
+  projectId?: string
+  isLoading?: boolean
+  error?: any
   onEditTask?: (task: Task) => void
 }
 
-export function TasksList({ tasks, onEditTask }: TasksListProps) {
+export function TasksList({ tasks, projectId, isLoading, error, onEditTask }: TasksListProps) {
   const priorityColors = {
     low: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
     medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',

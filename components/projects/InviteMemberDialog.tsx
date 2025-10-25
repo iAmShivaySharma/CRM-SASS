@@ -155,7 +155,7 @@ export function InviteMemberDialog({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={member.user?.avatarUrl || undefined} />
+                            <AvatarImage src={(member.user as any)?.avatarUrl || undefined} />
                             <AvatarFallback>
                               {member.user?.fullName
                                 ?.split(' ')
@@ -192,7 +192,7 @@ export function InviteMemberDialog({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={selectedUser.user?.avatarUrl || undefined} />
+                      <AvatarImage src={(selectedUser.user as any)?.avatarUrl || undefined} />
                       <AvatarFallback>
                         {selectedUser.user?.fullName
                           ?.split(' ')

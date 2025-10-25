@@ -29,6 +29,16 @@ export class GoogleOAuthProvider {
     )
   }
 
+  static create(): GoogleOAuthProvider {
+    const config = {
+      clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+      redirectUri: process.env.GOOGLE_OAUTH_REDIRECT_URI!,
+      scopes: []
+    }
+    return new GoogleOAuthProvider(config)
+  }
+
   getAuthUrl(state?: string): string {
     const scopes = [
       'https://www.googleapis.com/auth/gmail.readonly',
@@ -119,6 +129,16 @@ export class MicrosoftOAuthProvider {
 
   constructor(config: OAuthConfig) {
     this.config = config
+  }
+
+  static create(): MicrosoftOAuthProvider {
+    const config = {
+      clientId: process.env.MICROSOFT_OAUTH_CLIENT_ID!,
+      clientSecret: process.env.MICROSOFT_OAUTH_CLIENT_SECRET!,
+      redirectUri: process.env.MICROSOFT_OAUTH_REDIRECT_URI!,
+      scopes: []
+    }
+    return new MicrosoftOAuthProvider(config)
   }
 
   getAuthUrl(state?: string): string {
@@ -349,7 +369,7 @@ export class OAuthStateManager {
 
   private static cleanupExpiredStates() {
     const now = Date.now()
-    for (const [stateId, state] of this.states.entries()) {
+    for (const [stateId, state] of Array.from(this.states.entries())) {
       if (now - state.timestamp > this.STATE_EXPIRY) {
         this.states.delete(stateId)
       }

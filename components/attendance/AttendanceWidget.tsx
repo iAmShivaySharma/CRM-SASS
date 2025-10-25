@@ -152,6 +152,13 @@ export function AttendanceWidget({ compact = false, showDetails = true }: Attend
     return `${hours}h ${mins}m`
   }
 
+  // Calculate work progress
+  const getWorkProgress = () => {
+    if (!shift || !currentWorkTime) return 0
+    const shiftMinutes = shift.totalHours * 60
+    return Math.min((currentWorkTime / shiftMinutes) * 100, 100)
+  }
+
   if (isLoading) {
     return (
       <Card className={compact ? 'w-full' : 'w-full max-w-md h-full min-h-[400px]'}>
@@ -325,13 +332,6 @@ export function AttendanceWidget({ compact = false, showDetails = true }: Attend
         </CardContent>
       </Card>
     )
-  }
-
-  // Calculate work progress
-  const getWorkProgress = () => {
-    if (!shift || !currentWorkTime) return 0
-    const shiftMinutes = shift.totalHours * 60
-    return Math.min((currentWorkTime / shiftMinutes) * 100, 100)
   }
 
   const getProgressColor = () => {

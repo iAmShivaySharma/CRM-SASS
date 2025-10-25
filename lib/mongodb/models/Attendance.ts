@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface IAttendance extends Document {
   userId: mongoose.Types.ObjectId
@@ -47,6 +47,12 @@ export interface IAttendance extends Document {
   markAsApproved(approvedBy: mongoose.Types.ObjectId): Promise<IAttendance>
 }
 
+export interface IAttendanceModel extends Model<IAttendance> {
+  getTodayAttendance(userId: string, workspaceId: string): Promise<IAttendance | null>
+  getAttendanceRange(userId: string, workspaceId: string, startDate: Date, endDate: Date): Promise<IAttendance[]>
+  getWorkspaceSummary(workspaceId: string, date: Date): Promise<any[]>
+}
+
 const AttendanceSchema = new Schema<IAttendance>(
   {
     userId: {
@@ -58,8 +64,7 @@ const AttendanceSchema = new Schema<IAttendance>(
     workspaceId: {
       type: Schema.Types.ObjectId,
       ref: 'Workspace',
-      required: true,
-      index: true
+      required: true
     },
     date: {
       type: Date,
@@ -329,5 +334,5 @@ AttendanceSchema.pre('save', function(next) {
   next()
 })
 
-export default mongoose.models.Attendance ||
-  mongoose.model<IAttendance>('Attendance', AttendanceSchema)
+export default (mongoose.models.Attendance as IAttendanceModel) ||
+  mongoose.model<IAttendance, IAttendanceModel>('Attendance', AttendanceSchema)

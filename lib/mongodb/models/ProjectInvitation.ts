@@ -69,7 +69,6 @@ const ProjectInvitationSchema = new Schema<IProjectInvitation>(
     token: {
       type: String,
       required: true,
-      unique: true,
     },
     expiresAt: {
       type: Date,

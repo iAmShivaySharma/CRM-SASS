@@ -5,11 +5,11 @@ import { log } from '@/lib/logging/logger'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request)
-    const messageId = params.id
+    const { id: messageId } = await params
     const workspaceId = auth.user.currentWorkspace
 
     if (!workspaceId) {
@@ -48,11 +48,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request)
-    const messageId = params.id
+    const { id: messageId } = await params
     const body = await request.json()
     const workspaceId = auth.user.currentWorkspace
 
@@ -164,11 +164,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request)
-    const messageId = params.id
+    const { id: messageId } = await params
     const workspaceId = auth.user.currentWorkspace
 
     if (!workspaceId) {

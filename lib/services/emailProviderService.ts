@@ -365,7 +365,7 @@ export class SMTPProvider extends BaseEmailProvider {
       throw new Error('No SMTP credentials available')
     }
 
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       host: this.account.smtpConfig.host,
       port: this.account.smtpConfig.port,
       secure: this.account.smtpConfig.secure,

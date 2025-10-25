@@ -1,4 +1,43 @@
-import mongoose from 'mongoose'
+import mongoose, { Document } from 'mongoose'
+
+export interface IAssetMaintenance extends Document {
+  workspaceId: mongoose.Types.ObjectId
+  assetId: mongoose.Types.ObjectId
+  maintenanceId: string
+  type: 'repair' | 'upgrade' | 'inspection' | 'cleaning' | 'replacement' | 'calibration' | 'software_update'
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold'
+  scheduledDate: Date
+  completedDate?: Date
+  description: string
+  cost?: number
+  assignedTo?: mongoose.Types.ObjectId
+  performedBy?: mongoose.Types.ObjectId
+  vendor?: string
+  warrantyInfo?: {
+    warrantyType: 'manufacturer' | 'extended' | 'service_contract'
+    warrantyNumber?: string
+    expiryDate?: Date
+    coverage?: string
+  }
+  partsUsed?: Array<{
+    partName: string
+    partNumber?: string
+    quantity: number
+    cost?: number
+    supplier?: string
+  }>
+  documents?: Array<{
+    name: string
+    url: string
+    type: string
+  }>
+  nextMaintenanceDate?: Date
+
+  // Virtual properties
+  isOverdue: boolean
+  daysOverdue: number
+}
 
 const assetMaintenanceSchema = new mongoose.Schema({
   workspaceId: {
@@ -258,7 +297,7 @@ assetMaintenanceSchema.virtual('isOverdue').get(function() {
 
 // Virtual for days overdue
 assetMaintenanceSchema.virtual('daysOverdue').get(function() {
-  if (!this.isOverdue) return 0
+  if (!(this as any).isOverdue) return 0
   return Math.ceil((new Date().getTime() - this.scheduledDate.getTime()) / (1000 * 60 * 60 * 24))
 })
 
@@ -378,4 +417,4 @@ assetMaintenanceSchema.statics.getMaintenanceStats = function(workspaceId: strin
   ])
 }
 
-export const AssetMaintenance = mongoose.models.AssetMaintenance || mongoose.model('AssetMaintenance', assetMaintenanceSchema)
+export const AssetMaintenance = mongoose.models.AssetMaintenance || mongoose.model<IAssetMaintenance>('AssetMaintenance', assetMaintenanceSchema)

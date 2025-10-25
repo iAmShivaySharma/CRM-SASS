@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Attendance, Shift } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth(request)
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
@@ -14,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get today's attendance
-    const attendance = await Attendance.getTodayAttendance(auth.user.id, workspaceId)
+    const attendance = await Attendance.getTodayAttendance(auth.user._id, workspaceId)
 
     let todayAttendance = null
     let shift = null
@@ -64,7 +70,7 @@ export async function GET(request: NextRequest) {
 
       // Debug logging
       log.info('Current work time calculation', {
-        userId: auth.user.id,
+        userId: auth.user._id,
         workspaceId,
         status: attendance.status,
         clockIn: attendance.clockIn,
@@ -77,7 +83,7 @@ export async function GET(request: NextRequest) {
       attendance.totalWorkTime = currentWorkTime
 
       // Calculate expected clock out time
-      if (shift && attendance.clockIn) {
+      if (shift && attendance.clockIn && typeof shift === 'object' && 'totalHours' in shift) {
         const shiftDurationMs = shift.totalHours * 60 * 60 * 1000
         expectedClockOut = new Date(attendance.clockIn.getTime() + shiftDurationMs)
       }
@@ -86,7 +92,7 @@ export async function GET(request: NextRequest) {
       currentWorkTime = attendance.totalWorkTime || 0
 
       log.info('Clocked out work time', {
-        userId: auth.user.id,
+        userId: auth.user._id,
         workspaceId,
         savedTotalWorkTime: attendance.totalWorkTime,
         currentWorkTime

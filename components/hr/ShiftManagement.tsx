@@ -262,7 +262,7 @@ export function ShiftManagement() {
 
   const handleDeleteShift = async (shiftId: string) => {
     const shift = shifts.find(s => s._id === shiftId)
-    if (shift?.employeeCount > 0) {
+    if (shift?.employeeCount && shift.employeeCount > 0) {
       toast.error('Cannot delete shift with assigned employees')
       return
     }

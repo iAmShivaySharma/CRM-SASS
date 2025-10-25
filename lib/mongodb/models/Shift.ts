@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface IShift extends Document {
   name: string
@@ -29,6 +29,11 @@ export interface IShift extends Document {
   isWorkingDay(date: Date): boolean
   getShiftDuration(): number
   isWithinGracePeriod(arrivalTime: Date, shiftDate: Date): boolean
+}
+
+export interface IShiftModel extends Model<IShift> {
+  getDefaultShift(workspaceId: string): Promise<IShift | null>
+  getUserShift(userId: string, workspaceId: string, date: Date): Promise<IShift | null>
 }
 
 const ShiftSchema = new Schema<IShift>(
@@ -238,7 +243,7 @@ ShiftSchema.pre('save', function(next) {
 
   // Ensure only one default shift per workspace
   if (this.isDefault && this.isModified('isDefault')) {
-    this.constructor.updateMany(
+    (this.constructor as IShiftModel).updateMany(
       {
         workspaceId: this.workspaceId,
         _id: { $ne: this._id }
@@ -250,5 +255,5 @@ ShiftSchema.pre('save', function(next) {
   next()
 })
 
-export default mongoose.models.Shift ||
-  mongoose.model<IShift>('Shift', ShiftSchema)
+export default (mongoose.models.Shift as IShiftModel) ||
+  mongoose.model<IShift, IShiftModel>('Shift', ShiftSchema)

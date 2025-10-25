@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/security/auth-middleware'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
 import {
   WorkspaceMember,
   User,
@@ -43,13 +43,16 @@ export const POST = withSecurityLogging(
       }
 
       // Authentication
-      const authResult = await requireAuth(request)
-      if (!authResult.success) {
-        return authResult.response
+      const auth = await verifyAuthToken(request)
+      if (!auth) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        )
       }
 
-      const userId = authResult.user.id
-      const userEmail = authResult.user.email
+      const userId = auth.user._id
+      const userEmail = auth.user.email
 
       // Parse and validate request body
       const body = await request.json()
@@ -171,7 +174,7 @@ export const POST = withSecurityLogging(
         await NotificationService.createNotification({
           workspaceId: invitation.workspaceId._id,
           title: 'Invitation Accepted',
-          message: `${authResult.user.fullName || authResult.user.email} accepted the invitation to join ${invitation.workspaceId.name}`,
+          message: `${auth.user.fullName || auth.user.email} accepted the invitation to join ${invitation.workspaceId.name}`,
           type: 'success',
           entityType: 'workspace',
           entityId: invitation.workspaceId._id.toString(),
@@ -180,7 +183,7 @@ export const POST = withSecurityLogging(
           excludeUserIds: [userId], // Don't notify the person who accepted
           targetUserIds: [invitation.invitedBy._id.toString()], // Notify the inviter
           metadata: {
-            acceptedBy: authResult.user.fullName || authResult.user.email,
+            acceptedBy: auth.user.fullName || auth.user.email,
             roleName: invitation.roleId.name,
             workspaceName: invitation.workspaceId.name,
             inviterName:
