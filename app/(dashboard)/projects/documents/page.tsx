@@ -12,7 +12,7 @@ import {
   MoreVertical,
   Eye,
   Edit,
-  Download,
+  Share2,
   Folder,
 } from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
@@ -49,7 +49,6 @@ import {
 } from '@/components/ui/tiptap-editor-improved'
 import { StatsCardSkeleton, CardSkeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
-import jsPDF from 'jspdf'
 
 export default function ProjectDocumentsPage() {
   const router = useRouter()
@@ -194,55 +193,17 @@ export default function ProjectDocumentsPage() {
     }
   }
 
-  const handleDownloadDocument = (doc: any) => {
+  const handleShareDocument = async (doc: any) => {
     try {
-      // Create PDF
-      const pdf = new jsPDF()
-      const content = extractPlainText(doc.content)
-      const filename = `${doc.title.replace(/[^a-z0-9\s]/gi, '_').replace(/\s+/g, '_')}.pdf`
+      // Generate a shareable link
+      const shareUrl = `${window.location.origin}/shared/document/${doc.id}`
 
-      // Add title
-      pdf.setFontSize(20)
-      pdf.text(doc.title, 20, 30)
-
-      // Add creation date
-      pdf.setFontSize(12)
-      pdf.text(`Created: ${new Date(doc.createdAt).toLocaleDateString()}`, 20, 45)
-      pdf.text(`Updated: ${new Date(doc.updatedAt).toLocaleDateString()}`, 20, 55)
-
-      // Add project name
-      const projectName = projectsData?.projects.find(p => p.id === doc.projectId)?.name || 'Unknown Project'
-      pdf.text(`Project: ${projectName}`, 20, 65)
-
-      // Add content
-      pdf.setFontSize(11)
-
-      // Split content into lines that fit the page width
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const margins = 20
-      const maxLineWidth = pageWidth - (margins * 2)
-
-      const lines = pdf.splitTextToSize(content, maxLineWidth)
-
-      let currentY = 85
-      const lineHeight = 7
-      const pageHeight = pdf.internal.pageSize.getHeight()
-
-      lines.forEach((line: string) => {
-        if (currentY + lineHeight > pageHeight - margins) {
-          pdf.addPage()
-          currentY = margins
-        }
-        pdf.text(line, margins, currentY)
-        currentY += lineHeight
-      })
-
-      // Download the PDF
-      pdf.save(filename)
-      toast.success('Document downloaded as PDF')
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success('Share link copied to clipboard!')
     } catch (error) {
-      console.error('PDF generation failed:', error)
-      toast.error('Failed to generate PDF')
+      console.error('Failed to copy share link:', error)
+      toast.error('Failed to copy share link')
     }
   }
 
@@ -500,10 +461,10 @@ export default function ProjectDocumentsPage() {
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => handleDownloadDocument(document)}
+                        onClick={() => handleShareDocument(document)}
                       >
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Share Link
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -611,10 +572,10 @@ export default function ProjectDocumentsPage() {
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDownloadDocument(document)}
+                          onClick={() => handleShareDocument(document)}
                         >
-                          <Download className="mr-2 h-4 w-4" />
-                          Download
+                          <Share2 className="mr-2 h-4 w-4" />
+                          Share Link
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem

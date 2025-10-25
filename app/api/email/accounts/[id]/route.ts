@@ -5,11 +5,11 @@ import { log } from '@/lib/logging/logger'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request)
-    const accountId = params.id
+    const { id: accountId } = await params
     const workspaceId = auth.user.currentWorkspace
 
     const account = await EmailAccount.findOne({
@@ -47,11 +47,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request)
-    const accountId = params.id
+    const { id: accountId } = await params
     const body = await request.json()
     const workspaceId = auth.user.currentWorkspace
 
@@ -126,11 +126,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request)
-    const accountId = params.id
+    const { id: accountId } = await params
     const workspaceId = auth.user.currentWorkspace
 
     const account = await EmailAccount.findOne({

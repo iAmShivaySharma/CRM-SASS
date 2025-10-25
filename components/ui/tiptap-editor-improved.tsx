@@ -154,7 +154,7 @@ export function TiptapEditor({
     editable,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      // Use HTML format for better compatibility and simpler rendering
+      // Use HTML format with proper encoding
       const html = editor.getHTML()
       onChange?.(html)
     },
@@ -163,6 +163,12 @@ export function TiptapEditor({
         class: `prose prose-lg max-w-none focus:outline-none p-6`,
         style: `min-height: ${minHeight}`,
         'data-placeholder': placeholder,
+      },
+      transformPastedHTML: (html: string) => {
+        // Clean pasted HTML to prevent encoding issues
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = html
+        return tempDiv.innerHTML
       },
     },
   })
@@ -960,17 +966,17 @@ export function extractPlainText(
 ): string {
   if (!content) return 'No content'
 
-  // If content is HTML string, strip tags
-  if (typeof content === 'string') {
-    const plainText = content.replace(/<[^>]*>/g, '')
-    return (
-      plainText.substring(0, maxLength) +
-      (plainText.length > maxLength ? '...' : '')
-    )
-  }
+  let plainText = ''
 
-  // If content is JSON, extract text from nodes
-  if (typeof content === 'object' && content !== null) {
+  // If content is HTML string, use proper DOM parsing
+  if (typeof content === 'string') {
+    // Create a temporary DOM element to properly decode HTML entities and extract text
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = content
+    plainText = tempDiv.textContent || tempDiv.innerText || ''
+  }
+  // If content is JSON object (Tiptap format), extract text from nodes
+  else if (typeof content === 'object' && content !== null) {
     const extractTextFromNode = (node: any): string => {
       if (typeof node === 'string') return node
       if (!node) return ''
@@ -980,6 +986,11 @@ export function extractPlainText(
       // Extract text from current node
       if (node.text) {
         text += node.text
+      }
+
+      // Add space after block elements
+      if (node.type && ['paragraph', 'heading', 'listItem'].includes(node.type)) {
+        text += ' '
       }
 
       // Recursively extract from content array
@@ -992,14 +1003,15 @@ export function extractPlainText(
       return text
     }
 
-    const plainText = extractTextFromNode(content)
-    return (
-      plainText.substring(0, maxLength) +
-      (plainText.length > maxLength ? '...' : '')
-    )
+    plainText = extractTextFromNode(content)
   }
 
-  return 'No content'
+  // Clean up whitespace and return
+  plainText = plainText.replace(/\s+/g, ' ').trim()
+
+  return maxLength === Infinity
+    ? plainText
+    : plainText.substring(0, maxLength) + (plainText.length > maxLength ? '...' : '')
 }
 
 // Utility function to convert Tiptap JSON to HTML

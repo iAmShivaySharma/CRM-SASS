@@ -5,11 +5,11 @@ import { log } from '@/lib/logging/logger'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAuth(request)
-    const accountId = params.id
+    const { id: accountId } = await params
     const workspaceId = auth.user.currentWorkspace
 
     if (!workspaceId) {

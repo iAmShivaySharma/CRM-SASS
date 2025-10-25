@@ -132,7 +132,63 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
     try {
       // Create PDF
       const pdf = new jsPDF()
-      const content = extractPlainText(doc.content)
+
+      // Better content extraction - handle different content formats
+      let content = ''
+
+      if (typeof doc.content === 'string') {
+        // If it's HTML, extract text properly
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = doc.content
+        content = tempDiv.textContent || tempDiv.innerText || doc.content
+
+        // If still looks like HTML tags, strip them
+        content = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+      } else if (doc.content && typeof doc.content === 'object') {
+        // If it's JSON/Tiptap format, extract text recursively
+        const extractTextFromJSON = (node: any): string => {
+          if (typeof node === 'string') return node
+          if (!node) return ''
+
+          let text = ''
+
+          // Handle text nodes
+          if (node.text) {
+            text += node.text
+          }
+
+          // Handle content arrays
+          if (Array.isArray(node.content)) {
+            node.content.forEach((child: any) => {
+              const childText = extractTextFromJSON(child)
+              text += childText
+
+              // Add line breaks for block elements
+              if (node.type === 'paragraph' || node.type === 'heading') {
+                text += '\n'
+              }
+            })
+          }
+
+          // Add line breaks for block elements
+          if (node.type === 'paragraph' || node.type === 'heading') {
+            text += '\n'
+          }
+
+          return text
+        }
+
+        content = extractTextFromJSON(doc.content)
+      } else {
+        content = String(doc.content || 'No content available')
+      }
+
+      // Clean up the content
+      content = content
+        .replace(/\n\s*\n/g, '\n\n') // Clean up multiple line breaks
+        .replace(/^\s+|\s+$/g, '') // Trim whitespace
+        .replace(/[^\x20-\x7E\n\t]/g, '') // Remove non-printable characters except newlines and tabs
+
       const filename = `${doc.title.replace(/[^a-z0-9\s]/gi, '_').replace(/\s+/g, '_')}.pdf`
 
       // Add title
@@ -163,7 +219,9 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
           pdf.addPage()
           currentY = margins
         }
-        pdf.text(line, margins, currentY)
+        // Ensure line is a string and clean
+        const cleanLine = String(line).replace(/[^\x20-\x7E\n\t]/g, '')
+        pdf.text(cleanLine, margins, currentY)
         currentY += lineHeight
       })
 

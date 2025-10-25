@@ -21,9 +21,16 @@ const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/auth/signup',
   '/api/webhooks',
+  '/shared',
+  '/api/shared',
 ]
 
 function isProtectedRoute(pathname: string): boolean {
+  // Check if it's explicitly a public route
+  if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+    return false
+  }
+
   return PROTECTED_ROUTES.some(route => pathname.startsWith(route))
 }
 
