@@ -15,9 +15,7 @@ async function connectToMongoDB(): Promise<void> {
 
   try {
     const mongoUri =
-      process.env.MONGODB_URI ||
-      'mongodb://root:9CJqBIBm4S7IVuPazC4wOE19ANUSSQErfi3SwxMqgf1wQ2PAfC9qjSkAMAxRHC0r@46.202.167.64:27202/?directConnection=true'
-
+      process.env.MONGODB_URI
     if (!mongoUri) {
       throw new Error('MONGODB_URI environment variable is not defined')
     }
