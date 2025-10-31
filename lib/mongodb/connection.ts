@@ -7,6 +7,12 @@ interface MongoConnection {
 const connection: MongoConnection = {}
 
 async function connectToMongoDB(): Promise<void> {
+  // Skip connection during build time
+  if (process.env.NODE_ENV === 'production' && process.env.MONGODB_URI?.includes('placeholder')) {
+    console.log('Skipping MongoDB connection during build time')
+    return
+  }
+
   // Check if already connected
   if (mongoose.connection.readyState === 1) {
     console.log('Already connected to MongoDB')

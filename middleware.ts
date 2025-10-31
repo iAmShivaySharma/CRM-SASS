@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
-
 const PROTECTED_ROUTES = [
   '/dashboard',
   '/leads',
@@ -50,12 +49,12 @@ async function verifyToken(token: string): Promise<boolean> {
 }
 
 const getAllowedOrigins = (): string[] => {
-  const origins =
-    process.env.CORS_ORIGINS ||
-    process.env.ALLOWED_ORIGINS ||
-    'http://localhost:3000,http://localhost:3001'
-  return origins.split(',').map(origin => origin.trim())
+  if (!process.env.CORS_ORIGINS) {
+    throw new Error('CORS_ORIGINS environment variable is not set')
+  }
+  return process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
 }
+
 
 function handleCors(
   request: NextRequest,

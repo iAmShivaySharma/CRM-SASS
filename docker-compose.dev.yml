@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # MongoDB Database for development
+  mongodb-dev:
+    image: mongo:7.0
+    container_name: crm-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: crm_database
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+    networks:
+      - crm-dev-network
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: crm-app-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://admin:password123@mongodb-dev:27017/crm_database?authSource=admin
+      - JWT_SECRET=dev-jwt-secret-for-local-development
+      - JWT_EXPIRES_IN=7d
+      - CORS_ORIGINS=http://localhost:3000
+      - N8N_BASE_URL=http://localhost:5678
+      - N8N_API_KEY=dev-placeholder-n8n-key
+      - DODO_API_KEY=dev-placeholder-key
+      - DODO_WEBHOOK_SECRET=dev-placeholder-secret
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      - mongodb-dev
+    networks:
+      - crm-dev-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
+
+volumes:
+  mongodb_dev_data:
+    driver: local
+
+networks:
+  crm-dev-network:
+    driver: bridge

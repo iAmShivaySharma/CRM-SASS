@@ -1,0 +1,23 @@
+# Development Dockerfile - optimized for hot reload and development workflow
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Set development environment
+ENV NODE_ENV=development
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+RUN npm install
+
+# Copy application code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Start development server with hot reload
+CMD ["npm", "run", "dev"]
