@@ -13,7 +13,6 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "tsBuildInfoFile": ".next/cache/.tsbuildinfo",
     "plugins": [
       {
         "name": "next"
@@ -21,44 +20,15 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    },
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["node", "react", "react-dom"]
+    }
   },
-  "include": [
-    "next-env.d.ts",
-    "app/**/*.ts",
-    "app/**/*.tsx",
-    "components/**/*.ts",
-    "components/**/*.tsx",
-    "lib/**/*.ts",
-    "lib/**/*.tsx",
-    "hooks/**/*.ts",
-    "hooks/**/*.tsx",
-    "pages/**/*.ts",
-    "pages/**/*.tsx",
-    "scripts/**/*.ts",
-    "scripts/**/*.tsx",
-    "middleware.ts",
-    "tailwind.config.ts"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
-    ".next",
-    "out",
-    "dist",
-    "build",
     "__tests__",
     "e2e",
     "**/*.test.*",
     "**/*.spec.*",
-    "playwright.config.ts",
-    "jest.config.js",
-    "jest.setup.js",
-    "jest.global-setup.js",
-    "jest.global-teardown.js",
-    "coverage",
-    "test-results",
-    "playwright-report"
+    "playwright.config.ts"
   ]
 }
