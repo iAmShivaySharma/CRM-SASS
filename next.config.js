@@ -14,6 +14,8 @@ const nextConfig = {
   experimental: {
     typedRoutes: false, // Disable if not needed - reduces type checking overhead
   },
+  // Disable automatic type generation that causes memory issues
+  generateTypes: false,
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Handle MongoDB optional dependencies
