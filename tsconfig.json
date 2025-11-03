@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "tsBuildInfoFile": ".next/cache/.tsbuildinfo",
     "plugins": [
       {
         "name": "next"
@@ -20,15 +21,33 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node", "react", "react-dom"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules",
+    ".next",
+    "out",
+    "dist",
+    "build",
     "__tests__",
     "e2e",
     "**/*.test.*",
     "**/*.spec.*",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "jest.config.js",
+    "jest.setup.js",
+    "jest.global-setup.js",
+    "jest.global-teardown.js",
+    "coverage",
+    "test-results",
+    "playwright-report"
   ]
 }

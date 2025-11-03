@@ -3,10 +3,17 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: false,
+    tsconfigPath: './tsconfig.json'
+  },
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ['mongoose'], // ✅ updated config
+  serverExternalPackages: ['mongoose'],
+  experimental: {
+    typedRoutes: false, // Disable if not needed - reduces type checking overhead
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Handle MongoDB optional dependencies
