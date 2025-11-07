@@ -31,6 +31,7 @@ import {
 } from '@/lib/slices/themeSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import { ThemeCustomizer } from '@/components/theme/ThemeCustomizer'
+import WallpaperSettings from '@/components/settings/WallpaperSettings'
 import {
   useGetUserPreferencesQuery,
   usePatchUserPreferencesMutation,
@@ -55,6 +56,7 @@ import {
   Eye,
   EyeOff,
   Building2,
+  Image,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -213,7 +215,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full space-y-4">
-        <TabsList className="grid w-full grid-cols-2 bg-muted dark:bg-gray-800 sm:grid-cols-3 lg:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-2 bg-muted dark:bg-gray-800 sm:grid-cols-3 lg:grid-cols-7">
           <TabsTrigger value="profile" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span>Profile</span>
@@ -242,6 +244,10 @@ export default function SettingsPage() {
           >
             <Palette className="h-4 w-4" />
             <span>Appearance</span>
+          </TabsTrigger>
+          <TabsTrigger value="wallpaper" className="flex items-center space-x-2">
+            <Image className="h-4 w-4" />
+            <span>Wallpaper</span>
           </TabsTrigger>
           <TabsTrigger value="advanced" className="flex items-center space-x-2">
             <Globe className="h-4 w-4" />
@@ -701,6 +707,10 @@ export default function SettingsPage() {
 
         <TabsContent value="appearance" className="space-y-4">
           <ThemeCustomizer />
+        </TabsContent>
+
+        <TabsContent value="wallpaper" className="space-y-4">
+          <WallpaperSettings />
         </TabsContent>
 
         <TabsContent value="advanced" className="space-y-4">

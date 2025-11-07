@@ -29,6 +29,19 @@ export interface UserPreferences {
       animations?: boolean
     }
   }
+  wallpaper?: {
+    enabled?: boolean
+    source?: 'unsplash' | 'custom' | 'none'
+    imageUrl?: string
+    imageId?: string
+    customUrl?: string
+    transparency?: number
+    blurAmount?: number
+    overlayColor?: string
+    autoChange?: boolean
+    changeInterval?: number
+    category?: string
+  }
   notifications?: {
     email?: boolean
     push?: boolean

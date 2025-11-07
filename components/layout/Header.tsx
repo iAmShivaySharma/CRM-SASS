@@ -45,6 +45,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 // Workspace creation validation schema
 const workspaceSchema = z.object({
@@ -65,9 +66,10 @@ type WorkspaceFormData = z.infer<typeof workspaceSchema>
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void
+  wallpaperEnabled?: boolean
 }
 
-export function Header({ onMobileMenuToggle }: HeaderProps) {
+export function Header({ onMobileMenuToggle, wallpaperEnabled = false }: HeaderProps) {
   const { user } = useAppSelector(state => state.auth)
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const dispatch = useAppDispatch()
@@ -137,7 +139,12 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 sm:px-6">
+      <header className={cn(
+        "flex h-16 items-center justify-between border-b border-border px-4 sm:px-6",
+        wallpaperEnabled
+          ? "bg-background/80 backdrop-blur-md"
+          : "bg-background"
+      )}>
         <div className="flex flex-1 items-center space-x-2 sm:space-x-4">
           {/* Mobile menu button */}
           <Button

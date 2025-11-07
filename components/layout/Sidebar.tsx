@@ -45,6 +45,7 @@ interface SidebarProps {
   onToggle: () => void
   mobileMenuOpen?: boolean
   onMobileMenuToggle?: () => void
+  wallpaperEnabled?: boolean
 }
 
 const navigation = [
@@ -194,6 +195,7 @@ export function Sidebar({
   onToggle,
   mobileMenuOpen,
   onMobileMenuToggle,
+  wallpaperEnabled = false,
 }: SidebarProps) {
   const pathname = usePathname()
   const [expandedSections, setExpandedSections] = useState<
@@ -302,7 +304,10 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        'fixed inset-y-0 left-0 z-50 bg-white shadow-xl transition-all duration-300 dark:bg-gray-950',
+        'fixed inset-y-0 left-0 z-50 shadow-xl transition-all duration-300',
+        wallpaperEnabled
+          ? 'bg-white/80 backdrop-blur-md dark:bg-gray-950/80'
+          : 'bg-white dark:bg-gray-950',
         // Desktop behavior
         'hidden flex-col lg:flex',
         collapsed ? 'lg:w-16' : 'lg:w-64',
@@ -312,7 +317,12 @@ export function Sidebar({
       )}
     >
       <div className="flex h-full flex-col">
-        <div className="flex h-16 shrink-0 items-center justify-between bg-gradient-to-r from-primary/10 to-primary/5 px-4 dark:from-primary/20 dark:to-primary/10">
+        <div className={cn(
+          "flex h-16 shrink-0 items-center justify-between px-4",
+          wallpaperEnabled
+            ? "bg-gradient-to-r from-primary/5 to-primary/3 dark:from-primary/15 dark:to-primary/8"
+            : "bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10"
+        )}>
           {!collapsed && (
             <div className="flex items-center space-x-3">
               <div className="rounded-lg bg-primary p-1.5 shadow-lg">
