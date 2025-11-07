@@ -139,12 +139,16 @@ export function Header({ onMobileMenuToggle, wallpaperEnabled = false }: HeaderP
 
   return (
     <>
-      <header className={cn(
-        "flex h-16 items-center justify-between border-b border-border px-4 sm:px-6",
-        wallpaperEnabled
-          ? "bg-background/80 backdrop-blur-md"
-          : "bg-background"
-      )}>
+      <header
+        className={cn(
+          "flex h-16 items-center justify-between border-b border-border px-4 sm:px-6 transition-all duration-200 ease-out",
+          wallpaperEnabled
+            ? "bg-background/85 backdrop-blur-sm"
+            : "bg-background",
+          "transform-gpu will-change-transform backdrop-blur-optimized"
+        )}
+        style={wallpaperEnabled ? { backdropFilter: 'blur(8px)' } : undefined}
+      >
         <div className="flex flex-1 items-center space-x-2 sm:space-x-4">
           {/* Mobile menu button */}
           <Button

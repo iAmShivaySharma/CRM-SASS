@@ -285,7 +285,9 @@ class WallpaperService {
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
+      backgroundAttachment: 'fixed',
+      willChange: 'transform, opacity',
+      transform: 'translateZ(0)', // Force hardware acceleration
     }
 
     if (preferences.blurAmount > 0 || preferences.transparency < 100) {
@@ -298,6 +300,20 @@ class WallpaperService {
     }
 
     return style
+  }
+
+  // Optimize image URL for better performance
+  optimizeImageUrl(url: string, width = 1920, quality = 80): string {
+    // For Unsplash URLs, optimize the parameters
+    if (url.includes('unsplash.com')) {
+      const urlObj = new URL(url)
+      urlObj.searchParams.set('w', width.toString())
+      urlObj.searchParams.set('q', quality.toString())
+      urlObj.searchParams.set('fm', 'webp') // Use WebP format for better compression
+      urlObj.searchParams.set('fit', 'crop')
+      return urlObj.toString()
+    }
+    return url
   }
 
   getDefaultPreferences(): WallpaperPreferences {

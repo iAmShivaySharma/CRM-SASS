@@ -9,6 +9,7 @@ import { SocketProvider } from '@/lib/context/SocketContext'
 import { useGetUserPreferencesQuery } from '@/lib/api/userPreferencesApi'
 import { wallpaperService } from '@/lib/services/wallpaperService'
 import { cn } from '@/lib/utils'
+import OptimizedWallpaper from './OptimizedWallpaper'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -30,21 +31,11 @@ export default function DashboardLayout({ children, userId }: DashboardLayoutPro
     }
   }, [userPreferences])
 
-  const backgroundStyle = useMemo(() =>
-    wallpaperService.generateBackgroundStyle(wallpaperPreferences),
-    [wallpaperPreferences]
-  )
-
   return (
     <SocketProvider>
       <div className="min-h-screen bg-background dark:bg-gray-900 relative">
-        {/* Wallpaper Background */}
-        {wallpaperPreferences.enabled && wallpaperPreferences.imageUrl && (
-          <div
-            className="fixed inset-0 z-0"
-            style={backgroundStyle}
-          />
-        )}
+        {/* Optimized Wallpaper Background */}
+        <OptimizedWallpaper preferences={wallpaperPreferences} />
 
         {/* Content Overlay */}
         <div className="relative z-10 min-h-screen">
@@ -81,10 +72,15 @@ export default function DashboardLayout({ children, userId }: DashboardLayoutPro
             <main className="w-full p-4 sm:p-6 lg:p-8">
               <div
                 className={cn(
-                  "w-full",
+                  "w-full transition-all duration-200 ease-out",
                   wallpaperPreferences.enabled && wallpaperPreferences.imageUrl &&
-                  "backdrop-blur-sm bg-background/80 dark:bg-gray-900/80 rounded-lg p-4"
+                  "bg-background/90 dark:bg-gray-900/90 rounded-lg p-4 transform-gpu will-change-transform backdrop-blur-optimized"
                 )}
+                style={
+                  wallpaperPreferences.enabled && wallpaperPreferences.imageUrl
+                    ? { backdropFilter: 'blur(4px)' }
+                    : undefined
+                }
               >
                 {children}
               </div>

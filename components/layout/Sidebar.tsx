@@ -304,17 +304,20 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        'fixed inset-y-0 left-0 z-50 shadow-xl transition-all duration-300',
+        'fixed inset-y-0 left-0 z-50 shadow-xl transition-all duration-200 ease-out',
         wallpaperEnabled
-          ? 'bg-white/80 backdrop-blur-md dark:bg-gray-950/80'
+          ? 'bg-white/85 backdrop-blur-sm dark:bg-gray-950/85'
           : 'bg-white dark:bg-gray-950',
         // Desktop behavior
         'hidden flex-col lg:flex',
         collapsed ? 'lg:w-16' : 'lg:w-64',
         // Mobile behavior - overlay when open
         mobileMenuOpen && 'flex w-64 flex-col',
-        !mobileMenuOpen && 'lg:flex'
+        !mobileMenuOpen && 'lg:flex',
+        // Performance optimization
+        'transform-gpu will-change-transform backdrop-blur-optimized'
       )}
+      style={wallpaperEnabled ? { backdropFilter: 'blur(8px)' } : undefined}
     >
       <div className="flex h-full flex-col">
         <div className={cn(

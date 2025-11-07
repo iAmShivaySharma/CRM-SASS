@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
@@ -53,9 +53,8 @@ export default function WallpaperSettings({ className }: WallpaperSettingsProps)
     }
   }, [userPreferences])
 
-  useEffect(() => {
-    loadFeaturedCollections()
-  }, [])
+  // Debounced update for performance-sensitive settings like transparency
+  const timeoutRef = useRef<NodeJS.Timeout>()
 
   const updatePreferences = async (updates: Partial<typeof preferences>) => {
     try {
@@ -68,7 +67,20 @@ export default function WallpaperSettings({ className }: WallpaperSettingsProps)
     }
   }
 
-  const loadFeaturedCollections = async () => {
+  const debouncedUpdatePreferences = useCallback(
+    (updates: Partial<typeof preferences>) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        updatePreferences(updates)
+      }, 300) // 300ms debounce
+    },
+    [updatePreferences]
+  )
+
+  const loadFeaturedCollections = useCallback(async () => {
     try {
       setIsLoading(true)
       const data = await fetch('/api/wallpaper/collections').then(res => res.json())
@@ -78,7 +90,18 @@ export default function WallpaperSettings({ className }: WallpaperSettingsProps)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadFeaturedCollections()
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [loadFeaturedCollections])
 
   const loadRandomWallpaper = async (category?: string) => {
     try {
@@ -154,7 +177,7 @@ export default function WallpaperSettings({ className }: WallpaperSettingsProps)
     await updatePreferences({
       imageUrl: wallpaper.urls.regular,
       imageId: wallpaper.id,
-      source: 'unsplash'
+      source: preferences.source === 'fallback' ? 'fallback' : 'unsplash'
     })
   }
 
@@ -299,7 +322,7 @@ export default function WallpaperSettings({ className }: WallpaperSettingsProps)
                 </div>
                 <Slider
                   value={[preferences.transparency]}
-                  onValueChange={([transparency]) => updatePreferences({ transparency })}
+                  onValueChange={([transparency]) => debouncedUpdatePreferences({ transparency })}
                   max={100}
                   min={5}
                   step={5}
@@ -314,7 +337,7 @@ export default function WallpaperSettings({ className }: WallpaperSettingsProps)
                 </div>
                 <Slider
                   value={[preferences.blurAmount]}
-                  onValueChange={([blurAmount]) => updatePreferences({ blurAmount })}
+                  onValueChange={([blurAmount]) => debouncedUpdatePreferences({ blurAmount })}
                   max={20}
                   min={0}
                   step={1}
@@ -453,7 +476,7 @@ export default function WallpaperSettings({ className }: WallpaperSettingsProps)
                       <div key={wallpaper.id} className="group relative">
                         <img
                           src={wallpaper.urls.thumb}
-                          alt={wallpaper.alt_description}
+                          alt={wallpaper.alt_description || 'Wallpaper thumbnail'}
                           className="w-full h-24 object-cover rounded cursor-pointer transition-opacity group-hover:opacity-75"
                           onClick={() => selectWallpaper(wallpaper)}
                         />
@@ -500,7 +523,7 @@ export default function WallpaperSettings({ className }: WallpaperSettingsProps)
                               <img
                                 key={photo.id}
                                 src={photo.urls.thumb}
-                                alt={photo.alt_description}
+                                alt={photo.alt_description || 'Collection preview'}
                                 className="w-16 h-12 object-cover rounded"
                               />
                             ))}
