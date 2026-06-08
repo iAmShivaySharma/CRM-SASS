@@ -1,13 +1,13 @@
-import { POST as loginHandler } from '../../app/api/auth/login/route'
-import { POST as signupHandler } from '../../app/api/auth/signup/route'
-import { POST as verifyHandler } from '../..//app/api/auth/verify/route'
-import { POST as logoutHandler } from '../..//app/api/auth/logout/route'
+import { POST as loginHandler } from '../../../app/api/auth/login/route'
+import { POST as signupHandler } from '../../../app/api/auth/signup/route'
+import { POST as verifyHandler } from '../../../app/api/auth/verify/route'
+import { POST as logoutHandler } from '../../../app/api/auth/logout/route'
 import {
   testApiRoute,
   validateApiResponse,
   apiResponseStructures,
   expectAsyncError,
-} from '../helpers/apiHelpers'
+} from '../../helpers/apiHelpers'
 import {
   generateTestJWT,
   generateExpiredJWT,
@@ -15,7 +15,7 @@ import {
   createAuthHeaders,
   hashTestPassword,
   verifyJWTStructure,
-} from '../helpers/authHelpers'
+} from '../../helpers/authHelpers'
 
 // Mock dependencies
 jest.mock('@/lib/mongodb/connection')

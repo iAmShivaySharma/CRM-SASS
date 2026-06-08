@@ -9,13 +9,13 @@ import {
   testApiRoute,
   validateApiResponse,
   apiResponseStructures,
-} from '../helpers/apiHelpers'
+} from '../../helpers/apiHelpers'
 import {
   generateTestJWT,
   createAuthHeaders,
   createMockWorkspaceMember,
-} from '../helpers/authHelpers'
-import { generateTestLead, mockApiResponses } from '../helpers/testUtils'
+} from '../../helpers/authHelpers'
+import { generateTestLead, mockApiResponses } from '../../helpers/testUtils'
 
 // Mock dependencies
 jest.mock('@/lib/mongodb/connection')
