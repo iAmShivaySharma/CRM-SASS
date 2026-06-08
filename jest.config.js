@@ -2,7 +2,16 @@
 const config = {
   coverageProvider: 'v8',
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
+
+  // Spin up / tear down in-memory MongoDB around the full test suite
+  globalSetup: '<rootDir>/tests/config/global-setup.js',
+  globalTeardown: '<rootDir>/tests/config/global-teardown.js',
+
+  // Per-file setup: Next.js mocks + browser API stubs
+  setupFilesAfterEnv: [
+    '<rootDir>/tests/config/jest-setup.js',
+    '<rootDir>/tests/setup.ts',
+  ],
 
   // Module name mapping for imports (correct property name)
   moduleNameMapper: {
@@ -15,7 +24,7 @@ const config = {
 
   // Test match patterns
   testMatch: [
-    '**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)',
+    '**/tests/**/*.(test|spec).(js|jsx|ts|tsx)',
     '**/*.(test|spec).(js|jsx|ts|tsx)',
   ],
 
@@ -35,6 +44,7 @@ const config = {
     '!**/.next/**',
     '!**/coverage/**',
     '!**/e2e/**',
+    '!**/tests/config/**',
     '!jest.config.js',
     '!next.config.js',
     '!tailwind.config.ts',
