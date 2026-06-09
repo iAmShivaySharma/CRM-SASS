@@ -18,6 +18,7 @@ import {
 import { useAppDispatch } from '@/lib/hooks'
 import { loginSuccess } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
+import { loadThemeFromPreferences } from '@/lib/slices/themeSlice'
 import { useLoginMutation } from '@/lib/api/authApi'
 import { toast } from 'sonner'
 import {
@@ -62,6 +63,7 @@ export function ModernLoginForm() {
 
   // Performance optimized state management
   const [loading, setLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [attemptCount, setAttemptCount] = useState(0)
   const [isBlocked, setIsBlocked] = useState(false)
@@ -177,16 +179,34 @@ export function ModernLoginForm() {
 
         toast.success('Welcome back! Redirecting...', {
           duration: 2000,
-          icon: '🎉',
         })
 
-        // Performance: Optimized redirect with preloading
+        // Show redirecting state
+        setIsRedirecting(true)
+
+        // Fetch and apply theme preferences before redirect so there's no flash
+        try {
+          const prefsRes = await fetch('/api/users/preferences', {
+            credentials: 'include',
+          })
+          if (prefsRes.ok) {
+            const prefsData = await prefsRes.json()
+            if (prefsData?.preferences?.theme) {
+              dispatch(loadThemeFromPreferences(prefsData.preferences))
+            }
+          }
+        } catch {
+          // Theme fetch failed — not critical, will load on dashboard
+        }
+
         router.prefetch(redirectUrl)
 
-        // Smooth transition delay for better UX
         setTimeout(() => {
-          router.push(redirectUrl)
-        }, 500)
+          router.replace(redirectUrl)
+        }, 300)
+
+        // Don't reset loading — keep the redirecting state active
+        return
       } catch (error: any) {
         console.error('Login error:', error)
 
@@ -220,6 +240,19 @@ export function ModernLoginForm() {
       loginUser,
     ]
   )
+
+  if (isRedirecting) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+          <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+            Redirecting to dashboard...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -411,11 +444,16 @@ export function ModernLoginForm() {
                 <Button
                   type="submit"
                   className="h-12 w-full rounded-lg bg-blue-600 font-medium text-white shadow-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-xl"
-                  disabled={loading}
+                  disabled={loading || isRedirecting}
                 >
-                  {loading ? (
+                  {isRedirecting ? (
                     <div className="flex items-center space-x-2">
-                      <div className="h-5 w-5 animate-pulse rounded bg-white/20"></div>
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                      <span>Redirecting...</span>
+                    </div>
+                  ) : loading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
                       <span>Signing in...</span>
                     </div>
                   ) : (
@@ -441,11 +479,6 @@ export function ModernLoginForm() {
                 </p>
               </div>
 
-              <div className="mt-4 text-center">
-                <p className="rounded bg-gray-50 p-2 text-xs text-gray-500 dark:bg-gray-700">
-                  Demo: admin@crmpro.com / password
-                </p>
-              </div>
             </CardContent>
           </Card>
         </div>

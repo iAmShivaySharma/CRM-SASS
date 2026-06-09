@@ -19,7 +19,12 @@ import { shiftsApi } from './api/shiftsApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
-// No persistence middleware needed - using RTK Query for server sync
+import {
+  loadPersistedState,
+  persistenceMiddleware,
+} from './middleware/persistenceMiddleware'
+
+const preloadedState = loadPersistedState()
 
 export const store = configureStore({
   reducer: {
@@ -43,8 +48,10 @@ export const store = configureStore({
     [shiftsApi.reducerPath]: shiftsApi.reducer,
     [emailApi.reducerPath]: emailApi.reducer,
   } as any,
+  preloadedState,
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
+      persistenceMiddleware,
       mongoApi.middleware,
       userPreferencesApi.middleware,
       webhookApi.middleware,

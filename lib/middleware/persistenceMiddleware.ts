@@ -18,6 +18,7 @@ const PERSIST_ACTIONS = [
   'theme/setBorderRadius',
   'theme/toggleAnimations',
   'theme/toggleSidebar',
+  'theme/loadThemeFromPreferences',
   'auth/loginSuccess',
   'auth/logout',
 ]
