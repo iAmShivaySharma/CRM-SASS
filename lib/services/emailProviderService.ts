@@ -110,49 +110,59 @@ export class GmailProvider extends BaseEmailProvider {
 
   async syncEmails(options?: EmailSyncOptions): Promise<{ success: boolean; count: number; error?: string }> {
     try {
-      const query = this.buildGmailQuery(options)
+      // Sync from all main folders
+      const foldersToSync = options?.folder && options.folder !== 'INBOX'
+        ? [options.folder]
+        : ['INBOX', 'SENT', 'DRAFT', 'TRASH', 'STARRED']
 
-      const response = await this.gmail.users.messages.list({
-        userId: 'me',
-        q: query,
-        maxResults: options?.limit || 50
-      })
+      let totalSynced = 0
+      const perFolderLimit = Math.ceil((options?.limit || 50) / foldersToSync.length)
 
-      if (!response.data.messages) {
-        return { success: true, count: 0 }
-      }
-
-      let syncedCount = 0
-
-      for (const message of response.data.messages) {
+      for (const labelId of foldersToSync) {
         try {
-          const fullMessage = await this.gmail.users.messages.get({
+          const query = this.buildGmailQuery({ ...options, folder: labelId })
+
+          const response = await this.gmail.users.messages.list({
             userId: 'me',
-            id: message.id,
-            format: 'full'
+            labelIds: [labelId],
+            q: query || undefined,
+            maxResults: perFolderLimit
           })
 
-          const emailMessage = await this.parseGmailMessage(fullMessage.data)
+          if (!response.data.messages) continue
 
-          // Check if message already exists
-          const existing = await EmailMessage.findOne({
-            messageId: emailMessage.messageId,
-            emailAccountId: this.account._id
-          })
+          for (const message of response.data.messages) {
+            try {
+              // Check if message already exists before fetching full content
+              const existing = await EmailMessage.findOne({
+                messageId: message.id,
+                emailAccountId: this.account._id
+              })
 
-          if (!existing) {
-            await emailMessage.save()
-            syncedCount++
+              if (existing) continue
+
+              const fullMessage = await this.gmail.users.messages.get({
+                userId: 'me',
+                id: message.id,
+                format: 'full'
+              })
+
+              const emailMessage = await this.parseGmailMessage(fullMessage.data)
+              await emailMessage.save()
+              totalSynced++
+            } catch (parseError) {
+              log.warn('Failed to parse Gmail message:', parseError)
+            }
           }
-        } catch (parseError) {
-          log.warn('Failed to parse Gmail message:', parseError)
+        } catch (folderError) {
+          log.warn(`Failed to sync folder ${labelId}:`, folderError)
         }
       }
 
       this.account.settings.lastSyncAt = new Date()
       await this.account.save()
 
-      return { success: true, count: syncedCount }
+      return { success: true, count: totalSynced }
     } catch (error) {
       log.error('Gmail sync error:', error)
       return {
@@ -250,10 +260,6 @@ export class GmailProvider extends BaseEmailProvider {
       parts.push(`after:${date}`)
     }
 
-    if (options?.folder && options.folder !== 'INBOX') {
-      parts.push(`label:${options.folder}`)
-    }
-
     return parts.join(' ')
   }
 
@@ -279,13 +285,13 @@ export class GmailProvider extends BaseEmailProvider {
 
       subject: getHeader('Subject') || '',
 
-      direction: 'inbound',
-      status: 'delivered',
+      direction: (gmailMessage.labelIds || []).includes('SENT') ? 'outbound' : 'inbound',
+      status: (gmailMessage.labelIds || []).includes('SENT') ? 'sent' : 'delivered',
 
       sentAt: new Date(parseInt(gmailMessage.internalDate)),
       receivedAt: new Date(parseInt(gmailMessage.internalDate)),
 
-      folder: 'INBOX',
+      folder: this.determineFolderFromLabels(gmailMessage.labelIds || []),
       labels: gmailMessage.labelIds || [],
 
       isRead: !gmailMessage.labelIds?.includes('UNREAD'),
@@ -347,6 +353,16 @@ export class GmailProvider extends BaseEmailProvider {
   private extractEmailName(fromString: string): string {
     const match = fromString.match(/^(.+?)\s*<.+?>$/)
     return match ? match[1].trim() : ''
+  }
+
+  private determineFolderFromLabels(labelIds: string[]): string {
+    // Priority order: more specific labels first
+    if (labelIds.includes('DRAFT')) return 'DRAFT'
+    if (labelIds.includes('TRASH')) return 'TRASH'
+    if (labelIds.includes('SPAM')) return 'SPAM'
+    if (labelIds.includes('SENT')) return 'SENT'
+    if (labelIds.includes('INBOX')) return 'INBOX'
+    return 'INBOX'
   }
 }
 
@@ -452,7 +468,7 @@ export class EmailProviderFactory {
 export class EmailService {
   static async sendEmail(accountId: string, options: EmailSendOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      const account = await EmailAccount.findById(accountId)
+      const account = await EmailAccount.findById(accountId).select('+oauthAccessToken +oauthRefreshToken')
       if (!account || !account.isActive) {
         return { success: false, error: 'Email account not found or inactive' }
       }
@@ -482,7 +498,7 @@ export class EmailService {
 
   static async syncAccountEmails(accountId: string, options?: EmailSyncOptions): Promise<{ success: boolean; count: number; error?: string }> {
     try {
-      const account = await EmailAccount.findById(accountId)
+      const account = await EmailAccount.findById(accountId).select('+oauthAccessToken +oauthRefreshToken')
       if (!account || !account.isActive || !account.settings.syncEnabled) {
         return { success: false, count: 0, error: 'Account not found or sync disabled' }
       }
@@ -508,7 +524,7 @@ export class EmailService {
 
   static async testAccountConnection(accountId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const account = await EmailAccount.findById(accountId)
+      const account = await EmailAccount.findById(accountId).select('+oauthAccessToken +oauthRefreshToken')
       if (!account) {
         return { success: false, error: 'Account not found' }
       }

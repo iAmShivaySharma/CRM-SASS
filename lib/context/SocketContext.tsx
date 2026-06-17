@@ -136,7 +136,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         console.log('Connected to Socket.IO server')
         setIsConnected(true)
 
-        // Identify user with server
         const currentAuth = auth
         const currentWorkspace = workspace
         if (currentAuth.user && currentWorkspace.currentWorkspace?.id) {
@@ -147,7 +146,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
       })
 
-      // Set up other event listeners...
       newSocket.on(
         'user-joined-room',
         (data: { userId: string; userName: string; timestamp: string }) => {
@@ -172,12 +170,9 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         setIsConnected(false)
       })
 
-      // Set up event listeners
       const setupEventListeners = (socketInstance: Socket) => {
-        // Clean up existing listeners
         eventListenersRef.current.clear()
 
-        // Set up event handlers that will be exposed through the context
         const events = [
           'new-message',
           'message-reaction-added',
@@ -204,6 +199,11 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   }, [])
 
   useEffect(() => {
+    const socketEnabled = process.env.NEXT_PUBLIC_SOCKET_URL
+    if (!socketEnabled) {
+      return
+    }
+
     if (auth.isAuthenticated && auth.user && workspace.currentWorkspace?.id) {
       initializeSocket()
     } else {
@@ -289,10 +289,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }
 
-  // Event listener registration methods
   const onNewMessage = (callback: (message: Message) => void) => {
     if (socket) {
-      // Remove existing listener first to prevent duplicates
       socket.off('new-message', callback)
       socket.on('new-message', callback)
 

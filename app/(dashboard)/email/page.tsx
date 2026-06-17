@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,22 +32,67 @@ import { EmailDetails } from '@/components/email/EmailDetails'
 import { EmailAccountList } from '@/components/email/EmailAccountList'
 import { EmailFilters } from '@/components/email/EmailFilters'
 import { EmailSearch } from '@/components/email/EmailSearch'
+import { useAppSelector } from '@/lib/hooks'
+import { toast } from 'sonner'
 
 export default function EmailPage() {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [activeAccount, setActiveAccount] = useState<string | null>(null)
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null)
   const [showCompose, setShowCompose] = useState(false)
+  const [replyContext, setReplyContext] = useState<{ messageId: string; subject: string; from: string; to: string[] } | null>(null)
   const [showAccountSetup, setShowAccountSetup] = useState(false)
-  const [currentFolder, setCurrentFolder] = useState('inbox')
+  const [currentFolder, setCurrentFolder] = useState('INBOX')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterOptions, setFilterOptions] = useState({})
   const [isLoading, setIsLoading] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [providerFolders, setProviderFolders] = useState<Array<{ id: string; name: string; messagesTotal?: number; messagesUnread?: number }>>([])
+
+  const fetchFolders = useCallback(async () => {
+    if (!activeAccount || !currentWorkspace?.id) return
+    try {
+      const response = await fetch(`/api/email/folders?workspaceId=${currentWorkspace.id}&accountId=${activeAccount}`)
+      if (response.ok) {
+        const data = await response.json()
+        setProviderFolders(data.folders || [])
+      }
+    } catch {
+      // Silently fail
+    }
+  }, [activeAccount, currentWorkspace?.id])
+
+  useEffect(() => {
+    fetchFolders()
+  }, [fetchFolders])
+
+  const triggerSync = useCallback(async (accountId: string) => {
+    if (!currentWorkspace?.id || isLoading) return
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/email/accounts/${accountId}/sync?workspaceId=${currentWorkspace.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder: 'INBOX', limit: 50 })
+      })
+      const data = await response.json()
+      if (response.ok) {
+        toast.success(`Synced ${data.count} emails`)
+        setRefreshKey(prev => prev + 1)
+        fetchFolders()
+      } else {
+        toast.error(data.error || 'Failed to sync emails')
+      }
+    } catch {
+      toast.error('Failed to sync emails')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [currentWorkspace?.id, fetchFolders, isLoading])
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900">
-      {/* Left Sidebar - Email Accounts & Folders */}
       <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-        {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
@@ -58,7 +103,7 @@ export default function EmailPage() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setShowCompose(true)}
+                onClick={() => { setReplyContext(null); setShowCompose(true) }}
                 className="p-2"
               >
                 <Send className="h-4 w-4" />
@@ -74,9 +119,8 @@ export default function EmailPage() {
             </div>
           </div>
 
-          {/* Quick Compose Button */}
           <Button
-            onClick={() => setShowCompose(true)}
+            onClick={() => { setReplyContext(null); setShowCompose(true) }}
             className="w-full bg-primary hover:bg-primary/90"
           >
             <Send className="h-4 w-4 mr-2" />
@@ -84,66 +128,104 @@ export default function EmailPage() {
           </Button>
         </div>
 
-        {/* Email Accounts */}
         <div className="flex-1 overflow-y-auto">
           <EmailAccountList
+            key={`accounts-${refreshKey}`}
             activeAccount={activeAccount}
             onAccountSelect={setActiveAccount}
             onAddAccount={() => setShowAccountSetup(true)}
           />
 
-          {/* Folders */}
           {activeAccount && (
             <div className="p-3 border-t border-gray-200 dark:border-gray-700">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Folders
               </h3>
               <div className="space-y-1">
-                {[
-                  { id: 'inbox', label: 'Inbox', icon: Inbox, count: 12 },
-                  { id: 'sent', label: 'Sent', icon: Send, count: 0 },
-                  { id: 'drafts', label: 'Drafts', icon: Mail, count: 3 },
-                  { id: 'starred', label: 'Starred', icon: Star, count: 2 },
-                  { id: 'archive', label: 'Archive', icon: Archive, count: 0 },
-                  { id: 'trash', label: 'Trash', icon: Trash2, count: 0 },
-                ].map((folder) => (
-                  <button
-                    key={folder.id}
-                    onClick={() => setCurrentFolder(folder.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors ${
-                      currentFolder === folder.id
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <folder.icon className="h-4 w-4 mr-3" />
-                      {folder.label}
-                    </div>
-                    {folder.count > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {folder.count}
-                      </Badge>
-                    )}
-                  </button>
-                ))}
+                {(() => {
+                  const iconMap: Record<string, any> = {
+                    INBOX: Inbox,
+                    SENT: Send,
+                    DRAFT: Mail,
+                    STARRED: Star,
+                    TRASH: Trash2,
+                    SPAM: Archive,
+                  }
+
+                  const systemFolders = providerFolders.filter(
+                    f => f.type === 'system' && ['INBOX', 'SENT', 'DRAFT', 'STARRED', 'TRASH', 'SPAM'].includes(f.id)
+                  )
+
+                  const foldersToShow = systemFolders.length > 0
+                    ? systemFolders.map(f => ({
+                        id: f.id,
+                        label: f.name,
+                        icon: iconMap[f.id] || Mail,
+                        total: f.messagesTotal || 0,
+                        unread: f.messagesUnread || 0,
+                      }))
+                    : [
+                        { id: 'INBOX', label: 'Inbox', icon: Inbox, total: 0, unread: 0 },
+                        { id: 'SENT', label: 'Sent', icon: Send, total: 0, unread: 0 },
+                        { id: 'DRAFT', label: 'Drafts', icon: Mail, total: 0, unread: 0 },
+                        { id: 'STARRED', label: 'Starred', icon: Star, total: 0, unread: 0 },
+                        { id: 'TRASH', label: 'Trash', icon: Trash2, total: 0, unread: 0 },
+                      ]
+
+                  return foldersToShow.map((folder) => (
+                    <button
+                      key={folder.id}
+                      onClick={() => setCurrentFolder(folder.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors ${
+                        currentFolder === folder.id
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <folder.icon className="h-4 w-4 mr-3" />
+                        {folder.label}
+                      </div>
+                      {folder.unread > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {folder.unread}
+                        </Badge>
+                      )}
+                    </button>
+                  ))
+                })()}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex">
         {activeAccount ? (
           <>
-            {/* Email List */}
             <div className="w-96 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-              {/* Search & Filters */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3">
+              <div className="p-3 border-b border-gray-200 dark:border-gray-700 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-medium text-gray-900 dark:text-white text-sm">
+                    {providerFolders.find(f => f.id === currentFolder)?.name || currentFolder}
+                  </h2>
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0"
+                      onClick={() => activeAccount && triggerSync(activeAccount)}
+                      disabled={isLoading}
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
+                      <MoreVertical className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
                 <EmailSearch
-                  value={searchQuery}
-                  onChange={setSearchQuery}
+                  onSearch={setSearchQuery}
                   placeholder="Search emails..."
                 />
                 <EmailFilters
@@ -153,35 +235,9 @@ export default function EmailPage() {
                 />
               </div>
 
-              {/* Email List Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-medium text-gray-900 dark:text-white capitalize">
-                    {currentFolder}
-                  </h2>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setIsLoading(true)
-                        // TODO: Implement sync
-                        setTimeout(() => setIsLoading(false), 1000)
-                      }}
-                      disabled={isLoading}
-                    >
-                      <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                    </Button>
-                    <Button size="sm" variant="ghost">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Email List */}
               <div className="flex-1 overflow-y-auto">
                 <EmailList
+                  key={`list-${refreshKey}`}
                   accountId={activeAccount}
                   folder={currentFolder}
                   searchQuery={searchQuery}
@@ -192,12 +248,14 @@ export default function EmailPage() {
               </div>
             </div>
 
-            {/* Email Details */}
             <div className="flex-1 bg-white dark:bg-gray-800">
               {selectedEmailId ? (
                 <EmailDetails
                   emailId={selectedEmailId}
-                  onReply={() => setShowCompose(true)}
+                  onReply={(replyData) => {
+                    setReplyContext(replyData || null)
+                    setShowCompose(true)
+                  }}
                   onDelete={() => setSelectedEmailId(null)}
                 />
               ) : (
@@ -212,7 +270,6 @@ export default function EmailPage() {
             </div>
           </>
         ) : (
-          // No Account Selected
           <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-800">
             <div className="text-center max-w-md">
               <Mail className="h-16 w-16 mx-auto mb-6 text-gray-400" />
@@ -235,7 +292,6 @@ export default function EmailPage() {
         )}
       </div>
 
-      {/* Modals */}
       {showAccountSetup && (
         <EmailAccountSetup
           isOpen={showAccountSetup}
@@ -243,6 +299,8 @@ export default function EmailPage() {
           onAccountAdded={(accountId) => {
             setActiveAccount(accountId)
             setShowAccountSetup(false)
+            setRefreshKey(prev => prev + 1)
+            triggerSync(accountId)
           }}
         />
       )}
@@ -250,11 +308,13 @@ export default function EmailPage() {
       {showCompose && (
         <EmailCompose
           isOpen={showCompose}
-          onClose={() => setShowCompose(false)}
+          onClose={() => { setShowCompose(false); setReplyContext(null) }}
           accountId={activeAccount}
+          replyTo={replyContext || undefined}
           onEmailSent={() => {
             setShowCompose(false)
-            // TODO: Refresh email list
+            setReplyContext(null)
+            setRefreshKey(prev => prev + 1)
           }}
         />
       )}

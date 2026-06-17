@@ -17,7 +17,7 @@ export async function GET(
     }
 
     const { id: accountId } = await params
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     const account = await EmailAccount.findOne({
       _id: accountId,
@@ -67,7 +67,7 @@ export async function PUT(
 
     const { id: accountId } = await params
     const body = await request.json()
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     const account = await EmailAccount.findOne({
       _id: accountId,
@@ -87,13 +87,11 @@ export async function PUT(
       imapConfig
     } = body
 
-    // Update basic fields
     if (displayName) account.displayName = displayName
     if (settings) {
       account.settings = { ...account.settings, ...settings }
     }
 
-    // Update SMTP config
     if (smtpConfig) {
       account.smtpConfig = {
         host: smtpConfig.host,
@@ -105,7 +103,6 @@ export async function PUT(
       }
     }
 
-    // Update IMAP config
     if (imapConfig) {
       account.imapConfig = {
         host: imapConfig.host,
@@ -152,7 +149,7 @@ export async function DELETE(
     }
 
     const { id: accountId } = await params
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     const account = await EmailAccount.findOne({
       _id: accountId,
@@ -165,11 +162,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Account not found' }, { status: 404 })
     }
 
-    // Soft delete the account
     account.isActive = false
     await account.save()
 
-    // Also soft delete all associated emails
     await EmailMessage.updateMany(
       { emailAccountId: accountId },
       { syncStatus: 'ignored' }

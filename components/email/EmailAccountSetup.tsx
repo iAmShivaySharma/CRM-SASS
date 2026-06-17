@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Mail, Shield, Server, Zap } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAppSelector } from '@/lib/hooks'
 
 interface EmailAccountSetupProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ interface EmailAccountSetupProps {
 }
 
 export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAccountSetupProps) {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [activeTab, setActiveTab] = useState('oauth')
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -27,7 +29,6 @@ export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAcco
     emailAddress: '',
     provider: 'gmail',
 
-    // SMTP/IMAP Config
     smtpHost: '',
     smtpPort: 587,
     smtpSecure: true,
@@ -40,22 +41,24 @@ export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAcco
     imapUsername: '',
     imapPassword: '',
 
-    // Settings
     syncEnabled: true,
     syncInterval: 15,
     signature: ''
   })
 
+  const isWorkspaceReady = !!currentWorkspace?.id
+
   const handleOAuthConnect = async (provider: 'gmail' | 'outlook') => {
+    if (!currentWorkspace?.id) {
+      toast.error('Please wait for workspace to load')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      // Generate OAuth state
-      const response = await fetch('/api/email/oauth/initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider })
-      })
+      const providerParam = provider === 'gmail' ? 'google' : 'microsoft'
+      const response = await fetch(`/api/email/oauth/${providerParam}?workspaceId=${currentWorkspace?.id}`)
 
       if (!response.ok) {
         throw new Error('Failed to initiate OAuth')
@@ -63,14 +66,12 @@ export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAcco
 
       const { authUrl } = await response.json()
 
-      // Open OAuth window
       const popup = window.open(
         authUrl,
         'oauth',
         'width=500,height=600,scrollbars=yes,resizable=yes'
       )
 
-      // Listen for OAuth completion
       const handleMessage = (event: MessageEvent) => {
         if (event.data.type === 'OAUTH_SUCCESS') {
           popup?.close()
@@ -87,7 +88,6 @@ export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAcco
 
       window.addEventListener('message', handleMessage)
 
-      // Check if popup was closed manually
       const checkClosed = setInterval(() => {
         if (popup?.closed) {
           clearInterval(checkClosed)
@@ -106,7 +106,7 @@ export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAcco
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/email/accounts', {
+      const response = await fetch(`/api/email/accounts?workspaceId=${currentWorkspace?.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -154,7 +154,7 @@ export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAcco
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/email/test-connection', {
+      const response = await fetch(`/api/email/test-connection?workspaceId=${currentWorkspace?.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -222,7 +222,10 @@ export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAcco
             </Alert>
 
             <div className="grid grid-cols-2 gap-4">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleOAuthConnect('gmail')}>
+              <Card
+                className={`transition-shadow ${isWorkspaceReady && !isLoading ? 'cursor-pointer hover:shadow-md' : 'opacity-50 cursor-not-allowed'}`}
+                onClick={() => isWorkspaceReady && !isLoading && handleOAuthConnect('gmail')}
+              >
                 <CardHeader className="text-center">
                   <div className="mx-auto mb-2 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
                     <Mail className="h-6 w-6 text-red-600" />
@@ -234,7 +237,10 @@ export function EmailAccountSetup({ isOpen, onClose, onAccountAdded }: EmailAcco
                 </CardHeader>
               </Card>
 
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleOAuthConnect('outlook')}>
+              <Card
+                className={`transition-shadow ${isWorkspaceReady && !isLoading ? 'cursor-pointer hover:shadow-md' : 'opacity-50 cursor-not-allowed'}`}
+                onClick={() => isWorkspaceReady && !isLoading && handleOAuthConnect('outlook')}
+              >
                 <CardHeader className="text-center">
                   <div className="mx-auto mb-2 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Mail className="h-6 w-6 text-blue-600" />

@@ -11,7 +11,7 @@ export async function POST(
     const auth = await requireAuth(request)
     const resolvedParams = await params
     const accountId = resolvedParams.id
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })

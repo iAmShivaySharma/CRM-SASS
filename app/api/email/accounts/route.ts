@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = searchParams.get('workspaceId')
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const workspaceId = auth.user.currentWorkspace
+    const { searchParams: sp } = new URL(request.url)
+    const workspaceId = sp.get('workspaceId')
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
@@ -78,7 +79,6 @@ export async function POST(request: NextRequest) {
       settings = {}
     } = body
 
-    // Validate required fields
     if (!provider || !displayName || !emailAddress) {
       return NextResponse.json(
         { error: 'Provider, display name, and email address are required' },
@@ -86,7 +86,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if email already exists for this workspace
     const existingAccount = await EmailAccount.findOne({
       emailAddress,
       workspaceId,
@@ -100,7 +99,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if this is the first account (make it default)
     const accountCount = await EmailAccount.countDocuments({
       userId: auth.user._id,
       workspaceId,
@@ -109,7 +107,6 @@ export async function POST(request: NextRequest) {
 
     const isFirstAccount = accountCount === 0
 
-    // Create new email account
     const account = new EmailAccount({
       userId: auth.user._id,
       workspaceId,
@@ -131,7 +128,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Set credentials based on provider
     if (provider === 'smtp' && smtpConfig) {
       account.smtpConfig = {
         host: smtpConfig.host,

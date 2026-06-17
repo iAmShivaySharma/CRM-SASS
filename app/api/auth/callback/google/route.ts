@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Get user from auth
     const auth = await requireAuth(request)
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
       return NextResponse.redirect(

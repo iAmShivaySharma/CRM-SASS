@@ -27,6 +27,7 @@ import {
   EyeOff
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAppSelector } from '@/lib/hooks'
 
 interface EmailMessage {
   _id: string
@@ -79,13 +80,21 @@ interface EmailMessage {
   createdAt: Date
 }
 
+interface ReplyData {
+  messageId: string
+  subject: string
+  from: string
+  to: string[]
+}
+
 interface EmailDetailsProps {
   emailId: string
-  onReply: () => void
+  onReply: (replyData?: ReplyData) => void
   onDelete: () => void
 }
 
 export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [email, setEmail] = useState<EmailMessage | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showRawContent, setShowRawContent] = useState(false)
@@ -100,13 +109,12 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
     setIsLoading(true)
 
     try {
-      const response = await fetch(`/api/email/messages/${emailId}`)
+      const response = await fetch(`/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`)
       if (!response.ok) throw new Error('Failed to fetch email')
 
       const data = await response.json()
       setEmail(data.message)
 
-      // Mark as read if not already read
       if (!data.message.isRead) {
         markAsRead()
       }
@@ -118,14 +126,19 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
     }
   }
 
+  const updateMessage = async (data: Record<string, any>) => {
+    const response = await fetch(`/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    if (!response.ok) throw new Error('Failed to update email')
+    return response
+  }
+
   const markAsRead = async () => {
     try {
-      await fetch(`/api/email/messages/${emailId}/mark-read`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ read: true })
-      })
-
+      await updateMessage({ isRead: true })
       setEmail(prev => prev ? { ...prev, isRead: true, readAt: new Date() } : null)
     } catch (error) {
       console.error('Mark as read error:', error)
@@ -134,16 +147,8 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
   const toggleStar = async () => {
     if (!email) return
-
     try {
-      const response = await fetch(`/api/email/messages/${emailId}/star`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ starred: !email.isStarred })
-      })
-
-      if (!response.ok) throw new Error('Failed to update star status')
-
+      await updateMessage({ isStarred: !email.isStarred })
       setEmail(prev => prev ? { ...prev, isStarred: !prev.isStarred } : null)
     } catch (error) {
       toast.error('Failed to update star status')
@@ -152,16 +157,9 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
   const moveToFolder = async (folder: string) => {
     try {
-      const response = await fetch('/api/email/messages/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emailIds: [emailId], folder })
-      })
-
-      if (!response.ok) throw new Error('Failed to move email')
-
+      await updateMessage({ folder })
       toast.success(`Moved to ${folder}`)
-      onDelete() // Close the email view
+      onDelete()
     } catch (error) {
       toast.error('Failed to move email')
     }
@@ -169,16 +167,11 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
   const deleteEmail = async () => {
     if (!confirm('Are you sure you want to delete this email?')) return
-
     try {
-      const response = await fetch('/api/email/messages/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emailIds: [emailId] })
+      const response = await fetch(`/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`, {
+        method: 'DELETE',
       })
-
       if (!response.ok) throw new Error('Failed to delete email')
-
       toast.success('Email deleted')
       onDelete()
     } catch (error) {
@@ -188,7 +181,7 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
   const downloadAttachment = async (attachmentId: string, filename: string) => {
     try {
-      const response = await fetch(`/api/email/attachments/${attachmentId}`)
+      const response = await fetch(`/api/email/attachments/${attachmentId}?workspaceId=${currentWorkspace?.id}`)
       if (!response.ok) throw new Error('Failed to download attachment')
 
       const blob = await response.blob()
@@ -207,23 +200,22 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
   const linkToCRM = async (type: 'lead' | 'contact' | 'project' | 'task', id: string) => {
     try {
-      const response = await fetch(`/api/email/messages/${emailId}/link`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, id })
-      })
-
-      if (!response.ok) throw new Error('Failed to link to CRM')
-
-      // Update email state
-      setEmail(prev => prev ? {
-        ...prev,
-        [`linked${type.charAt(0).toUpperCase() + type.slice(1)}Id`]: id
-      } : null)
-
+      const key = `linked${type.charAt(0).toUpperCase() + type.slice(1)}Id`
+      await updateMessage({ [key]: id })
+      setEmail(prev => prev ? { ...prev, [key]: id } : null)
       toast.success(`Linked to ${type}`)
     } catch (error) {
       toast.error('Failed to link to CRM')
+    }
+  }
+
+  const getReplyData = (): ReplyData | undefined => {
+    if (!email) return undefined
+    return {
+      messageId: email.messageId,
+      subject: email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`,
+      from: email.from.email,
+      to: email.to.map(r => r.email),
     }
   }
 
@@ -286,7 +278,6 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
@@ -322,7 +313,7 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
             <Button
               variant="outline"
               size="sm"
-              onClick={onReply}
+              onClick={() => onReply(getReplyData())}
             >
               <Reply className="h-4 w-4 mr-2" />
               Reply
@@ -335,53 +326,56 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={onReply}>
+                <DropdownMenuItem onSelect={() => onReply(getReplyData())}>
                   <Reply className="h-4 w-4 mr-2" />
                   Reply
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => {}}>
+                <DropdownMenuItem onSelect={() => onReply(getReplyData())}>
                   <ReplyAll className="h-4 w-4 mr-2" />
                   Reply All
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => {}}>
+                <DropdownMenuItem onSelect={() => onReply({
+                  ...getReplyData()!,
+                  subject: email.subject.startsWith('Fwd:') ? email.subject : `Fwd: ${email.subject}`,
+                  from: '',
+                  to: [],
+                })}>
                   <Forward className="h-4 w-4 mr-2" />
                   Forward
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => moveToFolder('archive')}>
+                <DropdownMenuItem onSelect={() => moveToFolder('ARCHIVE')}>
                   <Archive className="h-4 w-4 mr-2" />
                   Archive
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => {}}>
-                  <LinkIcon className="h-4 w-4 mr-2" />
-                  Link to CRM
+                <DropdownMenuItem onSelect={() => moveToFolder('TRASH')}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Move to Trash
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() => setShowRawContent(!showRawContent)}
+                  onSelect={() => setShowRawContent(!showRawContent)}
                 >
                   {showRawContent ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
                   {showRawContent ? 'Hide' : 'Show'} Raw
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={deleteEmail} className="text-red-600">
+                <DropdownMenuItem onSelect={deleteEmail} className="text-red-600">
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  Delete Permanently
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
 
-        {/* Subject */}
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           {email.subject || '(No Subject)'}
         </h1>
 
-        {/* Sender Info */}
         <div className="flex items-start space-x-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback>
@@ -414,7 +408,6 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
               </div>
             </div>
 
-            {/* Recipients */}
             <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               <p>
                 <span className="font-medium">To:</span>{' '}
@@ -438,7 +431,6 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
           </div>
         </div>
 
-        {/* CRM Links */}
         {(email.linkedLeadId || email.linkedContactId || email.linkedProjectId || email.linkedTaskId) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {email.linkedLeadId && (
@@ -469,9 +461,7 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
         )}
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Attachments */}
         {email.attachments.length > 0 && (
           <Card className="mb-4">
             <CardHeader className="pb-3">
@@ -512,7 +502,6 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
           </Card>
         )}
 
-        {/* Email Body */}
         <div className="prose prose-sm dark:prose-invert max-w-none">
           {showRawContent ? (
             <pre className="whitespace-pre-wrap text-xs bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto">

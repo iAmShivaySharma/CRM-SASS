@@ -33,6 +33,7 @@ import {
   FileText
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAppSelector } from '@/lib/hooks'
 
 interface EmailComposeProps {
   isOpen: boolean
@@ -88,13 +89,36 @@ export function EmailCompose({
   replyTo,
   forwardFrom
 }: EmailComposeProps) {
-  const [emailData, setEmailData] = useState({
-    from: '',
-    to: '',
-    cc: '',
-    bcc: '',
-    subject: '',
-    body: ''
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const [emailData, setEmailData] = useState(() => {
+    if (replyTo) {
+      return {
+        from: accountId || '',
+        to: replyTo.from,
+        cc: '',
+        bcc: '',
+        subject: replyTo.subject,
+        body: `\n\n--- Original Message ---\nFrom: ${replyTo.from}\nTo: ${replyTo.to.join(', ')}\nSubject: ${replyTo.subject}\n\n`
+      }
+    }
+    if (forwardFrom) {
+      return {
+        from: accountId || '',
+        to: '',
+        cc: '',
+        bcc: '',
+        subject: forwardFrom.subject.startsWith('Fwd:') ? forwardFrom.subject : `Fwd: ${forwardFrom.subject}`,
+        body: `\n\n--- Forwarded Message ---\n${forwardFrom.content}`
+      }
+    }
+    return {
+      from: accountId || '',
+      to: '',
+      cc: '',
+      bcc: '',
+      subject: '',
+      body: ''
+    }
   })
 
   const [accounts, setAccounts] = useState<EmailAccount[]>([])
@@ -122,13 +146,12 @@ export function EmailCompose({
 
   const fetchAccounts = async () => {
     try {
-      const response = await fetch('/api/email/accounts')
+      const response = await fetch(`/api/email/accounts?workspaceId=${currentWorkspace?.id}`)
       if (!response.ok) throw new Error('Failed to fetch accounts')
 
       const data = await response.json()
       setAccounts(data.accounts || [])
 
-      // Set default account
       if (accountId) {
         const account = data.accounts?.find((acc: EmailAccount) => acc._id === accountId)
         if (account) {
@@ -142,7 +165,7 @@ export function EmailCompose({
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/email/templates')
+      const response = await fetch(`/api/email/templates?workspaceId=${currentWorkspace?.id}`)
       if (!response.ok) throw new Error('Failed to fetch templates')
 
       const data = await response.json()
@@ -157,17 +180,17 @@ export function EmailCompose({
       setEmailData(prev => ({
         ...prev,
         to: replyTo.from,
-        subject: replyTo.subject.startsWith('Re:') ? replyTo.subject : `Re: ${replyTo.subject}`,
+        subject: replyTo.subject,
         body: `\n\n--- Original Message ---\nFrom: ${replyTo.from}\nTo: ${replyTo.to.join(', ')}\nSubject: ${replyTo.subject}\n\n`
       }))
     } else if (forwardFrom) {
       setEmailData(prev => ({
         ...prev,
+        to: '',
         subject: forwardFrom.subject.startsWith('Fwd:') ? forwardFrom.subject : `Fwd: ${forwardFrom.subject}`,
         body: `\n\n--- Forwarded Message ---\n${forwardFrom.content}`
       }))
     } else {
-      // Reset form for new compose
       setEmailData({
         from: accountId || '',
         to: '',
@@ -196,7 +219,6 @@ export function EmailCompose({
 
       setAttachments(prev => [...prev, attachment])
 
-      // Simulate upload
       setTimeout(() => {
         setAttachments(prev => prev.map(att =>
           att.id === attachment.id
@@ -206,7 +228,6 @@ export function EmailCompose({
       }, 1000)
     })
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -241,7 +262,7 @@ export function EmailCompose({
     setIsDraft(true)
 
     try {
-      const response = await fetch('/api/email/drafts', {
+      const response = await fetch(`/api/email/drafts?workspaceId=${currentWorkspace?.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -291,12 +312,11 @@ export function EmailCompose({
         formData.append('inReplyTo', replyTo.messageId)
       }
 
-      // Add attachments
       attachments.filter(att => att.uploaded).forEach(att => {
         formData.append('attachments', att.file)
       })
 
-      const response = await fetch('/api/email/send', {
+      const response = await fetch(`/api/email/send?workspaceId=${currentWorkspace?.id}`, {
         method: 'POST',
         body: formData
       })
@@ -361,7 +381,6 @@ export function EmailCompose({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* From Account */}
           <div className="space-y-2">
             <Label htmlFor="from">From</Label>
             <Select value={emailData.from} onValueChange={(value) => setEmailData(prev => ({ ...prev, from: value }))}>
@@ -381,7 +400,6 @@ export function EmailCompose({
             </Select>
           </div>
 
-          {/* Recipients */}
           <div className="space-y-2">
             <Label htmlFor="to">To *</Label>
             <div className="flex items-center space-x-2">
@@ -411,7 +429,6 @@ export function EmailCompose({
             </div>
           </div>
 
-          {/* CC Field */}
           {showCc && (
             <div className="space-y-2">
               <Label htmlFor="cc">Cc</Label>
@@ -424,7 +441,6 @@ export function EmailCompose({
             </div>
           )}
 
-          {/* BCC Field */}
           {showBcc && (
             <div className="space-y-2">
               <Label htmlFor="bcc">Bcc</Label>
@@ -437,7 +453,6 @@ export function EmailCompose({
             </div>
           )}
 
-          {/* Subject */}
           <div className="space-y-2">
             <Label htmlFor="subject">Subject *</Label>
             <div className="flex items-center space-x-2">
@@ -461,7 +476,6 @@ export function EmailCompose({
             </div>
           </div>
 
-          {/* Rich Text Toolbar */}
           {isRichText && (
             <div className="flex items-center space-x-1 p-2 border rounded-lg bg-gray-50 dark:bg-gray-800">
               <Button
@@ -534,7 +548,6 @@ export function EmailCompose({
             </div>
           )}
 
-          {/* Email Body */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="body">Message *</Label>
@@ -566,7 +579,7 @@ export function EmailCompose({
             ) : (
               <Textarea
                 id="body"
-                value={emailData.body.replace(/<[^>]*>/g, '')} // Strip HTML for plain text
+                value={emailData.body.replace(/<[^>]*>/g, '')}
                 onChange={(e) => setEmailData(prev => ({ ...prev, body: e.target.value }))}
                 placeholder="Type your message here..."
                 className="min-h-[200px] resize-none"
@@ -574,7 +587,6 @@ export function EmailCompose({
             )}
           </div>
 
-          {/* Attachments */}
           {attachments.length > 0 && (
             <Card>
               <CardContent className="p-3">
@@ -621,7 +633,6 @@ export function EmailCompose({
             </Card>
           )}
 
-          {/* Actions */}
           <div className="flex items-center justify-between pt-4">
             <div className="flex items-center space-x-2">
               <Button

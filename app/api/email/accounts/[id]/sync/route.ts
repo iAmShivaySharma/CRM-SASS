@@ -18,8 +18,13 @@ export async function POST(
     }
 
     const { id: accountId } = await params
-    const workspaceId = auth.user.currentWorkspace
-    const body = await request.json()
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
+    let body: any = {}
+    try {
+      body = await request.json()
+    } catch {
+      // Body is optional for sync
+    }
 
     const account = await EmailAccount.findOne({
       _id: accountId,
@@ -39,7 +44,6 @@ export async function POST(
       )
     }
 
-    // Extract sync options from request
     const {
       folder = 'INBOX',
       since,
@@ -54,7 +58,6 @@ export async function POST(
       markAsRead
     }
 
-    // Perform the sync
     const result = await EmailService.syncAccountEmails(accountId, syncOptions)
 
     if (!result.success) {
@@ -64,7 +67,6 @@ export async function POST(
       )
     }
 
-    // Update last sync time
     account.settings.lastSyncAt = new Date()
     await account.save()
 

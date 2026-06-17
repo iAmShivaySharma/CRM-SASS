@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Mail, MoreVertical, Settings, Trash2, RefreshCw, Zap, Shield, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAppSelector } from '@/lib/hooks'
 
 interface EmailAccount {
   _id: string
@@ -31,26 +32,29 @@ interface EmailAccountListProps {
   activeAccount: string | null
   onAccountSelect: (accountId: string) => void
   onAddAccount: () => void
+  onSettingsClick?: (accountId: string) => void
 }
 
-export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount }: EmailAccountListProps) {
+export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount, onSettingsClick }: EmailAccountListProps) {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [accounts, setAccounts] = useState<EmailAccount[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [syncingAccounts, setSyncingAccounts] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    fetchAccounts()
-  }, [])
+    if (currentWorkspace?.id) {
+      fetchAccounts()
+    }
+  }, [currentWorkspace?.id])
 
   const fetchAccounts = async () => {
     try {
-      const response = await fetch('/api/email/accounts')
+      const response = await fetch(`/api/email/accounts?workspaceId=${currentWorkspace?.id}`)
       if (!response.ok) throw new Error('Failed to fetch accounts')
 
       const data = await response.json()
       setAccounts(data.accounts || [])
 
-      // Auto-select first account if none selected
       if (!activeAccount && data.accounts?.length > 0) {
         onAccountSelect(data.accounts[0]._id)
       }
@@ -65,7 +69,7 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
     setSyncingAccounts(prev => new Set(prev).add(accountId))
 
     try {
-      const response = await fetch(`/api/email/accounts/${accountId}/sync`, {
+      const response = await fetch(`/api/email/accounts/${accountId}/sync?workspaceId=${currentWorkspace?.id}`, {
         method: 'POST'
       })
 
@@ -74,7 +78,6 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
       const result = await response.json()
       toast.success(`Synced ${result.count} new emails`)
 
-      // Update last sync time
       setAccounts(prev => prev.map(acc =>
         acc._id === accountId
           ? { ...acc, settings: { ...acc.settings, lastSyncAt: new Date() } }
@@ -95,7 +98,7 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
     if (!confirm('Are you sure you want to delete this email account?')) return
 
     try {
-      const response = await fetch(`/api/email/accounts/${accountId}`, {
+      const response = await fetch(`/api/email/accounts/${accountId}?workspaceId=${currentWorkspace?.id}`, {
         method: 'DELETE'
       })
 
@@ -116,7 +119,7 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
 
   const setAsDefault = async (accountId: string) => {
     try {
-      const response = await fetch(`/api/email/accounts/${accountId}/set-default`, {
+      const response = await fetch(`/api/email/accounts/${accountId}/set-default?workspaceId=${currentWorkspace?.id}`, {
         method: 'POST'
       })
 
@@ -223,42 +226,39 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
             }`}
             onClick={() => onAccountSelect(account._id)}
           >
-            {/* Avatar */}
             <Avatar className="h-10 w-10">
               <AvatarFallback className="text-lg">
                 {getProviderIcon(account.provider)}
               </AvatarFallback>
             </Avatar>
 
-            {/* Account Info */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {account.displayName}
                 </p>
                 {account.isDefault && (
-                  <Badge variant="secondary" className="text-xs">
+                  <span className="text-[10px] px-1.5 py-0 h-4 shrink-0 inline-flex items-center rounded bg-primary text-white font-medium">
                     Default
-                  </Badge>
+                  </span>
                 )}
               </div>
 
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
                 {account.emailAddress}
               </p>
 
-              {/* Status and Stats */}
-              <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center gap-2 mt-1">
                 <Badge
                   variant="secondary"
-                  className={`text-xs flex items-center space-x-1 ${getStatusColor(account.connectionStatus)}`}
+                  className={`text-[10px] px-1.5 py-0 h-4 flex items-center gap-1 ${getStatusColor(account.connectionStatus)}`}
                 >
                   {getStatusIcon(account.connectionStatus)}
                   <span className="capitalize">{account.connectionStatus}</span>
                 </Badge>
 
                 {account.settings.syncEnabled && account.settings.lastSyncAt && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-[10px] text-gray-400 shrink-0">
                     {new Date(account.settings.lastSyncAt).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit'
@@ -268,25 +268,21 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
               </div>
             </div>
 
-            {/* Actions */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 p-0"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
                 {account.settings.syncEnabled && (
                   <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      syncAccount(account._id)
-                    }}
+                    onSelect={() => syncAccount(account._id)}
                     disabled={syncingAccounts.has(account._id)}
                   >
                     <RefreshCw className={`h-4 w-4 mr-2 ${syncingAccounts.has(account._id) ? 'animate-spin' : ''}`} />
@@ -295,23 +291,13 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
                 )}
 
                 {!account.isDefault && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setAsDefault(account._id)
-                    }}
-                  >
+                  <DropdownMenuItem onSelect={() => setAsDefault(account._id)}>
                     <Zap className="h-4 w-4 mr-2" />
                     Set as Default
                   </DropdownMenuItem>
                 )}
 
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    // TODO: Open account settings
-                  }}
-                >
+                <DropdownMenuItem onSelect={() => onSettingsClick?.(account._id)}>
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
@@ -319,10 +305,7 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    deleteAccount(account._id)
-                  }}
+                  onSelect={() => deleteAccount(account._id)}
                   className="text-red-600 dark:text-red-400"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
@@ -334,7 +317,6 @@ export function EmailAccountList({ activeAccount, onAccountSelect, onAddAccount 
         ))}
       </div>
 
-      {/* Add Account Button */}
       <Button
         variant="ghost"
         size="sm"

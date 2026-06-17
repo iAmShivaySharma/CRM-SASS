@@ -23,6 +23,7 @@ import {
   Calendar
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAppSelector } from '@/lib/hooks'
 
 interface EmailMessage {
   _id: string
@@ -71,6 +72,7 @@ export function EmailList({
   selectedEmailId,
   onEmailSelect
 }: EmailListProps) {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [emails, setEmails] = useState<EmailMessage[]>([])
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
@@ -88,12 +90,17 @@ export function EmailList({
 
     try {
       const params = new URLSearchParams({
+        workspaceId: currentWorkspace?.id || '',
         accountId,
         folder,
         page: pageNum.toString(),
         limit: '50',
         ...(searchQuery && { search: searchQuery }),
-        ...filters
+      })
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.set(key, String(value))
+        }
       })
 
       const response = await fetch(`/api/email/messages?${params}`)
@@ -137,15 +144,19 @@ export function EmailList({
     }
   }
 
+  const updateMessage = async (messageId: string, data: Record<string, any>) => {
+    const response = await fetch(`/api/email/messages/${messageId}?workspaceId=${currentWorkspace?.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    if (!response.ok) throw new Error('Failed to update email')
+    return response
+  }
+
   const markAsRead = async (emailIds: string[], read = true) => {
     try {
-      const response = await fetch('/api/email/messages/mark-read', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emailIds, read })
-      })
-
-      if (!response.ok) throw new Error('Failed to update read status')
+      await Promise.all(emailIds.map(id => updateMessage(id, { isRead: read })))
 
       setEmails(prev => prev.map(email =>
         emailIds.includes(email._id)
@@ -164,13 +175,7 @@ export function EmailList({
       const email = emails.find(e => e._id === emailId)
       if (!email) return
 
-      const response = await fetch(`/api/email/messages/${emailId}/star`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ starred: !email.isStarred })
-      })
-
-      if (!response.ok) throw new Error('Failed to update star status')
+      await updateMessage(emailId, { isStarred: !email.isStarred })
 
       setEmails(prev => prev.map(e =>
         e._id === emailId ? { ...e, isStarred: !e.isStarred } : e
@@ -182,13 +187,7 @@ export function EmailList({
 
   const moveToFolder = async (emailIds: string[], targetFolder: string) => {
     try {
-      const response = await fetch('/api/email/messages/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emailIds, folder: targetFolder })
-      })
-
-      if (!response.ok) throw new Error('Failed to move emails')
+      await Promise.all(emailIds.map(id => updateMessage(id, { folder: targetFolder })))
 
       setEmails(prev => prev.filter(email => !emailIds.includes(email._id)))
       setSelectedEmails(new Set())
@@ -203,13 +202,9 @@ export function EmailList({
     if (!confirm(`Are you sure you want to delete ${emailIds.length} email(s)?`)) return
 
     try {
-      const response = await fetch('/api/email/messages/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emailIds })
-      })
-
-      if (!response.ok) throw new Error('Failed to delete emails')
+      await Promise.all(emailIds.map(id =>
+        fetch(`/api/email/messages/${id}?workspaceId=${currentWorkspace?.id}`, { method: 'DELETE' })
+      ))
 
       setEmails(prev => prev.filter(email => !emailIds.includes(email._id)))
       setSelectedEmails(new Set())
@@ -297,7 +292,6 @@ export function EmailList({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Bulk Actions */}
       {selectedEmails.size > 0 && (
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
           <div className="flex items-center justify-between">
@@ -339,9 +333,7 @@ export function EmailList({
         </div>
       )}
 
-      {/* Email List */}
       <div className="flex-1 overflow-y-auto">
-        {/* Select All Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3">
           <div className="flex items-center space-x-3">
             <Checkbox
@@ -354,7 +346,6 @@ export function EmailList({
           </div>
         </div>
 
-        {/* Email Items */}
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {emails.map((email) => (
             <div
@@ -364,14 +355,12 @@ export function EmailList({
               } ${!email.isRead ? 'bg-blue-25 dark:bg-blue-950/10' : ''}`}
               onClick={() => onEmailSelect(email._id)}
             >
-              {/* Checkbox */}
               <Checkbox
                 checked={selectedEmails.has(email._id)}
                 onCheckedChange={() => toggleEmailSelection(email._id)}
                 onClick={(e) => e.stopPropagation()}
               />
 
-              {/* Star */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -384,12 +373,10 @@ export function EmailList({
                 <Star className={`h-4 w-4 ${email.isStarred ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`} />
               </Button>
 
-              {/* Important Flag */}
               {email.isImportant && (
                 <Flag className="h-4 w-4 text-red-500" />
               )}
 
-              {/* Avatar */}
               <Avatar className="h-8 w-8">
                 <AvatarFallback>
                   {email.from.name
@@ -399,7 +386,6 @@ export function EmailList({
                 </AvatarFallback>
               </Avatar>
 
-              {/* Email Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2 min-w-0">
@@ -408,32 +394,26 @@ export function EmailList({
                       {email.from.name || email.from.email}
                     </span>
 
-                    {/* CRM Links */}
                     {(email.linkedLeadId || email.linkedContactId) && (
                       <UserCheck className="h-3 w-3 text-green-600" />
                     )}
 
-                    {/* Status Badge */}
                     {getStatusBadge(email)}
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    {/* Attachments */}
                     {email.attachmentCount > 0 && (
                       <Paperclip className="h-3 w-3 text-gray-400" />
                     )}
 
-                    {/* Priority */}
                     {email.priority !== 'normal' && (
                       <Flag className={`h-3 w-3 ${getPriorityColor(email.priority)}`} />
                     )}
 
-                    {/* Snoozed */}
                     {email.isSnoozed && (
                       <Clock className="h-3 w-3 text-orange-500" />
                     )}
 
-                    {/* Time */}
                     <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       {formatTime(email.receivedAt || email.sentAt || email.createdAt)}
                     </span>
@@ -446,7 +426,6 @@ export function EmailList({
                   </h3>
                 </div>
 
-                {/* Preview */}
                 {email.bodyText && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
                     {email.bodyText.replace(/\s+/g, ' ').substring(0, 100)}
@@ -454,7 +433,6 @@ export function EmailList({
                 )}
               </div>
 
-              {/* Actions Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -505,7 +483,6 @@ export function EmailList({
           ))}
         </div>
 
-        {/* Load More */}
         {hasMore && (
           <div className="p-4 text-center border-t border-gray-200 dark:border-gray-700">
             <Button

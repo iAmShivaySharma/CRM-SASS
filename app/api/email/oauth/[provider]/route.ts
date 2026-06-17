@@ -10,15 +10,14 @@ export async function GET(
   try {
     const { provider } = await params
 
-    // Verify user is authenticated
     const auth = await requireAuth(request)
-    const workspaceId = auth.user.currentWorkspace
+    const { searchParams } = new URL(request.url)
+    const workspaceId = searchParams.get('workspaceId')
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
     }
 
-    // Generate state parameter for security
     const state = Buffer.from(
       JSON.stringify({
         userId: auth.user.id,

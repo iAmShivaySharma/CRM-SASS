@@ -52,7 +52,7 @@ export function EmailFilters({ currentFolder, filters, onFiltersChange }: EmailF
   }
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-start gap-2 flex-wrap">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -63,38 +63,36 @@ export function EmailFilters({ currentFolder, filters, onFiltersChange }: EmailF
             <Filter className="h-3 w-3 mr-2" />
             Filter
             {activeFilterCount > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+              <span className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full bg-white text-primary text-[10px] font-semibold leading-none">
                 {activeFilterCount}
-              </Badge>
+              </span>
             )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">
-          {/* Read Status */}
-          <DropdownMenuItem onClick={() => updateFilter('isRead', false)}>
+          <DropdownMenuItem onClick={() => updateFilter('isRead', filters.isRead === false ? null : false)}>
             <div className="flex items-center justify-between w-full">
               <span>Unread only</span>
-              {filters.isRead === false && <Badge variant="secondary">✓</Badge>}
+              {filters.isRead === false && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => updateFilter('isRead', true)}>
+          <DropdownMenuItem onClick={() => updateFilter('isRead', filters.isRead === true ? null : true)}>
             <div className="flex items-center justify-between w-full">
               <span>Read only</span>
-              {filters.isRead === true && <Badge variant="secondary">✓</Badge>}
+              {filters.isRead === true && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          {/* Special Flags */}
           <DropdownMenuItem onClick={() => updateFilter('isStarred', !filters.isStarred)}>
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
                 <Star className="h-3 w-3 mr-2" />
                 <span>Starred</span>
               </div>
-              {filters.isStarred && <Badge variant="secondary">✓</Badge>}
+              {filters.isStarred && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
@@ -104,7 +102,7 @@ export function EmailFilters({ currentFolder, filters, onFiltersChange }: EmailF
                 <Flag className="h-3 w-3 mr-2" />
                 <span>Important</span>
               </div>
-              {filters.isImportant && <Badge variant="secondary">✓</Badge>}
+              {filters.isImportant && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
@@ -114,87 +112,83 @@ export function EmailFilters({ currentFolder, filters, onFiltersChange }: EmailF
                 <Paperclip className="h-3 w-3 mr-2" />
                 <span>Has Attachments</span>
               </div>
-              {filters.hasAttachments && <Badge variant="secondary">✓</Badge>}
+              {filters.hasAttachments && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          {/* Priority */}
-          <DropdownMenuItem onClick={() => updateFilter('priority', 'high')}>
+          <DropdownMenuItem onClick={() => updateFilter('priority', filters.priority === 'high' ? null : 'high')}>
             <div className="flex items-center justify-between w-full">
               <span>High Priority</span>
-              {filters.priority === 'high' && <Badge variant="secondary">✓</Badge>}
+              {filters.priority === 'high' && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => updateFilter('priority', 'low')}>
+          <DropdownMenuItem onClick={() => updateFilter('priority', filters.priority === 'low' ? null : 'low')}>
             <div className="flex items-center justify-between w-full">
               <span>Low Priority</span>
-              {filters.priority === 'low' && <Badge variant="secondary">✓</Badge>}
+              {filters.priority === 'low' && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          {/* Direction */}
-          <DropdownMenuItem onClick={() => updateFilter('direction', 'inbound')}>
+          <DropdownMenuItem onClick={() => updateFilter('direction', filters.direction === 'inbound' ? null : 'inbound')}>
             <div className="flex items-center justify-between w-full">
               <span>Received Emails</span>
-              {filters.direction === 'inbound' && <Badge variant="secondary">✓</Badge>}
+              {filters.direction === 'inbound' && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => updateFilter('direction', 'outbound')}>
+          <DropdownMenuItem onClick={() => updateFilter('direction', filters.direction === 'outbound' ? null : 'outbound')}>
             <div className="flex items-center justify-between w-full">
               <span>Sent Emails</span>
-              {filters.direction === 'outbound' && <Badge variant="secondary">✓</Badge>}
+              {filters.direction === 'outbound' && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          {/* Date Range */}
-          <DropdownMenuItem onClick={() => updateFilter('dateRange', '1')}>
+          <DropdownMenuItem onClick={() => updateFilter('dateRange', filters.dateRange === '1' ? null : '1')}>
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
                 <Calendar className="h-3 w-3 mr-2" />
                 <span>Today</span>
               </div>
-              {filters.dateRange === '1' && <Badge variant="secondary">✓</Badge>}
+              {filters.dateRange === '1' && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => updateFilter('dateRange', '7')}>
+          <DropdownMenuItem onClick={() => updateFilter('dateRange', filters.dateRange === '7' ? null : '7')}>
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
                 <Calendar className="h-3 w-3 mr-2" />
                 <span>Last 7 days</span>
               </div>
-              {filters.dateRange === '7' && <Badge variant="secondary">✓</Badge>}
+              {filters.dateRange === '7' && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => updateFilter('dateRange', '30')}>
+          <DropdownMenuItem onClick={() => updateFilter('dateRange', filters.dateRange === '30' ? null : '30')}>
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
                 <Calendar className="h-3 w-3 mr-2" />
                 <span>Last 30 days</span>
               </div>
-              {filters.dateRange === '30' && <Badge variant="secondary">✓</Badge>}
+              {filters.dateRange === '30' && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          {/* CRM Integration */}
           <DropdownMenuItem onClick={() => updateFilter('linkedToCRM', !filters.linkedToCRM)}>
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
                 <User className="h-3 w-3 mr-2" />
                 <span>Linked to CRM</span>
               </div>
-              {filters.linkedToCRM && <Badge variant="secondary">✓</Badge>}
+              {filters.linkedToCRM && <span className="text-primary text-xs">✓</span>}
             </div>
           </DropdownMenuItem>
 
@@ -210,18 +204,17 @@ export function EmailFilters({ currentFolder, filters, onFiltersChange }: EmailF
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Active Filters */}
       {activeFilterCount > 0 && (
-        <div className="flex items-center space-x-1 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap">
           {Object.entries(filters).map(([key, value]) => (
             <Badge
               key={key}
               variant="secondary"
-              className="h-6 text-xs cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
+              className="h-5 text-[10px] cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 shrink-0"
               onClick={() => updateFilter(key, null)}
             >
               {getFilterDisplayName(key, value)}
-              <X className="h-3 w-3 ml-1" />
+              <X className="h-2.5 w-2.5 ml-1" />
             </Badge>
           ))}
         </div>

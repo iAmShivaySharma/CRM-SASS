@@ -17,13 +17,12 @@ export async function POST(
     }
 
     const { id: accountId } = await params
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
     }
 
-    // Verify the account exists and belongs to the user
     const account = await EmailAccount.findOne({
       _id: accountId,
       userId: auth.user._id,
@@ -35,7 +34,6 @@ export async function POST(
       return NextResponse.json({ error: 'Account not found' }, { status: 404 })
     }
 
-    // Use the static method to set as default
     await EmailAccount.setAsDefault(accountId, auth.user._id, workspaceId)
 
     log.info(`Email account set as default: ${account.emailAddress}`, {

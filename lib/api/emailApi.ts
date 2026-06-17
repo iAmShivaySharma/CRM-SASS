@@ -189,23 +189,22 @@ export const emailApi = createApi({
   }),
   tagTypes: ['EmailAccount', 'EmailMessage'],
   endpoints: (builder) => ({
-    // Email Accounts
-    getEmailAccounts: builder.query<{ accounts: EmailAccount[] }, void>({
-      query: () => '/accounts',
+    getEmailAccounts: builder.query<{ accounts: EmailAccount[] }, string>({
+      query: (workspaceId) => `/accounts?workspaceId=${workspaceId}`,
       providesTags: ['EmailAccount'],
     }),
 
-    getEmailAccount: builder.query<{ account: EmailAccount }, string>({
-      query: (id) => `/accounts/${id}`,
-      providesTags: (result, error, id) => [{ type: 'EmailAccount', id }],
+    getEmailAccount: builder.query<{ account: EmailAccount }, { id: string; workspaceId: string }>({
+      query: ({ id, workspaceId }) => `/accounts/${id}?workspaceId=${workspaceId}`,
+      providesTags: (result, error, { id }) => [{ type: 'EmailAccount', id }],
     }),
 
     createEmailAccount: builder.mutation<
       { success: boolean; accountId: string; message: string },
-      CreateEmailAccountRequest
+      CreateEmailAccountRequest & { workspaceId: string }
     >({
-      query: (account) => ({
-        url: '/accounts',
+      query: ({ workspaceId, ...account }) => ({
+        url: `/accounts?workspaceId=${workspaceId}`,
         method: 'POST',
         body: account,
       }),
@@ -214,10 +213,10 @@ export const emailApi = createApi({
 
     updateEmailAccount: builder.mutation<
       { success: boolean; message: string },
-      { id: string; data: UpdateEmailAccountRequest }
+      { id: string; workspaceId: string; data: UpdateEmailAccountRequest }
     >({
-      query: ({ id, data }) => ({
-        url: `/accounts/${id}`,
+      query: ({ id, workspaceId, data }) => ({
+        url: `/accounts/${id}?workspaceId=${workspaceId}`,
         method: 'PUT',
         body: data,
       }),
@@ -226,10 +225,10 @@ export const emailApi = createApi({
 
     deleteEmailAccount: builder.mutation<
       { success: boolean; message: string },
-      string
+      { id: string; workspaceId: string }
     >({
-      query: (id) => ({
-        url: `/accounts/${id}`,
+      query: ({ id, workspaceId }) => ({
+        url: `/accounts/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['EmailAccount'],
@@ -237,10 +236,10 @@ export const emailApi = createApi({
 
     setDefaultEmailAccount: builder.mutation<
       { success: boolean; message: string },
-      string
+      { id: string; workspaceId: string }
     >({
-      query: (id) => ({
-        url: `/accounts/${id}/set-default`,
+      query: ({ id, workspaceId }) => ({
+        url: `/accounts/${id}/set-default?workspaceId=${workspaceId}`,
         method: 'POST',
       }),
       invalidatesTags: ['EmailAccount'],
@@ -248,10 +247,10 @@ export const emailApi = createApi({
 
     syncEmailAccount: builder.mutation<
       { success: boolean; count: number; error?: string },
-      string
+      { id: string; workspaceId: string }
     >({
-      query: (id) => ({
-        url: `/accounts/${id}/sync`,
+      query: ({ id, workspaceId }) => ({
+        url: `/accounts/${id}/sync?workspaceId=${workspaceId}`,
         method: 'POST',
       }),
       invalidatesTags: ['EmailMessage', 'EmailAccount'],
@@ -259,15 +258,14 @@ export const emailApi = createApi({
 
     testEmailAccountConnection: builder.mutation<
       { success: boolean; error?: string },
-      string
+      { id: string; workspaceId: string }
     >({
-      query: (id) => ({
-        url: `/accounts/${id}/test`,
+      query: ({ id, workspaceId }) => ({
+        url: `/accounts/${id}/test?workspaceId=${workspaceId}`,
         method: 'POST',
       }),
     }),
 
-    // Email Messages
     getEmailMessages: builder.query<
       {
         messages: EmailMessage[]
@@ -278,10 +276,11 @@ export const emailApi = createApi({
           pages: number
         }
       },
-      EmailMessagesQuery
+      EmailMessagesQuery & { workspaceId: string }
     >({
-      query: (params) => {
+      query: ({ workspaceId, ...params }) => {
         const searchParams = new URLSearchParams()
+        searchParams.append('workspaceId', workspaceId)
         Object.entries(params).forEach(([key, value]) => {
           if (value !== undefined) {
             searchParams.append(key, value.toString())
@@ -292,17 +291,17 @@ export const emailApi = createApi({
       providesTags: ['EmailMessage'],
     }),
 
-    getEmailMessage: builder.query<{ message: EmailMessage }, string>({
-      query: (id) => `/messages/${id}`,
-      providesTags: (result, error, id) => [{ type: 'EmailMessage', id }],
+    getEmailMessage: builder.query<{ message: EmailMessage }, { id: string; workspaceId: string }>({
+      query: ({ id, workspaceId }) => `/messages/${id}?workspaceId=${workspaceId}`,
+      providesTags: (result, error, { id }) => [{ type: 'EmailMessage', id }],
     }),
 
     updateEmailMessage: builder.mutation<
       { success: boolean; message: string },
-      { id: string; data: UpdateEmailMessageRequest }
+      { id: string; workspaceId: string; data: UpdateEmailMessageRequest }
     >({
-      query: ({ id, data }) => ({
-        url: `/messages/${id}`,
+      query: ({ id, workspaceId, data }) => ({
+        url: `/messages/${id}?workspaceId=${workspaceId}`,
         method: 'PUT',
         body: data,
       }),
@@ -314,22 +313,21 @@ export const emailApi = createApi({
 
     deleteEmailMessage: builder.mutation<
       { success: boolean; message: string },
-      string
+      { id: string; workspaceId: string }
     >({
-      query: (id) => ({
-        url: `/messages/${id}`,
+      query: ({ id, workspaceId }) => ({
+        url: `/messages/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['EmailMessage'],
     }),
 
-    // Send Email
     sendEmail: builder.mutation<
       { success: boolean; messageId: string; message: string },
-      SendEmailRequest
+      SendEmailRequest & { workspaceId: string }
     >({
-      query: (email) => ({
-        url: '/send',
+      query: ({ workspaceId, ...email }) => ({
+        url: `/send?workspaceId=${workspaceId}`,
         method: 'POST',
         body: email,
       }),
@@ -339,7 +337,6 @@ export const emailApi = createApi({
 })
 
 export const {
-  // Email Accounts
   useGetEmailAccountsQuery,
   useGetEmailAccountQuery,
   useCreateEmailAccountMutation,
@@ -349,12 +346,10 @@ export const {
   useSyncEmailAccountMutation,
   useTestEmailAccountConnectionMutation,
 
-  // Email Messages
   useGetEmailMessagesQuery,
   useGetEmailMessageQuery,
   useUpdateEmailMessageMutation,
   useDeleteEmailMessageMutation,
 
-  // Send Email
   useSendEmailMutation,
 } = emailApi

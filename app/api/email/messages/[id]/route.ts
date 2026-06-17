@@ -10,7 +10,7 @@ export async function GET(
   try {
     const auth = await requireAuth(request)
     const { id: messageId } = await params
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
@@ -31,7 +31,6 @@ export async function GET(
       return NextResponse.json({ error: 'Message not found' }, { status: 404 })
     }
 
-    // Mark as read if it was unread
     if (!message.isRead) {
       await message.markAsRead()
     }
@@ -54,7 +53,7 @@ export async function PUT(
     const auth = await requireAuth(request)
     const { id: messageId } = await params
     const body = await request.json()
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
@@ -83,7 +82,6 @@ export async function PUT(
       snoozeUntil
     } = body
 
-    // Update fields
     if (typeof isRead === 'boolean') {
       if (isRead) {
         await message.markAsRead()
@@ -109,7 +107,6 @@ export async function PUT(
       await message.save()
     }
 
-    // Update CRM links
     if (linkedLeadId !== undefined) {
       if (linkedLeadId) {
         await message.linkToLead(linkedLeadId)
@@ -134,7 +131,6 @@ export async function PUT(
       message.linkedTaskId = linkedTaskId || undefined
     }
 
-    // Handle snoozing
     if (snoozeUntil) {
       await message.snooze(new Date(snoozeUntil))
     } else if (snoozeUntil === null) {
@@ -169,7 +165,7 @@ export async function DELETE(
   try {
     const auth = await requireAuth(request)
     const { id: messageId } = await params
-    const workspaceId = auth.user.currentWorkspace
+    const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
@@ -186,7 +182,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Message not found' }, { status: 404 })
     }
 
-    // Move to trash instead of hard delete
     await message.moveToFolder('INBOX.Trash')
 
     log.info(`Email message moved to trash: ${messageId}`, {
