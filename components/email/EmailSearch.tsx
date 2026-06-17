@@ -56,4 +56,3 @@ export const EmailSearch = memo(function EmailSearch({ onSearch, placeholder = '
     </div>
   )
 })
-}
