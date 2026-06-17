@@ -96,6 +96,7 @@ export function WorkspaceSwitcher({
   showCreateButton = true,
   compact = false,
 }: WorkspaceSwitcherProps) {
+  const [mounted, setMounted] = useState(false)
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const { user } = useAppSelector(state => state.auth)
   const dispatch = useAppDispatch()
@@ -121,9 +122,10 @@ export function WorkspaceSwitcher({
   )
   const [updateLastActiveWorkspace] = useUpdateLastActiveWorkspaceMutation()
 
-  // State management
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isSwitching, setIsSwitching] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   const workspaces = useMemo(
     () => workspacesData?.workspaces || [],
@@ -271,7 +273,7 @@ export function WorkspaceSwitcher({
     }
   }
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return <WorkspaceSwitcherSkeleton className={className} />
   }
 
