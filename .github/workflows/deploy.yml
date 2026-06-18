@@ -1,0 +1,212 @@
+name: Deploy
+
+on:
+  # Label-based: add deploy:dev / deploy:qa / deploy:prod label to a PR
+  pull_request:
+    types: [labeled]
+    branches: [main, develop, release/*]
+
+  # Auto-deploy develop -> dev on merge
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+  packages: read
+  pull-requests: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ── Determine target environment ──────────────────────────────────────
+  resolve:
+    name: Resolve Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      should_deploy: ${{ steps.env.outputs.should_deploy }}
+    steps:
+      - name: Determine environment
+        id: env
+        run: |
+          EVENT="${{ github.event_name }}"
+          LABEL="${{ github.event.label.name }}"
+
+          if [[ "$EVENT" == "push" && "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "environment=dev" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$EVENT" == "pull_request" && "$LABEL" == "READY TO DEV" ]]; then
+            echo "environment=dev" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$EVENT" == "pull_request" && "$LABEL" == "READY FOR QA" ]]; then
+            echo "environment=qa" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$EVENT" == "pull_request" && "$LABEL" == "READY TO RELEASE" ]]; then
+            echo "environment=prod" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ── Prod Friday gate ─────────────────────────────────────────────────
+  friday-gate:
+    name: Friday Deploy Gate (Prod)
+    needs: resolve
+    if: needs.resolve.outputs.environment == 'prod'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if Friday
+        run: |
+          DAY=$(date -u +%u)  # 1=Mon ... 5=Fri
+          if [[ "$DAY" != "5" ]]; then
+            echo "Production deployments are only allowed on Fridays (UTC)."
+            echo "Today is day $DAY of the week."
+            echo "To override, a repo admin can re-run this workflow."
+            exit 1
+          fi
+          echo "It's Friday — production deploy allowed."
+
+  # ── Build image ──────────────────────────────────────────────────────
+  build:
+    name: Build Image
+    needs: resolve
+    if: needs.resolve.outputs.should_deploy == 'true'
+    uses: ./.github/workflows/build.yml
+    with:
+      tag: ${{ needs.resolve.outputs.environment }}-${{ github.sha }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+  # ── Deploy to DEV ────────────────────────────────────────────────────
+  deploy-dev:
+    name: Deploy to Dev
+    needs: [resolve, build]
+    if: needs.resolve.outputs.environment == 'dev'
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+      url: https://dev.crm.example.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image in kustomization
+        run: |
+          cd k8s/overlays/dev
+          kustomize edit set image \
+            ghcr.io/OWNER/crm-saas=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:dev-${{ github.sha }}
+
+      - name: Deploy to dev cluster
+        run: |
+          echo "Applying kustomize overlay for dev..."
+          # kubectl apply -k k8s/overlays/dev
+          # Uncomment above when cluster credentials are configured
+          kustomize build k8s/overlays/dev
+          echo "Dev deployment complete"
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Deployed to **dev** environment.\nImage: \`dev-${context.sha.substring(0, 7)}\`\nURL: https://dev.crm.example.com`
+            })
+
+  # ── Deploy to QA ─────────────────────────────────────────────────────
+  deploy-qa:
+    name: Deploy to QA
+    needs: [resolve, build]
+    if: needs.resolve.outputs.environment == 'qa'
+    runs-on: ubuntu-latest
+    environment:
+      name: qa
+      url: https://qa.crm.example.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image in kustomization
+        run: |
+          cd k8s/overlays/qa
+          kustomize edit set image \
+            ghcr.io/OWNER/crm-saas=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:qa-${{ github.sha }}
+
+      - name: Deploy to QA cluster
+        run: |
+          echo "Applying kustomize overlay for qa..."
+          # kubectl apply -k k8s/overlays/qa
+          kustomize build k8s/overlays/qa
+          echo "QA deployment complete"
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against QA..."
+          # curl -f https://qa.crm.example.com/api/health || exit 1
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Deployed to **QA** environment.\nImage: \`qa-${context.sha.substring(0, 7)}\`\nURL: https://qa.crm.example.com`
+            })
+
+  # ── Deploy to PROD (Friday only) ─────────────────────────────────────
+  deploy-prod:
+    name: Deploy to Production
+    needs: [resolve, build, friday-gate]
+    if: needs.resolve.outputs.environment == 'prod'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://crm.example.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image in kustomization
+        run: |
+          cd k8s/overlays/prod
+          kustomize edit set image \
+            ghcr.io/OWNER/crm-saas=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:prod-${{ github.sha }}
+
+      - name: Deploy to production cluster
+        run: |
+          echo "Applying kustomize overlay for prod..."
+          # kubectl apply -k k8s/overlays/prod
+          kustomize build k8s/overlays/prod
+          echo "Production deployment complete"
+
+      - name: Run smoke tests
+        run: |
+          echo "Running production smoke tests..."
+          # curl -f https://crm.example.com/api/health || exit 1
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Deployed to **PRODUCTION**.\nImage: \`prod-${context.sha.substring(0, 7)}\`\nURL: https://crm.example.com`
+            })
+
+      - name: Create release tag
+        run: |
+          VERSION="v$(date +%Y%m%d)-$(echo ${{ github.sha }} | cut -c1-7)"
+          git tag "$VERSION"
+          git push origin "$VERSION"

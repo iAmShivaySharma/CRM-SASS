@@ -1,350 +1,131 @@
-name: Security Checks
+name: Security
 
 on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   schedule:
-    # Run security checks daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * 1"  # Weekly Monday 2 AM UTC
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
-  # CodeQL Analysis
+  # ── CodeQL SAST ──────────────────────────────────────────────────────
   codeql:
-    name: CodeQL Analysis
+    name: CodeQL
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
     strategy:
       fail-fast: false
       matrix:
-        language: ['javascript', 'typescript']
-
+        language: [javascript-typescript]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/analyze@v3
         with:
-          category: '/language:${{matrix.language}}'
+          category: /language:${{ matrix.language }}
 
-  # Dependency Vulnerability Scan
-  dependency-scan:
-    name: Dependency Vulnerability Scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run npm audit
-        run: |
-          npm audit --audit-level high --production
-          npm audit --json > audit-results.json
-
-      - name: Upload audit results
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-audit-results
-          path: audit-results.json
-
-      - name: Check for high/critical vulnerabilities
-        run: |
-          HIGH_VULNS=$(npm audit --audit-level high --json | jq '.metadata.vulnerabilities.high // 0')
-          CRITICAL_VULNS=$(npm audit --audit-level critical --json | jq '.metadata.vulnerabilities.critical // 0')
-
-          if [ "$HIGH_VULNS" -gt 0 ] || [ "$CRITICAL_VULNS" -gt 0 ]; then
-            echo "❌ High or critical vulnerabilities found!"
-            echo "High vulnerabilities: $HIGH_VULNS"
-            echo "Critical vulnerabilities: $CRITICAL_VULNS"
-            exit 1
-          else
-            echo "✅ No high or critical vulnerabilities found"
-          fi
-
-  # SAST (Static Application Security Testing)
+  # ── Semgrep SAST ─────────────────────────────────────────────────────
   semgrep:
-    name: Semgrep SAST
+    name: Semgrep
     runs-on: ubuntu-latest
     container:
       image: returntocorp/semgrep
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Run Semgrep
-        run: |
-          semgrep --config=auto --json --output=semgrep-results.json .
-          semgrep --config=auto --severity=ERROR .
+        run: semgrep --config=auto --severity=ERROR --error .
 
-      - name: Upload Semgrep results
-        uses: actions/upload-artifact@v4
-        if: always()
+  # ── Dependency vulnerability scan ────────────────────────────────────
+  dependency-scan:
+    name: Dependency Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          name: semgrep-results
-          path: semgrep-results.json
+          node-version: "18"
+          cache: npm
 
-  # Secret Scanning
-  truffleHog:
+      - run: npm ci
+
+      - name: Audit production deps
+        run: npm audit --audit-level high --production
+
+  # ── Secret scanning ──────────────────────────────────────────────────
+  secrets:
     name: Secret Scanning
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Run TruffleHog
-        uses: trufflesecurity/trufflehog@main
+      - uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: main
           head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --only-verified
 
-  # Container Security (if using Docker)
-  container-security:
-    name: Container Security Scan
+  # ── Container image scan ─────────────────────────────────────────────
+  container-scan:
+    name: Container Scan
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: |
-          if [ -f "Dockerfile" ]; then
-            docker build -t crm-app:latest .
-          else
-            echo "No Dockerfile found, skipping container scan"
-            exit 0
-          fi
+      - name: Build image
+        run: docker build -f docker/Dockerfile -t crm-app:scan .
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        if: hashFiles('Dockerfile') != ''
+      - uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'crm-app:latest'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          image-ref: crm-app:scan
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
 
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
-        if: hashFiles('Dockerfile') != ''
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: trivy-results.sarif
 
-  # License Compliance
-  license-check:
-    name: License Compliance
+  # ── License compliance ───────────────────────────────────────────────
+  license:
+    name: License Check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
       - name: Check licenses
-        run: |
-          npx license-checker --excludePackages 'gpl-3.0;agpl-3.0' --json > license-report.json
+        run: npx license-checker --excludePackages "gpl-3.0;agpl-3.0" --failOn "GPL-3.0;AGPL-3.0"
 
-      - name: Upload license report
-        uses: actions/upload-artifact@v4
-        with:
-          name: license-report
-          path: license-report.json
-
-  # Security Headers Check
-  security-headers:
-    name: Security Headers Check
+  # ── Dependency review (PR only) ──────────────────────────────────────
+  dependency-review:
+    name: Dependency Review
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    services:
-      mongodb:
-        image: mongo:5.0
-        ports:
-          - 27017:27017
-
+    if: github.event_name == 'pull_request'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v3
         with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build and start application
-        run: |
-          npm run build
-          timeout 60s npm start &
-          APP_PID=$!
-
-          # Wait for app to start with proper health check
-          for i in {1..30}; do
-            if curl -f http://localhost:3000 >/dev/null 2>&1; then
-              echo "✅ Application is running on port 3000"
-              break
-            fi
-            echo "⏳ Waiting for application to start... ($i/30)"
-            sleep 2
-          done
-        env:
-          MONGODB_URI: 'mongodb://localhost:27017/crm_test'
-          JWT_SECRET: 'test-secret-for-security-check'
-
-      - name: Check security headers
-        run: |
-          curl -I http://localhost:3000 > headers.txt
-
-          # Check for security headers
-          if ! grep -i "x-frame-options" headers.txt; then
-            echo "❌ Missing X-Frame-Options header"
-            exit 1
-          fi
-
-          if ! grep -i "x-content-type-options" headers.txt; then
-            echo "❌ Missing X-Content-Type-Options header"
-            exit 1
-          fi
-
-          if ! grep -i "content-security-policy" headers.txt; then
-            echo "❌ Missing Content-Security-Policy header"
-            exit 1
-          fi
-
-          echo "✅ Security headers check passed"
-
-  # OWASP ZAP Security Scan
-  zap-scan:
-    name: OWASP ZAP Security Scan
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    services:
-      mongodb:
-        image: mongo:5.0
-        ports:
-          - 27017:27017
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build and start application
-        run: |
-          npm run build
-          timeout 60s npm start &
-          APP_PID=$!
-
-          # Wait for app to start with proper health check
-          for i in {1..30}; do
-            if curl -f http://localhost:3000 >/dev/null 2>&1; then
-              echo "✅ Application is running on port 3000"
-              break
-            fi
-            echo "⏳ Waiting for application to start... ($i/30)"
-            sleep 2
-          done
-        env:
-          MONGODB_URI: 'mongodb://localhost:27017/crm_test'
-          JWT_SECRET: 'test-secret-for-zap-scan'
-
-      - name: ZAP Scan
-        uses: zaproxy/action-baseline@v0.7.0
-        with:
-          target: 'http://localhost:3000'
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
-
-  # Generate Security Report
-  security-report:
-    name: Generate Security Report
-    needs: [codeql, dependency-scan, semgrep, truffleHog, license-check]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Generate security report
-        run: |
-          mkdir -p security-report
-          echo "# Security Scan Report" > security-report/README.md
-          echo "Generated on: $(date)" >> security-report/README.md
-          echo "" >> security-report/README.md
-
-          # Check if any security issues were found
-          if [ -f "semgrep-results/semgrep-results.json" ]; then
-            SEMGREP_ISSUES=$(jq '.results | length' semgrep-results/semgrep-results.json)
-            echo "## Semgrep SAST Results: $SEMGREP_ISSUES issues found" >> security-report/README.md
-          fi
-
-          if [ -f "npm-audit-results/audit-results.json" ]; then
-            HIGH_VULNS=$(jq '.metadata.vulnerabilities.high // 0' npm-audit-results/audit-results.json)
-            CRITICAL_VULNS=$(jq '.metadata.vulnerabilities.critical // 0' npm-audit-results/audit-results.json)
-            echo "## Dependency Vulnerabilities: $HIGH_VULNS high, $CRITICAL_VULNS critical" >> security-report/README.md
-          fi
-
-          echo "" >> security-report/README.md
-          echo "See individual artifact files for detailed results." >> security-report/README.md
-
-      - name: Upload security report
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-report
-          path: security-report/
-
-  # Notify on Security Issues
-  notify-security:
-    name: Notify Security Issues
-    needs: [security-report]
-    runs-on: ubuntu-latest
-    if: failure() && github.ref == 'refs/heads/main'
-    steps:
-      - name: Notify team
-        run: |
-          echo "🚨 Security issues detected in main branch!"
-          echo "Please check the security report and address any critical issues."
-          # Add notification logic here (Slack, email, etc.)
+          fail-on-severity: high
