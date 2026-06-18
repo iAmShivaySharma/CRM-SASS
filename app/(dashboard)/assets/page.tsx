@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -12,38 +12,60 @@ import {
   Download,
   Package,
   AlertTriangle,
-  CheckCircle,
   TrendingUp,
   DollarSign,
   Calendar,
-  Wrench
+  Wrench,
+  Loader2
 } from 'lucide-react'
 import { AssetManagement } from '@/components/hr/AssetManagement'
 import { useAppSelector } from '@/lib/hooks'
 
+interface AssetStats {
+  totalAssets: number
+  byStatus: Array<{ _id: string; count: number }>
+  totalValue: number
+  byCategory: Array<{ _id: string; count: number; totalValue: number }>
+  upcomingMaintenance: number
+  overdueReturns: number
+}
+
 export default function AssetsPage() {
   const [activeTab, setActiveTab] = useState('inventory')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const [stats, setStats] = useState<AssetStats | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Mock data for asset stats - would be workspace-specific in real implementation
-  const stats = {
-    totalAssets: 127,
-    availableAssets: 23,
-    allocatedAssets: 89,
-    maintenanceAssets: 12,
-    retiredAssets: 3,
-    totalValue: 285000,
-    avgAssetAge: 2.3,
-    upcomingMaintenance: 8,
-    workspaceId: currentWorkspace?.id,
-    categories: [
-      { name: 'Laptops', count: 45, value: 112500, allocated: 38 },
-      { name: 'Monitors', count: 32, value: 19200, allocated: 28 },
-      { name: 'Phones', count: 28, value: 28000, allocated: 25 },
-      { name: 'Furniture', count: 15, value: 22500, allocated: 12 },
-      { name: 'Vehicles', count: 7, value: 102800, allocated: 6 }
-    ]
+  const fetchStats = useCallback(async () => {
+    if (!currentWorkspace?.id) return
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/assets/stats?workspaceId=${currentWorkspace.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch asset stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentWorkspace?.id])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
+
+  const getStatusCount = (status: string) => {
+    return stats?.byStatus?.find(s => s._id === status)?.count || 0
   }
+
+  const availableAssets = getStatusCount('available')
+  const allocatedAssets = getStatusCount('allocated')
+  const maintenanceAssets = getStatusCount('maintenance')
+  const retiredAssets = getStatusCount('retired')
+  const totalAssets = stats?.totalAssets || 0
+  const totalValue = stats?.totalValue || 0
 
   if (!currentWorkspace) {
     return (
@@ -57,6 +79,7 @@ export default function AssetsPage() {
   }
 
   const getUtilizationColor = (allocated: number, total: number) => {
+    if (total === 0) return 'text-gray-600'
     const percentage = (allocated / total) * 100
     if (percentage > 80) return 'text-red-600'
     if (percentage > 60) return 'text-yellow-600'
@@ -93,10 +116,10 @@ export default function AssetsPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAssets}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.availableAssets} available
-            </p>
+            <div className="text-2xl font-bold">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : totalAssets}
+            </div>
+            <p className="text-xs text-muted-foreground">{availableAssets} available</p>
           </CardContent>
         </Card>
 
@@ -106,9 +129,11 @@ export default function AssetsPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.allocatedAssets}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : allocatedAssets}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((stats.allocatedAssets / stats.totalAssets) * 100)}% utilization
+              {totalAssets > 0 ? Math.round((allocatedAssets / totalAssets) * 100) : 0}% utilization
             </p>
           </CardContent>
         </Card>
@@ -119,10 +144,10 @@ export default function AssetsPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(stats.totalValue / 1000).toFixed(0)}K</div>
-            <p className="text-xs text-muted-foreground">
-              Current portfolio value
-            </p>
+            <div className="text-2xl font-bold">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : `$${(totalValue / 1000).toFixed(0)}K`}
+            </div>
+            <p className="text-xs text-muted-foreground">Current portfolio value</p>
           </CardContent>
         </Card>
 
@@ -132,10 +157,10 @@ export default function AssetsPage() {
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.upcomingMaintenance}</div>
-            <p className="text-xs text-muted-foreground">
-              Next 30 days
-            </p>
+            <div className="text-2xl font-bold text-yellow-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : (stats?.upcomingMaintenance || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">Next 30 days</p>
           </CardContent>
         </Card>
       </div>
@@ -148,57 +173,25 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">Available</span>
+              {[
+                { label: 'Available', count: availableAssets, color: 'bg-green-500' },
+                { label: 'Allocated', count: allocatedAssets, color: 'bg-blue-500' },
+                { label: 'Maintenance', count: maintenanceAssets, color: 'bg-yellow-500' },
+                { label: 'Retired', count: retiredAssets, color: 'bg-gray-500' },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 ${item.color} rounded-full`}></div>
+                    <span className="text-sm">{item.label}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">{item.count}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({totalAssets > 0 ? Math.round((item.count / totalAssets) * 100) : 0}%)
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">{stats.availableAssets}</span>
-                  <span className="text-xs text-muted-foreground">
-                    ({Math.round((stats.availableAssets / stats.totalAssets) * 100)}%)
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm">Allocated</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">{stats.allocatedAssets}</span>
-                  <span className="text-xs text-muted-foreground">
-                    ({Math.round((stats.allocatedAssets / stats.totalAssets) * 100)}%)
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <span className="text-sm">Maintenance</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">{stats.maintenanceAssets}</span>
-                  <span className="text-xs text-muted-foreground">
-                    ({Math.round((stats.maintenanceAssets / stats.totalAssets) * 100)}%)
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                  <span className="text-sm">Retired</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">{stats.retiredAssets}</span>
-                  <span className="text-xs text-muted-foreground">
-                    ({Math.round((stats.retiredAssets / stats.totalAssets) * 100)}%)
-                  </span>
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -209,32 +202,32 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stats.categories.map((category) => (
-                <div key={category.name} className="space-y-2">
+              {(stats?.byCategory || []).map((category) => (
+                <div key={category._id} className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium">{category.name}</span>
-                    <span className={`font-medium ${getUtilizationColor(category.allocated, category.count)}`}>
-                      {category.allocated}/{category.count}
-                    </span>
+                    <span className="font-medium capitalize">{category._id}</span>
+                    <span className="font-medium">{category.count}</span>
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                    <span>Utilization: {Math.round((category.allocated / category.count) * 100)}%</span>
-                    <span>Value: ${(category.value / 1000).toFixed(0)}K</span>
+                    <span>Value: ${(category.totalValue / 1000).toFixed(0)}K</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${(category.allocated / category.count) * 100}%` }}
+                      style={{ width: `${totalAssets > 0 ? (category.count / totalAssets) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
               ))}
+              {(!stats?.byCategory || stats.byCategory.length === 0) && !loading && (
+                <p className="text-sm text-muted-foreground">No assets registered yet.</p>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Asset Health and Alerts */}
+      {/* Alerts and Info */}
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
@@ -245,15 +238,11 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-sm">
-              <div className="font-medium text-yellow-600">{stats.upcomingMaintenance} maintenance due</div>
+              <div className="font-medium text-yellow-600">{stats?.upcomingMaintenance || 0} maintenance due</div>
               <div className="text-muted-foreground">Next 30 days</div>
             </div>
             <div className="text-sm">
-              <div className="font-medium text-red-600">3 warranties expiring</div>
-              <div className="text-muted-foreground">Next 60 days</div>
-            </div>
-            <div className="text-sm">
-              <div className="font-medium text-blue-600">5 assets overdue return</div>
+              <div className="font-medium text-red-600">{stats?.overdueReturns || 0} overdue returns</div>
               <div className="text-muted-foreground">Past expected date</div>
             </div>
           </CardContent>
@@ -268,16 +257,16 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-sm">
-              <div className="font-medium">{stats.avgAssetAge} years</div>
-              <div className="text-muted-foreground">Average asset age</div>
-            </div>
-            <div className="text-sm">
-              <div className="font-medium text-green-600">94%</div>
+              <div className="font-medium text-green-600">
+                {totalAssets > 0 ? Math.round((availableAssets / totalAssets) * 100) : 0}%
+              </div>
               <div className="text-muted-foreground">Asset availability rate</div>
             </div>
             <div className="text-sm">
-              <div className="font-medium text-blue-600">87%</div>
-              <div className="text-muted-foreground">On-time maintenance completion</div>
+              <div className="font-medium text-blue-600">
+                {totalAssets > 0 ? Math.round((allocatedAssets / totalAssets) * 100) : 0}%
+              </div>
+              <div className="text-muted-foreground">Utilization rate</div>
             </div>
           </CardContent>
         </Card>
@@ -286,21 +275,17 @@ export default function AssetsPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-blue-500" />
-              <span>Upcoming</span>
+              <span>Summary</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-sm">
-              <div className="font-medium">12 assets</div>
-              <div className="text-muted-foreground">Expected returns this week</div>
+              <div className="font-medium">{totalAssets} total assets</div>
+              <div className="text-muted-foreground">In the system</div>
             </div>
             <div className="text-sm">
-              <div className="font-medium">6 new purchases</div>
-              <div className="text-muted-foreground">Delivery scheduled</div>
-            </div>
-            <div className="text-sm">
-              <div className="font-medium">4 retirements</div>
-              <div className="text-muted-foreground">End of lifecycle</div>
+              <div className="font-medium">${totalValue.toLocaleString()}</div>
+              <div className="text-muted-foreground">Total portfolio value</div>
             </div>
           </CardContent>
         </Card>

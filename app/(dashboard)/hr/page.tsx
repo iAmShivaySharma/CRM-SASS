@@ -1,48 +1,63 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Users,
   Clock,
   Calendar,
-  TrendingUp,
   UserCheck,
   UserX,
-  Timer,
-  Target,
-  BarChart3,
   Plus,
   Download,
   Laptop,
   User,
   ArrowRight,
   Building,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react'
 import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
 import { useAppSelector } from '@/lib/hooks'
 import { useRouter } from 'next/navigation'
 
+interface HRStats {
+  totalEmployees: number
+  presentToday: number
+  absentToday: number
+  lateToday: number
+  attendanceRate: number
+  pendingLeaves: number
+  totalAssets: number
+  availableAssets: number
+}
+
 export default function HRPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const router = useRouter()
+  const [stats, setStats] = useState<HRStats | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Mock data for dashboard stats - would be workspace-specific in real implementation
-  const stats = {
-    totalEmployees: 45,
-    presentToday: 38,
-    absentToday: 7,
-    lateToday: 3,
-    avgWorkHours: 7.8,
-    totalWorkHours: 1564,
-    attendanceRate: 84.4,
-    pendingLeaves: 8,
-    totalAssets: 127,
-    availableAssets: 23,
-    workspaceId: currentWorkspace?.id
-  }
+  const fetchStats = useCallback(async () => {
+    if (!currentWorkspace?.id) return
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/hr/stats?workspaceId=${currentWorkspace.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch HR stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentWorkspace?.id])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   const getStatusColor = (status: string, value: number) => {
     switch (status) {
@@ -57,6 +72,17 @@ export default function HRPage() {
     }
   }
 
+  const displayStats = stats || {
+    totalEmployees: 0,
+    presentToday: 0,
+    absentToday: 0,
+    lateToday: 0,
+    attendanceRate: 0,
+    pendingLeaves: 0,
+    totalAssets: 0,
+    availableAssets: 0
+  }
+
   const hrModules = [
     {
       name: 'Attendance Management',
@@ -64,8 +90,8 @@ export default function HRPage() {
       icon: Clock,
       href: '/attendance',
       stats: [
-        { label: 'Present Today', value: stats.presentToday, color: 'text-green-600' },
-        { label: 'Attendance Rate', value: `${stats.attendanceRate}%`, color: getStatusColor('rate', stats.attendanceRate) }
+        { label: 'Present Today', value: displayStats.presentToday, color: 'text-green-600' },
+        { label: 'Attendance Rate', value: `${displayStats.attendanceRate}%`, color: getStatusColor('rate', displayStats.attendanceRate) }
       ],
       actions: ['View Live Tracking', 'Generate Reports', 'Manage Shifts']
     },
@@ -75,8 +101,8 @@ export default function HRPage() {
       icon: User,
       href: '/employees',
       stats: [
-        { label: 'Total Employees', value: stats.totalEmployees, color: 'text-blue-600' },
-        { label: 'Active', value: stats.totalEmployees - 3, color: 'text-green-600' }
+        { label: 'Total Employees', value: displayStats.totalEmployees, color: 'text-blue-600' },
+        { label: 'Active', value: displayStats.totalEmployees, color: 'text-green-600' }
       ],
       actions: ['Add Employee', 'Manage Roles', 'Employee Directory']
     },
@@ -86,8 +112,8 @@ export default function HRPage() {
       icon: Calendar,
       href: '/leaves',
       stats: [
-        { label: 'Pending Requests', value: stats.pendingLeaves, color: 'text-yellow-600' },
-        { label: 'Approved This Month', value: 23, color: 'text-green-600' }
+        { label: 'Pending Requests', value: displayStats.pendingLeaves, color: 'text-yellow-600' },
+        { label: 'Approved This Month', value: '-', color: 'text-green-600' }
       ],
       actions: ['Review Requests', 'Leave Policies', 'Balance Reports']
     },
@@ -97,8 +123,8 @@ export default function HRPage() {
       icon: Laptop,
       href: '/assets',
       stats: [
-        { label: 'Total Assets', value: stats.totalAssets, color: 'text-blue-600' },
-        { label: 'Available', value: stats.availableAssets, color: 'text-green-600' }
+        { label: 'Total Assets', value: displayStats.totalAssets, color: 'text-blue-600' },
+        { label: 'Available', value: displayStats.availableAssets, color: 'text-green-600' }
       ],
       actions: ['Asset Inventory', 'Allocations', 'Maintenance']
     }
@@ -145,10 +171,10 @@ export default function HRPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEmployees}</div>
-            <p className="text-xs text-muted-foreground">
-              Active workforce
-            </p>
+            <div className="text-2xl font-bold">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.totalEmployees}
+            </div>
+            <p className="text-xs text-muted-foreground">Active workforce</p>
           </CardContent>
         </Card>
 
@@ -158,9 +184,13 @@ export default function HRPage() {
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.presentToday}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.presentToday}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((stats.presentToday / stats.totalEmployees) * 100)}% attendance rate
+              {displayStats.totalEmployees > 0
+                ? `${Math.round((displayStats.presentToday / displayStats.totalEmployees) * 100)}% attendance rate`
+                : '0% attendance rate'}
             </p>
           </CardContent>
         </Card>
@@ -171,10 +201,10 @@ export default function HRPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pendingLeaves}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting approval
-            </p>
+            <div className="text-2xl font-bold text-yellow-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.pendingLeaves}
+            </div>
+            <p className="text-xs text-muted-foreground">Awaiting approval</p>
           </CardContent>
         </Card>
 
@@ -184,9 +214,11 @@ export default function HRPage() {
             <Laptop className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.availableAssets}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.availableAssets}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Out of {stats.totalAssets} total
+              Out of {displayStats.totalAssets} total
             </p>
           </CardContent>
         </Card>
@@ -210,15 +242,15 @@ export default function HRPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{stats.presentToday}</div>
+                    <div className="text-2xl font-bold text-green-600">{displayStats.presentToday}</div>
                     <div className="text-sm text-muted-foreground">Present</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">{stats.absentToday}</div>
+                    <div className="text-2xl font-bold text-red-600">{displayStats.absentToday}</div>
                     <div className="text-sm text-muted-foreground">Absent</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{stats.lateToday}</div>
+                    <div className="text-2xl font-bold text-yellow-600">{displayStats.lateToday}</div>
                     <div className="text-sm text-muted-foreground">Late</div>
                   </div>
                 </div>
@@ -226,14 +258,14 @@ export default function HRPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Overall Attendance Rate</span>
-                    <span className={getStatusColor('rate', stats.attendanceRate)}>
-                      {stats.attendanceRate}%
+                    <span className={getStatusColor('rate', displayStats.attendanceRate)}>
+                      {displayStats.attendanceRate}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${stats.attendanceRate}%` }}
+                      style={{ width: `${displayStats.attendanceRate}%` }}
                     />
                   </div>
                 </div>
@@ -267,7 +299,7 @@ export default function HRPage() {
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 gap-4">
                     {module.stats.map((stat, index) => (
-                      <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className={`text-xl font-bold ${stat.color}`}>{stat.value}</div>
                         <div className="text-xs text-muted-foreground">{stat.label}</div>
                       </div>
@@ -279,7 +311,7 @@ export default function HRPage() {
                     <div className="text-xs text-muted-foreground mb-2">Quick Actions:</div>
                     <div className="flex flex-wrap gap-1">
                       {module.actions.map((action) => (
-                        <span key={action} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                        <span key={action} className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
                           {action}
                         </span>
                       ))}

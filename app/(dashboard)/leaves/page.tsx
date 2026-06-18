@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -12,33 +12,56 @@ import {
   Download,
   Clock,
   CheckCircle,
-  XCircle,
-  Users,
-  TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from 'lucide-react'
 import { LeaveManagement } from '@/components/hr/LeaveManagement'
 import { useAppSelector } from '@/lib/hooks'
 
+interface LeaveStats {
+  pendingRequests: number
+  approvedThisMonth: number
+  totalLeaveDays: number
+  upcomingLeaves: number
+  leaveTypeBreakdown: Array<{
+    _id: string
+    totalDays: number
+    count: number
+  }>
+}
+
 export default function LeavesPage() {
   const [activeTab, setActiveTab] = useState('requests')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const [stats, setStats] = useState<LeaveStats | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Mock data for leave stats - would be workspace-specific in real implementation
-  const stats = {
-    pendingRequests: 8,
-    approvedThisMonth: 23,
-    totalLeaveDays: 156,
-    averageLeaveBalance: 18.5,
-    mostUsedLeaveType: 'Annual Leave',
-    upcomingLeaves: 12,
-    workspaceId: currentWorkspace?.id,
-    leaveTypes: [
-      { name: 'Annual Leave', used: 89, total: 200, percentage: 44.5 },
-      { name: 'Sick Leave', used: 34, total: 100, percentage: 34 },
-      { name: 'Personal Leave', used: 23, total: 75, percentage: 30.7 },
-      { name: 'Maternity Leave', used: 10, total: 20, percentage: 50 }
-    ]
+  const fetchStats = useCallback(async () => {
+    if (!currentWorkspace?.id) return
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/leaves/stats?workspaceId=${currentWorkspace.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch leave stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentWorkspace?.id])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
+
+  const displayStats = stats || {
+    pendingRequests: 0,
+    approvedThisMonth: 0,
+    totalLeaveDays: 0,
+    upcomingLeaves: 0,
+    leaveTypeBreakdown: []
   }
 
   if (!currentWorkspace) {
@@ -82,10 +105,10 @@ export default function LeavesPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pendingRequests}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting approval
-            </p>
+            <div className="text-2xl font-bold text-yellow-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.pendingRequests}
+            </div>
+            <p className="text-xs text-muted-foreground">Awaiting approval</p>
           </CardContent>
         </Card>
 
@@ -95,10 +118,10 @@ export default function LeavesPage() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.approvedThisMonth}</div>
-            <p className="text-xs text-muted-foreground">
-              +15% from last month
-            </p>
+            <div className="text-2xl font-bold text-green-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.approvedThisMonth}
+            </div>
+            <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
 
@@ -108,10 +131,10 @@ export default function LeavesPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalLeaveDays}</div>
-            <p className="text-xs text-muted-foreground">
-              Used this year
-            </p>
+            <div className="text-2xl font-bold">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.totalLeaveDays}
+            </div>
+            <p className="text-xs text-muted-foreground">Used this year</p>
           </CardContent>
         </Card>
 
@@ -121,10 +144,10 @@ export default function LeavesPage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.upcomingLeaves}</div>
-            <p className="text-xs text-muted-foreground">
-              Next 30 days
-            </p>
+            <div className="text-2xl font-bold text-blue-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.upcomingLeaves}
+            </div>
+            <p className="text-xs text-muted-foreground">Next 30 days</p>
           </CardContent>
         </Card>
       </div>
@@ -138,36 +161,42 @@ export default function LeavesPage() {
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <h4 className="text-sm font-medium">Leave Type Usage</h4>
-              {stats.leaveTypes.map((type) => (
-                <div key={type.name} className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>{type.name}</span>
-                    <span className="text-muted-foreground">
-                      {type.used}/{type.total} days ({type.percentage}%)
-                    </span>
+              {displayStats.leaveTypeBreakdown.length > 0 ? (
+                displayStats.leaveTypeBreakdown.map((type) => (
+                  <div key={type._id} className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="capitalize">{type._id} Leave</span>
+                      <span className="text-muted-foreground">
+                        {type.totalDays} days ({type.count} requests)
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.min((type.totalDays / Math.max(displayStats.totalLeaveDays, 1)) * 100, 100)}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${type.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {loading ? 'Loading...' : 'No leave data available yet.'}
+                </p>
+              )}
             </div>
 
             <div className="space-y-4">
               <h4 className="text-sm font-medium">Quick Stats</h4>
               <div className="grid gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{stats.averageLeaveBalance}</div>
-                  <div className="text-sm text-blue-800">Average Leave Balance</div>
-                  <div className="text-xs text-blue-600">Per employee</div>
+                <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{displayStats.totalLeaveDays}</div>
+                  <div className="text-sm text-blue-800 dark:text-blue-300">Total Leave Days Used</div>
+                  <div className="text-xs text-blue-600">This year</div>
                 </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="text-lg font-bold text-green-600">{stats.mostUsedLeaveType}</div>
-                  <div className="text-sm text-green-800">Most Used Leave Type</div>
-                  <div className="text-xs text-green-600">This year</div>
+                <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{displayStats.approvedThisMonth}</div>
+                  <div className="text-sm text-green-800 dark:text-green-300">Approved This Month</div>
+                  <div className="text-xs text-green-600">Current month</div>
                 </div>
               </div>
             </div>
