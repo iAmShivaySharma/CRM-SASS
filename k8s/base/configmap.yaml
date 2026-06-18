@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-app-config
+  labels:
+    app.kubernetes.io/name: crm-app
+    app.kubernetes.io/part-of: crm-saas
+data:
+  NODE_ENV: "production"
+  CORS_ORIGINS: "https://crm.example.com"
+  NEXT_PUBLIC_APP_URL: "https://crm.example.com"
+  JWT_EXPIRES_IN: "7d"
+  MINIO_USE_SSL: "true"
+  MINIO_PORT: "443"

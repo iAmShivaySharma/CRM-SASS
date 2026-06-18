@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: crm-app
+  labels:
+    app.kubernetes.io/name: crm-app
+    app.kubernetes.io/part-of: crm-saas
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: crm-app

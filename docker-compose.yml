@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
-  # MongoDB Database
+  # Local MongoDB (for local dev without Atlas)
   mongodb:
     image: mongo:7.0
     container_name: crm-mongodb
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
       MONGO_INITDB_DATABASE: crm_database
     ports:
       - "27017:27017"
@@ -18,28 +16,23 @@ services:
     networks:
       - crm-network
 
-  # Next.js Application
+  # Next.js Application (production build)
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: crm-app
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/crm_database?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key-for-docker
-      - JWT_EXPIRES_IN=7d
-      - CORS_ORIGINS=http://localhost:3000
     depends_on:
       - mongodb
     networks:
       - crm-network
-    volumes:
-      - ./.env.local:/app/.env.local:ro
-
 
 volumes:
   mongodb_data:

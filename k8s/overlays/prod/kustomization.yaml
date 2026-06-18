@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: crm-saas-prod
+
+namePrefix: prod-
+
+commonLabels:
+  app.kubernetes.io/environment: prod
+
+resources:
+  - ../../base
+
+patches:
+  - path: patches/deployment.yaml
+  - path: patches/ingress.yaml
+  - path: patches/hpa.yaml
+  - path: patches/configmap.yaml

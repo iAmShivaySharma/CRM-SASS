@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-app
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: crm-app
+          image: ghcr.io/OWNER/crm-saas:qa
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
