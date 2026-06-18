@@ -57,3 +57,6 @@ export { AssetMaintenance } from './AssetMaintenance'
 export { default as EmailAccount, type IEmailAccount } from './EmailAccount'
 export { default as EmailMessage, type IEmailMessage } from './EmailMessage'
 export { default as EmailTemplate, type IEmailTemplate } from './EmailTemplate'
+
+// License Key Management
+export { LicenseKey, type ILicenseKey } from './LicenseKey'

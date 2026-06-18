@@ -13,6 +13,9 @@ export interface ISubscription extends Document {
   trialEnd?: Date
   dodoSubscriptionId?: string
   dodoCustomerId?: string
+  razorpayOrderId?: string
+  razorpayPaymentId?: string
+  razorpaySubscriptionId?: string
   metadata: Record<string, any>
   createdAt: Date
   updatedAt: Date
@@ -72,6 +75,15 @@ const SubscriptionSchema = new Schema<ISubscription>(
     dodoCustomerId: {
       type: String,
     },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
+    razorpaySubscriptionId: {
+      type: String,
+    },
     metadata: {
       type: Schema.Types.Mixed,
       default: {},
@@ -95,6 +107,8 @@ if (typeof window === 'undefined') {
   SubscriptionSchema.index({ workspaceId: 1 }, { unique: true })
   SubscriptionSchema.index({ status: 1, currentPeriodEnd: 1 })
   SubscriptionSchema.index({ dodoSubscriptionId: 1 }, { sparse: true })
+  SubscriptionSchema.index({ razorpaySubscriptionId: 1 }, { sparse: true })
+  SubscriptionSchema.index({ razorpayOrderId: 1 }, { sparse: true })
 }
 
 export const Subscription =

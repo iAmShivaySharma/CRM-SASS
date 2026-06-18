@@ -11,6 +11,8 @@ export interface IWorkspace extends Document {
   subscriptionStatus: string
   dodoCustomerId?: string
   dodoSubscriptionId?: string
+  razorpayCustomerId?: string
+  razorpaySubscriptionId?: string
   settings: {
     dateFormat: string
     timeFormat: string
@@ -122,6 +124,14 @@ const WorkspaceSchema = new Schema<IWorkspace>(
       sparse: true,
     },
     dodoSubscriptionId: {
+      type: String,
+      sparse: true,
+    },
+    razorpayCustomerId: {
+      type: String,
+      sparse: true,
+    },
+    razorpaySubscriptionId: {
       type: String,
       sparse: true,
     },
