@@ -1,153 +1,102 @@
-# 📚 CRM-X-SHIVAY Documentation Index
+# CRM-X-SHIVAY Documentation
 
-Welcome to the comprehensive documentation for CRM-X-SHIVAY - a modern Customer Relationship Management system.
+## Directory Structure
 
-## 📖 Documentation Volumes
-
-This documentation is organized into six comprehensive volumes, each covering specific aspects of the system:
-
-### [📌 Volume 1: Introduction & Overview](./01-INTRODUCTION.md)
-
-- System overview and architecture
-- Key features and capabilities
-- Technology stack details
-- Getting started guide
-
-### [🔌 Volume 2: API Reference & Endpoints](./02-API-REFERENCE.md)
-
-- Complete API documentation
-- Authentication and security
-- Request/response formats
-- All available endpoints with examples
-
-### [🗄️ Volume 3: Database Schema & Models](./03-DATABASE-SCHEMA.md)
-
-- MongoDB collection schemas
-- Data relationships and indexes
-- Model definitions and validation
-- Performance optimizations
-
-### [💻 Volume 4: Development Guide](./04-DEVELOPMENT-GUIDE.md)
-
-- Development environment setup
-- Project structure and architecture
-- Coding standards and best practices
-- API and frontend development
-
-### [🚀 Volume 5: Deployment & Security](./05-DEPLOYMENT-SECURITY.md)
-
-- Production deployment guide
-- Security implementation
-- Monitoring and logging
-- Performance optimization
-
-### [🧪 Volume 6: Testing & Troubleshooting](./06-TESTING-TROUBLESHOOTING.md)
-
-- Testing strategies and examples
-- Debugging and troubleshooting
-- Performance monitoring
-- Common issues and solutions
+```
+docs/
+├── core/                     # System documentation (volumes)
+│   ├── 01-INTRODUCTION.md
+│   ├── 02-API-REFERENCE.md
+│   ├── 03-DATABASE-SCHEMA.md
+│   ├── 04-DEVELOPMENT-GUIDE.md
+│   ├── 05-DEPLOYMENT-SECURITY.md
+│   ├── 06-TESTING-TROUBLESHOOTING.md
+│   └── PERMISSION-SYSTEM.md
+│
+├── architecture/             # System design & plans
+│   ├── EXECUTION_ENGINE_PLAN.md
+│   └── WORKFLOW_ENGINE_PLAN.md
+│
+├── guides/                   # How-to guides
+│   ├── QUICK-START-SETUP.md
+│   ├── EMAIL_INTEGRATION_SETUP.md
+│   ├── EMAIL_MODULE_COMPLETE_GUIDE.md
+│   ├── WEBHOOK_TESTING_GUIDE.md
+│   └── performance-optimization/
+│       └── PERFORMANCE_OPTIMIZATION_GUIDE.md
+│
+├── devops/                   # Infrastructure & operations
+│   ├── DOCKER-GUIDE.md
+│   ├── KUBERNETES-GUIDE.md
+│   ├── CICD-GUIDE.md
+│   ├── DEVOPS-GUIDE.md
+│   └── SECURITY-GUIDE.md
+│
+├── postman/                  # API testing collections
+│   ├── CRM_Complete_API_Updated.postman_collection.json
+│   └── CRM_Environment_Updated.postman_environment.json
+│
+├── strategy/                 # Business & growth docs
+│   └── CRM-SAAS-GROWTH-STRATEGY.md
+│
+└── README.md                 # This file
+```
 
 ---
 
-## 🛠️ Quick Reference
+## Core Documentation (Volumes)
 
-### API Testing Resources
+| Volume | Title | Description |
+|--------|-------|-------------|
+| [01](./core/01-INTRODUCTION.md) | Introduction & Overview | System architecture, features, tech stack |
+| [02](./core/02-API-REFERENCE.md) | API Reference | All endpoints, auth, request/response formats |
+| [03](./core/03-DATABASE-SCHEMA.md) | Database Schema | MongoDB collections, indexes, relationships |
+| [04](./core/04-DEVELOPMENT-GUIDE.md) | Development Guide | Environment setup, coding standards |
+| [05](./core/05-DEPLOYMENT-SECURITY.md) | Deployment & Security | Production deployment, security practices |
+| [06](./core/06-TESTING-TROUBLESHOOTING.md) | Testing & Troubleshooting | Test strategies, debugging, common issues |
+| - | [Permission System](./core/PERMISSION-SYSTEM.md) | RBAC roles and permissions reference |
 
-- **Updated Postman Collection**: [CRM_Complete_API_Updated.postman_collection.json](./CRM_Complete_API_Updated.postman_collection.json)
-- **Environment Variables**: [CRM_Environment_Updated.postman_environment.json](./CRM_Environment_Updated.postman_environment.json)
-- **Webhook Testing Guide**: [WEBHOOK_TESTING_GUIDE.md](./WEBHOOK_TESTING_GUIDE.md)
+## Architecture
 
-### Legacy Documentation
+| Document | Description |
+|----------|-------------|
+| [Execution Engine Plan](./architecture/EXECUTION_ENGINE_PLAN.md) | n8n workflow execution architecture |
+| [Workflow Engine Plan](./architecture/WORKFLOW_ENGINE_PLAN.md) | Workflow automation system design |
 
-- **Previous API Collection**: [CRM_Complete_API.postman_collection.json](./CRM_Complete_API.postman_collection.json) _(deprecated)_
-- **Previous Environment**: [CRM_Environment.postman_environment.json](./CRM_Environment.postman_environment.json) _(deprecated)_
-- **Complete Documentation**: [COMPLETE_DOCUMENTATION.md](./COMPLETE_DOCUMENTATION.md) _(legacy)_
+## Guides
 
----
+| Guide | Description |
+|-------|-------------|
+| [Quick Start Setup](./guides/QUICK-START-SETUP.md) | Local & Docker dev environment setup |
+| [Email Integration](./guides/EMAIL_INTEGRATION_SETUP.md) | Resend email provider setup |
+| [Email Module](./guides/EMAIL_MODULE_COMPLETE_GUIDE.md) | Complete email system guide |
+| [Webhook Testing](./guides/WEBHOOK_TESTING_GUIDE.md) | Webhook setup and testing |
+| [Performance Optimization](./guides/performance-optimization/PERFORMANCE_OPTIMIZATION_GUIDE.md) | Scaling to 10M users — Redis, BullMQ, Meilisearch, CDN |
 
-## 🚀 Quick Start
+## DevOps
 
-1. **Read the Introduction** - Start with [Volume 1](./01-INTRODUCTION.md) for system overview
-2. **Set up Development** - Follow [Volume 4](./04-DEVELOPMENT-GUIDE.md) for environment setup
-3. **Test the API** - Use the [updated Postman collection](./CRM_Complete_API_Updated.postman_collection.json)
-4. **Deploy to Production** - Follow [Volume 5](./05-DEPLOYMENT-SECURITY.md)
+| Guide | Description |
+|-------|-------------|
+| [Docker](./devops/DOCKER-GUIDE.md) | Container setup and configuration |
+| [Kubernetes](./devops/KUBERNETES-GUIDE.md) | K8s deployment manifests |
+| [CI/CD](./devops/CICD-GUIDE.md) | GitHub Actions pipeline |
+| [DevOps Overview](./devops/DEVOPS-GUIDE.md) | Infrastructure overview |
+| [Security](./devops/SECURITY-GUIDE.md) | Security hardening guide |
 
----
+## API Testing
 
-## 📊 What's New in Version 2.0
+- [Postman Collection](./postman/CRM_Complete_API_Updated.postman_collection.json)
+- [Postman Environment](./postman/CRM_Environment_Updated.postman_environment.json)
 
-### Enhanced API Coverage
+## Strategy
 
-- **Contact Management**: Complete CRUD operations with advanced filtering
-- **Lead Notes**: Comprehensive note management with privacy controls
-- **Lead Activities**: Activity tracking and history management
-- **Tag Management**: Full tag system with color coding
-- **Lead Status Management**: Custom status creation and management
-- **User Preferences**: User settings and customization
-- **Permissions System**: Detailed permission management
-
-### Improved Webhook Support
-
-- **Multi-platform Support**: Facebook, Google Forms, Zapier, SwipePages, HubSpot, LinkedIn
-- **Enhanced Security**: Signature verification and validation
-- **Better Error Handling**: Comprehensive logging and error reporting
-- **Test Endpoints**: Built-in testing capabilities
-
-### Advanced Features
-
-- **Multi-tenant Architecture**: Complete workspace management
-- **Role-based Access Control**: Granular permissions system
-- **Activity Logging**: Comprehensive audit trails
-- **Security Middleware**: Advanced rate limiting and security headers
-- **Performance Optimization**: Database indexing and query optimization
-
-### Documentation Improvements
-
-- **Book-style Organization**: Six comprehensive volumes
-- **Practical Examples**: Real-world code samples and use cases
-- **Testing Guide**: Complete testing strategy with examples
-- **Troubleshooting**: Common issues and solutions
-- **Security Best Practices**: Production-ready security implementation
+- [Growth Strategy](./strategy/CRM-SAAS-GROWTH-STRATEGY.md) — Business growth and scaling plan
 
 ---
 
-## 🔧 System Requirements
+## Quick Start
 
-- **Node.js**: 18.0+ (LTS recommended)
-- **MongoDB**: 5.0+ (local or cloud)
-- **npm**: 9.0+
-- **Git**: Latest version
-
----
-
-## 🤝 Contributing
-
-1. Read the [Development Guide](./04-DEVELOPMENT-GUIDE.md)
-2. Follow the coding standards and best practices
-3. Run tests before submitting changes
-4. Update documentation for new features
-
----
-
-## 📞 Support
-
-For issues and questions:
-
-1. Check the [Troubleshooting Guide](./06-TESTING-TROUBLESHOOTING.md)
-2. Review the relevant documentation volume
-3. Search existing GitHub issues
-4. Create a new issue with detailed information
-
----
-
-## 📝 License
-
-This project and its documentation are licensed under the MIT License.
-
----
-
-**Last Updated**: 2025-09-23
-**Documentation Version**: 2.0.0
-**System Version**: 2.0.0
-**Status**: Complete ✅
+1. [Set up your dev environment](./guides/QUICK-START-SETUP.md)
+2. [Read the introduction](./core/01-INTRODUCTION.md)
+3. [Import the Postman collection](./postman/CRM_Complete_API_Updated.postman_collection.json)
+4. [Deploy with Docker](./devops/DOCKER-GUIDE.md)
