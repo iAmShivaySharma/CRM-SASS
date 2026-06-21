@@ -76,7 +76,7 @@ export default function HomePage() {
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(sd) }} />
       ))}
 
-      <div className="min-h-screen bg-white text-neutral-900 antialiased">
+      <div className="min-h-screen bg-background text-foreground antialiased">
         <Navbar />
         <Hero />
         <BentoFeatures />

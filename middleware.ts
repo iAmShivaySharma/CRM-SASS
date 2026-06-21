@@ -10,6 +10,7 @@ const PROTECTED_ROUTES = [
   '/settings',
   '/analytics',
   '/webhooks',
+  '/blogs',
 ]
 
 const PUBLIC_ROUTES = [
@@ -19,9 +20,12 @@ const PUBLIC_ROUTES = [
   '/',
   '/api/auth/login',
   '/api/auth/signup',
+  '/api/auth/google',
   '/api/webhooks',
   '/shared',
   '/api/shared',
+  '/blog',
+  '/feed.xml',
 ]
 
 function isProtectedRoute(pathname: string): boolean {

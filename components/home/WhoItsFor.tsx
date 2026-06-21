@@ -105,13 +105,13 @@ export default function WhoItsFor() {
   return (
     <section id="who" className="mx-auto max-w-6xl px-5 py-24 lg:py-32">
       <div className="mx-auto mb-12 max-w-xl text-center">
-        <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-blue-600">
+        <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
           Built for your business
         </p>
-        <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           See exactly how CRM Pro solves <em>your</em> problem
         </h2>
-        <p className="mt-3 text-base text-neutral-500">
+        <p className="mt-3 text-base text-muted-foreground">
           Different businesses, same frustration — too many tools, too much cost.
           Here&apos;s what changes when you switch.
         </p>
@@ -123,7 +123,7 @@ export default function WhoItsFor() {
             <TabsTrigger
               key={ind.id}
               value={ind.id}
-              className="flex items-center gap-1.5 rounded-full border border-transparent px-4 py-2 text-[13px] font-medium text-neutral-500 data-[state=active]:border-blue-200 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="flex items-center gap-1.5 rounded-full border border-transparent px-4 py-2 text-[13px] font-medium text-muted-foreground data-[state=active]:border-primary/20 data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
             >
               <ind.icon className="h-3.5 w-3.5" />
               {ind.label}
@@ -133,24 +133,24 @@ export default function WhoItsFor() {
 
         {industries.map(ind => (
           <TabsContent key={ind.id} value={ind.id} className="mt-8">
-            <div className="overflow-hidden rounded-2xl border border-neutral-200/60 bg-white">
+            <div className="overflow-hidden rounded-2xl border border-border bg-background">
               <div className="grid lg:grid-cols-5">
                 {/* left — context */}
-                <div className="border-b border-neutral-100 p-6 lg:col-span-2 lg:border-b-0 lg:border-r">
+                <div className="border-b border-border p-6 lg:col-span-2 lg:border-b-0 lg:border-r">
                   <div className="flex items-center gap-2 mb-1">
-                    <ind.icon className="h-4 w-4 text-blue-600" />
-                    <h3 className="text-lg font-bold text-neutral-900">{ind.title}</h3>
+                    <ind.icon className="h-4 w-4 text-primary" />
+                    <h3 className="text-lg font-bold text-foreground">{ind.title}</h3>
                   </div>
-                  <p className="text-xs text-neutral-400 mb-5">{ind.size}</p>
+                  <p className="text-xs text-muted-foreground/70 mb-5">{ind.size}</p>
 
                   <div className="mb-3 rounded-lg bg-red-50 p-3">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-red-600 mb-1">The pain</p>
                     <p className="text-sm text-red-700">{ind.pain}</p>
                   </div>
 
-                  <div className="mb-3 rounded-lg bg-blue-50 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-blue-600 mb-1">Your pitch</p>
-                    <p className="text-sm font-medium text-blue-700">&ldquo;{ind.pitch}&rdquo;</p>
+                  <div className="mb-3 rounded-lg bg-primary/10 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Your pitch</p>
+                    <p className="text-sm font-medium text-primary">&ldquo;{ind.pitch}&rdquo;</p>
                   </div>
 
                   <div className="rounded-lg bg-emerald-50 p-3">
@@ -158,21 +158,21 @@ export default function WhoItsFor() {
                     <p className="font-mono text-2xl font-bold text-emerald-700">{ind.savings}/yr</p>
                   </div>
 
-                  <p className="mt-3 text-[11px] text-neutral-400">
+                  <p className="mt-3 text-[11px] text-muted-foreground/70">
                     <strong>Decision maker:</strong> {ind.decision}
                   </p>
                 </div>
 
                 {/* right — features */}
                 <div className="p-6 lg:col-span-3">
-                  <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+                  <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                     What you get
                   </p>
                   <div className="grid gap-2.5 sm:grid-cols-2">
                     {ind.features.map(f => (
-                      <div key={f} className="flex items-start gap-2.5 rounded-lg bg-neutral-50 p-3">
-                        <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600" />
-                        <span className="text-[13px] text-neutral-600">{f}</span>
+                      <div key={f} className="flex items-start gap-2.5 rounded-lg bg-muted p-3">
+                        <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span className="text-[13px] text-muted-foreground">{f}</span>
                       </div>
                     ))}
                   </div>

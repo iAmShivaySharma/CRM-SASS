@@ -73,16 +73,16 @@ export default function Pricing() {
   const [annual, setAnnual] = useState(true)
 
   return (
-    <section id="pricing" className="relative overflow-hidden bg-neutral-50 py-24 lg:py-32">
+    <section id="pricing" className="relative overflow-hidden bg-muted py-24 lg:py-32">
       <div className="mx-auto max-w-6xl px-5">
         <div className="mx-auto mb-4 max-w-xl text-center">
-          <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-blue-600">
+          <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
             Pricing
           </p>
-          <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Per workspace, not per seat
           </h2>
-          <p className="mt-3 text-base text-neutral-500">
+          <p className="mt-3 text-base text-muted-foreground">
             Your price stays the same whether you have 1 or 15 members.
             Growing your team shouldn&apos;t grow your bill.
           </p>
@@ -90,9 +90,9 @@ export default function Pricing() {
 
         {/* toggle */}
         <div className="mb-12 flex items-center justify-center gap-3">
-          <span className={`text-sm font-medium ${!annual ? 'text-neutral-900' : 'text-neutral-400'}`}>Monthly</span>
+          <span className={`text-sm font-medium ${!annual ? 'text-foreground' : 'text-muted-foreground/70'}`}>Monthly</span>
           <Switch checked={annual} onCheckedChange={setAnnual} />
-          <span className={`text-sm font-medium ${annual ? 'text-neutral-900' : 'text-neutral-400'}`}>Annual</span>
+          <span className={`text-sm font-medium ${annual ? 'text-foreground' : 'text-muted-foreground/70'}`}>Annual</span>
           {annual && <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">Save 20%</span>}
         </div>
 
@@ -101,33 +101,33 @@ export default function Pricing() {
           {plans.map(p => {
             const price = annual ? p.yr : p.mo
             return (
-              <div key={p.name} className={`relative flex flex-col rounded-2xl border bg-white p-6 transition-shadow duration-200 ${
-                p.pop ? 'border-blue-200 shadow-xl shadow-blue-100/40 ring-1 ring-blue-100' : 'border-neutral-200/60 hover:shadow-lg hover:shadow-neutral-100/60'
+              <div key={p.name} className={`relative flex flex-col rounded-2xl border bg-background p-6 transition-shadow duration-200 ${
+                p.pop ? 'border-primary/20 shadow-xl shadow-primary/10 ring-1 ring-primary/15' : 'border-border hover:shadow-lg hover:shadow-muted/60'
               }`}>
                 {p.pop && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-3 py-0.5 text-[11px] font-semibold text-white">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[11px] font-semibold text-white">
                     Most popular
                   </span>
                 )}
                 <div>
-                  <h3 className="text-base font-semibold text-neutral-900">{p.name}</h3>
-                  <p className="text-xs text-neutral-400">{p.desc}</p>
+                  <h3 className="text-base font-semibold text-foreground">{p.name}</h3>
+                  <p className="text-xs text-muted-foreground/70">{p.desc}</p>
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className="font-mono text-3xl font-bold text-neutral-900">{price === 0 ? 'Free' : `$${price}`}</span>
-                    {price > 0 && <span className="text-sm text-neutral-400">/mo</span>}
+                    <span className="font-mono text-3xl font-bold text-foreground">{price === 0 ? 'Free' : `$${price}`}</span>
+                    {price > 0 && <span className="text-sm text-muted-foreground/70">/mo</span>}
                   </div>
                 </div>
 
                 <ul className="mt-6 flex-1 space-y-2.5">
                   {p.rows.map(([ok, text]) => (
                     <li key={text as string} className="flex items-start gap-2">
-                      {ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" /> : <X className="mt-0.5 h-4 w-4 shrink-0 text-neutral-300" />}
-                      <span className={`text-[13px] ${ok ? 'text-neutral-600' : 'text-neutral-400'}`}>{text as string}</span>
+                      {ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> : <X className="mt-0.5 h-4 w-4 shrink-0 text-neutral-300" />}
+                      <span className={`text-[13px] ${ok ? 'text-muted-foreground' : 'text-muted-foreground/70'}`}>{text as string}</span>
                     </li>
                   ))}
                 </ul>
 
-                <Button asChild className={`mt-6 w-full rounded-lg ${p.pop ? 'bg-blue-600 hover:bg-blue-700' : ''}`} variant={p.pop ? 'default' : 'outline'}>
+                <Button asChild className={`mt-6 w-full rounded-lg ${p.pop ? 'bg-primary hover:bg-primary/90' : ''}`} variant={p.pop ? 'default' : 'outline'}>
                   <Link href="/register">{p.cta}</Link>
                 </Button>
               </div>

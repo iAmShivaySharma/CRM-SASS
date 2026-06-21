@@ -60,3 +60,7 @@ export { default as EmailTemplate, type IEmailTemplate } from './EmailTemplate'
 
 // License Key Management
 export { LicenseKey, type ILicenseKey } from './LicenseKey'
+
+// Blog Module
+export { Blog, type IBlog } from './Blog'
+export { BlogCategory, type IBlogCategory } from './BlogCategory'

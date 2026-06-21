@@ -133,7 +133,7 @@ export const STATS = [
 // ─── FEATURES (SALES CRM) ──────────────────────────────────────
 
 export const PIPELINE_STAGES = [
-  { stage: 'New', leads: 48, color: 'bg-blue-500', pct: '100%' },
+  { stage: 'New', leads: 48, color: 'bg-primary', pct: '100%' },
   { stage: 'Contacted', leads: 36, color: 'bg-cyan-500', pct: '75%' },
   { stage: 'Qualified', leads: 24, color: 'bg-indigo-500', pct: '50%' },
   { stage: 'Proposal Sent', leads: 16, color: 'bg-purple-500', pct: '33%' },
@@ -254,7 +254,7 @@ export const MODULE_COLORS: Record<string, { badge: string; dot: string; border:
   purple: { badge: 'bg-purple-50 text-purple-700', dot: 'bg-purple-500', border: 'border-purple-100' },
   green: { badge: 'bg-green-50 text-green-700', dot: 'bg-green-500', border: 'border-green-100' },
   orange: { badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-500', border: 'border-orange-100' },
-  blue: { badge: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500', border: 'border-blue-100' },
+  blue: { badge: 'bg-primary/10 text-primary', dot: 'bg-primary', border: 'border-primary/15' },
 }
 
 // ─── AI WORKFLOWS ───────────────────────────────────────────────
@@ -328,7 +328,7 @@ export const TESTIMONIALS = [
     role: 'Founder',
     company: 'ScaleUp Studio',
     metric: '40% faster delivery',
-    metricColor: 'bg-blue-50 text-blue-700 border-blue-100',
+    metricColor: 'bg-primary/10 text-primary border-primary/15',
     industry: 'Agency',
   },
   {
@@ -630,7 +630,7 @@ export const FOOTER_LINKS = {
   ],
   Resources: [
     { label: 'FAQ', href: '#faq' },
-    { label: 'Blog', href: '#' },
+    { label: 'Blog', href: '/blog' },
     { label: 'API Documentation', href: '#' },
     { label: 'Changelog', href: '#' },
     { label: 'Status Page', href: '#' },
@@ -663,7 +663,7 @@ export const DASHBOARD_STATS = [
 ]
 
 export const DASHBOARD_PIPELINE = [
-  { stage: 'New', count: 48, pct: 100, color: 'bg-blue-500' },
+  { stage: 'New', count: 48, pct: 100, color: 'bg-primary' },
   { stage: 'Qualified', count: 32, pct: 67, color: 'bg-indigo-500' },
   { stage: 'Proposal', count: 18, pct: 38, color: 'bg-purple-500' },
   { stage: 'Negotiation', count: 12, pct: 25, color: 'bg-violet-500' },
@@ -672,7 +672,7 @@ export const DASHBOARD_PIPELINE = [
 
 export const DASHBOARD_ACTIVITY = [
   { action: 'Lead scored 92/100', time: '2m ago', dot: 'bg-green-500' },
-  { action: 'Email opened by Sarah', time: '5m ago', dot: 'bg-blue-500' },
+  { action: 'Email opened by Sarah', time: '5m ago', dot: 'bg-primary' },
   { action: 'Deal moved to Won', time: '12m ago', dot: 'bg-purple-500' },
   { action: 'New lead from web', time: '18m ago', dot: 'bg-orange-500' },
 ]

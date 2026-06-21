@@ -31,17 +31,17 @@ export default function Testimonials() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-24 lg:py-32">
       <div className="mx-auto mb-14 max-w-xl text-center">
-        <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-blue-600">
+        <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
           Loved by teams
         </p>
-        <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           Don&apos;t take our word for it
         </h2>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         {items.map(t => (
-          <div key={t.name} className="flex flex-col justify-between rounded-2xl border border-neutral-200/60 bg-white p-6 transition-shadow duration-200 hover:shadow-lg hover:shadow-neutral-100/60">
+          <div key={t.name} className="flex flex-col justify-between rounded-2xl border border-border bg-background p-6 transition-shadow duration-200 hover:shadow-lg hover:shadow-muted/60">
             {/* stars */}
             <div>
               <div className="mb-3 flex gap-0.5">
@@ -49,17 +49,17 @@ export default function Testimonials() {
                   <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="text-[14px] leading-relaxed text-neutral-600">&ldquo;{t.quote}&rdquo;</p>
+              <p className="text-[14px] leading-relaxed text-muted-foreground">&ldquo;{t.quote}&rdquo;</p>
             </div>
             {/* author */}
-            <div className="mt-5 flex items-center justify-between border-t border-neutral-100 pt-4">
+            <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
               <div className="flex items-center gap-3">
                 <div className="grid h-9 w-9 place-items-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
                   {t.name[0]}
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-neutral-900">{t.name}</div>
-                  <div className="text-xs text-neutral-400">{t.title}</div>
+                  <div className="text-sm font-semibold text-foreground">{t.name}</div>
+                  <div className="text-xs text-muted-foreground/70">{t.title}</div>
                 </div>
               </div>
               <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">{t.tag}</span>

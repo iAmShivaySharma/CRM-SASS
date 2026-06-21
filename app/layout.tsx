@@ -8,9 +8,20 @@ import { Toaster } from '@/components/ui/sonner'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
+
 export const metadata: Metadata = {
-  title: 'CRM Pro - Sales Management System',
+  title: {
+    default: 'CRM Pro — AI-Powered CRM That Replaces 6 Tools',
+    template: '%s | CRM Pro',
+  },
   description: 'Professional CRM system with role management and lead tracking',
+  metadataBase: APP_URL ? new URL(APP_URL) : undefined,
+  alternates: {
+    types: {
+      'application/rss+xml': [{ url: '/feed.xml', title: 'CRM Pro Blog RSS Feed' }],
+    },
+  },
 }
 
 export default function RootLayout({

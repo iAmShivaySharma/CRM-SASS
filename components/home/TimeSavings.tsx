@@ -41,7 +41,7 @@ export default function TimeSavings() {
 
       <div className="relative z-10 mx-auto max-w-6xl px-5">
         <div className="mx-auto mb-12 max-w-xl text-center">
-          <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-blue-400">
+          <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary/60">
             Beyond cost savings
           </p>
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -56,8 +56,8 @@ export default function TimeSavings() {
         <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {savings.map(s => (
             <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5 text-center">
-              <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-lg bg-blue-500/10">
-                <s.icon className="h-5 w-5 text-blue-400" />
+              <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-lg bg-primary/10">
+                <s.icon className="h-5 w-5 text-primary/60" />
               </div>
               <div className="font-mono text-2xl font-bold text-white">{s.value}</div>
               <div className="mt-0.5 text-sm font-medium text-neutral-300">{s.label}</div>

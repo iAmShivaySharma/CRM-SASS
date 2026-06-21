@@ -29,12 +29,12 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="relative overflow-hidden bg-neutral-50 py-24 lg:py-32">
+    <section id="how-it-works" className="relative overflow-hidden bg-muted py-24 lg:py-32">
       {/* faint grid */}
       <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-40 [mask-image:linear-gradient(to_bottom,transparent,black_30%,black_70%,transparent)]">
         <defs>
           <pattern id="hw-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="0.6" className="text-neutral-200" />
+            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="0.6" className="text-border" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#hw-grid)" />
@@ -42,30 +42,30 @@ export default function HowItWorks() {
 
       <div className="relative z-10 mx-auto max-w-6xl px-5">
         <div className="mx-auto mb-14 max-w-xl text-center">
-          <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-blue-600">
+          <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
             How it works
           </p>
-          <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Up and running in an afternoon
           </h2>
-          <p className="mt-3 text-base text-neutral-500">
+          <p className="mt-3 text-base text-muted-foreground">
             No consultants. No 6-month implementation. No training budget.
           </p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((s, i) => (
-            <div key={s.num} className="group relative rounded-2xl border border-neutral-200/60 bg-white p-6 transition-shadow duration-200 hover:shadow-lg hover:shadow-neutral-100/70">
+            <div key={s.num} className="group relative rounded-2xl border border-border bg-background p-6 transition-shadow duration-200 hover:shadow-lg hover:shadow-muted/70">
               {/* connecting line */}
               {i < steps.length - 1 && (
-                <div className="absolute -right-3 top-1/2 hidden h-px w-6 bg-neutral-200 lg:block" />
+                <div className="absolute -right-3 top-1/2 hidden h-px w-6 bg-muted lg:block" />
               )}
-              <span className="mb-4 block font-mono text-[13px] font-bold text-blue-600">{s.num}</span>
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 transition-colors group-hover:bg-blue-50 group-hover:text-blue-600">
+              <span className="mb-4 block font-mono text-[13px] font-bold text-primary">{s.num}</span>
+              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
                 <s.icon className="h-5 w-5" />
               </div>
-              <h3 className="text-[15px] font-semibold text-neutral-900">{s.title}</h3>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-500">{s.desc}</p>
+              <h3 className="text-[15px] font-semibold text-foreground">{s.title}</h3>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
             </div>
           ))}
         </div>

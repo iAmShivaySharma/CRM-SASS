@@ -13,13 +13,13 @@ export default function BentoFeatures() {
     <section id="features" className="mx-auto max-w-6xl px-5 py-24 lg:py-32">
       {/* heading */}
       <div className="mx-auto mb-14 max-w-xl text-center">
-        <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-blue-600">
+        <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
           Everything in one place
         </p>
-        <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           Six tools. One login. One bill.
         </h2>
-        <p className="mt-3 text-base text-neutral-500">
+        <p className="mt-3 text-base text-muted-foreground">
           CRM, project management, HR, chat, email, and AI automation —
           consolidated so your team can stop switching tabs.
         </p>
@@ -28,13 +28,13 @@ export default function BentoFeatures() {
       {/* bento grid */}
       <div className="grid auto-rows-[180px] grid-cols-4 gap-4 lg:auto-rows-[200px]">
         {/* ── LARGE: Sales Pipeline ── */}
-        <div className="col-span-4 flex flex-col justify-between overflow-hidden rounded-2xl border border-neutral-200/60 bg-gradient-to-br from-blue-50 to-white p-6 sm:col-span-2 lg:row-span-2">
+        <div className="col-span-4 flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-background p-6 sm:col-span-2 lg:row-span-2">
           <div>
-            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <GitBranch className="h-5 w-5" />
             </div>
-            <h3 className="text-lg font-semibold text-neutral-900">Sales Pipeline</h3>
-            <p className="mt-1 text-sm text-neutral-500">
+            <h3 className="text-lg font-semibold text-foreground">Sales Pipeline</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
               Drag leads through custom stages. AI-scored, auto-assigned, color-coded.
               10+ sources: LinkedIn, Ads, Referrals, Website, Events.
             </p>
@@ -42,14 +42,14 @@ export default function BentoFeatures() {
           {/* mini pipeline visual */}
           <div className="mt-4 space-y-1.5">
             {[
-              { n: 'New', w: '100%', c: 'bg-blue-400' },
+              { n: 'New', w: '100%', c: 'bg-primary/60' },
               { n: 'Qualified', w: '62%', c: 'bg-indigo-400' },
               { n: 'Proposal', w: '34%', c: 'bg-violet-400' },
               { n: 'Won', w: '18%', c: 'bg-emerald-400' },
             ].map(p => (
               <div key={p.n} className="flex items-center gap-2">
-                <span className="w-14 text-[11px] font-medium text-neutral-400">{p.n}</span>
-                <div className="h-2 flex-1 rounded-full bg-white/60">
+                <span className="w-14 text-[11px] font-medium text-muted-foreground/70">{p.n}</span>
+                <div className="h-2 flex-1 rounded-full bg-background/60">
                   <div className={`h-2 rounded-full ${p.c}`} style={{ width: p.w }} />
                 </div>
               </div>
@@ -58,13 +58,13 @@ export default function BentoFeatures() {
         </div>
 
         {/* ── LARGE: AI Workflows ── */}
-        <div className="col-span-4 flex flex-col justify-between overflow-hidden rounded-2xl border border-neutral-200/60 bg-gradient-to-br from-violet-50 to-white p-6 sm:col-span-2 lg:row-span-2">
+        <div className="col-span-4 flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-violet-50 to-background p-6 sm:col-span-2 lg:row-span-2">
           <div>
             <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
               <BrainCircuit className="h-5 w-5" />
             </div>
-            <h3 className="text-lg font-semibold text-neutral-900">AI Workflow Engine</h3>
-            <p className="mt-1 text-sm text-neutral-500">
+            <h3 className="text-lg font-semibold text-foreground">AI Workflow Engine</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
               Drag-and-drop visual builder. Enrich leads, draft emails, analyze sentiment,
               score deals — all running on autopilot.
             </p>
@@ -73,7 +73,7 @@ export default function BentoFeatures() {
           <div className="mt-4 flex items-center gap-2">
             {['New Lead', 'AI Enrich', 'Score 92', 'Auto Email'].map((s, i) => (
               <div key={s} className="flex items-center gap-2">
-                <div className="rounded-lg border border-violet-200/60 bg-white px-3 py-1.5 text-[11px] font-medium text-violet-700 shadow-sm">
+                <div className="rounded-lg border border-violet-200/60 bg-background px-3 py-1.5 text-[11px] font-medium text-violet-700 shadow-sm">
                   {s}
                 </div>
                 {i < 3 && <div className="h-px w-4 bg-violet-200" />}
@@ -115,12 +115,12 @@ function Card({ icon: Icon, title, desc, color }: {
 }) {
   const c = colorMap[color]
   return (
-    <div className={`col-span-2 sm:col-span-1 flex flex-col rounded-2xl border border-neutral-200/60 ${c.bg} p-5`}>
+    <div className={`col-span-2 sm:col-span-1 flex flex-col rounded-2xl border border-border ${c.bg} p-5`}>
       <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg ${c.icon}`}>
         <Icon className="h-4 w-4" />
       </div>
-      <h4 className="text-sm font-semibold text-neutral-900">{title}</h4>
-      <p className="mt-1 text-[12px] leading-relaxed text-neutral-500">{desc}</p>
+      <h4 className="text-sm font-semibold text-foreground">{title}</h4>
+      <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{desc}</p>
     </div>
   )
 }
@@ -130,11 +130,11 @@ function SmallCard({ icon: Icon, label }: {
   label: string
 }) {
   return (
-    <div className="col-span-2 sm:col-span-1 flex items-center gap-3 rounded-2xl border border-neutral-200/60 bg-neutral-50/50 px-5">
-      <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-neutral-500 shadow-sm">
+    <div className="col-span-2 sm:col-span-1 flex items-center gap-3 rounded-2xl border border-border bg-muted/50 px-5">
+      <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground shadow-sm">
         <Icon className="h-4 w-4" />
       </div>
-      <span className="text-sm font-medium text-neutral-700">{label}</span>
+      <span className="text-sm font-medium text-foreground/80">{label}</span>
     </div>
   )
 }

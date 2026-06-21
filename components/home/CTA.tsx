@@ -5,21 +5,21 @@ import { Button } from '@/components/ui/button'
 export default function CTA() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-24 lg:py-32">
-      <div className="relative overflow-hidden rounded-3xl bg-blue-600 px-8 py-16 text-center sm:px-16 lg:py-20">
+      <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-16 text-center sm:px-16 lg:py-20">
         {/* circles */}
-        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/40 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/40 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-indigo-500/30 blur-3xl" />
 
         <div className="relative z-10">
           <h2 className="mx-auto max-w-lg text-3xl font-bold text-white sm:text-4xl">
             Ready to consolidate your tool stack?
           </h2>
-          <p className="mx-auto mt-4 max-w-md text-base text-blue-100">
+          <p className="mx-auto mt-4 max-w-md text-base text-primary-foreground/70">
             Join 10,000+ teams who replaced 6 subscriptions with one.
             Start free today — upgrade only when you&apos;re ready.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Button asChild size="lg" className="h-12 rounded-lg bg-white px-7 text-[15px] font-semibold text-blue-600 hover:bg-blue-50">
+            <Button asChild size="lg" className="h-12 rounded-lg bg-background px-7 text-[15px] font-semibold text-primary hover:bg-primary/10">
               <Link href="/register">
                 Get started free <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

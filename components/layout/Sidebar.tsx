@@ -34,6 +34,7 @@ import {
   Calendar,
   Laptop,
   User,
+  PenSquare,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -182,6 +183,7 @@ const navigation = [
   },
 
   // Other sections
+  { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, category: 'main' },
   { name: 'Roles', href: '/roles', icon: UserCheck, category: 'main' },
   { name: 'Workspace', href: '/workspace', icon: Building, category: 'main' },
