@@ -11,6 +11,7 @@ import {
   FileText,
   ListTodo,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,8 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { toast } from 'sonner'
-import { useUpdateProjectMutation } from '@/lib/api/projectsApi'
+import { useUpdateProjectMutation, type Project } from '@/lib/api/projectsApi'
 import {
   Table,
   TableBody,
@@ -30,7 +30,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import type { Project } from '@/lib/api/projectsApi'
 
 interface ProjectsListProps {
   projects: Project[]

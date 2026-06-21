@@ -40,7 +40,21 @@
     "audit:licenses": "npx license-checker --excludePackages 'gpl-3.0;agpl-3.0' --summary",
     "analyze": "npm run type-check && npm run lint && npm run audit:security",
     "clean": "rm -rf .next out dist coverage test-results playwright-report",
-    "fresh": "npm run clean && npm ci && npm run build"
+    "fresh": "npm run clean && npm ci && npm run build",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --quiet",
+      "prettier --write"
+    ],
+    "*.{js,jsx}": [
+      "eslint --fix --quiet",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -166,13 +180,21 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mailparser": "^3.4.6",
     "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.61.1",
+    "@typescript-eslint/parser": "^8.61.1",
     "babel-jest": "^30.1.2",
     "cross-env": "^10.1.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-security": "^4.0.1",
+    "husky": "^9.1.7",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.1.2",
     "jest-environment-jsdom": "^30.1.2",
     "jest-junit": "^17.0.0",
     "license-checker": "^25.0.1",
+    "lint-staged": "^17.0.8",
     "mongodb-memory-server": "^10.1.2",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.14",

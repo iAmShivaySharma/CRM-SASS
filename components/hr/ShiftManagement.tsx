@@ -1,17 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Clock,
   Plus,
@@ -25,11 +14,53 @@ import {
   CheckCircle,
   Timer,
   MoreVertical,
-  Loader2
+  Loader2,
 } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { useGetShiftsQuery, useCreateShiftMutation, useUpdateShiftMutation, useDeleteShiftMutation, useSetDefaultShiftMutation, type Shift } from '@/lib/api/shiftsApi'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  useGetShiftsQuery,
+  useCreateShiftMutation,
+  useUpdateShiftMutation,
+  useDeleteShiftMutation,
+  useSetDefaultShiftMutation,
+  type Shift,
+} from '@/lib/api/shiftsApi'
 import { useAppSelector } from '@/lib/hooks'
 
 interface ShiftTemplate {
@@ -47,7 +78,12 @@ export function ShiftManagement() {
   const [editingShift, setEditingShift] = useState<Shift | null>(null)
 
   // API hooks
-  const { data: shiftsData, isLoading, error, refetch } = useGetShiftsQuery({ includeInactive: true })
+  const {
+    data: shiftsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetShiftsQuery({ includeInactive: true })
   const [createShift, { isLoading: isCreating }] = useCreateShiftMutation()
   const [updateShift, { isLoading: isUpdating }] = useUpdateShiftMutation()
   const [deleteShift, { isLoading: isDeleting }] = useDeleteShiftMutation()
@@ -55,18 +91,31 @@ export function ShiftManagement() {
 
   const shifts = shiftsData?.shifts || []
 
+  const [formData, setFormData] = useState({
+    name: '',
+    startTime: '09:00',
+    endTime: '17:00',
+    workingDays: [] as number[],
+    breakDuration: 60,
+    graceTime: 15,
+    description: '',
+    isActive: true,
+    isDefault: false,
+  })
+
   // Check workspace
   if (!currentWorkspace) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <h3 className="text-lg font-semibold">No Workspace Selected</h3>
-          <p className="text-muted-foreground">Please select a workspace to manage shifts.</p>
+          <p className="text-muted-foreground">
+            Please select a workspace to manage shifts.
+          </p>
         </div>
       </div>
     )
   }
-
 
   const shiftTemplates: ShiftTemplate[] = [
     {
@@ -83,9 +132,9 @@ export function ShiftManagement() {
           graceTime: 15,
           isDefault: true,
           isActive: true,
-          description: 'Standard office hours'
-        }
-      ]
+          description: 'Standard office hours',
+        },
+      ],
     },
     {
       id: '2',
@@ -101,7 +150,7 @@ export function ShiftManagement() {
           graceTime: 15,
           isDefault: false,
           isActive: true,
-          description: 'Morning operations shift'
+          description: 'Morning operations shift',
         },
         {
           name: 'Evening Shift',
@@ -112,7 +161,7 @@ export function ShiftManagement() {
           graceTime: 15,
           isDefault: false,
           isActive: true,
-          description: 'Evening operations shift'
+          description: 'Evening operations shift',
         },
         {
           name: 'Night Shift',
@@ -123,9 +172,9 @@ export function ShiftManagement() {
           graceTime: 20,
           isDefault: false,
           isActive: true,
-          description: 'Night operations shift'
-        }
-      ]
+          description: 'Night operations shift',
+        },
+      ],
     },
     {
       id: '3',
@@ -141,7 +190,7 @@ export function ShiftManagement() {
           graceTime: 30,
           isDefault: false,
           isActive: true,
-          description: 'Flexible full-time hours'
+          description: 'Flexible full-time hours',
         },
         {
           name: 'Part Time Morning',
@@ -152,23 +201,11 @@ export function ShiftManagement() {
           graceTime: 15,
           isDefault: false,
           isActive: true,
-          description: 'Part-time morning hours'
-        }
-      ]
-    }
+          description: 'Part-time morning hours',
+        },
+      ],
+    },
   ]
-
-  const [formData, setFormData] = useState({
-    name: '',
-    startTime: '09:00',
-    endTime: '17:00',
-    workingDays: [] as number[],
-    breakDuration: 60,
-    graceTime: 15,
-    description: '',
-    isActive: true,
-    isDefault: false
-  })
 
   const daysOfWeek = [
     { value: 1, label: 'Monday' },
@@ -177,14 +214,14 @@ export function ShiftManagement() {
     { value: 4, label: 'Thursday' },
     { value: 5, label: 'Friday' },
     { value: 6, label: 'Saturday' },
-    { value: 0, label: 'Sunday' }
+    { value: 0, label: 'Sunday' },
   ]
 
   const calculateTotalHours = (start: string, end: string) => {
     const [startHour, startMin] = start.split(':').map(Number)
     const [endHour, endMin] = end.split(':').map(Number)
 
-    let startMinutes = startHour * 60 + startMin
+    const startMinutes = startHour * 60 + startMin
     let endMinutes = endHour * 60 + endMin
 
     // Handle overnight shifts
@@ -206,7 +243,7 @@ export function ShiftManagement() {
         graceTime: formData.graceTime,
         description: formData.description,
         isDefault: formData.isDefault,
-        isActive: formData.isActive
+        isActive: formData.isActive,
       }).unwrap()
 
       setShowCreateDialog(false)
@@ -229,7 +266,7 @@ export function ShiftManagement() {
       graceTime: shift.graceTime,
       description: shift.description || '',
       isActive: shift.isActive,
-      isDefault: shift.isDefault
+      isDefault: shift.isDefault,
     })
     setShowCreateDialog(true)
   }
@@ -248,7 +285,7 @@ export function ShiftManagement() {
         graceTime: formData.graceTime,
         description: formData.description,
         isActive: formData.isActive,
-        isDefault: formData.isDefault
+        isDefault: formData.isDefault,
       }).unwrap()
 
       setShowCreateDialog(false)
@@ -286,7 +323,7 @@ export function ShiftManagement() {
         graceTime: shift.graceTime,
         description: shift.description,
         isDefault: false,
-        isActive: shift.isActive
+        isActive: shift.isActive,
       }).unwrap()
 
       toast.success(result.message)
@@ -317,7 +354,7 @@ export function ShiftManagement() {
           graceTime: shift.graceTime!,
           description: shift.description,
           isDefault: shifts.length === 0 && index === 0, // Make first shift default if no shifts exist
-          isActive: shift.isActive!
+          isActive: shift.isActive!,
         }).unwrap()
       )
 
@@ -339,7 +376,7 @@ export function ShiftManagement() {
       graceTime: 15,
       description: '',
       isActive: true,
-      isDefault: false
+      isDefault: false,
     })
   }
 
@@ -347,17 +384,25 @@ export function ShiftManagement() {
     if (checked) {
       setFormData({ ...formData, workingDays: [...formData.workingDays, day] })
     } else {
-      setFormData({ ...formData, workingDays: formData.workingDays.filter(d => d !== day) })
+      setFormData({
+        ...formData,
+        workingDays: formData.workingDays.filter(d => d !== day),
+      })
     }
   }
 
   const formatWorkingDays = (days: number[]) => {
     if (days.length === 7) return 'All days'
-    if (days.length === 5 && !days.includes(0) && !days.includes(6)) return 'Weekdays'
-    if (days.length === 2 && days.includes(0) && days.includes(6)) return 'Weekends'
+    if (days.length === 5 && !days.includes(0) && !days.includes(6))
+      return 'Weekdays'
+    if (days.length === 2 && days.includes(0) && days.includes(6))
+      return 'Weekends'
 
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    return days.sort().map(day => dayNames[day]).join(', ')
+    return days
+      .sort()
+      .map(day => dayNames[day])
+      .join(', ')
   }
 
   return (
@@ -371,10 +416,13 @@ export function ShiftManagement() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+          <Dialog
+            open={showTemplateDialog}
+            onOpenChange={setShowTemplateDialog}
+          >
             <DialogTrigger asChild>
               <Button variant="outline">
-                <Copy className="h-4 w-4 mr-2" />
+                <Copy className="mr-2 h-4 w-4" />
                 Use Template
               </Button>
             </DialogTrigger>
@@ -383,19 +431,32 @@ export function ShiftManagement() {
                 <DialogTitle>Shift Templates</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4">
-                {shiftTemplates.map((template) => (
-                  <Card key={template.id} className="cursor-pointer hover:bg-gray-50" onClick={() => applyTemplate(template)}>
+                {shiftTemplates.map(template => (
+                  <Card
+                    key={template.id}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => applyTemplate(template)}
+                  >
                     <CardHeader>
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{template.name}</CardTitle>
-                        <Badge variant="outline">{template.shifts.length} shifts</Badge>
+                        <CardTitle className="text-lg">
+                          {template.name}
+                        </CardTitle>
+                        <Badge variant="outline">
+                          {template.shifts.length} shifts
+                        </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">{template.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {template.description}
+                      </p>
                     </CardHeader>
                     <CardContent>
                       <div className="grid gap-2">
                         {template.shifts.map((shift, index) => (
-                          <div key={index} className="flex items-center justify-between text-sm">
+                          <div
+                            key={index}
+                            className="flex items-center justify-between text-sm"
+                          >
                             <span className="font-medium">{shift.name}</span>
                             <span className="text-muted-foreground">
                               {shift.startTime} - {shift.endTime}
@@ -413,20 +474,24 @@ export function ShiftManagement() {
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Create Shift
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingShift ? 'Edit Shift' : 'Create New Shift'}</DialogTitle>
+                <DialogTitle>
+                  {editingShift ? 'Edit Shift' : 'Create New Shift'}
+                </DialogTitle>
               </DialogHeader>
               <div className="grid gap-4">
                 <div>
                   <Label>Shift Name</Label>
                   <Input
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="Enter shift name"
                   />
                 </div>
@@ -437,7 +502,9 @@ export function ShiftManagement() {
                     <Input
                       type="time"
                       value={formData.startTime}
-                      onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                      onChange={e =>
+                        setFormData({ ...formData, startTime: e.target.value })
+                      }
                     />
                   </div>
                   <div>
@@ -445,19 +512,26 @@ export function ShiftManagement() {
                     <Input
                       type="time"
                       value={formData.endTime}
-                      onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                      onChange={e =>
+                        setFormData({ ...formData, endTime: e.target.value })
+                      }
                     />
                   </div>
                 </div>
 
                 <div>
                   <Label>Working Days</Label>
-                  <div className="grid grid-cols-4 gap-2 mt-2">
-                    {daysOfWeek.map((day) => (
-                      <div key={day.value} className="flex items-center space-x-2">
+                  <div className="mt-2 grid grid-cols-4 gap-2">
+                    {daysOfWeek.map(day => (
+                      <div
+                        key={day.value}
+                        className="flex items-center space-x-2"
+                      >
                         <Switch
                           checked={formData.workingDays.includes(day.value)}
-                          onCheckedChange={(checked) => handleWorkingDayChange(day.value, checked)}
+                          onCheckedChange={checked =>
+                            handleWorkingDayChange(day.value, checked)
+                          }
                         />
                         <Label className="text-sm">{day.label}</Label>
                       </div>
@@ -471,7 +545,12 @@ export function ShiftManagement() {
                     <Input
                       type="number"
                       value={formData.breakDuration}
-                      onChange={(e) => setFormData({ ...formData, breakDuration: Number(e.target.value) })}
+                      onChange={e =>
+                        setFormData({
+                          ...formData,
+                          breakDuration: Number(e.target.value),
+                        })
+                      }
                     />
                   </div>
                   <div>
@@ -479,17 +558,26 @@ export function ShiftManagement() {
                     <Input
                       type="number"
                       value={formData.graceTime}
-                      onChange={(e) => setFormData({ ...formData, graceTime: Number(e.target.value) })}
+                      onChange={e =>
+                        setFormData({
+                          ...formData,
+                          graceTime: Number(e.target.value),
+                        })
+                      }
                     />
                   </div>
                   <div>
                     <Label>Default Shift</Label>
-                    <div className="flex items-center space-x-2 mt-2">
+                    <div className="mt-2 flex items-center space-x-2">
                       <Switch
                         checked={formData.isDefault}
-                        onCheckedChange={(checked) => setFormData({ ...formData, isDefault: checked })}
+                        onCheckedChange={checked =>
+                          setFormData({ ...formData, isDefault: checked })
+                        }
                       />
-                      <Label className="text-sm">Set as default shift for new employees</Label>
+                      <Label className="text-sm">
+                        Set as default shift for new employees
+                      </Label>
                     </div>
                   </div>
                 </div>
@@ -498,7 +586,9 @@ export function ShiftManagement() {
                   <Label>Description (Optional)</Label>
                   <Textarea
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                     placeholder="Describe this shift..."
                     rows={3}
                   />
@@ -507,25 +597,32 @@ export function ShiftManagement() {
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={formData.isActive}
-                    onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                    onCheckedChange={checked =>
+                      setFormData({ ...formData, isActive: checked })
+                    }
                   />
                   <Label>Active Shift</Label>
                 </div>
 
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => {
-                    setShowCreateDialog(false)
-                    setEditingShift(null)
-                    resetForm()
-                  }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateDialog(false)
+                      setEditingShift(null)
+                      resetForm()
+                    }}
+                  >
                     Cancel
                   </Button>
                   <Button
-                    onClick={editingShift ? handleUpdateShift : handleCreateShift}
+                    onClick={
+                      editingShift ? handleUpdateShift : handleCreateShift
+                    }
                     disabled={isCreating || isUpdating}
                   >
                     {(isCreating || isUpdating) && (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     {editingShift ? 'Update Shift' : 'Create Shift'}
                   </Button>
@@ -546,13 +643,13 @@ export function ShiftManagement() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center h-32">
+            <div className="flex h-32 items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
               <span className="ml-2">Loading shifts...</span>
             </div>
           ) : error ? (
-            <div className="text-center py-8">
-              <p className="text-red-500 mb-2">Failed to load shifts</p>
+            <div className="py-8 text-center">
+              <p className="mb-2 text-red-500">Failed to load shifts</p>
               <Button onClick={refetch} variant="outline" size="sm">
                 Try Again
               </Button>
@@ -572,101 +669,121 @@ export function ShiftManagement() {
               <TableBody>
                 {shifts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      <p className="text-muted-foreground">No shifts found for this workspace.</p>
-                      <p className="text-sm text-muted-foreground mt-1">Create your first shift to get started.</p>
+                    <TableCell colSpan={6} className="py-8 text-center">
+                      <p className="text-muted-foreground">
+                        No shifts found for this workspace.
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Create your first shift to get started.
+                      </p>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  shifts.map((shift) => (
+                  shifts.map(shift => (
                     <TableRow key={shift._id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium flex items-center space-x-2">
-                        <span>{shift.name}</span>
-                        {shift.isDefault && (
-                          <Badge variant="secondary" className="text-xs">Default</Badge>
-                        )}
-                      </div>
-                      {shift.description && (
-                        <div className="text-sm text-muted-foreground">{shift.description}</div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{shift.startTime} - {shift.endTime}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {shift.totalHours}h • {shift.breakDuration}m break
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {formatWorkingDays(shift.workingDays)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>{shift.employeeCount}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className={
-                        shift.isActive
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }
-                    >
-                      {shift.isActive ? (
-                        <>
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Active
-                        </>
-                      ) : (
-                        <>
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Inactive
-                        </>
-                      )}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditShift(shift)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Shift
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDuplicateShift(shift)}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Duplicate
-                        </DropdownMenuItem>
-                        {!shift.isDefault && (
-                          <DropdownMenuItem onClick={() => handleSetDefaultShift(shift._id)}>
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Set as Default
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteShift(shift._id)}
-                          className="text-red-600"
-                          disabled={shift.employeeCount > 0}
+                      <TableCell>
+                        <div>
+                          <div className="flex items-center space-x-2 font-medium">
+                            <span>{shift.name}</span>
+                            {shift.isDefault && (
+                              <Badge variant="secondary" className="text-xs">
+                                Default
+                              </Badge>
+                            )}
+                          </div>
+                          {shift.description && (
+                            <div className="text-sm text-muted-foreground">
+                              {shift.description}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {shift.startTime} - {shift.endTime}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {shift.totalHours}h • {shift.breakDuration}m break
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {formatWorkingDays(shift.workingDays)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span>{shift.employeeCount}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            shift.isActive
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Shift
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                          {shift.isActive ? (
+                            <>
+                              <CheckCircle className="mr-1 h-3 w-3" />
+                              Active
+                            </>
+                          ) : (
+                            <>
+                              <AlertTriangle className="mr-1 h-3 w-3" />
+                              Inactive
+                            </>
+                          )}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditShift(shift)}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Shift
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDuplicateShift(shift)}
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              Duplicate
+                            </DropdownMenuItem>
+                            {!shift.isDefault && (
+                              <DropdownMenuItem
+                                onClick={() => handleSetDefaultShift(shift._id)}
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Set as Default
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteShift(shift._id)}
+                              className="text-red-600"
+                              disabled={shift.employeeCount > 0}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Shift
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
               </TableBody>
@@ -692,16 +809,16 @@ export function ShiftManagement() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Employees
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {shifts.reduce((total, shift) => total + shift.employeeCount, 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Across all shifts
-            </p>
+            <p className="text-xs text-muted-foreground">Across all shifts</p>
           </CardContent>
         </Card>
 
@@ -713,13 +830,16 @@ export function ShiftManagement() {
           <CardContent>
             <div className="text-2xl font-bold">
               {shifts.length > 0
-                ? (shifts.reduce((total, shift) => total + shift.totalHours, 0) / shifts.length).toFixed(1)
-                : '0'
-              }h
+                ? (
+                    shifts.reduce(
+                      (total, shift) => total + shift.totalHours,
+                      0
+                    ) / shifts.length
+                  ).toFixed(1)
+                : '0'}
+              h
             </div>
-            <p className="text-xs text-muted-foreground">
-              Per shift
-            </p>
+            <p className="text-xs text-muted-foreground">Per shift</p>
           </CardContent>
         </Card>
       </div>

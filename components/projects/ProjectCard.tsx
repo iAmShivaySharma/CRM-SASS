@@ -12,6 +12,7 @@ import {
   Archive,
   RotateCcw,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,9 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
-import type { Project } from '@/lib/api/projectsApi'
-import { useUpdateProjectMutation } from '@/lib/api/projectsApi'
+import { useUpdateProjectMutation, type Project } from '@/lib/api/projectsApi'
 
 interface ProjectCardProps {
   project: Project

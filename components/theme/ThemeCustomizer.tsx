@@ -2,6 +2,20 @@
 
 import { useState, useCallback } from 'react'
 import {
+  Palette,
+  Type,
+  Layout,
+  Zap,
+  RotateCcw,
+  Download,
+  Upload,
+  Eye,
+  Monitor,
+  Sun,
+  Moon,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import {
   Card,
   CardContent,
   CardDescription,
@@ -35,20 +49,6 @@ import {
   resetTheme,
 } from '@/lib/slices/themeSlice'
 import { usePatchUserPreferencesMutation } from '@/lib/api/userPreferencesApi'
-import {
-  Palette,
-  Type,
-  Layout,
-  Zap,
-  RotateCcw,
-  Download,
-  Upload,
-  Eye,
-  Monitor,
-  Sun,
-  Moon,
-} from 'lucide-react'
-import { toast } from 'sonner'
 
 const colorInputs = [
   { key: 'primary', label: 'Primary', description: 'Main brand color' },
@@ -261,7 +261,7 @@ export function ThemeCustomizer() {
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <label>
+          <label aria-label="Import theme">
             <Button variant="outline" size="sm" asChild>
               <span>
                 <Upload className="mr-2 h-4 w-4" />

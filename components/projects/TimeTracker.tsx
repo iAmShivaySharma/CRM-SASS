@@ -15,9 +15,9 @@ import {
   useStopTimeTrackingMutation,
   usePauseTimeTrackingMutation,
   useResumeTimeTrackingMutation,
+  type Task,
 } from '@/lib/api/projectsApi'
 import { cn } from '@/lib/utils'
-import type { Task } from '@/lib/api/projectsApi'
 
 interface TimeTrackerProps {
   task: Task
@@ -30,15 +30,19 @@ export function TimeTracker({
   task,
   size = 'sm',
   variant = 'compact',
-  className
+  className,
 }: TimeTrackerProps) {
   const [currentTime, setCurrentTime] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
 
-  const [startTimeTracking, { isLoading: isStarting }] = useStartTimeTrackingMutation()
-  const [stopTimeTracking, { isLoading: isStopping }] = useStopTimeTrackingMutation()
-  const [pauseTimeTracking, { isLoading: isPausing }] = usePauseTimeTrackingMutation()
-  const [resumeTimeTracking, { isLoading: isResuming }] = useResumeTimeTrackingMutation()
+  const [startTimeTracking, { isLoading: isStarting }] =
+    useStartTimeTrackingMutation()
+  const [stopTimeTracking, { isLoading: isStopping }] =
+    useStopTimeTrackingMutation()
+  const [pauseTimeTracking, { isLoading: isPausing }] =
+    usePauseTimeTrackingMutation()
+  const [resumeTimeTracking, { isLoading: isResuming }] =
+    useResumeTimeTrackingMutation()
 
   const isLoading = isStarting || isStopping || isPausing || isResuming
 
@@ -46,7 +50,9 @@ export function TimeTracker({
   useEffect(() => {
     if (task.timeTracking?.isActive && task.timeTracking?.currentSessionStart) {
       setIsRunning(true)
-      const startTime = new Date(task.timeTracking.currentSessionStart).getTime()
+      const startTime = new Date(
+        task.timeTracking.currentSessionStart
+      ).getTime()
 
       const updateTime = () => {
         const now = Date.now()
@@ -115,13 +121,13 @@ export function TimeTracker({
   const buttonSizes = {
     sm: 'h-6 w-6 p-0',
     md: 'h-8 w-8 p-0',
-    lg: 'h-10 w-10 p-0'
+    lg: 'h-10 w-10 p-0',
   }
 
   const iconSizes = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
-    lg: 'h-5 w-5'
+    lg: 'h-5 w-5',
   }
 
   if (variant === 'compact') {
@@ -172,8 +178,9 @@ export function TimeTracker({
           <Badge
             variant={isRunning ? 'default' : 'secondary'}
             className={cn(
-              'text-xs font-mono',
-              isRunning && 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              'font-mono text-xs',
+              isRunning &&
+                'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
             )}
           >
             <Clock className="mr-1 h-3 w-3" />
@@ -195,9 +202,7 @@ export function TimeTracker({
                   <Square className={cn(iconSizes[size], 'text-red-500')} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                Stop and save timer
-              </TooltipContent>
+              <TooltipContent>Stop and save timer</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}

@@ -1,11 +1,22 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { Upload, X, FileText, Image, Video, Loader2, Eye } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import {
+  Upload,
+  X,
+  FileText,
+  Image as ImageIcon,
+  Video,
+  Loader2,
+  Eye,
+} from 'lucide-react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { useAppSelector } from '@/lib/hooks'
-import { useUploadFileMutation, useGetUploadConfigQuery } from '@/lib/api/chatApi'
+import {
+  useUploadFileMutation,
+  useGetUploadConfigQuery,
+} from '@/lib/api/chatApi'
 
 interface TaskFile {
   name: string
@@ -39,7 +50,7 @@ export function TaskFileUploader({
 
   const getFileIcon = (fileType: string) => {
     if (fileType.startsWith('image/')) {
-      return <Image className="h-4 w-4 text-blue-500" />
+      return <ImageIcon className="h-4 w-4 text-blue-500" />
     } else if (fileType.startsWith('video/')) {
       return <Video className="h-4 w-4 text-purple-500" />
     } else {
@@ -70,40 +81,44 @@ export function TaskFileUploader({
     return null
   }
 
-  const handleFileUpload = useCallback(async (file: File): Promise<TaskFile | null> => {
-    if (!currentWorkspace) {
-      throw new Error('No workspace selected')
-    }
-
-    const validation = validateFile(file)
-    if (validation) {
-      toast.error(validation)
-      return null
-    }
-
-    try {
-      const result = await uploadFile({
-        file,
-        workspaceId: currentWorkspace.id,
-        chatRoomId: 'tasks', // Use 'tasks' as a special chat room ID for task files
-      }).unwrap()
-
-      if (result.success && result.file.url) {
-        return {
-          name: result.file.name,
-          url: result.file.url,
-          type: result.file.type,
-          size: result.file.size,
-        }
+  const handleFileUpload = useCallback(
+    async (file: File): Promise<TaskFile | null> => {
+      if (!currentWorkspace) {
+        throw new Error('No workspace selected')
       }
-      throw new Error('Upload failed')
-    } catch (error) {
-      console.error('File upload error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Upload failed'
-      toast.error(`Failed to upload ${file.name}: ${errorMessage}`)
-      return null
-    }
-  }, [currentWorkspace, uploadFile, validateFile])
+
+      const validation = validateFile(file)
+      if (validation) {
+        toast.error(validation)
+        return null
+      }
+
+      try {
+        const result = await uploadFile({
+          file,
+          workspaceId: currentWorkspace.id,
+          chatRoomId: 'tasks', // Use 'tasks' as a special chat room ID for task files
+        }).unwrap()
+
+        if (result.success && result.file.url) {
+          return {
+            name: result.file.name,
+            url: result.file.url,
+            type: result.file.type,
+            size: result.file.size,
+          }
+        }
+        throw new Error('Upload failed')
+      } catch (error) {
+        console.error('File upload error:', error)
+        const errorMessage =
+          error instanceof Error ? error.message : 'Upload failed'
+        toast.error(`Failed to upload ${file.name}: ${errorMessage}`)
+        return null
+      }
+    },
+    [currentWorkspace, uploadFile, validateFile]
+  )
 
   const handleFiles = useCallback(
     async (files: FileList) => {
@@ -121,7 +136,10 @@ export function TaskFileUploader({
       }
 
       const fileArray = Array.from(files)
-      console.log('Processing files:', fileArray.map(f => f.name))
+      console.log(
+        'Processing files:',
+        fileArray.map(f => f.name)
+      )
 
       // Check file count limit
       if (existingFiles.length + fileArray.length > maxFiles) {
@@ -138,7 +156,9 @@ export function TaskFileUploader({
         if (successfulUploads.length > 0) {
           const updatedFiles = [...existingFiles, ...successfulUploads]
           onFilesChange(updatedFiles)
-          toast.success(`${successfulUploads.length} file(s) uploaded successfully`)
+          toast.success(
+            `${successfulUploads.length} file(s) uploaded successfully`
+          )
         }
       } catch (error) {
         console.error('Upload error:', error)
@@ -147,7 +167,15 @@ export function TaskFileUploader({
         setIsUploading(false)
       }
     },
-    [existingFiles, maxFiles, disabled, isUploading, onFilesChange, currentWorkspace, handleFileUpload]
+    [
+      existingFiles,
+      maxFiles,
+      disabled,
+      isUploading,
+      onFilesChange,
+      currentWorkspace,
+      handleFileUpload,
+    ]
   )
 
   const handleDrop = useCallback(
@@ -206,27 +234,34 @@ export function TaskFileUploader({
     [existingFiles, onFilesChange]
   )
 
-  const openFileDialog = useCallback((e?: React.MouseEvent) => {
-    console.log('openFileDialog called', { disabled, isUploading, hasRef: !!fileInputRef.current })
-    if (e) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-
-    // Use setTimeout to ensure the event is processed
-    setTimeout(() => {
-      if (fileInputRef.current && !disabled && !isUploading) {
-        console.log('Clicking file input')
-        fileInputRef.current.click()
-      } else {
-        console.log('Cannot click file input:', {
-          hasRef: !!fileInputRef.current,
-          disabled,
-          isUploading
-        })
+  const openFileDialog = useCallback(
+    (e?: React.MouseEvent) => {
+      console.log('openFileDialog called', {
+        disabled,
+        isUploading,
+        hasRef: !!fileInputRef.current,
+      })
+      if (e) {
+        e.preventDefault()
+        e.stopPropagation()
       }
-    }, 0)
-  }, [disabled, isUploading])
+
+      // Use setTimeout to ensure the event is processed
+      setTimeout(() => {
+        if (fileInputRef.current && !disabled && !isUploading) {
+          console.log('Clicking file input')
+          fileInputRef.current.click()
+        } else {
+          console.log('Cannot click file input:', {
+            hasRef: !!fileInputRef.current,
+            disabled,
+            isUploading,
+          })
+        }
+      }, 0)
+    },
+    [disabled, isUploading]
+  )
 
   return (
     <>
@@ -235,28 +270,30 @@ export function TaskFileUploader({
         ref={fileInputRef}
         type="file"
         multiple
-        accept={uploadConfig?.config.allowedTypes.join(',') || 'image/*,video/*,application/pdf,.doc,.docx,.txt'}
+        accept={
+          uploadConfig?.config.allowedTypes.join(',') ||
+          'image/*,video/*,application/pdf,.doc,.docx,.txt'
+        }
         onChange={handleInputChange}
         style={{ display: 'none' }}
         disabled={disabled || isUploading}
       />
 
-      <div className={`space-y-3 ${className}`} style={{ position: 'relative', zIndex: 1 }}>
+      <div
+        className={`space-y-3 ${className}`}
+        style={{ position: 'relative', zIndex: 1 }}
+      >
         {/* Drop Zone */}
         <div
-          className={`
-            relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
-            ${
-              dragActive
-                ? 'border-blue-400 bg-blue-50 dark:bg-blue-950'
-                : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
-            }
-            ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
+          className={`relative cursor-pointer rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
+            dragActive
+              ? 'border-blue-400 bg-blue-50 dark:bg-blue-950'
+              : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
+          } ${disabled || isUploading ? 'cursor-not-allowed opacity-50' : ''} `}
           style={{
             position: 'relative',
             zIndex: 10,
-            pointerEvents: disabled || isUploading ? 'none' : 'auto'
+            pointerEvents: disabled || isUploading ? 'none' : 'auto',
           }}
           onDragEnter={handleDragIn}
           onDragLeave={handleDragOut}
@@ -264,96 +301,99 @@ export function TaskFileUploader({
           onDrop={handleDrop}
           onClick={openFileDialog}
         >
+          {isUploading ? (
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              <p className="text-sm font-medium text-blue-600">
+                Uploading files...
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <Upload className="h-8 w-8 text-gray-400" />
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                Drop files here or click to browse
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Images, videos, documents up to{' '}
+                {uploadConfig?.config.maxFileSizeMB || 10}MB (max {maxFiles}{' '}
+                files)
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={e => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  console.log('Choose Files button clicked')
+                  openFileDialog()
+                }}
+                disabled={disabled || isUploading}
+                className="relative z-20 mt-2"
+                style={{ position: 'relative', zIndex: 20 }}
+              >
+                Choose Files
+              </Button>
+            </div>
+          )}
+        </div>
 
-        {isUploading ? (
-          <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <p className="text-sm font-medium text-blue-600">Uploading files...</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-2">
-            <Upload className="h-8 w-8 text-gray-400" />
+        {/* File List */}
+        {existingFiles.length > 0 && (
+          <div className="space-y-2">
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Drop files here or click to browse
+              Attached Files ({existingFiles.length})
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Images, videos, documents up to {uploadConfig?.config.maxFileSizeMB || 10}MB (max {maxFiles} files)
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                console.log('Choose Files button clicked')
-                openFileDialog()
-              }}
-              disabled={disabled || isUploading}
-              className="mt-2 relative z-20"
-              style={{ position: 'relative', zIndex: 20 }}
-            >
-              Choose Files
-            </Button>
+            {existingFiles.map((file, index) => (
+              <div
+                key={`${file.url}-${index}`}
+                className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
+              >
+                {getFileIcon(file.type)}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {file.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {formatFileSize(file.size)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      window.open(file.url, '_blank')
+                    }}
+                    className="h-6 w-6 p-0"
+                    title="View file"
+                  >
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      removeFile(file)
+                    }}
+                    className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900 dark:hover:text-red-400"
+                    title="Remove file"
+                    disabled={disabled}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-      </div>
-
-      {/* File List */}
-      {existingFiles.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            Attached Files ({existingFiles.length})
-          </p>
-          {existingFiles.map((file, index) => (
-            <div
-              key={`${file.url}-${index}`}
-              className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
-            >
-              {getFileIcon(file.type)}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {file.name}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatFileSize(file.size)}
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    window.open(file.url, '_blank')
-                  }}
-                  className="h-6 w-6 p-0"
-                  title="View file"
-                >
-                  <Eye className="h-3 w-3" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    removeFile(file)
-                  }}
-                  className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900 dark:hover:text-red-400"
-                  title="Remove file"
-                  disabled={disabled}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
       </div>
     </>
   )

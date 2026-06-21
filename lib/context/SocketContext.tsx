@@ -8,10 +8,10 @@ import React, {
   useRef,
   useCallback,
 } from 'react'
-import { io, Socket } from 'socket.io-client'
+import { io, type Socket } from 'socket.io-client'
 import { useSelector } from 'react-redux'
-import { RootState } from '../store'
-import { Message, ChatRoom } from '../api/chatApi'
+import { type RootState } from '../store'
+import { type Message, ChatRoom } from '../api/chatApi'
 
 interface SocketContextType {
   socket: Socket | null
@@ -113,7 +113,9 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false)
   const auth = useSelector((state: RootState) => state.auth)
   const workspace = useSelector((state: RootState) => state.workspace)
-  const eventListenersRef = useRef<Map<string, Function[]>>(new Map())
+  const eventListenersRef = useRef<Map<string, ((...args: any[]) => void)[]>>(
+    new Map()
+  )
 
   const disconnectSocket = useCallback(() => {
     setSocket(currentSocket => {
@@ -213,11 +215,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     return () => {
       disconnectSocket()
     }
-  }, [
-    auth.isAuthenticated,
-    auth.user?.id,
-    workspace.currentWorkspace?.id,
-  ])
+  }, [auth.isAuthenticated, auth.user?.id, workspace.currentWorkspace?.id])
 
   const joinChatRoom = (chatRoomId: string) => {
     if (socket) {

@@ -15,10 +15,12 @@ import {
   Download,
 } from 'lucide-react'
 import jsPDF from 'jspdf'
+import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useCreateDocumentMutation,
   useDeleteDocumentMutation,
+  type Document,
 } from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,8 +36,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CardSkeleton } from '@/components/ui/skeleton'
 import { extractPlainText } from '@/components/ui/tiptap-editor-improved'
-import { toast } from 'sonner'
-import type { Document } from '@/lib/api/projectsApi'
 
 interface ProjectDocumentsProps {
   projectId: string
@@ -44,7 +44,12 @@ interface ProjectDocumentsProps {
   onEditDocument?: (document: Document) => void
 }
 
-export function ProjectDocuments({ projectId, documents, isLoading, onEditDocument }: ProjectDocumentsProps) {
+export function ProjectDocuments({
+  projectId,
+  documents,
+  isLoading,
+  onEditDocument,
+}: ProjectDocumentsProps) {
   const router = useRouter()
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [search, setSearch] = useState('')
@@ -78,7 +83,8 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
   const filteredDocuments = documents.filter(
     doc =>
       doc.title.toLowerCase().includes(search.toLowerCase()) ||
-      (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
+      (doc.tags &&
+        doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
   )
 
   const handleCreateDocument = async () => {
@@ -115,7 +121,11 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
   }
 
   const handleDeleteDocument = async (documentId: string) => {
-    if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this document? This action cannot be undone.'
+      )
+    ) {
       return
     }
 
@@ -143,7 +153,10 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
         content = tempDiv.textContent || tempDiv.innerText || doc.content
 
         // If still looks like HTML tags, strip them
-        content = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+        content = content
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
       } else if (doc.content && typeof doc.content === 'object') {
         // If it's JSON/Tiptap format, extract text recursively
         const extractTextFromJSON = (node: any): string => {
@@ -197,8 +210,16 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
 
       // Add creation date
       pdf.setFontSize(12)
-      pdf.text(`Created: ${new Date(doc.createdAt).toLocaleDateString()}`, 20, 45)
-      pdf.text(`Updated: ${new Date(doc.updatedAt).toLocaleDateString()}`, 20, 55)
+      pdf.text(
+        `Created: ${new Date(doc.createdAt).toLocaleDateString()}`,
+        20,
+        45
+      )
+      pdf.text(
+        `Updated: ${new Date(doc.updatedAt).toLocaleDateString()}`,
+        20,
+        55
+      )
 
       // Add content
       pdf.setFontSize(11)
@@ -206,7 +227,7 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
       // Split content into lines that fit the page width
       const pageWidth = pdf.internal.pageSize.getWidth()
       const margins = 20
-      const maxLineWidth = pageWidth - (margins * 2)
+      const maxLineWidth = pageWidth - margins * 2
 
       const lines = pdf.splitTextToSize(content, maxLineWidth)
 
@@ -367,7 +388,7 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
           {filteredDocuments.map(document => (
             <Card
               key={document.id}
-              className="group transition-all hover:shadow-md cursor-pointer"
+              className="group cursor-pointer transition-all hover:shadow-md"
               onDoubleClick={handleDoubleClick(document)}
             >
               <CardHeader className="pb-3">
@@ -453,7 +474,7 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
                 {/* Author and Date */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-2">
-                    <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
                       <span className="text-xs font-medium">U</span>
                     </div>
                     <span>Created by user</span>
@@ -471,7 +492,7 @@ export function ProjectDocuments({ projectId, documents, isLoading, onEditDocume
           {filteredDocuments.map(document => (
             <Card
               key={document.id}
-              className="cursor-pointer hover:shadow-md transition-all"
+              className="cursor-pointer transition-all hover:shadow-md"
               onDoubleClick={handleDoubleClick(document)}
             >
               <CardContent className="p-4">

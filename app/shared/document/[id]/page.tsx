@@ -98,9 +98,12 @@ export default function PublicDocumentPage() {
               <div className="flex flex-col items-center justify-center space-y-4 text-center">
                 <FileText className="h-12 w-12 text-muted-foreground" />
                 <div>
-                  <h3 className="text-lg font-medium">{error || 'Document not found'}</h3>
+                  <h3 className="text-lg font-medium">
+                    {error || 'Document not found'}
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    The document you're looking for doesn't exist or is not available for public viewing.
+                    The document you&apos;re looking for doesn&apos;t exist or
+                    is not available for public viewing.
                   </p>
                 </div>
               </div>
@@ -118,11 +121,9 @@ export default function PublicDocumentPage() {
         <Card className="mb-6">
           <CardHeader>
             <div className="flex items-start space-x-4">
-              <div className="text-3xl">
-                {getDocumentIcon(document.type)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-2xl font-bold break-words">
+              <div className="text-3xl">{getDocumentIcon(document.type)}</div>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="break-words text-2xl font-bold">
                   {document.title}
                 </CardTitle>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -138,7 +139,10 @@ export default function PublicDocumentPage() {
                   </div>
                   <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>Updated {new Date(document.updatedAt).toLocaleDateString()}</span>
+                    <span>
+                      Updated{' '}
+                      {new Date(document.updatedAt).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
               </div>

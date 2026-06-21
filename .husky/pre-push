@@ -1,0 +1,21 @@
+#!/bin/sh
+
+echo "Running pre-push checks..."
+
+# Lint check — block on errors only (warnings are allowed)
+echo "Running ESLint..."
+npx eslint app/ components/ lib/ middleware.ts --ext .ts,.tsx --quiet
+if [ $? -ne 0 ]; then
+  echo "ESLint errors found. Fix them before pushing."
+  exit 1
+fi
+
+# Build check — catches type errors and build failures
+echo "Running build..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "Build failed. Fix errors before pushing."
+  exit 1
+fi
+
+echo "All pre-push checks passed!"

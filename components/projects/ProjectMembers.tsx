@@ -1,8 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, UserPlus, Crown, Shield, User, MoreVertical, MessageSquare, UserMinus } from 'lucide-react'
-import { useRemoveProjectMemberMutation } from '@/lib/api/projectsApi'
+import {
+  Plus,
+  UserPlus,
+  Crown,
+  Shield,
+  User,
+  MoreVertical,
+  MessageSquare,
+  UserMinus,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import {
+  useRemoveProjectMemberMutation,
+  type ProjectMember,
+} from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,8 +29,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CardSkeleton } from '@/components/ui/skeleton'
 import { InviteMemberDialog } from './InviteMemberDialog'
-import { toast } from 'sonner'
-import type { ProjectMember } from '@/lib/api/projectsApi'
 
 interface ProjectMembersProps {
   projectId: string
@@ -25,14 +36,22 @@ interface ProjectMembersProps {
   isLoading: boolean
 }
 
-export function ProjectMembers({ projectId, members, isLoading }: ProjectMembersProps) {
+export function ProjectMembers({
+  projectId,
+  members,
+  isLoading,
+}: ProjectMembersProps) {
   const [showInviteDialog, setShowInviteDialog] = useState(false)
   const [removeProjectMember] = useRemoveProjectMemberMutation()
 
   const existingMemberIds = members.map(member => member.userId).filter(Boolean)
 
   const handleRemoveMember = async (memberId: string, memberName: string) => {
-    if (!confirm(`Are you sure you want to remove ${memberName} from this project?`)) {
+    if (
+      !confirm(
+        `Are you sure you want to remove ${memberName} from this project?`
+      )
+    ) {
       return
     }
 
@@ -50,7 +69,9 @@ export function ProjectMembers({ projectId, members, isLoading }: ProjectMembers
 
   const handleChangeRole = (member: ProjectMember) => {
     // For now, show a message that role changes should be done at workspace level
-    toast.info('To change roles, update their workspace role in Settings > Members')
+    toast.info(
+      'To change roles, update their workspace role in Settings > Members'
+    )
   }
 
   const handleSendMessage = (member: ProjectMember) => {
@@ -87,7 +108,9 @@ export function ProjectMembers({ projectId, members, isLoading }: ProjectMembers
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Project Members</h2>
+            <h2 className="text-2xl font-bold tracking-tight">
+              Project Members
+            </h2>
             <p className="text-muted-foreground">
               Manage who has access to this project
             </p>
@@ -159,7 +182,9 @@ export function ProjectMembers({ projectId, members, isLoading }: ProjectMembers
                     </Avatar>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <h3 className="font-medium">{member.user?.fullName || 'Unknown User'}</h3>
+                        <h3 className="font-medium">
+                          {member.user?.fullName || 'Unknown User'}
+                        </h3>
                         {getRoleIcon(member.role?.name || 'member')}
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -177,7 +202,9 @@ export function ProjectMembers({ projectId, members, isLoading }: ProjectMembers
                     </Badge>
                     {member.status && (
                       <Badge
-                        variant={member.status === 'active' ? 'default' : 'secondary'}
+                        variant={
+                          member.status === 'active' ? 'default' : 'secondary'
+                        }
                         className={
                           member.status === 'active'
                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -188,7 +215,10 @@ export function ProjectMembers({ projectId, members, isLoading }: ProjectMembers
                       </Badge>
                     )}
                     <div className="text-sm text-muted-foreground">
-                      Joined {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'Unknown'}
+                      Joined{' '}
+                      {member.joinedAt
+                        ? new Date(member.joinedAt).toLocaleDateString()
+                        : 'Unknown'}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -197,18 +227,27 @@ export function ProjectMembers({ projectId, members, isLoading }: ProjectMembers
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleChangeRole(member)}>
+                        <DropdownMenuItem
+                          onClick={() => handleChangeRole(member)}
+                        >
                           <Shield className="mr-2 h-4 w-4" />
                           Change Role
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleSendMessage(member)}>
+                        <DropdownMenuItem
+                          onClick={() => handleSendMessage(member)}
+                        >
                           <MessageSquare className="mr-2 h-4 w-4" />
                           Send Message
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-600"
-                          onClick={() => handleRemoveMember(member.id, member.user?.fullName || 'User')}
+                          onClick={() =>
+                            handleRemoveMember(
+                              member.id,
+                              member.user?.fullName || 'User'
+                            )
+                          }
                         >
                           <UserMinus className="mr-2 h-4 w-4" />
                           Remove from Project

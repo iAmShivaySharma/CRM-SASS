@@ -2,8 +2,21 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
-import { useGetChatRoomsQuery, useGetMessagesQuery } from '@/lib/api/chatApi'
+import {
+  MessageSquare,
+  Send,
+  Plus,
+  Users,
+  Settings,
+  Search,
+  Archive,
+} from 'lucide-react'
+import { type RootState } from '@/lib/store'
+import {
+  useGetChatRoomsQuery,
+  useGetMessagesQuery,
+  type Message,
+} from '@/lib/api/chatApi'
 import { useSocket } from '@/lib/context/SocketContext'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -15,22 +28,12 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { ListItemSkeleton, InputSkeleton } from '@/components/ui/skeleton'
-import {
-  MessageSquare,
-  Send,
-  Plus,
-  Users,
-  Settings,
-  Search,
-  Archive,
-} from 'lucide-react'
 import { ChatRoomList } from './ChatRoomList'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
 import { ChatHeader } from './ChatHeader'
 import { CreateChatRoomDialog } from './CreateChatRoomDialog'
 import { StartDirectChatDialog } from './StartDirectChatDialog'
-import { Message } from '@/lib/api/chatApi'
 
 interface ChatInterfaceProps {
   className?: string
@@ -100,10 +103,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     return (
       <div className={cn('flex h-full', className)}>
         {/* Chat rooms sidebar skeleton */}
-        <div className="w-80 border-r bg-muted/10 p-4 space-y-4">
+        <div className="w-80 space-y-4 border-r bg-muted/10 p-4">
           <div className="flex items-center justify-between">
-            <div className="h-6 w-20 bg-muted rounded animate-pulse" />
-            <div className="h-8 w-8 bg-muted rounded animate-pulse" />
+            <div className="h-6 w-20 animate-pulse rounded bg-muted" />
+            <div className="h-8 w-8 animate-pulse rounded bg-muted" />
           </div>
           <InputSkeleton />
           <div className="space-y-2">
@@ -114,13 +117,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         </div>
 
         {/* Chat messages area skeleton */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center space-y-3">
+        <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 items-center justify-center">
+            <div className="space-y-3 text-center">
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
               <div className="space-y-2">
-                <div className="h-4 w-48 bg-muted rounded animate-pulse mx-auto" />
-                <div className="h-3 w-32 bg-muted rounded animate-pulse mx-auto" />
+                <div className="mx-auto h-4 w-48 animate-pulse rounded bg-muted" />
+                <div className="mx-auto h-3 w-32 animate-pulse rounded bg-muted" />
               </div>
             </div>
           </div>

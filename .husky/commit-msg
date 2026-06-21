@@ -1,0 +1,21 @@
+#!/bin/sh
+
+commit_msg=$(cat "$1")
+
+pattern="^(feat|fix|chore|docs|style|refactor|perf|test|ci|build|revert)(\(.+\))?: .{1,100}"
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo ""
+  echo "ERROR: Invalid commit message format."
+  echo ""
+  echo "Expected: <type>(scope): <description>"
+  echo ""
+  echo "Types: feat, fix, chore, docs, style, refactor, perf, test, ci, build, revert"
+  echo ""
+  echo "Examples:"
+  echo "  feat: add blog module"
+  echo "  fix(auth): resolve token expiry issue"
+  echo "  chore: update dependencies"
+  echo ""
+  exit 1
+fi

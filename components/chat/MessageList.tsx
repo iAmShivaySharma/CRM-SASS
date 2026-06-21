@@ -1,17 +1,19 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { useGetMessagesQuery } from '@/lib/api/chatApi'
+import { Loader2, MessageSquare } from 'lucide-react'
+import { useGetMessagesQuery, type Message } from '@/lib/api/chatApi'
 import { useSocket } from '@/lib/context/SocketContext'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ChatMessagesListSkeleton, ChatMessageSkeleton } from '@/components/ui/skeleton'
+import {
+  ChatMessagesListSkeleton,
+  ChatMessageSkeleton,
+} from '@/components/ui/skeleton'
 import { MessageItem } from './MessageItem'
 import { TypingIndicator } from './TypingIndicator'
-import { Loader2, MessageSquare } from 'lucide-react'
-import { Message } from '@/lib/api/chatApi'
 
 interface MessageListProps {
   chatRoomId: string
