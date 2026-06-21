@@ -393,10 +393,12 @@ export function ShiftManagement() {
 
   const formatWorkingDays = (days: number[]) => {
     if (days.length === 7) return 'All days'
-    if (days.length === 5 && !days.includes(0) && !days.includes(6))
+    if (days.length === 5 && !days.includes(0) && !days.includes(6)) {
       return 'Weekdays'
-    if (days.length === 2 && days.includes(0) && days.includes(6))
+    }
+    if (days.length === 2 && days.includes(0) && days.includes(6)) {
       return 'Weekends'
+    }
 
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     return days
