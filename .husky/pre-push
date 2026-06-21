@@ -11,9 +11,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Type check (faster than full build, doesn't need env vars)
+# Type check with sufficient memory for large codebase
 echo "Running type check..."
-npx tsc --noEmit --skipLibCheck
+NODE_OPTIONS="--max-old-space-size=4096" npx tsc --noEmit --skipLibCheck
 if [ $? -ne 0 ]; then
   echo ""
   echo "TypeScript errors found. Fix them before pushing."
