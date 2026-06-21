@@ -2,7 +2,7 @@
 
 echo "Running pre-push checks..."
 
-# Lint check — block on errors only
+# ESLint — catches bugs, security issues, bad patterns, unused code
 echo "Running ESLint..."
 npx eslint app/ components/ lib/ middleware.ts --ext .ts,.tsx --quiet
 if [ $? -ne 0 ]; then
@@ -11,13 +11,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Type check with sufficient memory for large codebase
-echo "Running type check..."
-NODE_OPTIONS="--max-old-space-size=4096" npx tsc --noEmit --skipLibCheck
-if [ $? -ne 0 ]; then
-  echo ""
-  echo "TypeScript errors found. Fix them before pushing."
-  exit 1
-fi
-
 echo "All pre-push checks passed!"
+echo ""
+echo "Note: Full build + type check runs in CI pipeline."
