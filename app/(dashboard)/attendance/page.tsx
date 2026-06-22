@@ -20,7 +20,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
 import { AttendanceOverview } from '@/components/hr/AttendanceOverview'
-import { AttendanceReports } from '@/components/hr/AttendanceReports'
+import dynamic from 'next/dynamic'
+
+const AttendanceReports = dynamic(
+  () =>
+    import('@/components/hr/AttendanceReports').then(mod => ({
+      default: mod.AttendanceReports,
+    })),
+  { ssr: false }
+)
 import { ShiftManagement } from '@/components/hr/ShiftManagement'
 import { useAppSelector } from '@/lib/hooks'
 

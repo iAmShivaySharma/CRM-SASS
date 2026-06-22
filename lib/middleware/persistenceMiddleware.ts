@@ -1,4 +1,4 @@
-import { Middleware } from '@reduxjs/toolkit'
+import { type Middleware } from '@reduxjs/toolkit'
 
 // Keys to persist in localStorage
 const PERSIST_KEYS = {

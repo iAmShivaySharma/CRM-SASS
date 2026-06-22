@@ -2,8 +2,24 @@
 
 import { useState } from 'react'
 import {
-  ContactsListResponse,
-  Contact,
+  Edit,
+  Trash2,
+  Mail,
+  Phone,
+  Building,
+  MapPin,
+  Calendar,
+  DollarSign,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { formatDistanceToNow } from 'date-fns'
+import {
+  type ContactsListResponse,
+  type Contact,
   useDeleteContactMutation,
 } from '@/lib/api/contactsApi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,22 +44,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { ContactForm } from './ContactForm'
 import { ContactDetail } from './ContactDetail'
-import {
-  Edit,
-  Trash2,
-  Mail,
-  Phone,
-  Building,
-  MapPin,
-  Calendar,
-  DollarSign,
-  User,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-} from 'lucide-react'
-import { toast } from 'sonner'
-import { formatDistanceToNow } from 'date-fns'
 
 interface ContactListProps {
   contactsData?: ContactsListResponse

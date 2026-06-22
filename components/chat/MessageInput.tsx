@@ -2,23 +2,6 @@
 
 import React, { useState, useRef, useCallback } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
-import {
-  useCreateMessageMutation,
-  useUploadFileMutation,
-  useGetUploadConfigQuery,
-  Message,
-} from '@/lib/api/chatApi'
-import { useSocket } from '@/lib/context/SocketContext'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import {
   Send,
   Paperclip,
@@ -34,6 +17,23 @@ import {
   Image,
   Trash2,
 } from 'lucide-react'
+import { type RootState } from '@/lib/store'
+import {
+  useCreateMessageMutation,
+  useUploadFileMutation,
+  useGetUploadConfigQuery,
+  type Message,
+} from '@/lib/api/chatApi'
+import { useSocket } from '@/lib/context/SocketContext'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   Popover,
   PopoverContent,
@@ -586,8 +586,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 }
                 className={cn(
                   'max-h-[120px] min-h-[40px] resize-none pr-12',
-                  'focus:ring-2 focus:ring-primary/20 transition-all',
-                  isSending && 'bg-muted/30 border-primary/30'
+                  'transition-all focus:ring-2 focus:ring-primary/20',
+                  isSending && 'border-primary/30 bg-muted/30'
                 )}
                 disabled={isSending || isUploading}
                 rows={1}
@@ -595,14 +595,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
               {/* Sending overlay */}
               {isSending && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px] rounded-md">
-                  <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                <div className="absolute inset-0 flex items-center justify-center rounded-md bg-background/50 backdrop-blur-[1px]">
+                  <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1">
                     <div className="flex items-center gap-1">
                       <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60"></div>
                       <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60 [animation-delay:0.2s]"></div>
                       <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60 [animation-delay:0.4s]"></div>
                     </div>
-                    <span className="text-xs font-medium text-primary">Sending</span>
+                    <span className="text-xs font-medium text-primary">
+                      Sending
+                    </span>
                   </div>
                 </div>
               )}
@@ -669,8 +671,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
               isUploading
             }
             className={cn(
-              "h-9 w-9 p-0 transition-all",
-              isSending && "animate-pulse bg-primary/80"
+              'h-9 w-9 p-0 transition-all',
+              isSending && 'animate-pulse bg-primary/80'
             )}
           >
             {isSending ? (

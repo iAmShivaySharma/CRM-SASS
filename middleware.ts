@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
@@ -58,7 +58,6 @@ const getAllowedOrigins = (): string[] => {
   }
   return process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
 }
-
 
 function handleCors(
   request: NextRequest,

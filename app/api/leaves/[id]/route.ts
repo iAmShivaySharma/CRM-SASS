@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { LeaveRequest } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -66,7 +66,8 @@ export async function PUT(
       )
     }
 
-    const isOwner = leaveRequest.employeeId.toString() === auth.user._id.toString()
+    const isOwner =
+      leaveRequest.employeeId.toString() === auth.user._id.toString()
 
     // Handle status changes
     if (body.status) {
@@ -82,7 +83,7 @@ export async function PUT(
 
           log.info('Leave request approved', {
             leaveRequestId: id,
-            approvedBy: auth.user._id
+            approvedBy: auth.user._id,
           })
           break
 
@@ -103,7 +104,7 @@ export async function PUT(
 
           log.info('Leave request rejected', {
             leaveRequestId: id,
-            rejectedBy: auth.user._id
+            rejectedBy: auth.user._id,
           })
           break
 
@@ -124,15 +125,12 @@ export async function PUT(
 
           log.info('Leave request cancelled', {
             leaveRequestId: id,
-            cancelledBy: auth.user._id
+            cancelledBy: auth.user._id,
           })
           break
 
         default:
-          return NextResponse.json(
-            { error: 'Invalid status' },
-            { status: 400 }
-          )
+          return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
       }
 
       const updated = await LeaveRequest.findById(id)
@@ -158,7 +156,17 @@ export async function PUT(
       )
     }
 
-    const allowedFields = ['leaveType', 'startDate', 'endDate', 'totalDays', 'reason', 'leavePolicyId', 'attachments', 'emergencyContact', 'handoverDetails']
+    const allowedFields = [
+      'leaveType',
+      'startDate',
+      'endDate',
+      'totalDays',
+      'reason',
+      'leavePolicyId',
+      'attachments',
+      'emergencyContact',
+      'handoverDetails',
+    ]
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
         leaveRequest[field] = body[field]
@@ -169,7 +177,7 @@ export async function PUT(
 
     log.info('Leave request updated', {
       leaveRequestId: id,
-      updatedBy: auth.user._id
+      updatedBy: auth.user._id,
     })
 
     const updated = await LeaveRequest.findById(id)
@@ -181,7 +189,12 @@ export async function PUT(
   } catch (error) {
     log.error('Update leave request error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update leave request' },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to update leave request',
+      },
       { status: 500 }
     )
   }
@@ -211,7 +224,8 @@ export async function DELETE(
       )
     }
 
-    const isOwner = leaveRequest.employeeId.toString() === auth.user._id.toString()
+    const isOwner =
+      leaveRequest.employeeId.toString() === auth.user._id.toString()
 
     if (!isOwner) {
       return NextResponse.json(
@@ -231,10 +245,13 @@ export async function DELETE(
 
     log.info('Leave request deleted', {
       leaveRequestId: id,
-      deletedBy: auth.user._id
+      deletedBy: auth.user._id,
     })
 
-    return NextResponse.json({ success: true, message: 'Leave request deleted' })
+    return NextResponse.json({
+      success: true,
+      message: 'Leave request deleted',
+    })
   } catch (error) {
     log.error('Delete leave request error:', error)
     return NextResponse.json(

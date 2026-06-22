@@ -1,4 +1,4 @@
-import { InvitationEmailData } from '@/lib/services/emailService'
+import { type InvitationEmailData } from '@/lib/services/emailService'
 
 export function getInvitationEmailTemplate(data: InvitationEmailData) {
   const subject = `You're invited to join ${data.workspaceName} workspace`

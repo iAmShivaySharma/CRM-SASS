@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Circle,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,11 +24,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { TimeTracker } from './TimeTracker'
 import { type Task, useGetTagsQuery } from '@/lib/api/projectsApi'
 import { useToggleTaskCompletionMutation } from '@/lib/api/tasksApi'
 import { useAppSelector } from '@/lib/hooks'
-import { toast } from 'sonner'
+import { TimeTracker } from './TimeTracker'
 
 interface TaskCardProps {
   task: Task
@@ -111,7 +111,9 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
         completed: !task.completed,
       }).unwrap()
       toast.success(
-        task.completed ? 'Task marked as not completed' : 'Task marked as completed'
+        task.completed
+          ? 'Task marked as not completed'
+          : 'Task marked as completed'
       )
     } catch (error) {
       console.error('Failed to toggle task completion:', error)
@@ -135,13 +137,15 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
     >
       <CardContent className="p-3">
         <div className="mb-2 flex items-start justify-between">
-          <div className="flex items-start gap-2 flex-1">
+          <div className="flex flex-1 items-start gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 mt-0.5"
+              className="mt-0.5 h-6 w-6 p-0"
               onClick={handleToggleCompletion}
-              title={task.completed ? 'Mark as not completed' : 'Mark as completed'}
+              title={
+                task.completed ? 'Mark as not completed' : 'Mark as completed'
+              }
             >
               {task.completed ? (
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -149,10 +153,12 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
                 <Circle className="h-4 w-4 text-gray-400" />
               )}
             </Button>
-            <h4 className={cn(
-              "line-clamp-2 flex-1 pr-2 text-sm font-medium",
-              task.completed && "line-through text-muted-foreground"
-            )}>
+            <h4
+              className={cn(
+                'line-clamp-2 flex-1 pr-2 text-sm font-medium',
+                task.completed && 'text-muted-foreground line-through'
+              )}
+            >
               {task.title}
             </h4>
           </div>
@@ -168,7 +174,9 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleEditClick}>Edit Task</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEditClick}>
+                Edit Task
+              </DropdownMenuItem>
               <DropdownMenuItem>Duplicate</DropdownMenuItem>
               <DropdownMenuItem className="text-red-600">
                 Delete
@@ -194,11 +202,15 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
                   key={index}
                   variant="secondary"
                   className="px-1.5 py-0.5 text-xs"
-                  style={workspaceTag ? {
-                    backgroundColor: workspaceTag.color,
-                    borderColor: workspaceTag.color,
-                    color: 'white'
-                  } : {}}
+                  style={
+                    workspaceTag
+                      ? {
+                          backgroundColor: workspaceTag.color,
+                          borderColor: workspaceTag.color,
+                          color: 'white',
+                        }
+                      : {}
+                  }
                 >
                   {tag}
                 </Badge>
@@ -270,9 +282,9 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
             <div className="flex items-center space-x-2">
               {task.attachments && task.attachments.length > 0 && (
                 <div
-                  className="flex items-center text-xs text-muted-foreground cursor-pointer hover:text-blue-600"
+                  className="flex cursor-pointer items-center text-xs text-muted-foreground hover:text-blue-600"
                   title={`${task.attachments.length} attachment(s) - Click to view`}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation()
                     // Open first attachment in new tab or show all in edit dialog
                     if (task.attachments && task.attachments.length === 1) {
@@ -287,7 +299,10 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
                 </div>
               )}
               {task.dependencies && task.dependencies.length > 0 && (
-                <div className="flex items-center text-xs text-muted-foreground" title={`${task.dependencies.length} dependency(ies)`}>
+                <div
+                  className="flex items-center text-xs text-muted-foreground"
+                  title={`${task.dependencies.length} dependency(ies)`}
+                >
                   <Paperclip className="h-3 w-3" />
                 </div>
               )}

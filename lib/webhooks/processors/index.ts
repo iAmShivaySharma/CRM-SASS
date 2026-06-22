@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { type NextRequest } from 'next/server'
 
 // Base interface for all webhook processors
 export interface WebhookProcessor {

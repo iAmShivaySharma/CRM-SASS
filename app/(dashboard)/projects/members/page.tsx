@@ -11,6 +11,7 @@ import {
   User,
   MoreVertical,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetProjectsQuery,
@@ -38,7 +39,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { StatsCardSkeleton, TableSkeleton } from '@/components/ui/skeleton'
-import { toast } from 'sonner'
 
 export default function ProjectMembersPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)

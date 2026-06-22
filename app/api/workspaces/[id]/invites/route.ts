@@ -8,7 +8,10 @@
  * - DELETE: Cancel invitation
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import mongoose from 'mongoose'
 import { requireAuth } from '@/lib/security/auth-middleware'
 import {
   WorkspaceMember,
@@ -29,9 +32,6 @@ import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
 import { NotificationService } from '@/lib/services/notificationService'
 import { emailService } from '@/lib/services/emailService'
-import { z } from 'zod'
-import mongoose from 'mongoose'
-import crypto from 'crypto'
 
 // Validation schemas
 const inviteUserSchema = z.object({

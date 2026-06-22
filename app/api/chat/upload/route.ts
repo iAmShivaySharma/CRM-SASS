@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { WorkspaceMember } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'

@@ -2,7 +2,7 @@ import {
   Notification,
   WorkspaceMember,
   Role,
-  INotification,
+  type INotification,
 } from '@/lib/mongodb/models'
 
 export interface CreateNotificationInput {
@@ -391,11 +391,13 @@ export class NotificationService {
           timeoutAt: userInput.timeoutAt,
           webhookUrl: userInput.webhookUrl,
           priority: userInput.metadata.priority,
-          timeRemaining: Math.floor(userInput.timeRemaining / (1000 * 60)) // minutes
-        }
+          timeRemaining: Math.floor(userInput.timeRemaining / (1000 * 60)), // minutes
+        },
       })
 
-      console.log(`Input required notification created for execution ${execution._id}`)
+      console.log(
+        `Input required notification created for execution ${execution._id}`
+      )
     } catch (error) {
       console.error('Error creating input required notification:', error)
     }
@@ -425,11 +427,13 @@ export class NotificationService {
           step: userInput.step,
           timeoutAt: userInput.timeoutAt,
           timeRemaining: Math.floor(userInput.timeRemaining / (1000 * 60)),
-          urgent: true
-        }
+          urgent: true,
+        },
       })
 
-      console.log(`Timeout warning notification created for execution ${execution._id}`)
+      console.log(
+        `Timeout warning notification created for execution ${execution._id}`
+      )
     } catch (error) {
       console.error('Error creating timeout warning notification:', error)
     }
@@ -457,11 +461,15 @@ export class NotificationService {
           workflowName: workflow.name,
           executionTime: execution.executionTimeMs,
           completedAt: execution.completedAt,
-          hasOutput: !!execution.outputData && Object.keys(execution.outputData).length > 0
-        }
+          hasOutput:
+            !!execution.outputData &&
+            Object.keys(execution.outputData).length > 0,
+        },
       })
 
-      console.log(`Completion notification created for execution ${execution._id}`)
+      console.log(
+        `Completion notification created for execution ${execution._id}`
+      )
     } catch (error) {
       console.error('Error creating completion notification:', error)
     }
@@ -488,8 +496,8 @@ export class NotificationService {
           executionId: execution._id.toString(),
           workflowName: workflow.name,
           errorMessage: execution.errorMessage,
-          failedAt: execution.completedAt
-        }
+          failedAt: execution.completedAt,
+        },
       })
 
       console.log(`Failure notification created for execution ${execution._id}`)
@@ -504,25 +512,27 @@ export class NotificationService {
   static async processWorkflowNotifications(): Promise<void> {
     try {
       // Import models dynamically to avoid circular dependencies
-      const { UserInput, WorkflowExecution } = await import('@/lib/mongodb/models')
+      const { UserInput, WorkflowExecution } = await import(
+        '@/lib/mongodb/models'
+      )
 
       // Find high priority pending inputs that need timeout warnings (expiring in 15 minutes)
       const urgentInputs = await UserInput.find({
         status: 'pending',
         timeoutAt: {
           $gt: new Date(),
-          $lt: new Date(Date.now() + (15 * 60 * 1000)) // Expiring in 15 minutes
+          $lt: new Date(Date.now() + 15 * 60 * 1000), // Expiring in 15 minutes
         },
-        'metadata.priority': 'high'
+        'metadata.priority': 'high',
       })
-      .populate('executionId')
-      .populate({
-        path: 'executionId',
-        populate: [
-          { path: 'workflowCatalogId', select: 'name description' },
-          { path: 'userId', select: 'name email' }
-        ]
-      })
+        .populate('executionId')
+        .populate({
+          path: 'executionId',
+          populate: [
+            { path: 'workflowCatalogId', select: 'name description' },
+            { path: 'userId', select: 'name email' },
+          ],
+        })
 
       for (const userInput of urgentInputs) {
         const execution = userInput.executionId as any
@@ -530,13 +540,15 @@ export class NotificationService {
         const user = execution.userId
 
         // Check if we haven't sent a timeout warning recently
-        const recentWarning = await this.constructor.prototype.constructor.model('Notification').findOne({
-          entityType: 'workflow_input',
-          entityId: execution._id.toString(),
-          type: 'error',
-          'metadata.urgent': true,
-          createdAt: { $gte: new Date(Date.now() - (10 * 60 * 1000)) } // Within last 10 minutes
-        })
+        const recentWarning = await this.constructor.prototype.constructor
+          .model('Notification')
+          .findOne({
+            entityType: 'workflow_input',
+            entityId: execution._id.toString(),
+            type: 'error',
+            'metadata.urgent': true,
+            createdAt: { $gte: new Date(Date.now() - 10 * 60 * 1000) }, // Within last 10 minutes
+          })
 
         if (!recentWarning) {
           await this.notifyTimeoutWarning(userInput, execution, workflow, user)
@@ -547,16 +559,16 @@ export class NotificationService {
       const newInputs = await UserInput.find({
         status: 'pending',
         timeoutAt: { $gt: new Date() },
-        createdAt: { $gte: new Date(Date.now() - (5 * 60 * 1000)) } // Created in last 5 minutes
+        createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) }, // Created in last 5 minutes
       })
-      .populate('executionId')
-      .populate({
-        path: 'executionId',
-        populate: [
-          { path: 'workflowCatalogId', select: 'name description' },
-          { path: 'userId', select: 'name email' }
-        ]
-      })
+        .populate('executionId')
+        .populate({
+          path: 'executionId',
+          populate: [
+            { path: 'workflowCatalogId', select: 'name description' },
+            { path: 'userId', select: 'name email' },
+          ],
+        })
 
       for (const userInput of newInputs) {
         const execution = userInput.executionId as any
@@ -564,19 +576,23 @@ export class NotificationService {
         const user = execution.userId
 
         // Check if we haven't sent an input required notification for this execution step
-        const existingNotification = await this.constructor.prototype.constructor.model('Notification').findOne({
-          entityType: 'workflow_input',
-          entityId: execution._id.toString(),
-          'metadata.step': userInput.step
-        })
+        const existingNotification =
+          await this.constructor.prototype.constructor
+            .model('Notification')
+            .findOne({
+              entityType: 'workflow_input',
+              entityId: execution._id.toString(),
+              'metadata.step': userInput.step,
+            })
 
         if (!existingNotification) {
           await this.notifyInputRequired(userInput, execution, workflow, user)
         }
       }
 
-      console.log(`Processed ${urgentInputs.length} urgent and ${newInputs.length} new workflow notifications`)
-
+      console.log(
+        `Processed ${urgentInputs.length} urgent and ${newInputs.length} new workflow notifications`
+      )
     } catch (error) {
       console.error('Error processing workflow notifications:', error)
     }

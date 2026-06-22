@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
-export interface IBlogCategory extends Document {
+export interface IBlogCategory extends Omit<Document, '_id'> {
   _id: string
   name: string
   slug: string

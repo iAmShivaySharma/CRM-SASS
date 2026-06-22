@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Task, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -8,7 +9,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { z } from 'zod'
 
 const updateTaskSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -22,12 +22,16 @@ const updateTaskSchema = z.object({
   order: z.number().optional(),
   dependencies: z.array(z.string()).optional(),
   customFields: z.record(z.any()).optional(),
-  attachments: z.array(z.object({
-    name: z.string(),
-    url: z.string(),
-    type: z.string(),
-    size: z.number(),
-  })).optional(),
+  attachments: z
+    .array(
+      z.object({
+        name: z.string(),
+        url: z.string(),
+        type: z.string(),
+        size: z.number(),
+      })
+    )
+    .optional(),
 })
 
 async function checkTaskAccess(taskId: string, userId: string) {

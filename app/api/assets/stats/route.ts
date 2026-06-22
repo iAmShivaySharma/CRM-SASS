@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Asset, AssetAllocation, AssetMaintenance } from '@/lib/mongodb/models'
@@ -15,10 +15,14 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const workspaceObjectId = new mongoose.Types.ObjectId(workspaceId)
@@ -26,7 +30,9 @@ export async function GET(request: NextRequest) {
     const next30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
     // Total assets count
-    const totalAssets = await Asset.countDocuments({ workspaceId: workspaceObjectId })
+    const totalAssets = await Asset.countDocuments({
+      workspaceId: workspaceObjectId,
+    })
 
     // Count by status
     const statusBreakdown = await Asset.aggregate([
@@ -34,9 +40,9 @@ export async function GET(request: NextRequest) {
       {
         $group: {
           _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ])
 
     const byStatus: Record<string, number> = {}
@@ -50,9 +56,9 @@ export async function GET(request: NextRequest) {
       {
         $group: {
           _id: null,
-          totalValue: { $sum: '$purchasePrice' }
-        }
-      }
+          totalValue: { $sum: '$purchasePrice' },
+        },
+      },
     ])
 
     const totalPortfolioValue = portfolioValue[0]?.totalValue || 0
@@ -64,24 +70,24 @@ export async function GET(request: NextRequest) {
         $group: {
           _id: '$category',
           count: { $sum: 1 },
-          totalValue: { $sum: '$purchasePrice' }
-        }
+          totalValue: { $sum: '$purchasePrice' },
+        },
       },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
     ])
 
     // Upcoming maintenance (next 30 days)
     const upcomingMaintenance = await AssetMaintenance.countDocuments({
       workspaceId: workspaceObjectId,
       status: { $in: ['scheduled', 'in_progress'] },
-      scheduledDate: { $gte: now, $lte: next30Days }
+      scheduledDate: { $gte: now, $lte: next30Days },
     })
 
     // Overdue returns from AssetAllocation
     const overdueReturns = await AssetAllocation.countDocuments({
       workspaceId: workspaceObjectId,
       status: 'active',
-      expectedReturnDate: { $lt: now }
+      expectedReturnDate: { $lt: now },
     })
 
     return NextResponse.json({
@@ -92,12 +98,12 @@ export async function GET(request: NextRequest) {
         maintenance: byStatus['maintenance'] || 0,
         retired: byStatus['retired'] || 0,
         lost: byStatus['lost'] || 0,
-        damaged: byStatus['damaged'] || 0
+        damaged: byStatus['damaged'] || 0,
       },
       totalPortfolioValue,
       categoryBreakdown,
       upcomingMaintenance,
-      overdueReturns
+      overdueReturns,
     })
   } catch (error) {
     log.error('Get asset stats error:', error)

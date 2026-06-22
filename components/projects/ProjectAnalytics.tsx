@@ -1,28 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Area,
-  AreaChart,
-} from 'recharts'
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { useMemo, useState, useEffect } from 'react'
 import {
   TrendingUp,
   TrendingDown,
@@ -33,7 +11,30 @@ import {
   Activity,
   Target,
 } from 'lucide-react'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import type { Task, ProjectMember, Document } from '@/lib/api/projectsApi'
+
+type RechartsModule = typeof import('recharts')
+
+function useRecharts() {
+  const [mod, setMod] = useState<RechartsModule | null>(null)
+  useEffect(() => {
+    import('recharts').then(setMod)
+  }, [])
+  return mod
+}
 
 interface ProjectAnalyticsProps {
   tasks: Task[]
@@ -42,15 +43,21 @@ interface ProjectAnalyticsProps {
   project: any
 }
 
-export function ProjectAnalytics({ tasks, members, documents, project }: ProjectAnalyticsProps) {
+export function ProjectAnalytics({
+  tasks,
+  members,
+  documents,
+  project,
+}: ProjectAnalyticsProps) {
+  const recharts = useRecharts()
   // Calculate task statistics
   const taskStats = useMemo(() => {
     const total = tasks.length
     const completed = tasks.filter(t => t.completed).length
     const inProgress = tasks.filter(t => !t.completed && t.assigneeId).length
     const unassigned = tasks.filter(t => !t.assigneeId).length
-    const overdue = tasks.filter(t =>
-      t.dueDate && new Date(t.dueDate) < new Date() && !t.completed
+    const overdue = tasks.filter(
+      t => t.dueDate && new Date(t.dueDate) < new Date() && !t.completed
     ).length
 
     return {
@@ -89,8 +96,8 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
     })
 
     return last7Days.map(date => {
-      const tasksCompletedOnDate = tasks.filter(t =>
-        t.completedAt && t.completedAt.split('T')[0] === date
+      const tasksCompletedOnDate = tasks.filter(
+        t => t.completedAt && t.completedAt.split('T')[0] === date
       ).length
 
       return {
@@ -102,17 +109,22 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
 
   // Team contribution
   const memberContribution = useMemo(() => {
-    return members.map(member => {
-      const memberTasks = tasks.filter(t => t.assigneeId === member.userId)
-      const completedTasks = memberTasks.filter(t => t.completed).length
+    return members
+      .map(member => {
+        const memberTasks = tasks.filter(t => t.assigneeId === member.userId)
+        const completedTasks = memberTasks.filter(t => t.completed).length
 
-      return {
-        name: member.user?.fullName?.split(' ')[0] || 'Unknown',
-        tasks: memberTasks.length,
-        completed: completedTasks,
-        completion: memberTasks.length > 0 ? Math.round((completedTasks / memberTasks.length) * 100) : 0,
-      }
-    }).filter(m => m.tasks > 0)
+        return {
+          name: member.user?.fullName?.split(' ')[0] || 'Unknown',
+          tasks: memberTasks.length,
+          completed: completedTasks,
+          completion:
+            memberTasks.length > 0
+              ? Math.round((completedTasks / memberTasks.length) * 100)
+              : 0,
+        }
+      })
+      .filter(m => m.tasks > 0)
   }, [tasks, members])
 
   const chartConfig = {
@@ -130,6 +142,28 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
     },
   }
 
+  if (!recharts) {
+    return (
+      <div className="flex h-64 items-center justify-center text-muted-foreground">
+        Loading analytics...
+      </div>
+    )
+  }
+
+  const {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell,
+    AreaChart,
+    Area,
+  } = recharts
+
   return (
     <div className="space-y-6">
       {/* Overview Cards */}
@@ -140,13 +174,15 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{taskStats.completionRate}%</div>
+            <div className="text-2xl font-bold">
+              {taskStats.completionRate}%
+            </div>
             <p className="text-xs text-muted-foreground">
               {taskStats.completed} of {taskStats.total} tasks completed
             </p>
-            <div className="mt-2 h-2 bg-gray-200 rounded-full">
+            <div className="mt-2 h-2 rounded-full bg-gray-200">
               <div
-                className="h-2 bg-green-500 rounded-full transition-all"
+                className="h-2 rounded-full bg-green-500 transition-all"
                 style={{ width: `${taskStats.completionRate}%` }}
               />
             </div>
@@ -172,7 +208,9 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{taskStats.overdue}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {taskStats.overdue}
+            </div>
             <p className="text-xs text-muted-foreground">
               Need immediate attention
             </p>
@@ -199,7 +237,9 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
         <Card>
           <CardHeader>
             <CardTitle>Task Distribution</CardTitle>
-            <CardDescription>Current status of all project tasks</CardDescription>
+            <CardDescription>
+              Current status of all project tasks
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
@@ -238,7 +278,9 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
                   <XAxis
                     dataKey="priority"
                     tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+                    tickFormatter={value =>
+                      value.charAt(0).toUpperCase() + value.slice(1)
+                    }
                   />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
@@ -253,7 +295,9 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
         <Card>
           <CardHeader>
             <CardTitle>Weekly Progress</CardTitle>
-            <CardDescription>Tasks completed over the last 7 days</CardDescription>
+            <CardDescription>
+              Tasks completed over the last 7 days
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
@@ -295,14 +339,18 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
                       tick={{ fontSize: 12 }}
                       width={80}
                     />
-                    <Bar dataKey="completed" fill="#22c55e" radius={[0, 4, 4, 0]} />
+                    <Bar
+                      dataKey="completed"
+                      fill="#22c55e"
+                      radius={[0, 4, 4, 0]}
+                    />
                     <Bar dataKey="tasks" fill="#e5e7eb" radius={[0, 4, 4, 0]} />
                     <ChartTooltip content={<ChartTooltipContent />} />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              <div className="flex h-[300px] items-center justify-center text-muted-foreground">
                 No assigned tasks yet
               </div>
             )}
@@ -319,31 +367,40 @@ export function ProjectAnalytics({ tasks, members, documents, project }: Project
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {taskStats.completionRate >= 80 && (
-              <div className="flex items-center space-x-2 p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-2 rounded-lg bg-green-50 p-3">
                 <TrendingUp className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="font-medium text-green-900">Great Progress!</p>
-                  <p className="text-sm text-green-700">Project is on track with {taskStats.completionRate}% completion</p>
+                  <p className="text-sm text-green-700">
+                    Project is on track with {taskStats.completionRate}%
+                    completion
+                  </p>
                 </div>
               </div>
             )}
 
             {taskStats.overdue > 0 && (
-              <div className="flex items-center space-x-2 p-3 bg-red-50 rounded-lg">
+              <div className="flex items-center space-x-2 rounded-lg bg-red-50 p-3">
                 <AlertCircle className="h-5 w-5 text-red-600" />
                 <div>
                   <p className="font-medium text-red-900">Attention Needed</p>
-                  <p className="text-sm text-red-700">{taskStats.overdue} tasks are overdue</p>
+                  <p className="text-sm text-red-700">
+                    {taskStats.overdue} tasks are overdue
+                  </p>
                 </div>
               </div>
             )}
 
             {taskStats.unassigned > 0 && (
-              <div className="flex items-center space-x-2 p-3 bg-orange-50 rounded-lg">
+              <div className="flex items-center space-x-2 rounded-lg bg-orange-50 p-3">
                 <Clock className="h-5 w-5 text-orange-600" />
                 <div>
-                  <p className="font-medium text-orange-900">Assignment Needed</p>
-                  <p className="text-sm text-orange-700">{taskStats.unassigned} tasks need assignment</p>
+                  <p className="font-medium text-orange-900">
+                    Assignment Needed
+                  </p>
+                  <p className="text-sm text-orange-700">
+                    {taskStats.unassigned} tasks need assignment
+                  </p>
                 </div>
               </div>
             )}

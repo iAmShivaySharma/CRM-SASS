@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { EmailMessage } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -13,14 +13,17 @@ export async function GET(
     const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const message = await EmailMessage.findOne({
       _id: messageId,
       userId: auth.user.id,
       workspaceId,
-      syncStatus: { $ne: 'ignored' }
+      syncStatus: { $ne: 'ignored' },
     })
       .populate('linkedLeadId', 'name email status')
       .populate('linkedContactId', 'name email')
@@ -56,14 +59,17 @@ export async function PUT(
     const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const message = await EmailMessage.findOne({
       _id: messageId,
       userId: auth.user.id,
       workspaceId,
-      syncStatus: { $ne: 'ignored' }
+      syncStatus: { $ne: 'ignored' },
     })
 
     if (!message) {
@@ -79,7 +85,7 @@ export async function PUT(
       linkedContactId,
       linkedProjectId,
       linkedTaskId,
-      snoozeUntil
+      snoozeUntil,
     } = body
 
     if (typeof isRead === 'boolean') {
@@ -142,12 +148,12 @@ export async function PUT(
     log.info(`Email message updated: ${messageId}`, {
       userId: auth.user.id,
       workspaceId,
-      messageId
+      messageId,
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Email message updated successfully'
+      message: 'Email message updated successfully',
     })
   } catch (error) {
     log.error('Update email message error:', error)
@@ -168,14 +174,17 @@ export async function DELETE(
     const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const message = await EmailMessage.findOne({
       _id: messageId,
       userId: auth.user.id,
       workspaceId,
-      syncStatus: { $ne: 'ignored' }
+      syncStatus: { $ne: 'ignored' },
     })
 
     if (!message) {
@@ -187,12 +196,12 @@ export async function DELETE(
     log.info(`Email message moved to trash: ${messageId}`, {
       userId: auth.user.id,
       workspaceId,
-      messageId
+      messageId,
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Email message moved to trash'
+      message: 'Email message moved to trash',
     })
   } catch (error) {
     log.error('Delete email message error:', error)

@@ -3,9 +3,17 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import {
-  Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ExternalLink,
-  FileText, Filter
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  ExternalLink,
+  FileText,
+  Filter,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -21,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { toast } from 'sonner'
 
 interface BlogPost {
   id: string
@@ -87,9 +94,12 @@ export default function BlogsManagementPage() {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      published: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-      draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-      archived: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+      published:
+        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+      draft:
+        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+      archived:
+        'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
     }
     return (
       <span
@@ -105,7 +115,9 @@ export default function BlogsManagementPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Blog Management</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Blog Management
+          </h1>
           <p className="text-sm text-muted-foreground">
             Manage your blog posts for SEO and organic traffic
           </p>
@@ -178,7 +190,10 @@ export default function BlogsManagementPage() {
           <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                <td
+                  colSpan={6}
+                  className="px-4 py-12 text-center text-muted-foreground"
+                >
                   Loading...
                 </td>
               </tr>
@@ -187,7 +202,10 @@ export default function BlogsManagementPage() {
                 <td colSpan={6} className="px-4 py-12 text-center">
                   <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
                   <p className="text-muted-foreground">No blog posts found</p>
-                  <Link href="/blogs/new" className="mt-2 inline-block text-sm text-primary hover:underline">
+                  <Link
+                    href="/blogs/new"
+                    className="mt-2 inline-block text-sm text-primary hover:underline"
+                  >
                     Create your first post
                   </Link>
                 </td>
@@ -197,10 +215,12 @@ export default function BlogsManagementPage() {
                 <tr key={blog.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3">
                     <div>
-                      <p className="font-medium text-foreground line-clamp-1">
+                      <p className="line-clamp-1 font-medium text-foreground">
                         {blog.title}
                       </p>
-                      <p className="text-xs text-muted-foreground">/blog/{blog.slug}</p>
+                      <p className="text-xs text-muted-foreground">
+                        /blog/{blog.slug}
+                      </p>
                     </div>
                   </td>
                   <td className="hidden px-4 py-3 md:table-cell">
@@ -233,7 +253,11 @@ export default function BlogsManagementPage() {
                         </DropdownMenuItem>
                         {blog.status === 'published' && (
                           <DropdownMenuItem asChild>
-                            <a href={`/blog/${blog.slug}`} target="_blank" rel="noopener noreferrer">
+                            <a
+                              href={`/blog/${blog.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
                               <ExternalLink className="mr-2 h-4 w-4" />
                               View Live
                             </a>

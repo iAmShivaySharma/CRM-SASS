@@ -5,8 +5,8 @@
 
 import { format, parseISO } from 'date-fns'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
-import { useAppSelector } from '@/lib/hooks'
 import { useMemo } from 'react'
+import { useAppSelector } from '@/lib/hooks'
 
 export interface WorkspaceSettings {
   currency: string
@@ -99,8 +99,9 @@ export function useWorkspaceFormatting() {
 
         if (diffInMinutes < 1) return 'Just now'
         if (diffInMinutes < 60) return `${diffInMinutes}m ago`
-        if (diffInMinutes < 1440)
+        if (diffInMinutes < 1440) {
           return `${Math.floor(diffInMinutes / 60)}h ago`
+        }
 
         const diffInDays = Math.floor(diffInMinutes / 1440)
         if (diffInDays < 7) return `${diffInDays}d ago`

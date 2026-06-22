@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { LeaveRequest } from '@/lib/mongodb/models'
@@ -15,10 +15,14 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const workspaceObjectId = new mongoose.Types.ObjectId(workspaceId)
@@ -27,7 +31,15 @@ export async function GET(request: NextRequest) {
 
     // Start of current month
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+    const monthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    )
 
     // Start of current year
     const yearStart = new Date(now.getFullYear(), 0, 1)
@@ -39,14 +51,14 @@ export async function GET(request: NextRequest) {
     // Count pending requests
     const pendingCount = await LeaveRequest.countDocuments({
       workspaceId: workspaceObjectId,
-      status: 'pending'
+      status: 'pending',
     })
 
     // Count approved this month
     const approvedThisMonth = await LeaveRequest.countDocuments({
       workspaceId: workspaceObjectId,
       status: 'approved',
-      approvedDate: { $gte: monthStart, $lte: monthEnd }
+      approvedDate: { $gte: monthStart, $lte: monthEnd },
     })
 
     // Total leave days used this year
@@ -55,15 +67,15 @@ export async function GET(request: NextRequest) {
         $match: {
           workspaceId: workspaceObjectId,
           status: 'approved',
-          startDate: { $gte: yearStart, $lte: yearEnd }
-        }
+          startDate: { $gte: yearStart, $lte: yearEnd },
+        },
       },
       {
         $group: {
           _id: null,
-          totalDaysUsed: { $sum: '$totalDays' }
-        }
-      }
+          totalDaysUsed: { $sum: '$totalDays' },
+        },
+      },
     ])
 
     const totalDaysUsedThisYear = yearlyUsage[0]?.totalDaysUsed || 0
@@ -72,7 +84,7 @@ export async function GET(request: NextRequest) {
     const upcomingLeaves = await LeaveRequest.countDocuments({
       workspaceId: workspaceObjectId,
       status: 'approved',
-      startDate: { $gte: now, $lte: next30Days }
+      startDate: { $gte: now, $lte: next30Days },
     })
 
     // Leave type breakdown
@@ -81,17 +93,17 @@ export async function GET(request: NextRequest) {
         $match: {
           workspaceId: workspaceObjectId,
           status: 'approved',
-          startDate: { $gte: yearStart, $lte: yearEnd }
-        }
+          startDate: { $gte: yearStart, $lte: yearEnd },
+        },
       },
       {
         $group: {
           _id: '$leaveType',
           count: { $sum: 1 },
-          totalDays: { $sum: '$totalDays' }
-        }
+          totalDays: { $sum: '$totalDays' },
+        },
       },
-      { $sort: { totalDays: -1 } }
+      { $sort: { totalDays: -1 } },
     ])
 
     return NextResponse.json({
@@ -99,7 +111,7 @@ export async function GET(request: NextRequest) {
       approvedThisMonth,
       totalDaysUsedThisYear,
       upcomingLeaves,
-      leaveTypeBreakdown
+      leaveTypeBreakdown,
     })
   } catch (error) {
     log.error('Get leave stats error:', error)

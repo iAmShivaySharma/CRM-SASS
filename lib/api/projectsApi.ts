@@ -316,8 +316,9 @@ export const projectsApi = createApi({
     >({
       query: ({ projectId, status, assigneeId, search, workspaceId }) => {
         const params = new URLSearchParams()
-        if (projectId && projectId !== 'all')
+        if (projectId && projectId !== 'all') {
           params.append('projectId', projectId)
+        }
         if (workspaceId) params.append('workspaceId', workspaceId)
         if (status) params.append('status', status)
         if (assigneeId) params.append('assigneeId', assigneeId)
@@ -607,10 +608,7 @@ export const projectsApi = createApi({
     }),
 
     // Time Tracking
-    startTimeTracking: builder.mutation<
-      { task: Task },
-      { taskId: string }
-    >({
+    startTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
         url: `tasks/${taskId}/time-tracking/start`,
         method: 'POST',
@@ -618,7 +616,12 @@ export const projectsApi = createApi({
       onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled
-          console.log('Start time tracking - updating cache for task:', data.task.id, 'isActive:', data.task.timeTracking?.isActive)
+          console.log(
+            'Start time tracking - updating cache for task:',
+            data.task.id,
+            'isActive:',
+            data.task.timeTracking?.isActive
+          )
 
           // Update all possible getTasks query variations
           const queries = [
@@ -628,11 +631,16 @@ export const projectsApi = createApi({
 
           queries.forEach(queryArgs => {
             dispatch(
-              projectsApi.util.updateQueryData('getTasks', queryArgs, (draft) => {
+              projectsApi.util.updateQueryData('getTasks', queryArgs, draft => {
                 const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
                 if (taskIndex !== -1) {
                   draft.tasks[taskIndex] = data.task
-                  console.log('Updated task in cache:', draft.tasks[taskIndex].id, 'isActive:', draft.tasks[taskIndex].timeTracking?.isActive)
+                  console.log(
+                    'Updated task in cache:',
+                    draft.tasks[taskIndex].id,
+                    'isActive:',
+                    draft.tasks[taskIndex].timeTracking?.isActive
+                  )
                 }
               })
             )
@@ -647,10 +655,7 @@ export const projectsApi = createApi({
       ],
     }),
 
-    stopTimeTracking: builder.mutation<
-      { task: Task },
-      { taskId: string }
-    >({
+    stopTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
         url: `tasks/${taskId}/time-tracking/stop`,
         method: 'POST',
@@ -660,12 +665,16 @@ export const projectsApi = createApi({
           const { data } = await queryFulfilled
           // Update the specific task in any getTasks queries
           dispatch(
-            projectsApi.util.updateQueryData('getTasks', { projectId: data.task.projectId }, (draft) => {
-              const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
-              if (taskIndex !== -1) {
-                draft.tasks[taskIndex] = data.task
+            projectsApi.util.updateQueryData(
+              'getTasks',
+              { projectId: data.task.projectId },
+              draft => {
+                const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
+                if (taskIndex !== -1) {
+                  draft.tasks[taskIndex] = data.task
+                }
               }
-            })
+            )
           )
         } catch {}
       },
@@ -675,10 +684,7 @@ export const projectsApi = createApi({
       ],
     }),
 
-    pauseTimeTracking: builder.mutation<
-      { task: Task },
-      { taskId: string }
-    >({
+    pauseTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
         url: `tasks/${taskId}/time-tracking/pause`,
         method: 'POST',
@@ -688,12 +694,16 @@ export const projectsApi = createApi({
           const { data } = await queryFulfilled
           // Update the specific task in any getTasks queries
           dispatch(
-            projectsApi.util.updateQueryData('getTasks', { projectId: data.task.projectId }, (draft) => {
-              const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
-              if (taskIndex !== -1) {
-                draft.tasks[taskIndex] = data.task
+            projectsApi.util.updateQueryData(
+              'getTasks',
+              { projectId: data.task.projectId },
+              draft => {
+                const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
+                if (taskIndex !== -1) {
+                  draft.tasks[taskIndex] = data.task
+                }
               }
-            })
+            )
           )
         } catch {}
       },
@@ -703,10 +713,7 @@ export const projectsApi = createApi({
       ],
     }),
 
-    resumeTimeTracking: builder.mutation<
-      { task: Task },
-      { taskId: string }
-    >({
+    resumeTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
         url: `tasks/${taskId}/time-tracking/resume`,
         method: 'POST',
@@ -716,12 +723,16 @@ export const projectsApi = createApi({
           const { data } = await queryFulfilled
           // Update the specific task in any getTasks queries
           dispatch(
-            projectsApi.util.updateQueryData('getTasks', { projectId: data.task.projectId }, (draft) => {
-              const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
-              if (taskIndex !== -1) {
-                draft.tasks[taskIndex] = data.task
+            projectsApi.util.updateQueryData(
+              'getTasks',
+              { projectId: data.task.projectId },
+              draft => {
+                const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
+                if (taskIndex !== -1) {
+                  draft.tasks[taskIndex] = data.task
+                }
               }
-            })
+            )
           )
         } catch {}
       },
@@ -732,7 +743,17 @@ export const projectsApi = createApi({
     }),
 
     // Tags endpoints
-    getTags: builder.query<{ tags: { id: string; name: string; color: string; description?: string }[] }, { workspaceId: string }>({
+    getTags: builder.query<
+      {
+        tags: {
+          id: string
+          name: string
+          color: string
+          description?: string
+        }[]
+      },
+      { workspaceId: string }
+    >({
       query: ({ workspaceId }) => ({
         url: `/tags?workspaceId=${workspaceId}`,
         method: 'GET',

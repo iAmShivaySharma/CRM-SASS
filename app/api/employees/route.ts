@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { User, WorkspaceMember, Attendance } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -13,10 +13,14 @@ export async function GET(request: NextRequest) {
       )
     }
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const page = parseInt(searchParams.get('page') || '1')
@@ -27,7 +31,7 @@ export async function GET(request: NextRequest) {
     // Build query for workspace members
     const memberQuery: any = {
       workspaceId,
-      status: 'active'
+      status: 'active',
     }
 
     // Get workspace members with user details
@@ -38,8 +42,8 @@ export async function GET(request: NextRequest) {
           from: 'users',
           localField: 'userId',
           foreignField: '_id',
-          as: 'user'
-        }
+          as: 'user',
+        },
       },
       { $unwind: '$user' },
       {
@@ -47,10 +51,10 @@ export async function GET(request: NextRequest) {
           from: 'roles',
           localField: 'roleId',
           foreignField: '_id',
-          as: 'role'
-        }
+          as: 'role',
+        },
       },
-      { $unwind: '$role' }
+      { $unwind: '$role' },
     ]
 
     // Add search filter if provided
@@ -60,9 +64,9 @@ export async function GET(request: NextRequest) {
           $or: [
             { 'user.fullName': { $regex: search, $options: 'i' } },
             { 'user.email': { $regex: search, $options: 'i' } },
-            { 'role.name': { $regex: search, $options: 'i' } }
-          ]
-        }
+            { 'role.name': { $regex: search, $options: 'i' } },
+          ],
+        },
       } as any)
     }
 
@@ -84,12 +88,12 @@ export async function GET(request: NextRequest) {
           avatar: '$user.avatar',
           role: {
             _id: '$role._id',
-            name: '$role.name'
+            name: '$role.name',
           },
           joinedAt: 1,
           status: 1,
-          lastActive: '$user.lastSignInAt'
-        }
+          lastActive: '$user.lastSignInAt',
+        },
       }
     )
 
@@ -106,18 +110,20 @@ export async function GET(request: NextRequest) {
         const attendance = await Attendance.findOne({
           userId: employee.userId,
           workspaceId,
-          date: { $gte: today, $lt: tomorrow }
+          date: { $gte: today, $lt: tomorrow },
         }).populate('shiftId', 'name startTime endTime')
 
-        employee.todayAttendance = attendance ? {
-          _id: attendance._id,
-          status: attendance.status,
-          clockIn: attendance.clockIn,
-          clockOut: attendance.clockOut,
-          totalWorkTime: attendance.calculateTotalWorkTime(),
-          workType: attendance.workType,
-          shift: attendance.shiftId
-        } : null
+        employee.todayAttendance = attendance
+          ? {
+              _id: attendance._id,
+              status: attendance.status,
+              clockIn: attendance.clockIn,
+              clockOut: attendance.clockOut,
+              totalWorkTime: attendance.calculateTotalWorkTime(),
+              workType: attendance.workType,
+              shift: attendance.shiftId,
+            }
+          : null
       }
     }
 
@@ -127,8 +133,8 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     log.error('Get employees error:', error)
@@ -152,17 +158,13 @@ export async function POST(request: NextRequest) {
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
-    const {
-      fullName,
-      email,
-      roleId,
-      department,
-      position,
-      startDate
-    } = body
+    const { fullName, email, roleId, department, position, startDate } = body
 
     // Check if user with email already exists
     const existingUser = await User.findOne({ email })
@@ -171,7 +173,7 @@ export async function POST(request: NextRequest) {
       // Check if already a member of this workspace
       const existingMember = await WorkspaceMember.findOne({
         userId: existingUser._id,
-        workspaceId
+        workspaceId,
       })
 
       if (existingMember) {
@@ -191,8 +193,8 @@ export async function POST(request: NextRequest) {
         metadata: {
           department,
           position,
-          startDate: startDate ? new Date(startDate) : new Date()
-        }
+          startDate: startDate ? new Date(startDate) : new Date(),
+        },
       })
 
       await newMember.save()
@@ -201,7 +203,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         employee: newMember,
-        message: 'Existing user added to workspace'
+        message: 'Existing user added to workspace',
       })
     }
 
@@ -211,7 +213,7 @@ export async function POST(request: NextRequest) {
       fullName,
       emailConfirmed: false, // Will be confirmed when they set up their account
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
 
     await newUser.save()
@@ -226,8 +228,8 @@ export async function POST(request: NextRequest) {
       metadata: {
         department,
         position,
-        startDate: startDate ? new Date(startDate) : new Date()
-      }
+        startDate: startDate ? new Date(startDate) : new Date(),
+      },
     })
 
     await newMember.save()
@@ -238,7 +240,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       employee: newMember,
-      message: 'Employee invitation created successfully'
+      message: 'Employee invitation created successfully',
     })
   } catch (error) {
     log.error('Create employee error:', error)

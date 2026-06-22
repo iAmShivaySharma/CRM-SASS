@@ -6,7 +6,9 @@
  * - POST: Create new role with permissions
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import mongoose from 'mongoose'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { requireAuth } from '@/lib/security/auth-middleware'
 import { Role, WorkspaceMember } from '@/lib/mongodb/client'
@@ -20,9 +22,6 @@ import {
 } from '@/lib/logging/middleware'
 import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
-import { z } from 'zod'
-import mongoose from 'mongoose'
-
 import { getPermissionsForAPI } from '@/lib/permissions/constants'
 
 // Validation schemas

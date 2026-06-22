@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount, EmailMessage } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -23,7 +23,7 @@ export async function GET(
       _id: accountId,
       userId: auth.user._id,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     if (!account) {
@@ -40,8 +40,8 @@ export async function GET(
         isDefault: account.isDefault,
         connectionStatus: account.connectionStatus,
         stats: account.stats,
-        settings: account.settings
-      }
+        settings: account.settings,
+      },
     })
   } catch (error) {
     log.error('Get email account error:', error)
@@ -73,19 +73,14 @@ export async function PUT(
       _id: accountId,
       userId: auth.user._id,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     if (!account) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 })
     }
 
-    const {
-      displayName,
-      settings,
-      smtpConfig,
-      imapConfig
-    } = body
+    const { displayName, settings, smtpConfig, imapConfig } = body
 
     if (displayName) account.displayName = displayName
     if (settings) {
@@ -96,7 +91,7 @@ export async function PUT(
       account.smtpConfig = {
         host: smtpConfig.host,
         port: smtpConfig.port,
-        secure: smtpConfig.secure
+        secure: smtpConfig.secure,
       }
       if (smtpConfig.username && smtpConfig.password) {
         account.setSmtpCredentials(smtpConfig.username, smtpConfig.password)
@@ -107,7 +102,7 @@ export async function PUT(
       account.imapConfig = {
         host: imapConfig.host,
         port: imapConfig.port,
-        secure: imapConfig.secure
+        secure: imapConfig.secure,
       }
       if (imapConfig.username && imapConfig.password) {
         account.setImapCredentials(imapConfig.username, imapConfig.password)
@@ -119,12 +114,12 @@ export async function PUT(
     log.info(`Email account updated: ${account.emailAddress}`, {
       userId: auth.user._id,
       workspaceId,
-      accountId
+      accountId,
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Email account updated successfully'
+      message: 'Email account updated successfully',
     })
   } catch (error) {
     log.error('Update email account error:', error)
@@ -155,7 +150,7 @@ export async function DELETE(
       _id: accountId,
       userId: auth.user._id,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     if (!account) {
@@ -173,12 +168,12 @@ export async function DELETE(
     log.info(`Email account deleted: ${account.emailAddress}`, {
       userId: auth.user._id,
       workspaceId,
-      accountId
+      accountId,
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Email account deleted successfully'
+      message: 'Email account deleted successfully',
     })
   } catch (error) {
     log.error('Delete email account error:', error)

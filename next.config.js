@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // ESLint runs via Husky pre-commit/pre-push
   },
   images: {
     unoptimized: true,

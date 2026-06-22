@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { NextRequest } from 'next/server'
+import { type NextRequest } from 'next/server'
 import {
   User,
   Workspace,

@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IProjectMember extends Document {
+export interface IProjectMember extends Omit<Document, '_id'> {
   _id: string
   projectId: string
   userId: string

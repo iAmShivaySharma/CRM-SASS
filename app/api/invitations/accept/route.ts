@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import {
   WorkspaceMember,
@@ -17,7 +18,6 @@ import {
 import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
 import { NotificationService } from '@/lib/services/notificationService'
-import { z } from 'zod'
 
 const acceptInvitationSchema = z.object({
   token: z.string().min(1, 'Token is required'),

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Save, X } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,6 @@ import {
   useUpdateDocumentMutation,
 } from '@/lib/api/projectsApi'
 import { useAppSelector } from '@/lib/hooks'
-import { toast } from 'sonner'
 
 const documentSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -67,7 +67,9 @@ export function DocumentEditorDialog({
   const [content, setContent] = useState<any[]>(() => {
     if (!document?.content) return []
     try {
-      return typeof document.content === 'string' ? JSON.parse(document.content) : document.content
+      return typeof document.content === 'string'
+        ? JSON.parse(document.content)
+        : document.content
     } catch {
       return []
     }
@@ -101,7 +103,7 @@ export function DocumentEditorDialog({
       {
         type: 'paragraph',
         content: htmlContent,
-      }
+      },
     ]
   }
 

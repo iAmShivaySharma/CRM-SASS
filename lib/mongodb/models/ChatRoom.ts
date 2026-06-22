@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IChatRoom extends Document {
+export interface IChatRoom extends Omit<Document, '_id'> {
   _id: string
   name: string
   description?: string

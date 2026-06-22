@@ -12,6 +12,20 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import {
+  Building,
+  ChevronDown,
+  Plus,
+  Check,
+  Loader2,
+  Users,
+  Settings,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { WorkspaceSwitcherSkeleton } from '@/components/ui/skeleton'
@@ -31,32 +45,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Building,
-  ChevronDown,
-  Plus,
-  Check,
-  Loader2,
-  Users,
-  Settings,
-} from 'lucide-react'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import {
   useGetUserWorkspacesQuery,
   useCreateWorkspaceMutation,
-  Workspace as ApiWorkspace,
+  type Workspace as ApiWorkspace,
 } from '@/lib/api/mongoApi'
 import { projectsApi } from '@/lib/api/projectsApi'
 import {
   useGetLastActiveWorkspaceQuery,
   useUpdateLastActiveWorkspaceMutation,
 } from '@/lib/api/workspaceApi'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { toast } from 'sonner'
 
 // Workspace creation validation schema
 const workspaceSchema = z.object({
@@ -125,7 +125,9 @@ export function WorkspaceSwitcher({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isSwitching, setIsSwitching] = useState(false)
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const workspaces = useMemo(
     () => workspacesData?.workspaces || [],
@@ -216,11 +218,13 @@ export function WorkspaceSwitcher({
       // Clear cached data for old workspace to prevent showing stale data
       if (currentWorkspace?.id) {
         // Invalidate all workspace-specific cached data
-        dispatch(projectsApi.util.invalidateTags([
-          { type: 'Task', id: `WORKSPACE_${currentWorkspace.id}` },
-          { type: 'Project', id: 'LIST' },
-          { type: 'Task', id: 'LIST' }
-        ]))
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Task', id: `WORKSPACE_${currentWorkspace.id}` },
+            { type: 'Project', id: 'LIST' },
+            { type: 'Task', id: 'LIST' },
+          ])
+        )
       }
 
       // Update the database with the new last active workspace

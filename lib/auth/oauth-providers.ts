@@ -1,6 +1,8 @@
 import { google } from 'googleapis'
-import { Client } from '@microsoft/microsoft-graph-client'
-import { AuthenticationProvider } from '@microsoft/microsoft-graph-client'
+import {
+  Client,
+  type AuthenticationProvider,
+} from '@microsoft/microsoft-graph-client'
 
 // OAuth Configuration
 export interface OAuthConfig {
@@ -34,7 +36,7 @@ export class GoogleOAuthProvider {
       clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
       redirectUri: process.env.GOOGLE_OAUTH_REDIRECT_URI!,
-      scopes: []
+      scopes: [],
     }
     return new GoogleOAuthProvider(config)
   }
@@ -45,14 +47,14 @@ export class GoogleOAuthProvider {
       'https://www.googleapis.com/auth/gmail.send',
       'https://www.googleapis.com/auth/gmail.modify',
       'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile'
+      'https://www.googleapis.com/auth/userinfo.profile',
     ]
 
     return this.oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
       state: state,
-      prompt: 'consent' // Force consent to get refresh token
+      prompt: 'consent', // Force consent to get refresh token
     })
   }
 
@@ -64,7 +66,7 @@ export class GoogleOAuthProvider {
         accessToken: tokens.access_token!,
         refreshToken: tokens.refresh_token!,
         expiresIn: tokens.expiry_date! - Date.now(),
-        scope: tokens.scope
+        scope: tokens.scope,
       }
     } catch (error) {
       console.error('Error exchanging code for tokens:', error)
@@ -75,7 +77,7 @@ export class GoogleOAuthProvider {
   async refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
     try {
       this.oauth2Client.setCredentials({
-        refresh_token: refreshToken
+        refresh_token: refreshToken,
       })
 
       const { credentials } = await this.oauth2Client.refreshAccessToken()
@@ -84,7 +86,7 @@ export class GoogleOAuthProvider {
         accessToken: credentials.access_token!,
         refreshToken: credentials.refresh_token || refreshToken,
         expiresIn: credentials.expiry_date! - Date.now(),
-        scope: credentials.scope
+        scope: credentials.scope,
       }
     } catch (error) {
       console.error('Error refreshing access token:', error)
@@ -95,7 +97,7 @@ export class GoogleOAuthProvider {
   async getUserInfo(accessToken: string): Promise<any> {
     try {
       this.oauth2Client.setCredentials({
-        access_token: accessToken
+        access_token: accessToken,
       })
 
       const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client })
@@ -106,7 +108,7 @@ export class GoogleOAuthProvider {
         email: data.email,
         name: data.name,
         picture: data.picture,
-        verified_email: data.verified_email
+        verified_email: data.verified_email,
       }
     } catch (error) {
       console.error('Error getting user info:', error)
@@ -116,7 +118,7 @@ export class GoogleOAuthProvider {
 
   getGmailClient(accessToken: string) {
     this.oauth2Client.setCredentials({
-      access_token: accessToken
+      access_token: accessToken,
     })
 
     return google.gmail({ version: 'v1', auth: this.oauth2Client })
@@ -136,7 +138,7 @@ export class MicrosoftOAuthProvider {
       clientId: process.env.MICROSOFT_OAUTH_CLIENT_ID!,
       clientSecret: process.env.MICROSOFT_OAUTH_CLIENT_SECRET!,
       redirectUri: process.env.MICROSOFT_OAUTH_REDIRECT_URI!,
-      scopes: []
+      scopes: [],
     }
     return new MicrosoftOAuthProvider(config)
   }
@@ -146,7 +148,7 @@ export class MicrosoftOAuthProvider {
       'https://graph.microsoft.com/Mail.ReadWrite',
       'https://graph.microsoft.com/Mail.Send',
       'https://graph.microsoft.com/User.Read',
-      'offline_access'
+      'offline_access',
     ]
 
     const params = new URLSearchParams({
@@ -155,7 +157,7 @@ export class MicrosoftOAuthProvider {
       redirect_uri: this.config.redirectUri,
       scope: scopes.join(' '),
       response_mode: 'query',
-      ...(state && { state })
+      ...(state && { state }),
     })
 
     return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}`
@@ -163,19 +165,22 @@ export class MicrosoftOAuthProvider {
 
   async exchangeCodeForTokens(code: string): Promise<OAuthTokens> {
     try {
-      const response = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          client_id: this.config.clientId,
-          client_secret: this.config.clientSecret,
-          code: code,
-          redirect_uri: this.config.redirectUri,
-          grant_type: 'authorization_code',
-        }),
-      })
+      const response = await fetch(
+        'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: this.config.clientId,
+            client_secret: this.config.clientSecret,
+            code: code,
+            redirect_uri: this.config.redirectUri,
+            grant_type: 'authorization_code',
+          }),
+        }
+      )
 
       if (!response.ok) {
         throw new Error(`Token exchange failed: ${response.statusText}`)
@@ -187,7 +192,7 @@ export class MicrosoftOAuthProvider {
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
         expiresIn: data.expires_in * 1000, // Convert to milliseconds
-        scope: data.scope
+        scope: data.scope,
       }
     } catch (error) {
       console.error('Error exchanging code for tokens:', error)
@@ -197,18 +202,21 @@ export class MicrosoftOAuthProvider {
 
   async refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
     try {
-      const response = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          client_id: this.config.clientId,
-          client_secret: this.config.clientSecret,
-          refresh_token: refreshToken,
-          grant_type: 'refresh_token',
-        }),
-      })
+      const response = await fetch(
+        'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: this.config.clientId,
+            client_secret: this.config.clientSecret,
+            refresh_token: refreshToken,
+            grant_type: 'refresh_token',
+          }),
+        }
+      )
 
       if (!response.ok) {
         throw new Error(`Token refresh failed: ${response.statusText}`)
@@ -220,7 +228,7 @@ export class MicrosoftOAuthProvider {
         accessToken: data.access_token,
         refreshToken: data.refresh_token || refreshToken,
         expiresIn: data.expires_in * 1000,
-        scope: data.scope
+        scope: data.scope,
       }
     } catch (error) {
       console.error('Error refreshing access token:', error)
@@ -232,7 +240,7 @@ export class MicrosoftOAuthProvider {
     try {
       const response = await fetch('https://graph.microsoft.com/v1.0/me', {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       })
 
@@ -247,7 +255,7 @@ export class MicrosoftOAuthProvider {
         email: data.mail || data.userPrincipalName,
         name: data.displayName,
         givenName: data.givenName,
-        surname: data.surname
+        surname: data.surname,
       }
     } catch (error) {
       console.error('Error getting user info:', error)
@@ -257,7 +265,7 @@ export class MicrosoftOAuthProvider {
 
   getGraphClient(accessToken: string) {
     const authProvider: AuthenticationProvider = {
-      getAccessToken: async () => accessToken
+      getAccessToken: async () => accessToken,
     }
 
     return Client.initWithMiddleware({ authProvider })
@@ -288,8 +296,8 @@ export class OAuthProviderFactory {
             'https://www.googleapis.com/auth/gmail.readonly',
             'https://www.googleapis.com/auth/gmail.send',
             'https://www.googleapis.com/auth/gmail.modify',
-            'https://www.googleapis.com/auth/userinfo.email'
-          ]
+            'https://www.googleapis.com/auth/userinfo.email',
+          ],
         }
       case 'outlook':
         return {
@@ -299,8 +307,8 @@ export class OAuthProviderFactory {
           scopes: [
             'https://graph.microsoft.com/Mail.ReadWrite',
             'https://graph.microsoft.com/Mail.Send',
-            'https://graph.microsoft.com/User.Read'
-          ]
+            'https://graph.microsoft.com/User.Read',
+          ],
         }
       default:
         throw new Error(`Unsupported OAuth provider: ${provider}`)
@@ -321,7 +329,11 @@ export class OAuthStateManager {
   private static states = new Map<string, OAuthState>()
   private static readonly STATE_EXPIRY = 10 * 60 * 1000 // 10 minutes
 
-  static generateState(provider: 'gmail' | 'outlook', userId: string, workspaceId: string): string {
+  static generateState(
+    provider: 'gmail' | 'outlook',
+    userId: string,
+    workspaceId: string
+  ): string {
     const nonce = Math.random().toString(36).substring(2, 15)
     const timestamp = Date.now()
 
@@ -330,16 +342,18 @@ export class OAuthStateManager {
       userId,
       workspaceId,
       timestamp,
-      nonce
+      nonce,
     }
 
-    const stateId = Buffer.from(JSON.stringify({
-      provider,
-      userId,
-      workspaceId,
-      nonce,
-      timestamp
-    })).toString('base64url')
+    const stateId = Buffer.from(
+      JSON.stringify({
+        provider,
+        userId,
+        workspaceId,
+        nonce,
+        timestamp,
+      })
+    ).toString('base64url')
 
     this.states.set(stateId, state)
 

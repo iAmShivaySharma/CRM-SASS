@@ -1,11 +1,25 @@
-import Razorpay from 'razorpay'
 import crypto from 'crypto'
+import Razorpay from 'razorpay'
 
-// Razorpay client singleton
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-})
+function safeTimingSafeEqual(a: string, b: string): boolean {
+  const bufA = new Uint8Array(Buffer.from(a))
+  const bufB = new Uint8Array(Buffer.from(b))
+  if (bufA.length !== bufB.length) return false
+  return crypto.timingSafeEqual(bufA, bufB)
+}
+
+// Razorpay client singleton (lazy-initialized to avoid build-time env var errors)
+let razorpayInstance: Razorpay | null = null
+
+function getRazorpay(): Razorpay {
+  if (!razorpayInstance) {
+    razorpayInstance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID!,
+      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+    })
+  }
+  return razorpayInstance
+}
 
 export interface CreateOrderOptions {
   amount: number // in paise (INR smallest unit)
@@ -26,7 +40,7 @@ export interface CreateSubscriptionOptions {
  * Create a one-time payment order
  */
 export async function createOrder(options: CreateOrderOptions) {
-  const order = await razorpayInstance.orders.create({
+  const order = await getRazorpay().orders.create({
     amount: options.amount,
     currency: options.currency || 'INR',
     receipt: options.receipt || `rcpt_${Date.now()}`,
@@ -39,7 +53,7 @@ export async function createOrder(options: CreateOrderOptions) {
  * Create a recurring subscription
  */
 export async function createSubscription(options: CreateSubscriptionOptions) {
-  const subscription = await razorpayInstance.subscriptions.create({
+  const subscription = await getRazorpay().subscriptions.create({
     plan_id: options.planId,
     total_count: options.totalCount || 12,
     quantity: options.quantity || 1,
@@ -65,10 +79,7 @@ export function verifyPaymentSignature(
     .digest('hex')
 
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    )
+    return safeTimingSafeEqual(signature, expectedSignature)
   } catch {
     return false
   }
@@ -90,10 +101,7 @@ export function verifySubscriptionSignature(
     .digest('hex')
 
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    )
+    return safeTimingSafeEqual(signature, expectedSignature)
   } catch {
     return false
   }
@@ -112,10 +120,7 @@ export function verifyWebhookSignature(
     .digest('hex')
 
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    )
+    return safeTimingSafeEqual(signature, expectedSignature)
   } catch {
     return false
   }
@@ -125,7 +130,7 @@ export function verifyWebhookSignature(
  * Get subscription details from Razorpay
  */
 export async function getSubscription(subscriptionId: string) {
-  const subscription = await razorpayInstance.subscriptions.fetch(subscriptionId)
+  const subscription = await getRazorpay().subscriptions.fetch(subscriptionId)
   return subscription
 }
 
@@ -137,7 +142,7 @@ export async function cancelSubscription(
   subscriptionId: string,
   cancelAtEnd: boolean = true
 ) {
-  const subscription = await razorpayInstance.subscriptions.cancel(
+  const subscription = await getRazorpay().subscriptions.cancel(
     subscriptionId,
     cancelAtEnd
   )
@@ -155,7 +160,7 @@ export async function createPlan(
   currency: string = 'INR',
   description?: string
 ) {
-  const plan = await razorpayInstance.plans.create({
+  const plan = await getRazorpay().plans.create({
     period: period,
     interval: interval,
     item: {
@@ -172,8 +177,8 @@ export async function createPlan(
  * Fetch payment details
  */
 export async function getPayment(paymentId: string) {
-  const payment = await razorpayInstance.payments.fetch(paymentId)
+  const payment = await getRazorpay().payments.fetch(paymentId)
   return payment
 }
 
-export { razorpayInstance }
+export { getRazorpay }

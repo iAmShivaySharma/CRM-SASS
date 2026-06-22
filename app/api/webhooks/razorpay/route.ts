@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Subscription, Workspace } from '@/lib/mongodb/client'
 import { verifyWebhookSignature } from '@/lib/razorpay/client'
@@ -11,20 +11,14 @@ export async function POST(request: NextRequest) {
 
     if (!signature) {
       log.warn('Razorpay webhook received without signature')
-      return NextResponse.json(
-        { error: 'Missing signature' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
     }
 
     // Verify webhook signature
     const isValid = verifyWebhookSignature(body, signature)
     if (!isValid) {
       log.warn('Razorpay webhook signature verification failed')
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
     await connectToMongoDB()
@@ -34,7 +28,9 @@ export async function POST(request: NextRequest) {
 
     log.info('Razorpay webhook received', {
       eventType,
-      payloadId: event.payload?.payment?.entity?.id || event.payload?.subscription?.entity?.id,
+      payloadId:
+        event.payload?.payment?.entity?.id ||
+        event.payload?.subscription?.entity?.id,
     })
 
     switch (eventType) {
@@ -93,10 +89,13 @@ async function handlePaymentCaptured(event: any) {
   const planId = notes.planId
 
   if (!workspaceId || !planId) {
-    log.warn('payment.captured webhook missing workspaceId or planId in notes', {
-      paymentId: payment.id,
-      notes,
-    })
+    log.warn(
+      'payment.captured webhook missing workspaceId or planId in notes',
+      {
+        paymentId: payment.id,
+        notes,
+      }
+    )
     return
   }
 

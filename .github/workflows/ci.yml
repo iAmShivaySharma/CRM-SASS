@@ -85,14 +85,15 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - name: Install dependencies (no lifecycle scripts)
+        run: npm ci --ignore-scripts
 
       - name: Run integration tests
         run: npm run test:integration
         env:
           CI: true
           MONGODB_URI: mongodb://localhost:27017/crm_test
-          JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+          JWT_SECRET: ci-test-jwt-secret-do-not-use-in-production
 
   # ── E2E Tests (only on PRs to main) ──────────────────────────────────
   e2e-tests:
@@ -117,7 +118,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - name: Install dependencies (no lifecycle scripts)
+        run: npm ci --ignore-scripts
 
       - name: Install Playwright
         run: npx playwright install --with-deps chromium
@@ -126,20 +128,20 @@ jobs:
         run: npm run build
         env:
           MONGODB_URI: mongodb://localhost:27017/crm_test
-          JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+          JWT_SECRET: ci-test-jwt-secret-do-not-use-in-production
 
       - name: Seed test DB
         run: npm run db:seed
         env:
           MONGODB_URI: mongodb://localhost:27017/crm_test
-          JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+          JWT_SECRET: ci-test-jwt-secret-do-not-use-in-production
 
       - name: Run E2E
         run: npm run test:e2e -- --project=chromium
         env:
           CI: true
           MONGODB_URI: mongodb://localhost:27017/crm_test
-          JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+          JWT_SECRET: ci-test-jwt-secret-do-not-use-in-production
 
       - uses: actions/upload-artifact@v4
         if: failure()

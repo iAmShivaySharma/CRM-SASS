@@ -2,6 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import {
+  User,
+  Mail,
+  Phone,
+  Building,
+  DollarSign,
+  Calendar,
+  Tag,
+  FileText,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Plus,
+  X,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { Formik, Form, Field, ErrorMessage } from 'formik'
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -23,21 +40,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import {
-  User,
-  Mail,
-  Phone,
-  Building,
-  DollarSign,
-  Calendar,
-  Tag,
-  FileText,
-  Edit,
-  Trash2,
-  ExternalLink,
-  Plus,
-  X,
-} from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
 import { useWorkspaceFormatting } from '@/lib/utils/workspace-formatting'
 import {
@@ -46,8 +48,6 @@ import {
   useUpdateLeadMutation,
   useGetWorkspaceMembersQuery,
 } from '@/lib/api/mongoApi'
-import { toast } from 'sonner'
-import { Formik, Form, Field, ErrorMessage } from 'formik'
 import {
   leadUpdateSchema,
   type LeadUpdateData,

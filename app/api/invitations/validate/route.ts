@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { Invitation } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
 import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
-import { z } from 'zod'
 
 const validateInvitationSchema = z.object({
   token: z.string().min(1, 'Token is required'),

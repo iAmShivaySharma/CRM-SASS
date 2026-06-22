@@ -2,8 +2,12 @@
  * Zapier Webhook Processor
  */
 
-import { NextRequest } from 'next/server'
-import { WebhookProcessor, ProcessedWebhookData, ProcessedLead } from './index'
+import { type NextRequest } from 'next/server'
+import {
+  type WebhookProcessor,
+  type ProcessedWebhookData,
+  type ProcessedLead,
+} from './index'
 
 export class ZapierProcessor implements WebhookProcessor {
   name = 'Zapier'

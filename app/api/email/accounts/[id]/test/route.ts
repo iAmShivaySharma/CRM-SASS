@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { EmailService } from '@/lib/services/emailProviderService'
 import { log } from '@/lib/logging/logger'
@@ -14,7 +14,10 @@ export async function POST(
     const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const result = await EmailService.testAccountConnection(accountId)
@@ -24,29 +27,32 @@ export async function POST(
         userId: auth.user.id,
         workspaceId,
         accountId,
-        error: result.error
+        error: result.error,
       })
 
       return NextResponse.json({
         success: false,
-        error: result.error || 'Connection test failed'
+        error: result.error || 'Connection test failed',
       })
     }
 
     log.info(`Email account connection test successful: ${accountId}`, {
       userId: auth.user.id,
       workspaceId,
-      accountId
+      accountId,
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Connection test successful'
+      message: 'Connection test successful',
     })
   } catch (error) {
     log.error('Test email account connection error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Connection test failed' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Connection test failed',
+      },
       { status: 500 }
     )
   }

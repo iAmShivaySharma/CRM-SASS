@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { CustomerApiKey, WorkspaceMember } from '@/lib/mongodb/models'
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
-      status: 'active'
+      status: 'active',
     }).sort({ createdAt: -1 })
 
     if (!workspaceMember) {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const apiKeys = await CustomerApiKey.find({
       userId: auth.user.id,
       workspaceId: workspaceMember.workspaceId,
-      isActive: true
+      isActive: true,
     }).sort({ createdAt: -1 })
 
     const responseData = apiKeys.map(key => ({
@@ -46,24 +46,26 @@ export async function GET(request: NextRequest) {
       lastUsedAt: key.lastUsedAt,
       totalUsage: {
         executions: key.totalUsage.executions,
-        tokensUsed: key.totalUsage.tokensUsed
+        tokensUsed: key.totalUsage.tokensUsed,
       },
-      createdAt: key.createdAt
+      createdAt: key.createdAt,
     }))
 
     return NextResponse.json({
       success: true,
-      data: responseData
+      data: responseData,
     })
-
   } catch (error) {
     console.error('Get API keys error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to retrieve API keys',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to retrieve API keys',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -100,7 +102,7 @@ export async function POST(request: NextRequest) {
     // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
-      status: 'active'
+      status: 'active',
     }).sort({ createdAt: -1 })
 
     if (!workspaceMember) {
@@ -115,7 +117,7 @@ export async function POST(request: NextRequest) {
       userId: auth.user.id,
       workspaceId: workspaceMember.workspaceId,
       keyName,
-      isActive: true
+      isActive: true,
     })
 
     if (existingKey) {
@@ -132,7 +134,7 @@ export async function POST(request: NextRequest) {
       provider: 'openrouter',
       keyName,
       isActive: true,
-      isDefault: setAsDefault || false
+      isDefault: setAsDefault || false,
     })
 
     // Encrypt and set the API key
@@ -154,17 +156,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        _id: newApiKey._id
-      }
+        _id: newApiKey._id,
+      },
     })
-
   } catch (error) {
     console.error('Add API key error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to add API key',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to add API key',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

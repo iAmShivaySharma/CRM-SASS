@@ -1,18 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -29,266 +17,241 @@ import {
   Trash2,
   MoreVertical,
   AlertCircle,
-  Target
+  Target,
+  Loader2,
 } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { format, addDays, differenceInDays } from 'date-fns'
-import { cn } from '@/lib/utils'
+import { format, differenceInDays } from 'date-fns'
 import { toast } from 'sonner'
-
-interface LeaveRequest {
-  id: string
-  employeeId: string
-  employeeName: string
-  employeeAvatar?: string
-  leaveType: string
-  startDate: Date
-  endDate: Date
-  days: number
-  reason: string
-  status: 'pending' | 'approved' | 'rejected'
-  appliedDate: Date
-  approvedBy?: string
-  approvedDate?: Date
-  comments?: string
-}
-
-interface LeavePolicy {
-  id: string
-  name: string
-  type: 'annual' | 'sick' | 'personal' | 'maternity' | 'paternity' | 'emergency'
-  daysPerYear: number
-  carryForward: boolean
-  maxCarryForward?: number
-  description: string
-  eligibility: string
-  isActive: boolean
-}
-
-interface LeaveBalance {
-  employeeId: string
-  employeeName: string
-  department: string
-  leaveType: string
-  totalDays: number
-  usedDays: number
-  remainingDays: number
-  pendingDays: number
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
+import { useAppSelector } from '@/lib/hooks'
+import {
+  useGetLeaveRequestsQuery,
+  useCreateLeaveRequestMutation,
+  useUpdateLeaveRequestMutation,
+  useDeleteLeaveRequestMutation,
+  useGetLeaveStatsQuery,
+  type LeaveRequestRecord,
+} from '@/lib/api/leaveApi'
 
 interface LeaveManagementProps {
   activeTab: string
 }
 
 export function LeaveManagement({ activeTab }: LeaveManagementProps) {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [showRequestDialog, setShowRequestDialog] = useState(false)
-  const [showPolicyDialog, setShowPolicyDialog] = useState(false)
-  const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null)
+  const [selectedRequest, setSelectedRequest] =
+    useState<LeaveRequestRecord | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [leaveTypeFilter, setLeaveTypeFilter] = useState('all')
-
-  // Mock data for leave requests
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([
-    {
-      id: '1',
-      employeeId: 'emp1',
-      employeeName: 'John Doe',
-      leaveType: 'Annual Leave',
-      startDate: new Date('2024-01-15'),
-      endDate: new Date('2024-01-19'),
-      days: 5,
-      reason: 'Family vacation',
-      status: 'pending',
-      appliedDate: new Date('2024-01-10'),
-    },
-    {
-      id: '2',
-      employeeId: 'emp2',
-      employeeName: 'Jane Smith',
-      leaveType: 'Sick Leave',
-      startDate: new Date('2024-01-12'),
-      endDate: new Date('2024-01-14'),
-      days: 3,
-      reason: 'Medical treatment',
-      status: 'approved',
-      appliedDate: new Date('2024-01-11'),
-      approvedBy: 'HR Manager',
-      approvedDate: new Date('2024-01-11'),
-    },
-    {
-      id: '3',
-      employeeId: 'emp3',
-      employeeName: 'Mike Johnson',
-      leaveType: 'Personal Leave',
-      startDate: new Date('2024-01-20'),
-      endDate: new Date('2024-01-20'),
-      days: 1,
-      reason: 'Personal matters',
-      status: 'rejected',
-      appliedDate: new Date('2024-01-18'),
-      approvedBy: 'HR Manager',
-      approvedDate: new Date('2024-01-19'),
-      comments: 'Insufficient leave balance'
-    }
-  ])
-
-  const leavePolicies: LeavePolicy[] = [
-    {
-      id: '1',
-      name: 'Annual Leave',
-      type: 'annual',
-      daysPerYear: 21,
-      carryForward: true,
-      maxCarryForward: 5,
-      description: 'Annual vacation leave for all employees',
-      eligibility: 'All permanent employees after 6 months',
-      isActive: true
-    },
-    {
-      id: '2',
-      name: 'Sick Leave',
-      type: 'sick',
-      daysPerYear: 10,
-      carryForward: false,
-      description: 'Medical leave for health issues',
-      eligibility: 'All employees from day one',
-      isActive: true
-    },
-    {
-      id: '3',
-      name: 'Personal Leave',
-      type: 'personal',
-      daysPerYear: 5,
-      carryForward: false,
-      description: 'Personal time off for urgent matters',
-      eligibility: 'All permanent employees',
-      isActive: true
-    },
-    {
-      id: '4',
-      name: 'Maternity Leave',
-      type: 'maternity',
-      daysPerYear: 90,
-      carryForward: false,
-      description: 'Maternity leave for new mothers',
-      eligibility: 'Female employees',
-      isActive: true
-    }
-  ]
-
-  const leaveBalances: LeaveBalance[] = [
-    {
-      employeeId: 'emp1',
-      employeeName: 'John Doe',
-      department: 'Engineering',
-      leaveType: 'Annual Leave',
-      totalDays: 21,
-      usedDays: 8,
-      remainingDays: 13,
-      pendingDays: 5
-    },
-    {
-      employeeId: 'emp1',
-      employeeName: 'John Doe',
-      department: 'Engineering',
-      leaveType: 'Sick Leave',
-      totalDays: 10,
-      usedDays: 2,
-      remainingDays: 8,
-      pendingDays: 0
-    },
-    {
-      employeeId: 'emp2',
-      employeeName: 'Jane Smith',
-      department: 'Product',
-      leaveType: 'Annual Leave',
-      totalDays: 21,
-      usedDays: 12,
-      remainingDays: 9,
-      pendingDays: 0
-    },
-    {
-      employeeId: 'emp2',
-      employeeName: 'Jane Smith',
-      department: 'Product',
-      leaveType: 'Sick Leave',
-      totalDays: 10,
-      usedDays: 3,
-      remainingDays: 7,
-      pendingDays: 0
-    }
-  ]
+  const [rejectDialogId, setRejectDialogId] = useState<string | null>(null)
+  const [rejectionReason, setRejectionReason] = useState('')
 
   const [requestForm, setRequestForm] = useState({
-    employeeId: '',
     leaveType: '',
     startDate: undefined as Date | undefined,
     endDate: undefined as Date | undefined,
-    reason: ''
+    reason: '',
   })
+
+  // API hooks
+  const {
+    data: leaveData,
+    isLoading,
+    error,
+  } = useGetLeaveRequestsQuery({
+    workspaceId: currentWorkspace?.id,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+  })
+  const { data: statsData } = useGetLeaveStatsQuery({
+    workspaceId: currentWorkspace?.id,
+  })
+  const [createLeave, { isLoading: isCreating }] =
+    useCreateLeaveRequestMutation()
+  const [updateLeave, { isLoading: isUpdating }] =
+    useUpdateLeaveRequestMutation()
+  const [deleteLeave] = useDeleteLeaveRequestMutation()
+
+  const leaveRequests = leaveData?.leaveRequests || []
+
+  if (!currentWorkspace) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">No Workspace Selected</h3>
+          <p className="text-muted-foreground">
+            Please select a workspace to manage leaves.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const getEmployeeName = (req: LeaveRequestRecord) => {
+    if (typeof req.employeeId === 'object' && req.employeeId?.fullName) {
+      return req.employeeId.fullName
+    }
+    return 'Unknown'
+  }
+
+  const getEmployeeInitials = (req: LeaveRequestRecord) => {
+    const name = getEmployeeName(req)
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+  }
+
+  const getLeavePolicyName = (req: LeaveRequestRecord) => {
+    if (typeof req.leavePolicyId === 'object' && req.leavePolicyId?.name) {
+      return req.leavePolicyId.name
+    }
+    return req.leaveType
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">
+            <Clock className="mr-1 h-3 w-3" />
+            Pending
+          </Badge>
+        )
       case 'approved':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>
+        return (
+          <Badge className="bg-green-100 text-green-800">
+            <CheckCircle className="mr-1 h-3 w-3" />
+            Approved
+          </Badge>
+        )
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-800"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>
+        return (
+          <Badge className="bg-red-100 text-red-800">
+            <XCircle className="mr-1 h-3 w-3" />
+            Rejected
+          </Badge>
+        )
+      case 'cancelled':
+        return <Badge className="bg-gray-100 text-gray-800">Cancelled</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
   }
 
-  const getLeaveTypeColor = (type: string) => {
-    switch (type) {
-      case 'annual':
-        return 'bg-blue-100 text-blue-800'
-      case 'sick':
-        return 'bg-red-100 text-red-800'
-      case 'personal':
-        return 'bg-purple-100 text-purple-800'
-      case 'maternity':
-        return 'bg-pink-100 text-pink-800'
-      case 'paternity':
-        return 'bg-indigo-100 text-indigo-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+  const handleApproveRequest = async (requestId: string) => {
+    try {
+      await updateLeave({ id: requestId, status: 'approved' }).unwrap()
+      toast.success('Leave request approved')
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Failed to approve leave request')
     }
   }
 
-  const handleApproveRequest = (requestId: string) => {
-    setLeaveRequests(requests =>
-      requests.map(req =>
-        req.id === requestId
-          ? {
-              ...req,
-              status: 'approved' as const,
-              approvedBy: 'Current User',
-              approvedDate: new Date()
-            }
-          : req
-      )
-    )
-    toast.success('Leave request approved')
+  const handleRejectRequest = async (requestId: string) => {
+    if (!rejectionReason.trim()) {
+      toast.error('Please provide a rejection reason')
+      return
+    }
+    try {
+      await updateLeave({
+        id: requestId,
+        status: 'rejected',
+        rejectionReason,
+      }).unwrap()
+      toast.success('Leave request rejected')
+      setRejectDialogId(null)
+      setRejectionReason('')
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Failed to reject leave request')
+    }
   }
 
-  const handleRejectRequest = (requestId: string, comments?: string) => {
-    setLeaveRequests(requests =>
-      requests.map(req =>
-        req.id === requestId
-          ? {
-              ...req,
-              status: 'rejected' as const,
-              approvedBy: 'Current User',
-              approvedDate: new Date(),
-              comments
-            }
-          : req
-      )
-    )
-    toast.success('Leave request rejected')
+  const handleDeleteRequest = async (requestId: string) => {
+    try {
+      await deleteLeave(requestId).unwrap()
+      toast.success('Leave request deleted')
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Failed to delete leave request')
+    }
+  }
+
+  const handleSubmitRequest = async () => {
+    if (
+      !requestForm.leaveType ||
+      !requestForm.startDate ||
+      !requestForm.endDate ||
+      !requestForm.reason
+    ) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    try {
+      await createLeave({
+        workspaceId: currentWorkspace.id,
+        leaveType: requestForm.leaveType,
+        startDate: requestForm.startDate.toISOString(),
+        endDate: requestForm.endDate.toISOString(),
+        totalDays: calculateDays(requestForm.startDate, requestForm.endDate),
+        reason: requestForm.reason,
+        leavePolicyId: requestForm.leaveType,
+      }).unwrap()
+
+      toast.success('Leave request submitted successfully')
+      setShowRequestDialog(false)
+      setRequestForm({
+        leaveType: '',
+        startDate: undefined,
+        endDate: undefined,
+        reason: '',
+      })
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Failed to submit leave request')
+    }
   }
 
   const calculateDays = (start: Date | undefined, end: Date | undefined) => {
@@ -297,12 +260,15 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
   }
 
   const filteredRequests = leaveRequests.filter(request => {
-    const matchesSearch = request.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         request.leaveType.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || request.status === statusFilter
-    const matchesType = leaveTypeFilter === 'all' || request.leaveType === leaveTypeFilter
+    const name = getEmployeeName(request)
+    const policyName = getLeavePolicyName(request)
+    const matchesSearch =
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      policyName.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesType =
+      leaveTypeFilter === 'all' || request.leaveType === leaveTypeFilter
 
-    return matchesSearch && matchesStatus && matchesType
+    return matchesSearch && matchesType
   })
 
   const renderLeaveRequests = () => (
@@ -311,12 +277,14 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Leave Requests</h3>
-          <p className="text-sm text-muted-foreground">Manage employee leave applications</p>
+          <p className="text-sm text-muted-foreground">
+            Manage employee leave applications
+          </p>
         </div>
         <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               New Request
             </Button>
           </DialogTrigger>
@@ -326,30 +294,28 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
             </DialogHeader>
             <div className="grid gap-4">
               <div>
-                <Label>Employee</Label>
-                <Select value={requestForm.employeeId} onValueChange={(value) => setRequestForm({...requestForm, employeeId: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select employee" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="emp1">John Doe</SelectItem>
-                    <SelectItem value="emp2">Jane Smith</SelectItem>
-                    <SelectItem value="emp3">Mike Johnson</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
                 <Label>Leave Type</Label>
-                <Select value={requestForm.leaveType} onValueChange={(value) => setRequestForm({...requestForm, leaveType: value})}>
+                <Select
+                  value={requestForm.leaveType}
+                  onValueChange={value =>
+                    setRequestForm({ ...requestForm, leaveType: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select leave type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Annual Leave">Annual Leave</SelectItem>
                     <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-                    <SelectItem value="Personal Leave">Personal Leave</SelectItem>
-                    <SelectItem value="Maternity Leave">Maternity Leave</SelectItem>
+                    <SelectItem value="Personal Leave">
+                      Personal Leave
+                    </SelectItem>
+                    <SelectItem value="Maternity Leave">
+                      Maternity Leave
+                    </SelectItem>
+                    <SelectItem value="Emergency Leave">
+                      Emergency Leave
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -359,16 +325,23 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
                   <Label>Start Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {requestForm.startDate ? format(requestForm.startDate, 'PPP') : 'Pick a date'}
+                        {requestForm.startDate
+                          ? format(requestForm.startDate, 'PPP')
+                          : 'Pick a date'}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
                         selected={requestForm.startDate}
-                        onSelect={(date) => setRequestForm({...requestForm, startDate: date})}
+                        onSelect={date =>
+                          setRequestForm({ ...requestForm, startDate: date })
+                        }
                         initialFocus
                       />
                     </PopoverContent>
@@ -379,16 +352,23 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
                   <Label>End Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {requestForm.endDate ? format(requestForm.endDate, 'PPP') : 'Pick a date'}
+                        {requestForm.endDate
+                          ? format(requestForm.endDate, 'PPP')
+                          : 'Pick a date'}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
                         selected={requestForm.endDate}
-                        onSelect={(date) => setRequestForm({...requestForm, endDate: date})}
+                        onSelect={date =>
+                          setRequestForm({ ...requestForm, endDate: date })
+                        }
                         initialFocus
                       />
                     </PopoverContent>
@@ -397,9 +377,10 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
               </div>
 
               {requestForm.startDate && requestForm.endDate && (
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-sm font-medium">
-                    Total Days: {calculateDays(requestForm.startDate, requestForm.endDate)}
+                    Total Days:{' '}
+                    {calculateDays(requestForm.startDate, requestForm.endDate)}
                   </p>
                 </div>
               )}
@@ -408,28 +389,98 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
                 <Label>Reason</Label>
                 <Textarea
                   value={requestForm.reason}
-                  onChange={(e) => setRequestForm({...requestForm, reason: e.target.value})}
+                  onChange={e =>
+                    setRequestForm({ ...requestForm, reason: e.target.value })
+                  }
                   placeholder="Provide reason for leave..."
                   rows={3}
                 />
               </div>
 
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowRequestDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowRequestDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button onClick={() => {
-                  // Handle form submission
-                  toast.success('Leave request submitted')
-                  setShowRequestDialog(false)
-                }}>
-                  Submit Request
+                <Button onClick={handleSubmitRequest} disabled={isCreating}>
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Request'
+                  )}
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Stats Cards */}
+      {statsData && (
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending</p>
+                  <p className="text-2xl font-bold">{statsData.pendingCount}</p>
+                </div>
+                <Clock className="h-8 w-8 text-yellow-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Approved This Month
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {statsData.approvedThisMonth}
+                  </p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Days Used (Year)
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {statsData.totalDaysUsedThisYear}
+                  </p>
+                </div>
+                <CalendarIcon className="h-8 w-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Upcoming (30 days)
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {statsData.upcomingLeaves}
+                  </p>
+                </div>
+                <Target className="h-8 w-8 text-purple-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center space-x-4">
@@ -438,7 +489,7 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
           <Input
             placeholder="Search requests..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -466,84 +517,248 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
         </Select>
       </div>
 
+      {/* Rejection Dialog */}
+      <Dialog
+        open={!!rejectDialogId}
+        onOpenChange={open => {
+          if (!open) {
+            setRejectDialogId(null)
+            setRejectionReason('')
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Leave Request</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div>
+              <Label>Rejection Reason</Label>
+              <Textarea
+                value={rejectionReason}
+                onChange={e => setRejectionReason(e.target.value)}
+                placeholder="Provide a reason for rejection..."
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRejectDialogId(null)
+                  setRejectionReason('')
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() =>
+                  rejectDialogId && handleRejectRequest(rejectDialogId)
+                }
+                disabled={isUpdating}
+              >
+                {isUpdating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Reject
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Requests Table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Leave Type</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Applied Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRequests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={request.employeeAvatar} />
-                        <AvatarFallback>
-                          {request.employeeName.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium">{request.employeeName}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{request.leaveType}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{request.days} days</div>
-                      <div className="text-sm text-muted-foreground">
-                        {format(request.startDate, 'MMM dd')} - {format(request.endDate, 'MMM dd, yyyy')}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {format(request.appliedDate, 'MMM dd, yyyy')}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(request.status)}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setSelectedRequest(request)}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Details
-                        </DropdownMenuItem>
-                        {request.status === 'pending' && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleApproveRequest(request.id)}>
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Approve
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleRejectRequest(request.id)}>
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Reject
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex h-48 items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : error ? (
+            <div className="flex h-48 items-center justify-center">
+              <div className="text-center">
+                <AlertCircle className="mx-auto mb-2 h-8 w-8 text-red-500" />
+                <p className="text-muted-foreground">
+                  Failed to load leave requests
+                </p>
+              </div>
+            </div>
+          ) : filteredRequests.length === 0 ? (
+            <div className="flex h-48 items-center justify-center">
+              <div className="text-center">
+                <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                <p className="text-muted-foreground">No leave requests found</p>
+              </div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Leave Type</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Applied Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-12"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredRequests.map(request => (
+                  <TableRow key={request._id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>
+                            {getEmployeeInitials(request)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">
+                          {getEmployeeName(request)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getLeavePolicyName(request)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {request.totalDays} days
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {format(new Date(request.startDate), 'MMM dd')} -{' '}
+                          {format(new Date(request.endDate), 'MMM dd, yyyy')}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(request.createdAt), 'MMM dd, yyyy')}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(request.status)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setSelectedRequest(request)}
+                          >
+                            <FileText className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          {request.status === 'pending' && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleApproveRequest(request._id)
+                                }
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setRejectDialogId(request._id)}
+                              >
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Reject
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteRequest(request._id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
+
+      {/* Detail Dialog */}
+      <Dialog
+        open={!!selectedRequest}
+        onOpenChange={open => {
+          if (!open) setSelectedRequest(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Leave Request Details</DialogTitle>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Employee</Label>
+                  <p className="font-medium">
+                    {getEmployeeName(selectedRequest)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Leave Type</Label>
+                  <p className="font-medium">
+                    {getLeavePolicyName(selectedRequest)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Start Date</Label>
+                  <p className="font-medium">
+                    {format(new Date(selectedRequest.startDate), 'PPP')}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">End Date</Label>
+                  <p className="font-medium">
+                    {format(new Date(selectedRequest.endDate), 'PPP')}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Total Days</Label>
+                  <p className="font-medium">{selectedRequest.totalDays}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Status</Label>
+                  <div className="mt-1">
+                    {getStatusBadge(selectedRequest.status)}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Reason</Label>
+                <p className="font-medium">{selectedRequest.reason}</p>
+              </div>
+              {selectedRequest.rejectionReason && (
+                <div>
+                  <Label className="text-muted-foreground">
+                    Rejection Reason
+                  </Label>
+                  <p className="font-medium text-red-600">
+                    {selectedRequest.rejectionReason}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 
@@ -552,72 +767,53 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Leave Policies</h3>
-          <p className="text-sm text-muted-foreground">Configure leave types and policies</p>
+          <p className="text-sm text-muted-foreground">
+            Leave type breakdown for this year
+          </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Policy
-        </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {leavePolicies.map((policy) => (
-          <Card key={policy.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+      {statsData?.leaveTypeBreakdown &&
+      statsData.leaveTypeBreakdown.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2">
+          {statsData.leaveTypeBreakdown.map(item => (
+            <Card key={item._id}>
+              <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Badge className={getLeaveTypeColor(policy.type)}>
-                    {policy.name}
+                  <Badge className="bg-blue-100 text-blue-800">
+                    {item._id}
                   </Badge>
                 </CardTitle>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Policy
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Policy
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">{policy.description}</p>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Days per year:</span>
-                  <span className="font-medium">{policy.daysPerYear}</span>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Requests:</span>
+                    <span className="font-medium">{item.count}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Total days used:
+                    </span>
+                    <span className="font-medium">{item.totalDays}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Carry forward:</span>
-                  <span className="font-medium">
-                    {policy.carryForward ? `Yes (max ${policy.maxCarryForward || 0})` : 'No'}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Eligibility:</span>
-                  <span className="font-medium text-right">{policy.eligibility}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t">
-                <Badge variant={policy.isActive ? 'default' : 'secondary'}>
-                  {policy.isActive ? 'Active' : 'Inactive'}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="flex h-48 items-center justify-center">
+            <div className="text-center">
+              <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+              <p className="text-muted-foreground">
+                No leave data available yet
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 
@@ -625,78 +821,67 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Leave Balance</h3>
-          <p className="text-sm text-muted-foreground">Employee leave balances and utilization</p>
+          <h3 className="text-lg font-semibold">Leave Summary</h3>
+          <p className="text-sm text-muted-foreground">
+            Yearly leave usage summary
+          </p>
         </div>
-        <Button variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export Report
-        </Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Leave Type</TableHead>
-                <TableHead>Total Days</TableHead>
-                <TableHead>Used</TableHead>
-                <TableHead>Pending</TableHead>
-                <TableHead>Remaining</TableHead>
-                <TableHead>Utilization</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leaveBalances.map((balance, index) => (
-                <TableRow key={`${balance.employeeId}-${balance.leaveType}-${index}`}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{balance.employeeName}</div>
-                      <div className="text-sm text-muted-foreground">{balance.department}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{balance.leaveType}</Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">{balance.totalDays}</TableCell>
-                  <TableCell>{balance.usedDays}</TableCell>
-                  <TableCell>
-                    {balance.pendingDays > 0 ? (
-                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                        {balance.pendingDays}
-                      </Badge>
-                    ) : (
-                      '0'
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{balance.remainingDays}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${
-                            (balance.usedDays / balance.totalDays) * 100 > 80
-                              ? 'bg-red-500'
-                              : (balance.usedDays / balance.totalDays) * 100 > 60
-                              ? 'bg-yellow-500'
-                              : 'bg-green-500'
-                          }`}
-                          style={{ width: `${(balance.usedDays / balance.totalDays) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {Math.round((balance.usedDays / balance.totalDays) * 100)}%
-                      </span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {statsData ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Pending Requests
+                </p>
+                <p className="text-3xl font-bold text-yellow-600">
+                  {statsData.pendingCount}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Approved This Month
+                </p>
+                <p className="text-3xl font-bold text-green-600">
+                  {statsData.approvedThisMonth}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Total Days Used</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {statsData.totalDaysUsedThisYear}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Upcoming Leaves</p>
+                <p className="text-3xl font-bold text-purple-600">
+                  {statsData.upcomingLeaves}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="flex h-48 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 

@@ -1,7 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { UserInput, WorkflowExecution, WorkspaceMember } from '@/lib/mongodb/models'
+import {
+  UserInput,
+  WorkflowExecution,
+  WorkspaceMember,
+} from '@/lib/mongodb/models'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +28,7 @@ export async function GET(request: NextRequest) {
     // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
-      status: 'active'
+      status: 'active',
     }).sort({ createdAt: -1 })
 
     if (!workspaceMember) {
@@ -39,7 +43,7 @@ export async function GET(request: NextRequest) {
       userId: auth.user.id,
       workspaceId: workspaceMember.workspaceId,
       status: 'pending',
-      timeoutAt: { $gt: new Date() }
+      timeoutAt: { $gt: new Date() },
     }
 
     if (priority) {
@@ -51,7 +55,7 @@ export async function GET(request: NextRequest) {
       const executions = await WorkflowExecution.find({
         workflowCatalogId: workflowId,
         userId: auth.user.id,
-        workspaceId: workspaceMember.workspaceId
+        workspaceId: workspaceMember.workspaceId,
       }).select('_id')
 
       const executionIds = executions.map(e => e._id)
@@ -65,8 +69,8 @@ export async function GET(request: NextRequest) {
         path: 'executionId',
         populate: {
           path: 'workflowCatalogId',
-          select: 'name description category'
-        }
+          select: 'name description category',
+        },
       })
       .sort({ 'metadata.priority': -1, timeoutAt: 1 })
       .limit(limit)
@@ -78,7 +82,7 @@ export async function GET(request: NextRequest) {
         _id: (input.executionId as any)._id,
         workflowName: (input.executionId as any).workflowCatalogId?.name,
         status: (input.executionId as any).status,
-        startedAt: (input.executionId as any).startedAt
+        startedAt: (input.executionId as any).startedAt,
       },
       step: input.step,
       inputSchema: input.inputSchema,
@@ -89,7 +93,9 @@ export async function GET(request: NextRequest) {
       metadata: input.metadata,
       webhookUrl: input.webhookUrl,
       createdAt: input.createdAt,
-      inputUrl: input.generateInputUrl(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+      inputUrl: input.generateInputUrl(
+        process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      ),
     }))
 
     // Get summary stats
@@ -97,7 +103,7 @@ export async function GET(request: NextRequest) {
       userId: auth.user.id,
       workspaceId: workspaceMember.workspaceId,
       status: 'pending',
-      timeoutAt: { $gt: new Date() }
+      timeoutAt: { $gt: new Date() },
     })
 
     const highPriorityCount = await UserInput.countDocuments({
@@ -105,7 +111,7 @@ export async function GET(request: NextRequest) {
       workspaceId: workspaceMember.workspaceId,
       status: 'pending',
       timeoutAt: { $gt: new Date() },
-      'metadata.priority': 'high'
+      'metadata.priority': 'high',
     })
 
     const expiringCount = await UserInput.countDocuments({
@@ -114,8 +120,8 @@ export async function GET(request: NextRequest) {
       status: 'pending',
       timeoutAt: {
         $gt: new Date(),
-        $lt: new Date(Date.now() + (15 * 60 * 1000)) // Expiring in 15 minutes
-      }
+        $lt: new Date(Date.now() + 15 * 60 * 1000), // Expiring in 15 minutes
+      },
     })
 
     return NextResponse.json({
@@ -125,23 +131,25 @@ export async function GET(request: NextRequest) {
         pagination: {
           total: totalPending,
           limit,
-          hasMore: formattedInputs.length === limit
+          hasMore: formattedInputs.length === limit,
         },
         summary: {
           totalPending,
           highPriorityCount,
-          expiringCount
-        }
-      }
+          expiringCount,
+        },
+      },
     })
-
   } catch (error) {
     console.error('Get pending inputs API error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to get pending inputs',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to get pending inputs',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

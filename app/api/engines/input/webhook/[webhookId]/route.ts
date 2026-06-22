@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { WorkflowExecution, UserInput } from '@/lib/mongodb/models'
 import { createN8nClient } from '@/lib/n8n/client'
@@ -41,27 +41,27 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     // Validate that we have some input data
     if (!inputData || typeof inputData !== 'object') {
-      return NextResponse.json(
-        { error: 'Invalid input data' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid input data' }, { status: 400 })
     }
 
     // Get the corresponding user input record
     const userInput = await UserInput.findOne({
       executionId: execution._id,
       status: 'pending',
-      timeoutAt: { $gt: new Date() }
+      timeoutAt: { $gt: new Date() },
     })
 
     if (userInput) {
       // Validate input against schema
-      const validationResult = validateInputData(inputData, userInput.inputSchema)
+      const validationResult = validateInputData(
+        inputData,
+        userInput.inputSchema
+      )
       if (!validationResult.isValid) {
         return NextResponse.json(
           {
             error: 'Input validation failed',
-            details: validationResult.errors
+            details: validationResult.errors,
           },
           { status: 400 }
         )
@@ -89,7 +89,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       if (n8nResult.finished) {
         await execution.markAsCompleted(
           n8nResult.data?.resultData || {},
-          Date.now() - (execution.startedAt?.getTime() || execution.createdAt.getTime())
+          Date.now() -
+            (execution.startedAt?.getTime() || execution.createdAt.getTime())
         )
       }
 
@@ -100,9 +101,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         success: true,
         message: 'Input received and workflow resumed',
         executionId: execution._id,
-        status: execution.status
+        status: execution.status,
       })
-
     } catch (n8nError) {
       console.error('n8n webhook resume error:', n8nError)
 
@@ -111,21 +111,27 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         `Failed to resume workflow: ${n8nError instanceof Error ? n8nError.message : 'Unknown error'}`
       )
 
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to resume workflow',
-        details: n8nError instanceof Error ? n8nError.message : 'Unknown error'
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to resume workflow',
+          details:
+            n8nError instanceof Error ? n8nError.message : 'Unknown error',
+        },
+        { status: 500 }
+      )
     }
-
   } catch (error) {
     console.error('Webhook input API error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to process webhook input',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to process webhook input',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -159,7 +165,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const userInput = await UserInput.findOne({
       executionId: execution._id,
       status: 'pending',
-      timeoutAt: { $gt: new Date() }
+      timeoutAt: { $gt: new Date() },
     })
 
     return NextResponse.json({
@@ -171,37 +177,46 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           status: execution.status,
           user: {
             name: (execution.userId as any)?.name,
-            email: (execution.userId as any)?.email
-          }
+            email: (execution.userId as any)?.email,
+          },
         },
-        inputRequirement: inputRequirement ? {
-          step: inputRequirement.step,
-          inputSchema: inputRequirement.inputSchema,
-          timeoutAt: inputRequirement.timeoutAt,
-          isExpired: inputRequirement.isExpired
-        } : null,
-        userInput: userInput ? {
-          _id: userInput._id,
-          metadata: userInput.metadata,
-          timeRemaining: userInput.timeRemaining,
-          timeRemainingMinutes: userInput.timeRemainingMinutes
-        } : null
-      }
+        inputRequirement: inputRequirement
+          ? {
+              step: inputRequirement.step,
+              inputSchema: inputRequirement.inputSchema,
+              timeoutAt: inputRequirement.timeoutAt,
+              isExpired: inputRequirement.isExpired,
+            }
+          : null,
+        userInput: userInput
+          ? {
+              _id: userInput._id,
+              metadata: userInput.metadata,
+              timeRemaining: userInput.timeRemaining,
+              timeRemainingMinutes: userInput.timeRemainingMinutes,
+            }
+          : null,
+      },
     })
-
   } catch (error) {
     console.error('Get webhook status API error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to get webhook status',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to get webhook status',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }
 
 // Helper function to validate input data (simplified version)
-function validateInputData(inputData: any, schema: any): {
+function validateInputData(
+  inputData: any,
+  schema: any
+): {
   isValid: boolean
   errors: string[]
   sanitizedData?: any
@@ -210,7 +225,7 @@ function validateInputData(inputData: any, schema: any): {
     return {
       isValid: true,
       errors: [],
-      sanitizedData: inputData
+      sanitizedData: inputData,
     }
   }
 
@@ -221,7 +236,10 @@ function validateInputData(inputData: any, schema: any): {
     const config = fieldConfig as any
     const value = inputData[fieldName]
 
-    if (config.required && (value === undefined || value === null || value === '')) {
+    if (
+      config.required &&
+      (value === undefined || value === null || value === '')
+    ) {
       errors.push(`Field '${fieldName}' is required`)
       continue
     }
@@ -234,6 +252,6 @@ function validateInputData(inputData: any, schema: any): {
   return {
     isValid: errors.length === 0,
     errors,
-    sanitizedData: errors.length === 0 ? sanitizedData : undefined
+    sanitizedData: errors.length === 0 ? sanitizedData : undefined,
   }
 }

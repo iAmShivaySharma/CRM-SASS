@@ -5,8 +5,12 @@
  * Facebook sends lead data in a specific format that needs to be transformed.
  */
 
-import { NextRequest } from 'next/server'
-import { WebhookProcessor, ProcessedWebhookData, ProcessedLead } from './index'
+import { type NextRequest } from 'next/server'
+import {
+  type WebhookProcessor,
+  type ProcessedWebhookData,
+  type ProcessedLead,
+} from './index'
 
 export class FacebookLeadsProcessor implements WebhookProcessor {
   name = 'Facebook Lead Ads'

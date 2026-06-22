@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { WorkspaceMember, Workspace, Subscription } from '@/lib/mongodb/client'
 import { LicenseKey } from '@/lib/mongodb/models/LicenseKey'
 import { log } from '@/lib/logging/logger'
-import { z } from 'zod'
 
 const updateLicenseSchema = z.object({
   validUntil: z.string().datetime().optional().nullable(),
@@ -16,7 +16,8 @@ async function verifyAdmin(request: NextRequest) {
   const auth = await verifyAuthToken(request)
   if (!auth) return null
 
-  const workspaceId = request.headers.get('x-workspace-id') || auth.user.lastActiveWorkspaceId
+  const workspaceId =
+    request.headers.get('x-workspace-id') || auth.user.lastActiveWorkspaceId
   if (!workspaceId) return null
 
   const membership = await WorkspaceMember.findOne({
@@ -27,8 +28,9 @@ async function verifyAdmin(request: NextRequest) {
 
   if (!membership) return null
 
-  const role = (membership.roleId as any)
-  if (!role || !['owner', 'admin'].includes(role.name?.toLowerCase())) return null
+  const role = membership.roleId as any
+  if (!role || !['owner', 'admin'].includes(role.name?.toLowerCase()))
+    return null
 
   return auth
 }
@@ -99,7 +101,10 @@ export async function PUT(
 
     if (!parsed.success) {
       return NextResponse.json(
-        { message: 'Validation error', errors: parsed.error.flatten().fieldErrors },
+        {
+          message: 'Validation error',
+          errors: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 }
       )
     }

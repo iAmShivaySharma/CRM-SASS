@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { Search } from 'lucide-react'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Blog } from '@/lib/mongodb/models/Blog'
 import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 import BlogCard from '@/components/blog/BlogCard'
 import Breadcrumb from '@/components/blog/Breadcrumb'
-import Link from 'next/link'
-import { Search } from 'lucide-react'
 
 export const revalidate = 300 // ISR: revalidate every 5 minutes
 
@@ -16,9 +16,16 @@ export const metadata: Metadata = {
   description:
     'Expert articles on CRM strategy, sales automation, AI workflows, lead management, and business productivity. Actionable insights to grow your business with CRM Pro.',
   keywords: [
-    'CRM blog', 'sales tips', 'lead management guide', 'CRM strategy',
-    'business automation', 'AI CRM tips', 'sales productivity',
-    'CRM best practices', 'small business growth', 'sales pipeline tips',
+    'CRM blog',
+    'sales tips',
+    'lead management guide',
+    'CRM strategy',
+    'business automation',
+    'AI CRM tips',
+    'sales productivity',
+    'CRM best practices',
+    'small business growth',
+    'sales pipeline tips',
   ],
   openGraph: {
     title: 'Blog — CRM Pro | Tips, Guides & Insights for Business Growth',
@@ -39,7 +46,12 @@ export const metadata: Metadata = {
   alternates: { canonical: `${APP_URL}/blog` },
 }
 
-async function getBlogs(page: number, category?: string, tag?: string, search?: string) {
+async function getBlogs(
+  page: number,
+  category?: string,
+  tag?: string,
+  search?: string
+) {
   await connectToMongoDB()
 
   const query: Record<string, any> = { status: 'published' }
@@ -115,7 +127,12 @@ async function getBlogs(page: number, category?: string, tag?: string, search?: 
 export default async function BlogListingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; category?: string; tag?: string; q?: string }>
+  searchParams: Promise<{
+    page?: string
+    category?: string
+    tag?: string
+    q?: string
+  }>
 }) {
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || '1'))
@@ -165,8 +182,8 @@ export default async function BlogListingPage({
             CRM Pro Blog
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Expert insights on CRM strategy, sales automation, AI workflows,
-            and tips to grow your business faster.
+            Expert insights on CRM strategy, sales automation, AI workflows, and
+            tips to grow your business faster.
           </p>
         </div>
 
@@ -213,7 +230,9 @@ export default async function BlogListingPage({
         {/* Featured Posts */}
         {featured.length > 0 && (
           <section className="mb-16">
-            <h2 className="mb-6 text-2xl font-bold text-foreground">Featured</h2>
+            <h2 className="mb-6 text-2xl font-bold text-foreground">
+              Featured
+            </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {featured.map((blog: any) => (
                 <BlogCard
@@ -266,7 +285,10 @@ export default async function BlogListingPage({
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <nav aria-label="Blog pagination" className="mt-12 flex justify-center gap-2">
+              <nav
+                aria-label="Blog pagination"
+                className="mt-12 flex justify-center gap-2"
+              >
                 {page > 1 && (
                   <Link
                     href={`/blog?page=${page - 1}${params.category ? `&category=${params.category}` : ''}${params.tag ? `&tag=${params.tag}` : ''}`}

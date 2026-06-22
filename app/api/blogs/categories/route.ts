@@ -1,12 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { z } from 'zod'
 
 const categorySchema = z.object({
   name: z.string().min(1).max(100),
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  slug: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   description: z.string().max(500).optional(),
   metaTitle: z.string().max(70).optional(),
   metaDescription: z.string().max(160).optional(),

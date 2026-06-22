@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
@@ -115,10 +115,7 @@ export async function POST(request: NextRequest) {
     const { planId, razorpayPlanId } = await request.json()
 
     if (!planId) {
-      return NextResponse.json(
-        { error: 'planId is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'planId is required' }, { status: 400 })
     }
 
     // Get user's workspace

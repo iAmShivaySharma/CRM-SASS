@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount } from '@/lib/mongodb/models'
 import { EmailProviderFactory } from '@/lib/services/emailProviderService'
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       _id: accountId,
       userId: auth.user._id,
       workspaceId,
-      isActive: true
+      isActive: true,
     }).select('+oauthAccessToken +oauthRefreshToken')
 
     if (!account) {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      folders: result.folders
+      folders: result.folders,
     })
   } catch (error) {
     log.error('Get email folders error:', error)

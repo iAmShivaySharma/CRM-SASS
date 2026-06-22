@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
-import { ChatRoom, useUpdateChatRoomMutation } from '@/lib/api/chatApi'
+import { Settings, Loader2, Save } from 'lucide-react'
+import { type RootState } from '@/lib/store'
+import { type ChatRoom, useUpdateChatRoomMutation } from '@/lib/api/chatApi'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Settings, Loader2, Save } from 'lucide-react'
 
 interface ChatSettingsDialogProps {
   chatRoom: ChatRoom

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 
@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
           // Test the API key with a simple request to OpenRouter
           const response = await fetch('https://openrouter.ai/api/v1/models', {
             headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json'
-            }
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
           })
 
           isValid = response.ok
@@ -65,16 +65,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       valid: isValid,
-      provider: detectedProvider
+      provider: detectedProvider,
     })
-
   } catch (error) {
     console.error('Validate API key error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to validate API key',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to validate API key',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

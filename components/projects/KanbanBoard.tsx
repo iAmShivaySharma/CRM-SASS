@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import {
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
@@ -21,10 +21,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { KanbanColumn } from './KanbanColumn'
-import { TaskCard } from './TaskCard'
-import { ColumnManagementDialog } from './ColumnManagementDialog'
-import { CreateTaskDialog } from './CreateTaskDialog'
 import { KanbanBoardSkeleton } from '@/components/ui/skeleton'
 import {
   useUpdateTaskMutation,
@@ -32,6 +28,10 @@ import {
   type Task,
   type Column,
 } from '@/lib/api/projectsApi'
+import { KanbanColumn } from './KanbanColumn'
+import { TaskCard } from './TaskCard'
+import { ColumnManagementDialog } from './ColumnManagementDialog'
+import { CreateTaskDialog } from './CreateTaskDialog'
 
 interface KanbanBoardProps {
   tasks: Task[]

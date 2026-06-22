@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface ITask extends Document {
+export interface ITask extends Omit<Document, '_id'> {
   _id: string
   title: string
   description?: string // Store as HTML string for rich text

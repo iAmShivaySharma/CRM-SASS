@@ -1,7 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { WorkspaceMember, Attendance, LeaveRequest, Asset } from '@/lib/mongodb/models'
+import {
+  WorkspaceMember,
+  Attendance,
+  LeaveRequest,
+  Asset,
+} from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(request: NextRequest) {
@@ -15,10 +20,14 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const workspaceObjectId = new mongoose.Types.ObjectId(workspaceId)
@@ -26,20 +35,24 @@ export async function GET(request: NextRequest) {
     // Total active employees
     const totalEmployees = await WorkspaceMember.countDocuments({
       workspaceId: workspaceObjectId,
-      isActive: true
+      isActive: true,
     })
 
     // Today's attendance summary
     const today = new Date()
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    )
     const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
 
     const todayAttendance = await Attendance.aggregate([
       {
         $match: {
           workspaceId: workspaceObjectId,
-          date: { $gte: todayStart, $lt: todayEnd }
-        }
+          date: { $gte: todayStart, $lt: todayEnd },
+        },
       },
       {
         $group: {
@@ -50,50 +63,55 @@ export async function GET(request: NextRequest) {
               $cond: [
                 { $in: ['$status', ['clocked_in', 'clocked_out', 'on_break']] },
                 1,
-                0
-              ]
-            }
+                0,
+              ],
+            },
           },
           absent: {
             $sum: {
-              $cond: [{ $eq: ['$status', 'absent'] }, 1, 0]
-            }
+              $cond: [{ $eq: ['$status', 'absent'] }, 1, 0],
+            },
           },
           late: {
             $sum: {
-              $cond: [{ $eq: ['$status', 'late'] }, 1, 0]
-            }
-          }
-        }
-      }
+              $cond: [{ $eq: ['$status', 'late'] }, 1, 0],
+            },
+          },
+        },
+      },
     ])
 
     const attendance = todayAttendance[0] || {
       total: 0,
       present: 0,
       absent: 0,
-      late: 0
+      late: 0,
     }
 
     // Attendance rate
-    const attendanceRate = totalEmployees > 0
-      ? Math.round(((attendance.present + attendance.late) / totalEmployees) * 100 * 100) / 100
-      : 0
+    const attendanceRate =
+      totalEmployees > 0
+        ? Math.round(
+            ((attendance.present + attendance.late) / totalEmployees) *
+              100 *
+              100
+          ) / 100
+        : 0
 
     // Pending leave requests
     const pendingLeaves = await LeaveRequest.countDocuments({
       workspaceId: workspaceObjectId,
-      status: 'pending'
+      status: 'pending',
     })
 
     // Total assets and available assets
     const totalAssets = await Asset.countDocuments({
-      workspaceId: workspaceObjectId
+      workspaceId: workspaceObjectId,
     })
 
     const availableAssets = await Asset.countDocuments({
       workspaceId: workspaceObjectId,
-      status: 'available'
+      status: 'available',
     })
 
     return NextResponse.json({
@@ -102,12 +120,12 @@ export async function GET(request: NextRequest) {
         present: attendance.present,
         absent: attendance.absent,
         late: attendance.late,
-        total: attendance.total
+        total: attendance.total,
       },
       attendanceRate,
       pendingLeaves,
       totalAssets,
-      availableAssets
+      availableAssets,
     })
   } catch (error) {
     log.error('Get HR stats error:', error)

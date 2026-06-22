@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IWorkspace extends Document {
+export interface IWorkspace extends Omit<Document, '_id'> {
   _id: string
   name: string
   slug: string

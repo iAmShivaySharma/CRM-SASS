@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
+import { Calendar, Clock, User, Tag, Eye } from 'lucide-react'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Blog } from '@/lib/mongodb/models/Blog'
 import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
@@ -9,8 +11,6 @@ import TableOfContents from '@/components/blog/TableOfContents'
 import ShareButtons from '@/components/blog/ShareButtons'
 import RelatedPosts from '@/components/blog/RelatedPosts'
 import BlogContent from '@/components/blog/BlogContent'
-import Link from 'next/link'
-import { Calendar, Clock, User, Tag, Eye } from 'lucide-react'
 
 export const revalidate = 600 // ISR: revalidate every 10 minutes
 
@@ -36,12 +36,16 @@ export async function generateStaticParams() {
 }
 
 // Dynamic metadata per blog post — critical for SEO
-export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: BlogPageProps): Promise<Metadata> {
   try {
     await connectToMongoDB()
     const { slug } = await params
     const blog = await Blog.findOne({ slug, status: 'published' })
-      .select('title metaTitle metaDescription metaKeywords ogTitle ogDescription ogImage twitterTitle twitterDescription twitterImage canonicalUrl featuredImage excerpt publishedAt updatedAt author')
+      .select(
+        'title metaTitle metaDescription metaKeywords ogTitle ogDescription ogImage twitterTitle twitterDescription twitterImage canonicalUrl featuredImage excerpt publishedAt updatedAt author'
+      )
       .lean()
 
     if (!blog) return { title: 'Blog Post Not Found' }
@@ -67,13 +71,21 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
         publishedTime: b.publishedAt?.toISOString(),
         modifiedTime: b.updatedAt?.toISOString(),
         authors: [b.author?.name],
-        ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: b.title }] } : {}),
+        ...(ogImage
+          ? {
+              images: [
+                { url: ogImage, width: 1200, height: 630, alt: b.title },
+              ],
+            }
+          : {}),
       },
       twitter: {
         card: 'summary_large_image',
         title: b.twitterTitle || title,
         description: b.twitterDescription || description,
-        ...(b.twitterImage || ogImage ? { images: [b.twitterImage || ogImage] } : {}),
+        ...(b.twitterImage || ogImage
+          ? { images: [b.twitterImage || ogImage] }
+          : {}),
       },
       robots: { index: true, follow: true },
       alternates: { canonical },
@@ -105,7 +117,9 @@ async function getBlogData(slug: string) {
       slug: { $in: b.relatedSlugs },
       status: 'published',
     })
-      .select('title slug excerpt featuredImage featuredImageAlt publishedAt readTime')
+      .select(
+        'title slug excerpt featuredImage featuredImageAlt publishedAt readTime'
+      )
       .lean()
   }
 
@@ -115,7 +129,9 @@ async function getBlogData(slug: string) {
       slug: { $ne: slug },
       status: 'published',
     })
-      .select('title slug excerpt featuredImage featuredImageAlt publishedAt readTime')
+      .select(
+        'title slug excerpt featuredImage featuredImageAlt publishedAt readTime'
+      )
       .sort({ publishedAt: -1 })
       .limit(3 - relatedPosts.length)
       .lean()
@@ -123,7 +139,13 @@ async function getBlogData(slug: string) {
   }
 
   return {
-    blog: { ...b, id: b._id, category: category ? { ...(category as any), id: (category as any)._id } : null },
+    blog: {
+      ...b,
+      id: b._id,
+      category: category
+        ? { ...(category as any), id: (category as any)._id }
+        : null,
+    },
     relatedPosts: relatedPosts.map((p: any) => ({ ...p, id: p._id })),
   }
 }
@@ -142,40 +164,41 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
   })
 
   // JSON-LD structured data — Article schema
-  const articleJsonLd = blog.jsonLd && Object.keys(blog.jsonLd).length > 0
-    ? blog.jsonLd
-    : {
-        '@context': 'https://schema.org',
-        '@type': 'Article',
-        headline: blog.title,
-        description: blog.metaDescription || blog.excerpt,
-        url: `${APP_URL}/blog/${slug}`,
-        datePublished: blog.publishedAt,
-        dateModified: blog.updatedAt,
-        author: {
-          '@type': 'Person',
-          name: blog.author?.name,
-        },
-        publisher: {
-          '@type': 'Organization',
-          name: 'CRM Pro',
-          url: APP_URL,
-        },
-        mainEntityOfPage: {
-          '@type': 'WebPage',
-          '@id': `${APP_URL}/blog/${slug}`,
-        },
-        wordCount: blog.wordCount,
-        ...(blog.featuredImage
-          ? {
-              image: {
-                '@type': 'ImageObject',
-                url: blog.featuredImage,
-              },
-            }
-          : {}),
-        keywords: blog.metaKeywords?.join(', '),
-      }
+  const articleJsonLd =
+    blog.jsonLd && Object.keys(blog.jsonLd).length > 0
+      ? blog.jsonLd
+      : {
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: blog.title,
+          description: blog.metaDescription || blog.excerpt,
+          url: `${APP_URL}/blog/${slug}`,
+          datePublished: blog.publishedAt,
+          dateModified: blog.updatedAt,
+          author: {
+            '@type': 'Person',
+            name: blog.author?.name,
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'CRM Pro',
+            url: APP_URL,
+          },
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `${APP_URL}/blog/${slug}`,
+          },
+          wordCount: blog.wordCount,
+          ...(blog.featuredImage
+            ? {
+                image: {
+                  '@type': 'ImageObject',
+                  url: blog.featuredImage,
+                },
+              }
+            : {}),
+          keywords: blog.metaKeywords?.join(', '),
+        }
 
   return (
     <>
@@ -189,7 +212,12 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
           items={[
             { label: 'Blog', href: '/blog' },
             ...(blog.category
-              ? [{ label: blog.category.name, href: `/blog?category=${blog.category.slug}` }]
+              ? [
+                  {
+                    label: blog.category.name,
+                    href: `/blog?category=${blog.category.slug}`,
+                  },
+                ]
               : []),
             { label: blog.title },
           ]}
@@ -233,7 +261,9 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
                     {blog.author.name.charAt(0)}
                   </div>
                 )}
-                <span className="font-medium text-foreground">{blog.author.name}</span>
+                <span className="font-medium text-foreground">
+                  {blog.author.name}
+                </span>
               </div>
             )}
             <span className="flex items-center gap-1">
@@ -317,7 +347,9 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
                 )}
                 <div>
                   <p className="text-sm text-muted-foreground">Written by</p>
-                  <p className="font-semibold text-foreground">{blog.author.name}</p>
+                  <p className="font-semibold text-foreground">
+                    {blog.author.name}
+                  </p>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                     {blog.author.bio}
                   </p>

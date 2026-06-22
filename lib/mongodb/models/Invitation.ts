@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IInvitation extends Document {
+export interface IInvitation extends Omit<Document, '_id'> {
   _id: string
   workspaceId: string
   email: string

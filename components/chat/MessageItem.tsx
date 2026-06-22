@@ -3,19 +3,6 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { formatDistanceToNow, format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { Message } from '@/lib/api/chatApi'
-import { useSocket } from '@/lib/context/SocketContext'
-import { useAddReactionMutation } from '@/lib/api/chatApi'
 import {
   MoreHorizontal,
   Reply,
@@ -27,6 +14,18 @@ import {
   ExternalLink,
   Smile,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { type Message, useAddReactionMutation } from '@/lib/api/chatApi'
+import { useSocket } from '@/lib/context/SocketContext'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -188,7 +187,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
       default:
         return (
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="prose prose-sm max-w-none dark:prose-invert">
             <p className="m-0 whitespace-pre-wrap break-words leading-relaxed text-foreground">
               {message.content}
             </p>

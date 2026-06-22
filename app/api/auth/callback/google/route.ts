@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { EmailAccount } from '@/lib/mongodb/models'
 import { GoogleOAuthProvider } from '@/lib/auth/oauth-providers'
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     const existingAccount = await EmailAccount.findOne({
       emailAddress: userInfo.email,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     if (existingAccount) {
@@ -62,11 +62,14 @@ export async function GET(request: NextRequest) {
         userId: auth.user.id,
         workspaceId,
         accountId: existingAccount._id,
-        email: userInfo.email
+        email: userInfo.email,
       })
 
       return NextResponse.redirect(
-        new URL(`/email?success=account_updated&accountId=${existingAccount._id}`, request.url)
+        new URL(
+          `/email?success=account_updated&accountId=${existingAccount._id}`,
+          request.url
+        )
       )
     }
 
@@ -74,7 +77,7 @@ export async function GET(request: NextRequest) {
     const accountCount = await EmailAccount.countDocuments({
       userId: auth.user.id,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     const isFirstAccount = accountCount === 0
@@ -96,9 +99,9 @@ export async function GET(request: NextRequest) {
           inbox: 'INBOX',
           sent: '[Gmail]/Sent Mail',
           drafts: '[Gmail]/Drafts',
-          trash: '[Gmail]/Trash'
-        }
-      }
+          trash: '[Gmail]/Trash',
+        },
+      },
     })
 
     // Set OAuth tokens
@@ -115,11 +118,14 @@ export async function GET(request: NextRequest) {
       workspaceId,
       accountId: account._id,
       email: userInfo.email,
-      isDefault: isFirstAccount
+      isDefault: isFirstAccount,
     })
 
     return NextResponse.redirect(
-      new URL(`/email?success=account_added&accountId=${account._id}`, request.url)
+      new URL(
+        `/email?success=account_added&accountId=${account._id}`,
+        request.url
+      )
     )
   } catch (error) {
     log.error('Google OAuth callback error:', error)

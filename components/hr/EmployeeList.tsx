@@ -1,13 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
   Users,
   Search,
@@ -21,10 +14,35 @@ import {
   Calendar,
   Clock,
   MoreVertical,
-  Loader2
+  Loader2,
 } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useGetEmployeesQuery } from '@/lib/api/attendanceApi'
 import { useAppSelector } from '@/lib/hooks'
 
@@ -35,32 +53,46 @@ export function EmployeeList() {
   const [statusFilter, setStatusFilter] = useState('all')
 
   // API integration
-  const { data: employeesData, isLoading, error, refetch } = useGetEmployeesQuery({
-    limit: 50,
-    includeAttendance: true,
-    search: searchQuery || undefined,
-    workspaceId: currentWorkspace?.id || ''
-  }, {
-    skip: !currentWorkspace?.id
-  })
+  const {
+    data: employeesData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetEmployeesQuery(
+    {
+      limit: 50,
+      includeAttendance: true,
+      search: searchQuery || undefined,
+      workspaceId: currentWorkspace?.id || '',
+    },
+    {
+      skip: !currentWorkspace?.id,
+    }
+  )
 
   const employees = employeesData?.employees || []
 
   // Check workspace
   if (!currentWorkspace) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <h3 className="text-lg font-semibold">No Workspace Selected</h3>
-          <p className="text-muted-foreground">Please select a workspace to view employees.</p>
+          <p className="text-muted-foreground">
+            Please select a workspace to view employees.
+          </p>
         </div>
       </div>
     )
   }
 
   // Get unique departments from employees
-  const departments = ['all', ...Array.from(new Set(employees.map(emp => emp.role?.name || 'No Role').filter(Boolean)))]
-
+  const departments = [
+    'all',
+    ...Array.from(
+      new Set(employees.map(emp => emp.role?.name || 'No Role').filter(Boolean))
+    ),
+  ]
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -97,11 +129,15 @@ export function EmployeeList() {
   }
 
   const filteredEmployees = employees.filter(employee => {
-    const matchesSearch = employee.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         employee.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch =
+      employee.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      employee.email.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesDepartment = departmentFilter === 'all' || (employee.role?.name || 'No Role') === departmentFilter
-    const matchesStatus = statusFilter === 'all' || (employee.status || 'active') === statusFilter
+    const matchesDepartment =
+      departmentFilter === 'all' ||
+      (employee.role?.name || 'No Role') === departmentFilter
+    const matchesStatus =
+      statusFilter === 'all' || (employee.status || 'active') === statusFilter
 
     return matchesSearch && matchesDepartment && matchesStatus
   })
@@ -115,7 +151,7 @@ export function EmployeeList() {
             <span>Employee Management</span>
           </CardTitle>
           <Button>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Employee
           </Button>
         </div>
@@ -128,7 +164,7 @@ export function EmployeeList() {
             <Input
               placeholder="Search employees..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -159,13 +195,13 @@ export function EmployeeList() {
 
         {/* Employee Table */}
         {isLoading ? (
-          <div className="flex items-center justify-center h-32">
+          <div className="flex h-32 items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin" />
             <span className="ml-2">Loading employees...</span>
           </div>
         ) : error ? (
-          <div className="text-center py-8">
-            <p className="text-red-500 mb-2">Failed to load employees</p>
+          <div className="py-8 text-center">
+            <p className="mb-2 text-red-500">Failed to load employees</p>
             <Button onClick={refetch} variant="outline" size="sm">
               Try Again
             </Button>
@@ -187,86 +223,110 @@ export function EmployeeList() {
               <TableBody>
                 {filteredEmployees.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <p className="text-muted-foreground">No employees found.</p>
-                      <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters.</p>
+                    <TableCell colSpan={7} className="py-8 text-center">
+                      <p className="text-muted-foreground">
+                        No employees found.
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Try adjusting your search or filters.
+                      </p>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredEmployees.map((employee) => (
+                  filteredEmployees.map(employee => (
                     <TableRow key={employee._id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={employee.avatar} />
-                          <AvatarFallback>
-                            {employee.fullName.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{employee.fullName}</div>
-                          <div className="text-sm text-muted-foreground flex items-center space-x-2">
-                            <Mail className="h-3 w-3" />
-                            <span>{employee.email}</span>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={employee.avatar} />
+                            <AvatarFallback>
+                              {employee.fullName
+                                .split(' ')
+                                .map(n => n[0])
+                                .join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">
+                              {employee.fullName}
+                            </div>
+                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                              <Mail className="h-3 w-3" />
+                              <span>{employee.email}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{employee.role?.name || 'No Role'}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {employee.todayAttendance?.workType ?
-                        getWorkTypeBadge(employee.todayAttendance.workType) :
-                        <Badge variant="outline">-</Badge>
-                      }
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
-                        <span>{format(new Date(employee.joinedAt), 'MMM dd, yyyy')}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {employee.lastActive ? (
-                        <div className="text-sm">
-                          {format(new Date(employee.lastActive), 'MMM dd, yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {employee.role?.name || 'No Role'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {employee.todayAttendance?.workType ? (
+                          getWorkTypeBadge(employee.todayAttendance.workType)
+                        ) : (
+                          <Badge variant="outline">-</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          <span>
+                            {format(
+                              new Date(employee.joinedAt),
+                              'MMM dd, yyyy'
+                            )}
+                          </span>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">Never</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(employee.status)}
-                    </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Employee
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Clock className="h-4 w-4 mr-2" />
-                          View Attendance
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Mail className="h-4 w-4 mr-2" />
-                          Send Message
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remove Employee
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell>
+                        {employee.lastActive ? (
+                          <div className="text-sm">
+                            {format(
+                              new Date(employee.lastActive),
+                              'MMM dd, yyyy'
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            Never
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(employee.status)}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Employee
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Clock className="mr-2 h-4 w-4" />
+                              View Attendance
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Mail className="mr-2 h-4 w-4" />
+                              Send Message
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Remove Employee
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
               </TableBody>

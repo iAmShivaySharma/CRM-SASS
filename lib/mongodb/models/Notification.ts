@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface INotification extends Document {
+export interface INotification extends Omit<Document, '_id'> {
   _id: string
   workspaceId: string
   userId: string // User who should receive this notification

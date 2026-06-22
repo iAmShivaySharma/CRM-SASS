@@ -19,8 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { TimeTracker } from './TimeTracker'
 import type { Task } from '@/lib/api/projectsApi'
+import { TimeTracker } from './TimeTracker'
 
 interface TasksListProps {
   tasks: Task[]
@@ -30,7 +30,13 @@ interface TasksListProps {
   onEditTask?: (task: Task) => void
 }
 
-export function TasksList({ tasks, projectId, isLoading, error, onEditTask }: TasksListProps) {
+export function TasksList({
+  tasks,
+  projectId,
+  isLoading,
+  error,
+  onEditTask,
+}: TasksListProps) {
   const priorityColors = {
     low: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
     medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -81,7 +87,7 @@ export function TasksList({ tasks, projectId, isLoading, error, onEditTask }: Ta
           <Card
             key={task.id}
             className={cn(
-              'transition-all hover:shadow-md cursor-pointer',
+              'cursor-pointer transition-all hover:shadow-md',
               isOverdue && 'border-red-300 bg-red-50/50'
             )}
             onDoubleClick={handleDoubleClick(task)}
@@ -104,7 +110,9 @@ export function TasksList({ tasks, projectId, isLoading, error, onEditTask }: Ta
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={handleEditClick(task)}>Edit Task</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleEditClick(task)}>
+                          Edit Task
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600">
                           Delete

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Circle } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -17,7 +18,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { useAppSelector } from '@/lib/hooks'
-import { toast } from 'sonner'
 import { CardSkeleton, PageHeaderSkeleton } from '@/components/ui/skeleton'
 import {
   useGetLeadStatusesQuery,

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Task, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -51,7 +51,10 @@ export async function POST(
 
     // Initialize timeTracking if it doesn't exist
     if (!task.timeTracking) {
-      return NextResponse.json({ error: 'No time tracking data found for this task' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No time tracking data found for this task' },
+        { status: 400 }
+      )
     }
 
     // Check if time tracking is active
@@ -59,14 +62,19 @@ export async function POST(
       console.log('Time tracking state:', {
         isActive: task.timeTracking.isActive,
         currentSessionStart: task.timeTracking.currentSessionStart,
-        totalTracked: task.timeTracking.totalTracked
+        totalTracked: task.timeTracking.totalTracked,
       })
-      return NextResponse.json({ error: 'Time tracking is not currently active' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Time tracking is not currently active' },
+        { status: 400 }
+      )
     }
 
     const now = new Date()
     const sessionDuration = Math.floor(
-      (now.getTime() - new Date(task.timeTracking.currentSessionStart!).getTime()) / 1000
+      (now.getTime() -
+        new Date(task.timeTracking.currentSessionStart!).getTime()) /
+        1000
     )
 
     // Add the completed session
@@ -85,7 +93,8 @@ export async function POST(
     task.timeTracking.currentSessionStart = undefined
 
     // Update actualHours field (convert seconds to hours)
-    task.actualHours = Math.round((task.timeTracking.totalTracked / 3600) * 100) / 100
+    task.actualHours =
+      Math.round((task.timeTracking.totalTracked / 3600) * 100) / 100
 
     await task.save()
 
@@ -107,18 +116,21 @@ export async function POST(
         timeTracking: {
           isActive: task.timeTracking.isActive,
           totalTracked: task.timeTracking.totalTracked,
-          sessions: task.timeTracking.sessions.map((session: {
-            startedAt: Date
-            endedAt?: Date
-            duration?: number
-            userId: string
-          }) => ({
-            startedAt: session.startedAt.toISOString(),
-            endedAt: session.endedAt?.toISOString(),
-            duration: session.duration,
-            userId: session.userId,
-          })),
-          currentSessionStart: task.timeTracking.currentSessionStart?.toISOString(),
+          sessions: task.timeTracking.sessions.map(
+            (session: {
+              startedAt: Date
+              endedAt?: Date
+              duration?: number
+              userId: string
+            }) => ({
+              startedAt: session.startedAt.toISOString(),
+              endedAt: session.endedAt?.toISOString(),
+              duration: session.duration,
+              userId: session.userId,
+            })
+          ),
+          currentSessionStart:
+            task.timeTracking.currentSessionStart?.toISOString(),
         },
         order: task.order,
         dependencies: task.dependencies,

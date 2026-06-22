@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { WorkflowExecution, WorkspaceMember } from '@/lib/mongodb/models'
@@ -23,7 +23,7 @@ export async function GET(
     // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
-      status: 'active'
+      status: 'active',
     }).sort({ createdAt: -1 })
 
     if (!workspaceMember) {
@@ -37,9 +37,8 @@ export async function GET(
     const execution = await WorkflowExecution.findOne({
       _id: id,
       userId: auth.user.id,
-      workspaceId: workspaceMember.workspaceId
-    })
-      .populate('workflowCatalogId', 'name description category')
+      workspaceId: workspaceMember.workspaceId,
+    }).populate('workflowCatalogId', 'name description category')
 
     if (!execution) {
       return NextResponse.json(
@@ -62,21 +61,23 @@ export async function GET(
       createdAt: execution.createdAt,
       startedAt: execution.startedAt,
       completedAt: execution.completedAt,
-      workflow: execution.workflowCatalogId
+      workflow: execution.workflowCatalogId,
     }
 
     return NextResponse.json({
       success: true,
-      data: responseData
+      data: responseData,
     })
-
   } catch (error) {
     console.error('Get execution details error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to retrieve execution details',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to retrieve execution details',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

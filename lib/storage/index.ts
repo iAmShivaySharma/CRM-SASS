@@ -1,4 +1,3 @@
-
 import {
   uploadFile as uploadFileMinio,
   deleteFile as deleteFileMinio,
@@ -10,7 +9,6 @@ import {
   ALLOWED_FILE_TYPES,
   MAX_FILE_SIZE,
 } from './minio'
-
 import {
   uploadFileGCS,
   deleteFileGCS,

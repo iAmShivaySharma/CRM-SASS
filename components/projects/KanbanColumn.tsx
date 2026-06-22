@@ -15,10 +15,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { TaskCard } from './TaskCard'
-import { ColumnManagementDialog } from './ColumnManagementDialog'
 import { cn } from '@/lib/utils'
 import type { Task, Column } from '@/lib/api/projectsApi'
+import { TaskCard } from './TaskCard'
+import { ColumnManagementDialog } from './ColumnManagementDialog'
 
 interface KanbanColumnProps {
   id: string

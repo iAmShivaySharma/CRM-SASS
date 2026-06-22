@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Shift } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const { searchParams } = new URL(request.url)
@@ -42,17 +45,19 @@ export async function GET(request: NextRequest) {
 
     // Get employee count for each shift (from Attendance model)
     const shiftsWithEmployeeCount = await Promise.all(
-      shifts.map(async (shift) => {
+      shifts.map(async shift => {
         // Count unique users who have used this shift in the last 30 days
-        const employeeCount = await require('@/lib/mongodb/models').Attendance.distinct('userId', {
-          workspaceId,
-          shiftId: shift._id,
-          date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-        }).then((users: any[]) => users.length)
+        const employeeCount = await require('@/lib/mongodb/models')
+          .Attendance.distinct('userId', {
+            workspaceId,
+            shiftId: shift._id,
+            date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          })
+          .then((users: any[]) => users.length)
 
         return {
           ...shift,
-          employeeCount
+          employeeCount,
         }
       })
     )
@@ -63,8 +68,8 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     log.error('Get shifts error:', error)
@@ -87,7 +92,10 @@ export async function POST(request: NextRequest) {
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const body = await request.json()
@@ -107,8 +115,8 @@ export async function POST(request: NextRequest) {
       overtimeRules = {
         allowOvertime: true,
         maxOvertimeHours: 4,
-        overtimeMultiplier: 1.5
-      }
+        overtimeMultiplier: 1.5,
+      },
     } = body
 
     // Validate required fields
@@ -122,7 +130,7 @@ export async function POST(request: NextRequest) {
     // Calculate total hours
     const [startHour, startMinute] = startTime.split(':').map(Number)
     const [endHour, endMinute] = endTime.split(':').map(Number)
-    let startMinutes = startHour * 60 + startMinute
+    const startMinutes = startHour * 60 + startMinute
     let endMinutes = endHour * 60 + endMinute
 
     // Handle overnight shifts
@@ -130,7 +138,8 @@ export async function POST(request: NextRequest) {
       endMinutes += 24 * 60
     }
 
-    const totalHours = Math.round(((endMinutes - startMinutes - breakDuration) / 60) * 100) / 100
+    const totalHours =
+      Math.round(((endMinutes - startMinutes - breakDuration) / 60) * 100) / 100
 
     if (totalHours <= 0) {
       return NextResponse.json(
@@ -164,7 +173,7 @@ export async function POST(request: NextRequest) {
       allowedWorkTypes,
       overtimeRules,
       totalHours,
-      createdBy: auth.user._id
+      createdBy: auth.user._id,
     })
 
     await shift.save()
@@ -174,18 +183,21 @@ export async function POST(request: NextRequest) {
       userId: auth.user._id,
       workspaceId,
       shiftId: shift._id,
-      shiftName: shift.name
+      shiftName: shift.name,
     })
 
     return NextResponse.json({
       success: true,
       shift,
-      message: 'Shift created successfully'
+      message: 'Shift created successfully',
     })
   } catch (error) {
     log.error('Create shift error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create shift' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to create shift',
+      },
       { status: 500 }
     )
   }

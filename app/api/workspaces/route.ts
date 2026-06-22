@@ -5,7 +5,8 @@
  * logging, and validation.
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { requireAuth } from '@/lib/security/auth-middleware'
 import {
   Workspace,
@@ -24,7 +25,6 @@ import {
 } from '@/lib/logging/middleware'
 import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
-import { z } from 'zod'
 import {
   seedDefaultLeadStatuses,
   seedDefaultTags,

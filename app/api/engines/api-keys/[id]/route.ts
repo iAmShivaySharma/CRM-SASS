@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { CustomerApiKey, WorkspaceMember } from '@/lib/mongodb/models'
@@ -25,7 +25,7 @@ export async function PATCH(
     // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
-      status: 'active'
+      status: 'active',
     }).sort({ createdAt: -1 }) // Get most recent active membership
 
     if (!workspaceMember) {
@@ -39,14 +39,11 @@ export async function PATCH(
     const apiKey = await CustomerApiKey.findOne({
       _id: id,
       userId: auth.user.id,
-      workspaceId: workspaceMember.workspaceId
+      workspaceId: workspaceMember.workspaceId,
     })
 
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'API key not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'API key not found' }, { status: 404 })
     }
 
     // Update fields
@@ -57,7 +54,7 @@ export async function PATCH(
         workspaceId: workspaceMember.workspaceId,
         keyName,
         _id: { $ne: id },
-        isActive: true
+        isActive: true,
       })
 
       if (existingKey) {
@@ -85,20 +82,24 @@ export async function PATCH(
 
     await apiKey.save()
 
-    console.log(`API key updated for user ${auth.user.email}: ${apiKey.keyName}`)
+    console.log(
+      `API key updated for user ${auth.user.email}: ${apiKey.keyName}`
+    )
 
     return NextResponse.json({
-      success: true
+      success: true,
     })
-
   } catch (error) {
     console.error('Update API key error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to update API key',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to update API key',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -123,7 +124,7 @@ export async function DELETE(
     // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
-      status: 'active'
+      status: 'active',
     }).sort({ createdAt: -1 })
 
     if (!workspaceMember) {
@@ -137,29 +138,30 @@ export async function DELETE(
     const apiKey = await CustomerApiKey.findOneAndDelete({
       _id: id,
       userId: auth.user.id,
-      workspaceId: workspaceMember.workspaceId
+      workspaceId: workspaceMember.workspaceId,
     })
 
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'API key not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'API key not found' }, { status: 404 })
     }
 
-    console.log(`API key deleted for user ${auth.user.email}: ${apiKey.keyName}`)
+    console.log(
+      `API key deleted for user ${auth.user.email}: ${apiKey.keyName}`
+    )
 
     return NextResponse.json({
-      success: true
+      success: true,
     })
-
   } catch (error) {
     console.error('Delete API key error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to delete API key',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to delete API key',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

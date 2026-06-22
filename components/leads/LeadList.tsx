@@ -9,6 +9,7 @@ import {
   Eye,
   UserPlus,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -43,9 +44,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { useAppSelector } from '@/lib/hooks'
-import { toast } from 'sonner'
-import { LeadForm } from './LeadForm'
-import { LeadDetailsSheet } from './LeadDetailsSheet'
 import { TableSkeleton, PageHeaderSkeleton } from '@/components/ui/skeleton'
 import {
   useGetLeadsQuery,
@@ -53,6 +51,8 @@ import {
   useGetLeadStatusesQuery,
 } from '@/lib/api/mongoApi'
 import { useConvertLeadToContactMutation } from '@/lib/api/contactsApi'
+import { LeadDetailsSheet } from './LeadDetailsSheet'
+import { LeadForm } from './LeadForm'
 
 const statusColors = {
   new: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',

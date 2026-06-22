@@ -93,10 +93,12 @@ export function BlockEditor({
         .map(block => {
           if (typeof block === 'string') return block
           if (block.type === 'paragraph') return `<p>${block.content || ''}</p>`
-          if (block.type === 'heading')
+          if (block.type === 'heading') {
             return `<h${block.level || 2}>${block.content || ''}</h${block.level || 2}>`
-          if (block.type === 'list')
+          }
+          if (block.type === 'list') {
             return `<ul><li>${block.content || ''}</li></ul>`
+          }
           return block.content || ''
         })
         .join('')

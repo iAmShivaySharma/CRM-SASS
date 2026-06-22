@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
+import { Plus, Users, Hash, Lock } from 'lucide-react'
+import { type RootState } from '@/lib/store'
 import { useCreateChatRoomMutation } from '@/lib/api/chatApi'
 import { useGetWorkspaceMembersQuery } from '@/lib/api/mongoApi'
 import {
@@ -26,7 +27,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Plus, Users, Hash, Lock } from 'lucide-react'
 
 interface CreateChatRoomDialogProps {
   trigger?: React.ReactNode

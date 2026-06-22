@@ -12,6 +12,25 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import {
+  Building,
+  Users,
+  Settings,
+  Shield,
+  Crown,
+  UserPlus,
+  MoreHorizontal,
+  Mail,
+  Trash2,
+  Edit,
+  Copy,
+  Check,
+  Save,
+  AlertTriangle,
+  Plus,
+  User,
+} from 'lucide-react'
+import { toast } from 'sonner'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import {
@@ -56,25 +75,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Building,
-  Users,
-  Settings,
-  Shield,
-  Crown,
-  UserPlus,
-  MoreHorizontal,
-  Mail,
-  Trash2,
-  Edit,
-  Copy,
-  Check,
-  Save,
-  AlertTriangle,
-  Plus,
-  User,
-} from 'lucide-react'
-import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import {
@@ -840,13 +840,17 @@ export default function WorkspaceSettingsPage() {
                         </CardDescription>
                       </div>
                       {/* Permission creation disabled - permissions are managed through code deployment */}
-                      <div className="text-sm text-muted-foreground bg-muted p-3 rounded border border-dashed">
+                      <div className="rounded border border-dashed bg-muted p-3 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Shield className="h-4 w-4" />
-                          <span className="font-medium">Permissions are managed by developers</span>
+                          <span className="font-medium">
+                            Permissions are managed by developers
+                          </span>
                         </div>
                         <p className="mt-1 text-xs">
-                          All permissions are defined in code and deployed through releases. Runtime permission creation is disabled for security.
+                          All permissions are defined in code and deployed
+                          through releases. Runtime permission creation is
+                          disabled for security.
                         </p>
                       </div>
                     </div>
@@ -878,7 +882,6 @@ export default function WorkspaceSettingsPage() {
                           Create custom permissions to fine-tune access control
                           in your workspace.
                         </p>
-                      
                       </div>
                     ) : (
                       <div className="space-y-6">

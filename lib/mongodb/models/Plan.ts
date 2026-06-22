@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IPlan extends Document {
+export interface IPlan extends Omit<Document, '_id'> {
   _id: string
   name: string
   description?: string

@@ -16,6 +16,30 @@ import { TableCell } from '@tiptap/extension-table-cell'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import Heading from '@tiptap/extension-heading'
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  Code,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
+  Redo,
+  Link2,
+  Image as ImageIcon,
+  Heading1,
+  Heading2,
+  Heading3,
+  Save,
+  Eye,
+  ArrowLeft,
+  Loader2,
+  Upload,
+  X as XIcon,
+} from 'lucide-react'
+import Image from 'next/image'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,20 +51,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
-import {
-  Bold, Italic, Strikethrough, Code, List, ListOrdered,
-  Quote, Undo, Redo, Link2, Image as ImageIcon, Heading1,
-  Heading2, Heading3, Save, Eye, ArrowLeft, Loader2,
-  Upload, X as XIcon
-} from 'lucide-react'
-import Image from 'next/image'
-import { toast } from 'sonner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface BlogCategory {
   id: string
@@ -90,7 +101,9 @@ function generateSlug(title: string): string {
     .replace(/^-|-$/g, '')
 }
 
-function extractTableOfContents(html: string): { id: string; text: string; level: number }[] {
+function extractTableOfContents(
+  html: string
+): { id: string; text: string; level: number }[] {
   const toc: { id: string; text: string; level: number }[] = []
   const regex = /<h([2-4])[^>]*>(.*?)<\/h[2-4]>/gi
   let match
@@ -134,21 +147,29 @@ const defaultBlogData: BlogData = {
   tableOfContents: [],
 }
 
-export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) {
+export default function BlogEditor({
+  initialData,
+  isEditing,
+}: BlogEditorProps) {
   const router = useRouter()
   const [data, setData] = useState<BlogData>(initialData || defaultBlogData)
   const [categories, setCategories] = useState<BlogCategory[]>([])
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [tagsInput, setTagsInput] = useState(data.tags.join(', '))
-  const [keywordsInput, setKeywordsInput] = useState(data.metaKeywords.join(', '))
+  const [keywordsInput, setKeywordsInput] = useState(
+    data.metaKeywords.join(', ')
+  )
 
   const uploadImage = async (file: File): Promise<string | null> => {
     const formData = new FormData()
     formData.append('file', file)
     setUploading(true)
     try {
-      const res = await fetch('/api/blogs/upload', { method: 'POST', body: formData })
+      const res = await fetch('/api/blogs/upload', {
+        method: 'POST',
+        body: formData,
+      })
       const result = await res.json()
       if (!res.ok) {
         toast.error(result.message || 'Upload failed')
@@ -238,13 +259,16 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
 
     if (!saveData.title) return toast.error('Title is required')
     if (!saveData.slug) return toast.error('Slug is required')
-    if (!saveData.content || saveData.content === '<p></p>') return toast.error('Content is required')
+    if (!saveData.content || saveData.content === '<p></p>')
+      return toast.error('Content is required')
     if (!saveData.categoryId) return toast.error('Category is required')
     if (!saveData.author.name) return toast.error('Author name is required')
 
     setSaving(true)
     try {
-      const url = isEditing ? `/api/blogs/${initialData?.slug || data.slug}` : '/api/blogs'
+      const url = isEditing
+        ? `/api/blogs/${initialData?.slug || data.slug}`
+        : '/api/blogs'
       const method = isEditing ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
@@ -275,7 +299,11 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/blogs')}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/blogs')}
+          >
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back
           </Button>
@@ -289,11 +317,19 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
             onClick={() => handleSave('draft')}
             disabled={saving}
           >
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {saving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
             Save Draft
           </Button>
           <Button onClick={() => handleSave('published')} disabled={saving}>
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eye className="mr-2 h-4 w-4" />}
+            {saving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Eye className="mr-2 h-4 w-4" />
+            )}
             Publish
           </Button>
         </div>
@@ -332,7 +368,12 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                   <Input
                     id="slug"
                     value={data.slug}
-                    onChange={e => updateField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    onChange={e =>
+                      updateField(
+                        'slug',
+                        e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+                      )
+                    }
                     placeholder="url-slug"
                     className="rounded-l-none"
                   />
@@ -378,16 +419,24 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                    className={editor.isActive('heading', { level: 2 }) ? 'bg-muted' : ''}
+                    onClick={() =>
+                      editor.chain().focus().toggleHeading({ level: 2 }).run()
+                    }
+                    className={
+                      editor.isActive('heading', { level: 2 }) ? 'bg-muted' : ''
+                    }
                   >
                     <Heading2 className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                    className={editor.isActive('heading', { level: 3 }) ? 'bg-muted' : ''}
+                    onClick={() =>
+                      editor.chain().focus().toggleHeading({ level: 3 }).run()
+                    }
+                    className={
+                      editor.isActive('heading', { level: 3 }) ? 'bg-muted' : ''
+                    }
                   >
                     <Heading3 className="h-4 w-4" />
                   </Button>
@@ -395,7 +444,9 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                    onClick={() =>
+                      editor.chain().focus().toggleBulletList().run()
+                    }
                     className={editor.isActive('bulletList') ? 'bg-muted' : ''}
                   >
                     <List className="h-4 w-4" />
@@ -403,7 +454,9 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                    onClick={() =>
+                      editor.chain().focus().toggleOrderedList().run()
+                    }
                     className={editor.isActive('orderedList') ? 'bg-muted' : ''}
                   >
                     <ListOrdered className="h-4 w-4" />
@@ -411,7 +464,9 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                    onClick={() =>
+                      editor.chain().focus().toggleBlockquote().run()
+                    }
                     className={editor.isActive('blockquote') ? 'bg-muted' : ''}
                   >
                     <Quote className="h-4 w-4" />
@@ -422,7 +477,8 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                     size="sm"
                     onClick={() => {
                       const url = prompt('Enter link URL:')
-                      if (url) editor.chain().focus().setLink({ href: url }).run()
+                      if (url)
+                        editor.chain().focus().setLink({ href: url }).run()
                     }}
                   >
                     <Link2 className="h-4 w-4" />
@@ -432,9 +488,15 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                     size="sm"
                     className="relative"
                     disabled={uploading}
-                    onClick={() => document.getElementById('editor-image-upload')?.click()}
+                    onClick={() =>
+                      document.getElementById('editor-image-upload')?.click()
+                    }
                   >
-                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                    {uploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ImageIcon className="h-4 w-4" />
+                    )}
                   </Button>
                   <input
                     id="editor-image-upload"
@@ -445,7 +507,8 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                       const file = e.target.files?.[0]
                       if (!file || !editor) return
                       const url = await uploadImage(file)
-                      if (url) editor.chain().focus().setImage({ src: url }).run()
+                      if (url)
+                        editor.chain().focus().setImage({ src: url }).run()
                       e.target.value = ''
                     }}
                   />
@@ -556,7 +619,12 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                         if (url) {
                           updateField('featuredImage', url)
                           if (!data.featuredImageAlt) {
-                            updateField('featuredImageAlt', file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' '))
+                            updateField(
+                              'featuredImageAlt',
+                              file.name
+                                .replace(/\.[^.]+$/, '')
+                                .replace(/[-_]/g, ' ')
+                            )
                           }
                         }
                         e.target.value = ''
@@ -570,7 +638,9 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                 <Input
                   id="featuredImageAlt"
                   value={data.featuredImageAlt}
-                  onChange={e => updateField('featuredImageAlt', e.target.value)}
+                  onChange={e =>
+                    updateField('featuredImageAlt', e.target.value)
+                  }
                   placeholder="Descriptive alt text for SEO"
                 />
               </div>
@@ -634,16 +704,21 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
         {/* SEO Tab */}
         <TabsContent value="seo" className="space-y-6">
           <div className="rounded-lg border border-border p-6">
-            <h3 className="mb-4 text-lg font-semibold">Search Engine Preview</h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              Search Engine Preview
+            </h3>
             <div className="rounded-lg bg-muted/30 p-4">
               <p className="text-lg text-primary">
                 {data.metaTitle || data.title || 'Page Title'}
               </p>
               <p className="text-sm text-green-700 dark:text-green-400">
-                {process.env.NEXT_PUBLIC_APP_URL || 'https://yoursite.com'}/blog/{data.slug || 'slug'}
+                {process.env.NEXT_PUBLIC_APP_URL || 'https://yoursite.com'}
+                /blog/{data.slug || 'slug'}
               </p>
               <p className="text-sm text-muted-foreground">
-                {data.metaDescription || data.excerpt || 'Meta description will appear here...'}
+                {data.metaDescription ||
+                  data.excerpt ||
+                  'Meta description will appear here...'}
               </p>
             </div>
           </div>
@@ -651,12 +726,17 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label htmlFor="metaTitle">
-                Meta Title <span className="text-xs text-muted-foreground">({data.metaTitle.length}/70)</span>
+                Meta Title{' '}
+                <span className="text-xs text-muted-foreground">
+                  ({data.metaTitle.length}/70)
+                </span>
               </Label>
               <Input
                 id="metaTitle"
                 value={data.metaTitle}
-                onChange={e => updateField('metaTitle', e.target.value.slice(0, 70))}
+                onChange={e =>
+                  updateField('metaTitle', e.target.value.slice(0, 70))
+                }
                 placeholder="SEO title (max 70 chars)"
                 maxLength={70}
               />
@@ -672,19 +752,26 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="metaDescription">
-                Meta Description <span className="text-xs text-muted-foreground">({data.metaDescription.length}/160)</span>
+                Meta Description{' '}
+                <span className="text-xs text-muted-foreground">
+                  ({data.metaDescription.length}/160)
+                </span>
               </Label>
               <Textarea
                 id="metaDescription"
                 value={data.metaDescription}
-                onChange={e => updateField('metaDescription', e.target.value.slice(0, 160))}
+                onChange={e =>
+                  updateField('metaDescription', e.target.value.slice(0, 160))
+                }
                 placeholder="SEO description (max 160 chars)"
                 rows={2}
                 maxLength={160}
               />
             </div>
             <div className="md:col-span-2">
-              <Label htmlFor="metaKeywords">Meta Keywords (comma-separated)</Label>
+              <Label htmlFor="metaKeywords">
+                Meta Keywords (comma-separated)
+              </Label>
               <Input
                 id="metaKeywords"
                 value={keywordsInput}
@@ -696,7 +783,9 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
 
           {/* Open Graph */}
           <div className="rounded-lg border border-border p-6">
-            <h3 className="mb-4 text-lg font-semibold">Open Graph (Facebook/LinkedIn)</h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              Open Graph (Facebook/LinkedIn)
+            </h3>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <Label htmlFor="ogTitle">OG Title</Label>
@@ -711,8 +800,14 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                 <Label>OG Image</Label>
                 {data.ogImage ? (
                   <div className="mt-1 flex items-center gap-2">
-                    <span className="flex-1 truncate rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">{data.ogImage.split('/').pop()}</span>
-                    <Button variant="ghost" size="sm" onClick={() => updateField('ogImage', '')}>
+                    <span className="flex-1 truncate rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
+                      {data.ogImage.split('/').pop()}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => updateField('ogImage', '')}
+                    >
                       <XIcon className="h-4 w-4" />
                     </Button>
                   </div>
@@ -765,8 +860,14 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                 <Label>Twitter Image</Label>
                 {data.twitterImage ? (
                   <div className="mt-1 flex items-center gap-2">
-                    <span className="flex-1 truncate rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">{data.twitterImage.split('/').pop()}</span>
-                    <Button variant="ghost" size="sm" onClick={() => updateField('twitterImage', '')}>
+                    <span className="flex-1 truncate rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
+                      {data.twitterImage.split('/').pop()}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => updateField('twitterImage', '')}
+                    >
                       <XIcon className="h-4 w-4" />
                     </Button>
                   </div>
@@ -794,7 +895,9 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
                 <Textarea
                   id="twitterDescription"
                   value={data.twitterDescription}
-                  onChange={e => updateField('twitterDescription', e.target.value)}
+                  onChange={e =>
+                    updateField('twitterDescription', e.target.value)
+                  }
                   placeholder="Falls back to meta description"
                   rows={2}
                 />
@@ -862,14 +965,19 @@ export default function BlogEditor({ initialData, isEditing }: BlogEditorProps) 
             </div>
 
             <div>
-              <Label htmlFor="relatedSlugs">Related Post Slugs (comma-separated)</Label>
+              <Label htmlFor="relatedSlugs">
+                Related Post Slugs (comma-separated)
+              </Label>
               <Input
                 id="relatedSlugs"
                 value={data.relatedSlugs.join(', ')}
                 onChange={e =>
                   updateField(
                     'relatedSlugs',
-                    e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                    e.target.value
+                      .split(',')
+                      .map(s => s.trim())
+                      .filter(Boolean)
                   )
                 }
                 placeholder="post-slug-1, post-slug-2"

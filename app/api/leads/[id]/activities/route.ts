@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { mongoClient } from '@/lib/mongodb/client'
-import { z } from 'zod'
 
 const getActivitiesSchema = z.object({
   limit: z

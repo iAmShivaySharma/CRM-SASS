@@ -13,7 +13,6 @@ import { TableHeader } from '@tiptap/extension-table-header'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
-
 import { useCallback, useState, useEffect, useRef } from 'react'
 import {
   Bold,
@@ -292,7 +291,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().undo().run()
@@ -306,7 +305,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().redo().run()
@@ -331,7 +330,7 @@ export function TiptapEditor({
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
                   editor.chain().focus().setParagraph().run()
@@ -341,7 +340,7 @@ export function TiptapEditor({
                 Paragraph
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
                   editor.chain().focus().toggleHeading({ level: 1 }).run()
@@ -351,7 +350,7 @@ export function TiptapEditor({
                 Heading 1
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
                   editor.chain().focus().toggleHeading({ level: 2 }).run()
@@ -361,7 +360,7 @@ export function TiptapEditor({
                 Heading 2
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
                   editor.chain().focus().toggleHeading({ level: 3 }).run()
@@ -380,7 +379,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().toggleBold().run()
@@ -394,7 +393,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().toggleItalic().run()
@@ -408,7 +407,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().toggleStrike().run()
@@ -422,7 +421,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().toggleCode().run()
@@ -444,7 +443,7 @@ export function TiptapEditor({
               size="sm"
               className="h-8 w-8 p-0"
               title="Text Color & Highlight"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 setShowColorDropdown(!showColorDropdown)
@@ -529,7 +528,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().toggleBulletList().run()
@@ -543,7 +542,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().toggleOrderedList().run()
@@ -557,7 +556,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().toggleTaskList().run()
@@ -577,7 +576,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 setShowLinkDialog(true)
@@ -590,7 +589,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 setShowImageDialog(true)
@@ -603,7 +602,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 insertTable()
@@ -616,7 +615,7 @@ export function TiptapEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
                 editor.chain().focus().setHorizontalRule().run()
@@ -644,7 +643,7 @@ export function TiptapEditor({
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
                   editor.chain().focus().toggleBlockquote().run()
@@ -654,7 +653,7 @@ export function TiptapEditor({
                 Quote Block
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
                   editor.chain().focus().toggleCodeBlock().run()
@@ -664,7 +663,7 @@ export function TiptapEditor({
                 Code Block
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
                   editor.chain().focus().clearNodes().unsetAllMarks().run()
@@ -989,7 +988,10 @@ export function extractPlainText(
       }
 
       // Add space after block elements
-      if (node.type && ['paragraph', 'heading', 'listItem'].includes(node.type)) {
+      if (
+        node.type &&
+        ['paragraph', 'heading', 'listItem'].includes(node.type)
+      ) {
         text += ' '
       }
 
@@ -1011,7 +1013,8 @@ export function extractPlainText(
 
   return maxLength === Infinity
     ? plainText
-    : plainText.substring(0, maxLength) + (plainText.length > maxLength ? '...' : '')
+    : plainText.substring(0, maxLength) +
+        (plainText.length > maxLength ? '...' : '')
 }
 
 // Utility function to convert Tiptap JSON to HTML

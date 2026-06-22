@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IProjectInvitation extends Document {
+export interface IProjectInvitation extends Omit<Document, '_id'> {
   _id: string
   projectId: string
   inviteeEmail: string
@@ -18,7 +18,7 @@ export interface IProjectInvitation extends Document {
   updatedAt: Date
 }
 
-export interface IProjectJoinRequest extends Document {
+export interface IProjectJoinRequest extends Omit<Document, '_id'> {
   _id: string
   projectId: string
   userId: string

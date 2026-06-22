@@ -2,28 +2,31 @@
 
 import { useState } from 'react'
 import { useParams, notFound } from 'next/navigation'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from '@/components/ui/tabs'
+import { Grid, List, Users, FileText, BarChart3 } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetProjectQuery,
   useGetTasksQuery,
   useGetProjectMembersQuery,
-  useGetDocumentsQuery
+  useGetDocumentsQuery,
 } from '@/lib/api/projectsApi'
 import { ProjectHeader } from '@/components/projects/ProjectHeader'
 import { KanbanBoard } from '@/components/projects/KanbanBoard'
 import { TasksList } from '@/components/projects/TasksList'
 import { ProjectMembers } from '@/components/projects/ProjectMembers'
 import { ProjectDocuments } from '@/components/projects/ProjectDocuments'
-import { ProjectAnalytics } from '@/components/projects/ProjectAnalytics'
+import dynamic from 'next/dynamic'
+
+const ProjectAnalytics = dynamic(
+  () =>
+    import('@/components/projects/ProjectAnalytics').then(mod => ({
+      default: mod.ProjectAnalytics,
+    })),
+  { ssr: false }
+)
 import { CardSkeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Grid, List, Users, FileText, BarChart3 } from 'lucide-react'
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -46,28 +49,18 @@ export default function ProjectDetailPage() {
   } = useGetTasksQuery(
     {
       projectId,
-      workspaceId: currentWorkspace?.id || ''
+      workspaceId: currentWorkspace?.id || '',
     },
     { skip: !projectId || !currentWorkspace?.id }
   )
 
   // Fetch project members
-  const {
-    data: membersData,
-    isLoading: membersLoading,
-  } = useGetProjectMembersQuery(
-    { projectId },
-    { skip: !projectId }
-  )
+  const { data: membersData, isLoading: membersLoading } =
+    useGetProjectMembersQuery({ projectId }, { skip: !projectId })
 
   // Fetch project documents
-  const {
-    data: documentsData,
-    isLoading: documentsLoading,
-  } = useGetDocumentsQuery(
-    { projectId },
-    { skip: !projectId }
-  )
+  const { data: documentsData, isLoading: documentsLoading } =
+    useGetDocumentsQuery({ projectId }, { skip: !projectId })
 
   if (!currentWorkspace) {
     return (
@@ -83,23 +76,23 @@ export default function ProjectDetailPage() {
         {/* Header Skeleton */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+            <div className="h-8 w-48 animate-pulse rounded bg-muted" />
             <div className="flex space-x-2">
-              <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-              <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-              <div className="h-8 w-8 bg-muted rounded animate-pulse" />
+              <div className="h-8 w-8 animate-pulse rounded bg-muted" />
+              <div className="h-8 w-8 animate-pulse rounded bg-muted" />
+              <div className="h-8 w-8 animate-pulse rounded bg-muted" />
             </div>
           </div>
           <div className="flex space-x-4">
-            <div className="h-16 w-16 bg-muted rounded-xl animate-pulse" />
+            <div className="h-16 w-16 animate-pulse rounded-xl bg-muted" />
             <div className="flex-1 space-y-2">
-              <div className="h-8 w-64 bg-muted rounded animate-pulse" />
-              <div className="h-4 w-96 bg-muted rounded animate-pulse" />
-              <div className="grid grid-cols-4 gap-6 mt-4">
-                <div className="h-12 bg-muted rounded animate-pulse" />
-                <div className="h-12 bg-muted rounded animate-pulse" />
-                <div className="h-12 bg-muted rounded animate-pulse" />
-                <div className="h-12 bg-muted rounded animate-pulse" />
+              <div className="h-8 w-64 animate-pulse rounded bg-muted" />
+              <div className="h-4 w-96 animate-pulse rounded bg-muted" />
+              <div className="mt-4 grid grid-cols-4 gap-6">
+                <div className="h-12 animate-pulse rounded bg-muted" />
+                <div className="h-12 animate-pulse rounded bg-muted" />
+                <div className="h-12 animate-pulse rounded bg-muted" />
+                <div className="h-12 animate-pulse rounded bg-muted" />
               </div>
             </div>
           </div>
@@ -107,7 +100,7 @@ export default function ProjectDetailPage() {
 
         {/* Content Skeleton */}
         <div className="space-y-4">
-          <div className="h-10 w-full bg-muted rounded animate-pulse" />
+          <div className="h-10 w-full animate-pulse rounded bg-muted" />
           <div className="grid gap-6 md:grid-cols-4">
             <CardSkeleton />
             <CardSkeleton />

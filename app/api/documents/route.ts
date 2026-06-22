@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { ProjectDocument, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -8,26 +9,32 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { z } from 'zod'
 
 const createDocumentSchema = z.object({
   title: z.string().min(1).max(200),
-  content: z.union([z.string(), z.array(z.any()), z.record(z.any())]).transform((val) => {
-    // Convert arrays/objects to HTML string for storage
-    if (Array.isArray(val)) {
-      return val.map(block => {
-        if (typeof block === 'string') return block
-        if (block.type === 'paragraph') return `<p>${block.content || ''}</p>`
-        if (block.type === 'heading') return `<h${block.level || 2}>${block.content || ''}</h${block.level || 2}>`
-        if (block.type === 'list') return `<ul><li>${block.content || ''}</li></ul>`
-        return block.content || ''
-      }).join('')
-    }
-    if (typeof val === 'object') {
-      return JSON.stringify(val)
-    }
-    return val || ''
-  }),
+  content: z
+    .union([z.string(), z.array(z.any()), z.record(z.any())])
+    .transform(val => {
+      // Convert arrays/objects to HTML string for storage
+      if (Array.isArray(val)) {
+        return val
+          .map(block => {
+            if (typeof block === 'string') return block
+            if (block.type === 'paragraph')
+              return `<p>${block.content || ''}</p>`
+            if (block.type === 'heading')
+              return `<h${block.level || 2}>${block.content || ''}</h${block.level || 2}>`
+            if (block.type === 'list')
+              return `<ul><li>${block.content || ''}</li></ul>`
+            return block.content || ''
+          })
+          .join('')
+      }
+      if (typeof val === 'object') {
+        return JSON.stringify(val)
+      }
+      return val || ''
+    }),
   projectId: z.string(),
   folderId: z.string().optional(),
   type: z.enum(['document', 'template', 'note']).default('document'),

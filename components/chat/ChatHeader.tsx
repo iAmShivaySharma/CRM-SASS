@@ -2,15 +2,26 @@
 
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
 import {
-  ChatRoom,
+  Menu,
+  Hash,
+  Lock,
+  Users,
+  MoreVertical,
+  UserPlus,
+  Settings,
+  Archive,
+  Trash2,
+  Volume2,
+  VolumeX,
+  Info,
+} from 'lucide-react'
+import { type RootState } from '@/lib/store'
+import {
+  type ChatRoom,
   useUpdateChatRoomMutation,
   useDeleteChatRoomMutation,
 } from '@/lib/api/chatApi'
-import { ChatDetailsDialog } from './ChatDetailsDialog'
-import { AddParticipantsDialog } from './AddParticipantsDialog'
-import { ChatSettingsDialog } from './ChatSettingsDialog'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -33,20 +44,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import {
-  Menu,
-  Hash,
-  Lock,
-  Users,
-  MoreVertical,
-  UserPlus,
-  Settings,
-  Archive,
-  Trash2,
-  Volume2,
-  VolumeX,
-  Info,
-} from 'lucide-react'
+import { ChatSettingsDialog } from './ChatSettingsDialog'
+import { AddParticipantsDialog } from './AddParticipantsDialog'
+import { ChatDetailsDialog } from './ChatDetailsDialog'
 
 interface ChatHeaderProps {
   chatRoom: ChatRoom

@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import {
   Users,
   Clock,
@@ -16,11 +14,13 @@ import {
   ArrowRight,
   Building,
   ChevronRight,
-  Loader2
+  Loader2,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
 import { useAppSelector } from '@/lib/hooks'
-import { useRouter } from 'next/navigation'
 
 interface HRStats {
   totalEmployees: number
@@ -43,7 +43,9 @@ export default function HRPage() {
     if (!currentWorkspace?.id) return
     try {
       setLoading(true)
-      const res = await fetch(`/api/hr/stats?workspaceId=${currentWorkspace.id}`)
+      const res = await fetch(
+        `/api/hr/stats?workspaceId=${currentWorkspace.id}`
+      )
       if (res.ok) {
         const data = await res.json()
         setStats(data)
@@ -62,11 +64,23 @@ export default function HRPage() {
   const getStatusColor = (status: string, value: number) => {
     switch (status) {
       case 'present':
-        return value > 85 ? 'text-green-600' : value > 70 ? 'text-yellow-600' : 'text-red-600'
+        return value > 85
+          ? 'text-green-600'
+          : value > 70
+            ? 'text-yellow-600'
+            : 'text-red-600'
       case 'absent':
-        return value > 15 ? 'text-red-600' : value > 10 ? 'text-yellow-600' : 'text-green-600'
+        return value > 15
+          ? 'text-red-600'
+          : value > 10
+            ? 'text-yellow-600'
+            : 'text-green-600'
       case 'rate':
-        return value > 90 ? 'text-green-600' : value > 80 ? 'text-yellow-600' : 'text-red-600'
+        return value > 90
+          ? 'text-green-600'
+          : value > 80
+            ? 'text-yellow-600'
+            : 'text-red-600'
       default:
         return 'text-gray-600'
     }
@@ -80,7 +94,7 @@ export default function HRPage() {
     attendanceRate: 0,
     pendingLeaves: 0,
     totalAssets: 0,
-    availableAssets: 0
+    availableAssets: 0,
   }
 
   const hrModules = [
@@ -90,10 +104,18 @@ export default function HRPage() {
       icon: Clock,
       href: '/attendance',
       stats: [
-        { label: 'Present Today', value: displayStats.presentToday, color: 'text-green-600' },
-        { label: 'Attendance Rate', value: `${displayStats.attendanceRate}%`, color: getStatusColor('rate', displayStats.attendanceRate) }
+        {
+          label: 'Present Today',
+          value: displayStats.presentToday,
+          color: 'text-green-600',
+        },
+        {
+          label: 'Attendance Rate',
+          value: `${displayStats.attendanceRate}%`,
+          color: getStatusColor('rate', displayStats.attendanceRate),
+        },
       ],
-      actions: ['View Live Tracking', 'Generate Reports', 'Manage Shifts']
+      actions: ['View Live Tracking', 'Generate Reports', 'Manage Shifts'],
     },
     {
       name: 'Employee Management',
@@ -101,10 +123,18 @@ export default function HRPage() {
       icon: User,
       href: '/employees',
       stats: [
-        { label: 'Total Employees', value: displayStats.totalEmployees, color: 'text-blue-600' },
-        { label: 'Active', value: displayStats.totalEmployees, color: 'text-green-600' }
+        {
+          label: 'Total Employees',
+          value: displayStats.totalEmployees,
+          color: 'text-blue-600',
+        },
+        {
+          label: 'Active',
+          value: displayStats.totalEmployees,
+          color: 'text-green-600',
+        },
       ],
-      actions: ['Add Employee', 'Manage Roles', 'Employee Directory']
+      actions: ['Add Employee', 'Manage Roles', 'Employee Directory'],
     },
     {
       name: 'Leave Management',
@@ -112,10 +142,14 @@ export default function HRPage() {
       icon: Calendar,
       href: '/leaves',
       stats: [
-        { label: 'Pending Requests', value: displayStats.pendingLeaves, color: 'text-yellow-600' },
-        { label: 'Approved This Month', value: '-', color: 'text-green-600' }
+        {
+          label: 'Pending Requests',
+          value: displayStats.pendingLeaves,
+          color: 'text-yellow-600',
+        },
+        { label: 'Approved This Month', value: '-', color: 'text-green-600' },
       ],
-      actions: ['Review Requests', 'Leave Policies', 'Balance Reports']
+      actions: ['Review Requests', 'Leave Policies', 'Balance Reports'],
     },
     {
       name: 'Asset Management',
@@ -123,19 +157,29 @@ export default function HRPage() {
       icon: Laptop,
       href: '/assets',
       stats: [
-        { label: 'Total Assets', value: displayStats.totalAssets, color: 'text-blue-600' },
-        { label: 'Available', value: displayStats.availableAssets, color: 'text-green-600' }
+        {
+          label: 'Total Assets',
+          value: displayStats.totalAssets,
+          color: 'text-blue-600',
+        },
+        {
+          label: 'Available',
+          value: displayStats.availableAssets,
+          color: 'text-green-600',
+        },
       ],
-      actions: ['Asset Inventory', 'Allocations', 'Maintenance']
-    }
+      actions: ['Asset Inventory', 'Allocations', 'Maintenance'],
+    },
   ]
 
   if (!currentWorkspace) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <h3 className="text-lg font-semibold">No Workspace Selected</h3>
-          <p className="text-muted-foreground">Please select a workspace to access HR management.</p>
+          <p className="text-muted-foreground">
+            Please select a workspace to access HR management.
+          </p>
         </div>
       </div>
     )
@@ -146,33 +190,41 @@ export default function HRPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Human Resources</h1>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+            Human Resources
+          </h1>
           <p className="mt-1 text-muted-foreground">
             Comprehensive HR management system for {currentWorkspace.name}
           </p>
         </div>
         <div className="flex items-center space-x-3">
           <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="mr-2 h-4 w-4" />
             Export Report
           </Button>
           <Button size="sm" onClick={() => router.push('/employees')}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Employee
           </Button>
         </div>
       </div>
 
       {/* Quick Stats Overview */}
-      <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Employees
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.totalEmployees}
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                displayStats.totalEmployees
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Active workforce</p>
           </CardContent>
@@ -185,7 +237,11 @@ export default function HRPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.presentToday}
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                displayStats.presentToday
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
               {displayStats.totalEmployees > 0
@@ -197,12 +253,18 @@ export default function HRPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Leaves</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Pending Leaves
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.pendingLeaves}
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                displayStats.pendingLeaves
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Awaiting approval</p>
           </CardContent>
@@ -210,12 +272,18 @@ export default function HRPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Assets</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Available Assets
+            </CardTitle>
             <Laptop className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : displayStats.availableAssets}
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                displayStats.availableAssets
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
               Out of {displayStats.totalAssets} total
@@ -242,15 +310,21 @@ export default function HRPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{displayStats.presentToday}</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {displayStats.presentToday}
+                    </div>
                     <div className="text-sm text-muted-foreground">Present</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">{displayStats.absentToday}</div>
+                    <div className="text-2xl font-bold text-red-600">
+                      {displayStats.absentToday}
+                    </div>
                     <div className="text-sm text-muted-foreground">Absent</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{displayStats.lateToday}</div>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {displayStats.lateToday}
+                    </div>
                     <div className="text-sm text-muted-foreground">Late</div>
                   </div>
                 </div>
@@ -258,13 +332,18 @@ export default function HRPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Overall Attendance Rate</span>
-                    <span className={getStatusColor('rate', displayStats.attendanceRate)}>
+                    <span
+                      className={getStatusColor(
+                        'rate',
+                        displayStats.attendanceRate
+                      )}
+                    >
                       {displayStats.attendanceRate}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="h-2 w-full rounded-full bg-gray-200">
                     <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      className="h-2 rounded-full bg-primary transition-all duration-300"
                       style={{ width: `${displayStats.attendanceRate}%` }}
                     />
                   </div>
@@ -277,49 +356,70 @@ export default function HRPage() {
 
       {/* HR Modules */}
       <div className="w-full">
-        <h2 className="text-xl font-semibold mb-4">HR Modules</h2>
+        <h2 className="mb-4 text-xl font-semibold">HR Modules</h2>
         <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
-          {hrModules.map((module) => {
+          {hrModules.map(module => {
             const Icon = module.icon
             return (
-              <Card key={module.name} className="hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => router.push(module.href)}>
+              <Card
+                key={module.name}
+                className="group cursor-pointer transition-shadow hover:shadow-lg"
+                onClick={() => router.push(module.href)}
+              >
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center space-x-3">
-                      <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                      <div className="rounded-lg bg-primary/10 p-2 transition-colors group-hover:bg-primary/20">
                         <Icon className="h-6 w-6 text-primary" />
                       </div>
                       <span className="text-lg">{module.name}</span>
                     </CardTitle>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <ChevronRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
                   </div>
-                  <p className="text-sm text-muted-foreground">{module.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {module.description}
+                  </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 gap-4">
                     {module.stats.map((stat, index) => (
-                      <div key={index} className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className={`text-xl font-bold ${stat.color}`}>{stat.value}</div>
-                        <div className="text-xs text-muted-foreground">{stat.label}</div>
+                      <div
+                        key={index}
+                        className="rounded-lg bg-gray-50 p-3 text-center dark:bg-gray-800"
+                      >
+                        <div className={`text-xl font-bold ${stat.color}`}>
+                          {stat.value}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {stat.label}
+                        </div>
                       </div>
                     ))}
                   </div>
 
                   {/* Quick Actions */}
                   <div className="border-t pt-3">
-                    <div className="text-xs text-muted-foreground mb-2">Quick Actions:</div>
+                    <div className="mb-2 text-xs text-muted-foreground">
+                      Quick Actions:
+                    </div>
                     <div className="flex flex-wrap gap-1">
-                      {module.actions.map((action) => (
-                        <span key={action} className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
+                      {module.actions.map(action => (
+                        <span
+                          key={action}
+                          className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                        >
                           {action}
                         </span>
                       ))}
                     </div>
                   </div>
 
-                  <Button className="w-full group-hover:bg-primary group-hover:text-white transition-colors" variant="outline">
-                    <ArrowRight className="h-4 w-4 mr-2" />
+                  <Button
+                    className="w-full transition-colors group-hover:bg-primary group-hover:text-white"
+                    variant="outline"
+                  >
+                    <ArrowRight className="mr-2 h-4 w-4" />
                     Open {module.name}
                   </Button>
                 </CardContent>

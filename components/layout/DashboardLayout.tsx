@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { toggleSidebar } from '@/lib/slices/themeSlice'
-import { Sidebar } from './Sidebar'
-import { Header } from './Header'
 import { SocketProvider } from '@/lib/context/SocketContext'
 import { cn } from '@/lib/utils'
+import { Sidebar } from './Sidebar'
+import { Header } from './Header'
 
 interface DashboardLayoutProps {
   children: React.ReactNode

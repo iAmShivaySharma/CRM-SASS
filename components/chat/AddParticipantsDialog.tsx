@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
-import { ChatRoom, useUpdateChatRoomMutation } from '@/lib/api/chatApi'
+import { Search, UserPlus, Loader2 } from 'lucide-react'
+import { type RootState } from '@/lib/store'
+import { type ChatRoom, useUpdateChatRoomMutation } from '@/lib/api/chatApi'
 import { useGetWorkspaceMembersQuery } from '@/lib/api/mongoApi'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -19,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Search, UserPlus, Loader2 } from 'lucide-react'
 
 interface AddParticipantsDialogProps {
   chatRoom: ChatRoom

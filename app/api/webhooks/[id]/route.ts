@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Webhook, WorkspaceMember, WebhookLog } from '@/lib/mongodb/client'
 import { updateWebhookSchema } from '@/lib/security/validation'

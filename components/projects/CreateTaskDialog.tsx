@@ -4,7 +4,15 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Calendar, Clock, User, Tag, AlertCircle, CheckCircle2 } from 'lucide-react'
+import {
+  Calendar,
+  Clock,
+  User,
+  Tag,
+  AlertCircle,
+  CheckCircle2,
+} from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +26,6 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { TiptapEditor } from '@/components/ui/tiptap-editor-improved'
-import { TimeTracker } from './TimeTracker'
 import {
   Select,
   SelectContent,
@@ -46,8 +53,8 @@ import {
 } from '@/lib/api/projectsApi'
 import { useToggleTaskCompletionMutation } from '@/lib/api/tasksApi'
 import { useAppSelector } from '@/lib/hooks'
-import { toast } from 'sonner'
 import { TaskFileUploader } from '@/components/tasks/TaskFileUploader'
+import { TimeTracker } from './TimeTracker'
 
 const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -58,11 +65,14 @@ const createTaskSchema = z.object({
   assigneeId: z.string().optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.string().optional(),
-  estimatedHours: z.union([z.number(), z.string()]).optional().transform(val => {
-    if (val === undefined || val === '') return undefined
-    const num = typeof val === 'string' ? parseFloat(val) : val
-    return isNaN(num) ? undefined : num
-  }),
+  estimatedHours: z
+    .union([z.number(), z.string()])
+    .optional()
+    .transform(val => {
+      if (val === undefined || val === '') return undefined
+      const num = typeof val === 'string' ? parseFloat(val) : val
+      return isNaN(num) ? undefined : num
+    }),
 })
 
 type CreateTaskFormData = z.infer<typeof createTaskSchema>
@@ -86,7 +96,9 @@ export function CreateTaskDialog({
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [description, setDescription] = useState('')
-  const [attachments, setAttachments] = useState<{ name: string; url: string; type: string; size: number }[]>([])
+  const [attachments, setAttachments] = useState<
+    { name: string; url: string; type: string; size: number }[]
+  >([])
   const [isCompleted, setIsCompleted] = useState(false)
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
@@ -113,7 +125,9 @@ export function CreateTaskDialog({
       status: defaultStatus || task?.status || '',
       priority: task?.priority || 'medium',
       tags: task?.tags || [],
-      dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+      dueDate: task?.dueDate
+        ? new Date(task.dueDate).toISOString().split('T')[0]
+        : '',
       estimatedHours: task?.estimatedHours || undefined,
     },
   })
@@ -130,7 +144,9 @@ export function CreateTaskDialog({
           status: task.status,
           priority: task.priority,
           tags: task.tags || [],
-          dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+          dueDate: task.dueDate
+            ? new Date(task.dueDate).toISOString().split('T')[0]
+            : '',
           estimatedHours: task.estimatedHours || undefined,
         })
         setDescription(task.description || '')
@@ -225,7 +241,10 @@ export function CreateTaskDialog({
       setAttachments([])
       setIsCompleted(false)
     } catch (error) {
-      console.error(task ? 'Failed to update task:' : 'Failed to create task:', error)
+      console.error(
+        task ? 'Failed to update task:' : 'Failed to create task:',
+        error
+      )
       toast.error(task ? 'Failed to update task' : 'Failed to create task')
     } finally {
       setIsLoading(false)
@@ -258,8 +277,7 @@ export function CreateTaskDialog({
           <DialogDescription>
             {task
               ? 'Update task details and save your changes.'
-              : 'Add a new task to your project. Fill in the details below.'
-            }
+              : 'Add a new task to your project. Fill in the details below.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -441,7 +459,9 @@ export function CreateTaskDialog({
               {task && (
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div className="space-y-1">
-                    <Label className="text-base font-medium">Task Completion</Label>
+                    <Label className="text-base font-medium">
+                      Task Completion
+                    </Label>
                     <p className="text-sm text-muted-foreground">
                       Mark this task as completed
                     </p>
@@ -456,10 +476,14 @@ export function CreateTaskDialog({
                     <Label
                       htmlFor="task-completion"
                       className={`flex items-center space-x-1 text-sm font-medium ${
-                        isCompleted ? 'text-green-600 dark:text-green-400' : 'text-gray-500'
+                        isCompleted
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-gray-500'
                       }`}
                     >
-                      <CheckCircle2 className={`h-4 w-4 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`} />
+                      <CheckCircle2
+                        className={`h-4 w-4 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`}
+                      />
                       <span>{isCompleted ? 'Completed' : 'Not completed'}</span>
                     </Label>
                   </div>
@@ -481,17 +505,23 @@ export function CreateTaskDialog({
                 {/* Selected Tags */}
                 <div className="mb-2 flex flex-wrap gap-2">
                   {tags.map((tag, index) => {
-                    const workspaceTag = tagsData?.tags.find(t => t.name === tag)
+                    const workspaceTag = tagsData?.tags.find(
+                      t => t.name === tag
+                    )
                     return (
                       <Badge
                         key={index}
                         variant="secondary"
                         className="cursor-pointer"
-                        style={workspaceTag ? {
-                          backgroundColor: workspaceTag.color,
-                          borderColor: workspaceTag.color,
-                          color: 'white'
-                        } : {}}
+                        style={
+                          workspaceTag
+                            ? {
+                                backgroundColor: workspaceTag.color,
+                                borderColor: workspaceTag.color,
+                                color: 'white',
+                              }
+                            : {}
+                        }
                         onClick={() => removeTag(tag)}
                       >
                         {tag} ×
@@ -503,11 +533,15 @@ export function CreateTaskDialog({
                 {/* Available Workspace Tags */}
                 {tagsData?.tags && tagsData.tags.length > 0 && (
                   <div className="mb-3">
-                    <Label className="text-sm text-muted-foreground">Available Tags:</Label>
+                    <Label className="text-sm text-muted-foreground">
+                      Available Tags:
+                    </Label>
                     <div className="mt-1 flex flex-wrap gap-2">
                       {tagsData.tags
-                        .filter(workspaceTag => !tags.includes(workspaceTag.name))
-                        .map((workspaceTag) => (
+                        .filter(
+                          workspaceTag => !tags.includes(workspaceTag.name)
+                        )
+                        .map(workspaceTag => (
                           <Badge
                             key={workspaceTag.id}
                             variant="outline"
@@ -515,7 +549,7 @@ export function CreateTaskDialog({
                             style={{
                               backgroundColor: workspaceTag.color,
                               borderColor: workspaceTag.color,
-                              color: 'white'
+                              color: 'white',
                             }}
                             onClick={() => {
                               if (!tags.includes(workspaceTag.name)) {
@@ -556,9 +590,12 @@ export function CreateTaskDialog({
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading
-                  ? (task ? 'Updating...' : 'Creating...')
-                  : (task ? 'Update Task' : 'Create Task')
-                }
+                  ? task
+                    ? 'Updating...'
+                    : 'Creating...'
+                  : task
+                    ? 'Update Task'
+                    : 'Create Task'}
               </Button>
             </DialogFooter>
           </form>

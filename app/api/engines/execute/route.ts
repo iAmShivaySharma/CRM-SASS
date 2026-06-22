@@ -1,9 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { WorkflowCatalog, WorkflowExecution, CustomerApiKey, WorkspaceMember } from '@/lib/mongodb/models'
+import {
+  WorkflowCatalog,
+  WorkflowExecution,
+  CustomerApiKey,
+  WorkspaceMember,
+} from '@/lib/mongodb/models'
 import { createN8nClient } from '@/lib/n8n/client'
-import mongoose from 'mongoose'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +23,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { workflowId, inputData, apiKeyType, apiKeyId, emailResults } = await request.json()
+    const { workflowId, inputData, apiKeyType, apiKeyId, emailResults } =
+      await request.json()
 
     if (!workflowId) {
       return NextResponse.json(
@@ -30,7 +36,7 @@ export async function POST(request: NextRequest) {
     // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
-      status: 'active'
+      status: 'active',
     }).sort({ createdAt: -1 })
 
     if (!workspaceMember) {
@@ -41,12 +47,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Get workflow from catalog
-    const workflow = await WorkflowCatalog.findById(workflowId).populate('category')
+    const workflow =
+      await WorkflowCatalog.findById(workflowId).populate('category')
     if (!workflow) {
-      return NextResponse.json(
-        { error: 'Workflow not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 })
     }
 
     // Initialize execution record
@@ -58,7 +62,7 @@ export async function POST(request: NextRequest) {
       apiKeyType,
       apiKeyId,
       emailResults: emailResults || false,
-      status: 'pending'
+      status: 'pending',
     })
 
     let customerApiKey = null
@@ -69,7 +73,10 @@ export async function POST(request: NextRequest) {
     if (apiKeyType === 'customer') {
       if (!apiKeyId) {
         return NextResponse.json(
-          { error: 'Customer API key ID is required when using customer API key' },
+          {
+            error:
+              'Customer API key ID is required when using customer API key',
+          },
           { status: 400 }
         )
       }
@@ -79,7 +86,7 @@ export async function POST(request: NextRequest) {
         _id: apiKeyId,
         userId: auth.user.id,
         workspaceId: workspaceMember.workspaceId,
-        isActive: true
+        isActive: true,
       })
 
       if (!customerApiKey) {
@@ -123,71 +130,85 @@ export async function POST(request: NextRequest) {
       execution.startedAt = new Date()
       await execution.save()
 
-      console.log(`Executing workflow ${workflow.name} for user ${auth.user.email}`)
+      console.log(
+        `Executing workflow ${workflow.name} for user ${auth.user.email}`
+      )
 
       // Execute workflow in n8n with dynamic input support
       let n8nResult
       let inputsRequired: any[] = []
 
       // Check if workflow has wait nodes that might require dynamic input
-      const hasWaitNodes = workflow.n8nData?.nodes?.some((node: any) =>
-        node.type.toLowerCase().includes('wait') ||
-        node.type.toLowerCase().includes('webhook')
+      const hasWaitNodes = workflow.n8nData?.nodes?.some(
+        (node: any) =>
+          node.type.toLowerCase().includes('wait') ||
+          node.type.toLowerCase().includes('webhook')
       )
 
       if (hasWaitNodes) {
         // Use dynamic input execution method
-        const dynamicResult = await n8nClient.executeWorkflowWithDynamicInput(workflow.n8nWorkflowId, {
-          data: inputData || {},
-          credentials: workflow.requiresApiKey && actualApiKey ? {
-            openrouter: { apiKey: actualApiKey }
-          } : undefined,
-          inputCallback: async (inputSchema, webhookUrl) => {
-            // Create UserInput record for tracking
-            const UserInput = (await import('@/lib/mongodb/models')).UserInput
+        const dynamicResult = await n8nClient.executeWorkflowWithDynamicInput(
+          workflow.n8nWorkflowId,
+          {
+            data: inputData || {},
+            credentials:
+              workflow.requiresApiKey && actualApiKey
+                ? {
+                    openrouter: { apiKey: actualApiKey },
+                  }
+                : undefined,
+            inputCallback: async (inputSchema, webhookUrl) => {
+              // Create UserInput record for tracking
+              const UserInput = (await import('@/lib/mongodb/models')).UserInput
 
-            const userInputRecord = new UserInput({
-              executionId: execution._id,
-              userId: auth.user.id,
-              workspaceId: workspaceMember.workspaceId,
-              step: execution.dynamicInput.currentStep + 1,
-              webhookUrl,
-              inputSchema,
-              timeoutAt: new Date(Date.now() + (60 * 60 * 1000)), // 1 hour timeout
-              metadata: {
-                workflowName: workflow.name,
-                stepDescription: `Step ${execution.dynamicInput.currentStep + 1} - User input required`,
-                priority: 'medium',
-                requiresImmediate: false
-              }
-            })
+              const userInputRecord = new UserInput({
+                executionId: execution._id,
+                userId: auth.user.id,
+                workspaceId: workspaceMember.workspaceId,
+                step: execution.dynamicInput.currentStep + 1,
+                webhookUrl,
+                inputSchema,
+                timeoutAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour timeout
+                metadata: {
+                  workflowName: workflow.name,
+                  stepDescription: `Step ${execution.dynamicInput.currentStep + 1} - User input required`,
+                  priority: 'medium',
+                  requiresImmediate: false,
+                },
+              })
 
-            await userInputRecord.save()
+              await userInputRecord.save()
 
-            // Mark execution as waiting for input
-            await execution.markWaitingForInput(webhookUrl, inputSchema, 60)
+              // Mark execution as waiting for input
+              await execution.markWaitingForInput(webhookUrl, inputSchema, 60)
 
-            console.log(`Workflow ${workflow.name} is waiting for input at step ${execution.dynamicInput.currentStep}`)
-          },
-          timeoutMinutes: 60
-        })
+              console.log(
+                `Workflow ${workflow.name} is waiting for input at step ${execution.dynamicInput.currentStep}`
+              )
+            },
+            timeoutMinutes: 60,
+          }
+        )
 
         n8nResult = dynamicResult.execution
         inputsRequired = dynamicResult.inputsRequired
       } else {
         // Use regular execution for workflows without wait nodes
         if (workflow.requiresApiKey && actualApiKey) {
-          n8nResult = await n8nClient.executeWorkflowWithCredentials(workflow.n8nWorkflowId, {
-            data: inputData || {},
-            credentials: {
-              openrouter: {
-                apiKey: actualApiKey
-              }
+          n8nResult = await n8nClient.executeWorkflowWithCredentials(
+            workflow.n8nWorkflowId,
+            {
+              data: inputData || {},
+              credentials: {
+                openrouter: {
+                  apiKey: actualApiKey,
+                },
+              },
             }
-          })
+          )
         } else {
           n8nResult = await n8nClient.executeWorkflow(workflow.n8nWorkflowId, {
-            data: inputData || {}
+            data: inputData || {},
           })
         }
       }
@@ -207,12 +228,13 @@ export async function POST(request: NextRequest) {
       execution.outputData = n8nResult.data?.resultData || {}
 
       if (execution.completedAt) {
-        execution.executionTimeMs = execution.completedAt.getTime() - execution.startedAt.getTime()
+        execution.executionTimeMs =
+          execution.completedAt.getTime() - execution.startedAt.getTime()
       }
 
       // Calculate actual cost and token usage
       let tokensUsed = 0
-      let actualCost = estimatedCost
+      const actualCost = estimatedCost
 
       // Try to extract token usage from n8n result if available
       if (n8nResult.data?.resultData?.runData) {
@@ -233,7 +255,7 @@ export async function POST(request: NextRequest) {
         type: apiKeyType,
         provider: customerApiKey?.provider || 'openrouter',
         cost: actualCost,
-        tokensUsed
+        tokensUsed,
       }
 
       await execution.save()
@@ -262,45 +284,53 @@ export async function POST(request: NextRequest) {
           dynamicInput: {
             isWaitingForInput: execution.dynamicInput.isWaitingForInput,
             currentStep: execution.dynamicInput.currentStep,
-            inputsRequired: inputsRequired.length > 0 ? inputsRequired : undefined
-          }
-        }
+            inputsRequired:
+              inputsRequired.length > 0 ? inputsRequired : undefined,
+          },
+        },
       })
-
     } catch (n8nError) {
       console.error('n8n execution error:', n8nError)
 
       // Update execution with error
       execution.status = 'failed'
       execution.completedAt = new Date()
-      execution.errorMessage = n8nError instanceof Error ? n8nError.message : 'Unknown execution error'
-      execution.executionTimeMs = execution.completedAt.getTime() - (execution.startedAt?.getTime() || execution.createdAt.getTime())
+      execution.errorMessage =
+        n8nError instanceof Error ? n8nError.message : 'Unknown execution error'
+      execution.executionTimeMs =
+        execution.completedAt.getTime() -
+        (execution.startedAt?.getTime() || execution.createdAt.getTime())
 
       await execution.save()
 
       // Update workflow usage stats (failed execution)
       await workflow.updateUsageStats(execution.executionTimeMs, false)
 
-      return NextResponse.json({
-        success: false,
-        data: {
-          _id: execution._id,
-          status: execution.status,
-          errorMessage: execution.errorMessage,
-          executionTimeMs: execution.executionTimeMs,
-          createdAt: execution.createdAt,
-          completedAt: execution.completedAt
-        }
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          success: false,
+          data: {
+            _id: execution._id,
+            status: execution.status,
+            errorMessage: execution.errorMessage,
+            executionTimeMs: execution.executionTimeMs,
+            createdAt: execution.createdAt,
+            completedAt: execution.completedAt,
+          },
+        },
+        { status: 500 }
+      )
     }
-
   } catch (error) {
     console.error('Workflow execution API error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to execute workflow',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to execute workflow',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { withLogging, withSecurityLogging } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailService } from '@/lib/services/emailProviderService'
 import { log } from '@/lib/logging/logger'
@@ -15,7 +15,10 @@ export async function POST(request: NextRequest) {
     const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     let accountId: string | null = null
@@ -36,26 +39,28 @@ export async function POST(request: NextRequest) {
       const formData = await request.formData()
       accountId = formData.get('accountId') as string
       to = formData.get('to') as string
-      cc = formData.get('cc') as string || null
-      bcc = formData.get('bcc') as string || null
+      cc = (formData.get('cc') as string) || null
+      bcc = (formData.get('bcc') as string) || null
       subject = formData.get('subject') as string
       const body = formData.get('body') as string
       html = body || undefined
       text = body || undefined
-      inReplyTo = formData.get('inReplyTo') as string || undefined
+      inReplyTo = (formData.get('inReplyTo') as string) || undefined
 
       const files = formData.getAll('attachments')
       if (files.length > 0) {
         attachments = await Promise.all(
-          files.filter(f => f instanceof File).map(async (file) => {
-            const f = file as File
-            const buffer = Buffer.from(await f.arrayBuffer())
-            return {
-              filename: f.name,
-              content: buffer,
-              contentType: f.type
-            }
-          })
+          files
+            .filter(f => f instanceof File)
+            .map(async file => {
+              const f = file as File
+              const buffer = Buffer.from(await f.arrayBuffer())
+              return {
+                filename: f.name,
+                content: buffer,
+                contentType: f.type,
+              }
+            })
         )
       }
     } else {
@@ -89,15 +94,15 @@ export async function POST(request: NextRequest) {
 
     const result = await EmailService.sendEmail(accountId, {
       to,
-      cc,
-      bcc,
+      cc: cc || undefined,
+      bcc: bcc || undefined,
       subject,
       text,
       html,
       attachments,
       replyTo,
       inReplyTo,
-      references
+      references,
     })
 
     if (!result.success) {
@@ -112,18 +117,20 @@ export async function POST(request: NextRequest) {
       workspaceId,
       accountId,
       messageId: result.messageId,
-      subject
+      subject,
     })
 
     return NextResponse.json({
       success: true,
       messageId: result.messageId,
-      message: 'Email sent successfully'
+      message: 'Email sent successfully',
     })
   } catch (error) {
     log.error('Send email error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to send email' },
+      {
+        error: error instanceof Error ? error.message : 'Failed to send email',
+      },
       { status: 500 }
     )
   }

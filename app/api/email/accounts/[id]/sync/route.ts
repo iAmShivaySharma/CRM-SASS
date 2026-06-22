@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount } from '@/lib/mongodb/models'
 import { EmailService } from '@/lib/services/emailProviderService'
@@ -30,7 +30,7 @@ export async function POST(
       _id: accountId,
       userId: auth.user._id,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     if (!account) {
@@ -44,18 +44,13 @@ export async function POST(
       )
     }
 
-    const {
-      folder = 'INBOX',
-      since,
-      limit = 50,
-      markAsRead = false
-    } = body
+    const { folder = 'INBOX', since, limit = 50, markAsRead = false } = body
 
     const syncOptions = {
       folder,
       since: since ? new Date(since) : undefined,
       limit,
-      markAsRead
+      markAsRead,
     }
 
     const result = await EmailService.syncAccountEmails(accountId, syncOptions)
@@ -76,19 +71,21 @@ export async function POST(
       accountId,
       syncedCount: result.count,
       folder,
-      syncOptions
+      syncOptions,
     })
 
     return NextResponse.json({
       success: true,
       count: result.count,
       message: `Synced ${result.count} new emails`,
-      lastSyncAt: account.settings.lastSyncAt
+      lastSyncAt: account.settings.lastSyncAt,
     })
   } catch (error) {
     log.error('Email sync error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to sync emails' },
+      {
+        error: error instanceof Error ? error.message : 'Failed to sync emails',
+      },
       { status: 500 }
     )
   }

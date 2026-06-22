@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { WorkflowCatalog, WorkflowCategory } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
@@ -37,16 +37,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Build aggregation pipeline
-    const pipeline: any[] = [
-      { $match: query }
-    ]
+    const pipeline: any[] = [{ $match: query }]
 
     // Add text search if provided
     if (search) {
       pipeline.unshift({
         $match: {
-          $text: { $search: search }
-        }
+          $text: { $search: search },
+        },
       })
     }
 
@@ -57,23 +55,23 @@ export async function GET(request: NextRequest) {
           from: 'workflowcategories',
           localField: 'category',
           foreignField: '_id',
-          as: 'categoryDoc'
-        }
+          as: 'categoryDoc',
+        },
       },
       {
-        $unwind: '$categoryDoc'
+        $unwind: '$categoryDoc',
       },
       {
         $addFields: {
           categoryName: '$categoryDoc.name',
-          categoryIcon: '$categoryDoc.icon'
-        }
+          categoryIcon: '$categoryDoc.icon',
+        },
       },
       {
         $project: {
           categoryDoc: 0,
-          n8nData: 0 // Exclude large n8n data from list view
-        }
+          n8nData: 0, // Exclude large n8n data from list view
+        },
       }
     )
 
@@ -81,7 +79,7 @@ export async function GET(request: NextRequest) {
     pipeline.push({
       $sort: search
         ? { score: { $meta: 'textScore' }, 'usage.totalExecutions': -1 }
-        : { 'usage.totalExecutions': -1, updatedAt: -1 }
+        : { 'usage.totalExecutions': -1, updatedAt: -1 },
     })
 
     // Get total count
@@ -89,20 +87,19 @@ export async function GET(request: NextRequest) {
     countPipeline.push({ $count: 'total' })
 
     // Add pagination
-    pipeline.push(
-      { $skip: offset },
-      { $limit: limit }
-    )
+    pipeline.push({ $skip: offset }, { $limit: limit })
 
     const [workflows, countResult] = await Promise.all([
       WorkflowCatalog.aggregate(pipeline),
-      WorkflowCatalog.aggregate(countPipeline)
+      WorkflowCatalog.aggregate(countPipeline),
     ])
 
     const total = countResult[0]?.total || 0
 
     // Get categories for filtering
-    const categories = await WorkflowCategory.find({ isActive: true }).sort({ name: 1 })
+    const categories = await WorkflowCategory.find({ isActive: true }).sort({
+      name: 1,
+    })
 
     return NextResponse.json({
       success: true,
@@ -113,17 +110,20 @@ export async function GET(request: NextRequest) {
           total,
           limit,
           offset,
-          hasMore: offset + limit < total
-        }
-      }
+          hasMore: offset + limit < total,
+        },
+      },
     })
   } catch (error) {
     console.error('Get workflow catalog error:', error)
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch workflow catalog',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch workflow catalog',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

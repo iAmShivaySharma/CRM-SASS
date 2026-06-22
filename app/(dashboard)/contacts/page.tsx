@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
+import { Plus, Search, Filter } from 'lucide-react'
+import { type RootState } from '@/lib/store'
 import { useGetContactsQuery } from '@/lib/api/contactsApi'
 import { ContactList } from '@/components/contacts/ContactList'
 import { ContactForm } from '@/components/contacts/ContactForm'
@@ -22,7 +23,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Search, Filter } from 'lucide-react'
 import {
   Card,
   CardContent,

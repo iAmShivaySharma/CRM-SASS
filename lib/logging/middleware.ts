@@ -10,7 +10,7 @@
  * - User activity tracking
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { log } from './logger'
 
 interface RequestLogData {

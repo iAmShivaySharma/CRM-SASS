@@ -1,9 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
 import {
   Laptop,
   Users,
@@ -16,8 +13,11 @@ import {
   DollarSign,
   Calendar,
   Wrench,
-  Loader2
+  Loader2,
 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { AssetManagement } from '@/components/hr/AssetManagement'
 import { useAppSelector } from '@/lib/hooks'
 
@@ -40,7 +40,9 @@ export default function AssetsPage() {
     if (!currentWorkspace?.id) return
     try {
       setLoading(true)
-      const res = await fetch(`/api/assets/stats?workspaceId=${currentWorkspace.id}`)
+      const res = await fetch(
+        `/api/assets/stats?workspaceId=${currentWorkspace.id}`
+      )
       if (res.ok) {
         const data = await res.json()
         setStats(data)
@@ -69,10 +71,12 @@ export default function AssetsPage() {
 
   if (!currentWorkspace) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <h3 className="text-lg font-semibold">No Workspace Selected</h3>
-          <p className="text-muted-foreground">Please select a workspace to view assets.</p>
+          <p className="text-muted-foreground">
+            Please select a workspace to view assets.
+          </p>
         </div>
       </div>
     )
@@ -91,18 +95,20 @@ export default function AssetsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Asset Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Asset Management
+          </h1>
           <p className="text-muted-foreground">
             Manage company assets and allocations for {currentWorkspace.name}
           </p>
         </div>
         <div className="flex items-center space-x-3">
           <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="mr-2 h-4 w-4" />
             Export Inventory
           </Button>
           <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Asset
           </Button>
         </div>
@@ -117,9 +123,15 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : totalAssets}
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                totalAssets
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">{availableAssets} available</p>
+            <p className="text-xs text-muted-foreground">
+              {availableAssets} available
+            </p>
           </CardContent>
         </Card>
 
@@ -130,10 +142,17 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : allocatedAssets}
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                allocatedAssets
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
-              {totalAssets > 0 ? Math.round((allocatedAssets / totalAssets) * 100) : 0}% utilization
+              {totalAssets > 0
+                ? Math.round((allocatedAssets / totalAssets) * 100)
+                : 0}
+              % utilization
             </p>
           </CardContent>
         </Card>
@@ -145,20 +164,32 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : `$${(totalValue / 1000).toFixed(0)}K`}
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                `$${(totalValue / 1000).toFixed(0)}K`
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">Current portfolio value</p>
+            <p className="text-xs text-muted-foreground">
+              Current portfolio value
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Maintenance Due</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Maintenance Due
+            </CardTitle>
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : (stats?.upcomingMaintenance || 0)}
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                stats?.upcomingMaintenance || 0
+              )}
             </div>
             <p className="text-xs text-muted-foreground">Next 30 days</p>
           </CardContent>
@@ -174,20 +205,43 @@ export default function AssetsPage() {
           <CardContent>
             <div className="space-y-4">
               {[
-                { label: 'Available', count: availableAssets, color: 'bg-green-500' },
-                { label: 'Allocated', count: allocatedAssets, color: 'bg-blue-500' },
-                { label: 'Maintenance', count: maintenanceAssets, color: 'bg-yellow-500' },
-                { label: 'Retired', count: retiredAssets, color: 'bg-gray-500' },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between">
+                {
+                  label: 'Available',
+                  count: availableAssets,
+                  color: 'bg-green-500',
+                },
+                {
+                  label: 'Allocated',
+                  count: allocatedAssets,
+                  color: 'bg-blue-500',
+                },
+                {
+                  label: 'Maintenance',
+                  count: maintenanceAssets,
+                  color: 'bg-yellow-500',
+                },
+                {
+                  label: 'Retired',
+                  count: retiredAssets,
+                  color: 'bg-gray-500',
+                },
+              ].map(item => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 ${item.color} rounded-full`}></div>
+                    <div className={`h-3 w-3 ${item.color} rounded-full`}></div>
                     <span className="text-sm">{item.label}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-medium">{item.count}</span>
                     <span className="text-xs text-muted-foreground">
-                      ({totalAssets > 0 ? Math.round((item.count / totalAssets) * 100) : 0}%)
+                      (
+                      {totalAssets > 0
+                        ? Math.round((item.count / totalAssets) * 100)
+                        : 0}
+                      %)
                     </span>
                   </div>
                 </div>
@@ -202,26 +256,35 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {(stats?.byCategory || []).map((category) => (
+              {(stats?.byCategory || []).map(category => (
                 <div key={category._id} className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium capitalize">{category._id}</span>
+                    <span className="font-medium capitalize">
+                      {category._id}
+                    </span>
                     <span className="font-medium">{category.count}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                    <span>Value: ${(category.totalValue / 1000).toFixed(0)}K</span>
+                  <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+                    <span>
+                      Value: ${(category.totalValue / 1000).toFixed(0)}K
+                    </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="h-2 w-full rounded-full bg-gray-200">
                     <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${totalAssets > 0 ? (category.count / totalAssets) * 100 : 0}%` }}
+                      className="h-2 rounded-full bg-primary transition-all duration-300"
+                      style={{
+                        width: `${totalAssets > 0 ? (category.count / totalAssets) * 100 : 0}%`,
+                      }}
                     />
                   </div>
                 </div>
               ))}
-              {(!stats?.byCategory || stats.byCategory.length === 0) && !loading && (
-                <p className="text-sm text-muted-foreground">No assets registered yet.</p>
-              )}
+              {(!stats?.byCategory || stats.byCategory.length === 0) &&
+                !loading && (
+                  <p className="text-sm text-muted-foreground">
+                    No assets registered yet.
+                  </p>
+                )}
             </div>
           </CardContent>
         </Card>
@@ -231,18 +294,22 @@ export default function AssetsPage() {
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center space-x-2">
+            <CardTitle className="flex items-center space-x-2 text-base">
               <AlertTriangle className="h-4 w-4 text-yellow-500" />
               <span>Alerts</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-sm">
-              <div className="font-medium text-yellow-600">{stats?.upcomingMaintenance || 0} maintenance due</div>
+              <div className="font-medium text-yellow-600">
+                {stats?.upcomingMaintenance || 0} maintenance due
+              </div>
               <div className="text-muted-foreground">Next 30 days</div>
             </div>
             <div className="text-sm">
-              <div className="font-medium text-red-600">{stats?.overdueReturns || 0} overdue returns</div>
+              <div className="font-medium text-red-600">
+                {stats?.overdueReturns || 0} overdue returns
+              </div>
               <div className="text-muted-foreground">Past expected date</div>
             </div>
           </CardContent>
@@ -250,7 +317,7 @@ export default function AssetsPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center space-x-2">
+            <CardTitle className="flex items-center space-x-2 text-base">
               <TrendingUp className="h-4 w-4 text-green-500" />
               <span>Performance</span>
             </CardTitle>
@@ -258,13 +325,21 @@ export default function AssetsPage() {
           <CardContent className="space-y-3">
             <div className="text-sm">
               <div className="font-medium text-green-600">
-                {totalAssets > 0 ? Math.round((availableAssets / totalAssets) * 100) : 0}%
+                {totalAssets > 0
+                  ? Math.round((availableAssets / totalAssets) * 100)
+                  : 0}
+                %
               </div>
-              <div className="text-muted-foreground">Asset availability rate</div>
+              <div className="text-muted-foreground">
+                Asset availability rate
+              </div>
             </div>
             <div className="text-sm">
               <div className="font-medium text-blue-600">
-                {totalAssets > 0 ? Math.round((allocatedAssets / totalAssets) * 100) : 0}%
+                {totalAssets > 0
+                  ? Math.round((allocatedAssets / totalAssets) * 100)
+                  : 0}
+                %
               </div>
               <div className="text-muted-foreground">Utilization rate</div>
             </div>
@@ -273,7 +348,7 @@ export default function AssetsPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center space-x-2">
+            <CardTitle className="flex items-center space-x-2 text-base">
               <Calendar className="h-4 w-4 text-blue-500" />
               <span>Summary</span>
             </CardTitle>
@@ -292,17 +367,30 @@ export default function AssetsPage() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="inventory" className="flex items-center space-x-2">
+          <TabsTrigger
+            value="inventory"
+            className="flex items-center space-x-2"
+          >
             <Laptop className="h-4 w-4" />
             <span>Asset Inventory</span>
           </TabsTrigger>
-          <TabsTrigger value="allocations" className="flex items-center space-x-2">
+          <TabsTrigger
+            value="allocations"
+            className="flex items-center space-x-2"
+          >
             <Users className="h-4 w-4" />
             <span>Allocations</span>
           </TabsTrigger>
-          <TabsTrigger value="maintenance" className="flex items-center space-x-2">
+          <TabsTrigger
+            value="maintenance"
+            className="flex items-center space-x-2"
+          >
             <Settings className="h-4 w-4" />
             <span>Maintenance</span>
           </TabsTrigger>

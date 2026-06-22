@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
+import { type NextRequest, NextResponse } from 'next/server'
 import { Webhook, WebhookLog, Lead, Tag } from '@/lib/mongodb/client'
 import { webhookLeadSchema } from '@/lib/security/validation'
 import { processWebhook, detectWebhookType } from '@/lib/webhooks/processors'
 import { NotificationService } from '@/lib/services/notificationService'
-import crypto from 'crypto'
 
 // POST /api/webhooks/receive/[id] - Receive webhook data
 export async function POST(

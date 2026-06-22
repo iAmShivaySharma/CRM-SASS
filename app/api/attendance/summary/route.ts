@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Attendance, WorkspaceMember } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const startDate = searchParams.get('startDate')
@@ -25,16 +28,20 @@ export async function GET(request: NextRequest) {
 
     // Default to today if no dates provided
     const today = new Date()
-    const start = startDate ? new Date(startDate) : new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const end = endDate ? new Date(endDate) : new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const end = endDate
+      ? new Date(endDate)
+      : new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
 
     // Build base query
     const baseQuery: any = {
       workspaceId,
       date: {
         $gte: start,
-        $lt: end
-      }
+        $lt: end,
+      },
     }
 
     if (userId) {
@@ -51,27 +58,32 @@ export async function GET(request: NextRequest) {
           presentDays: {
             $sum: {
               $cond: [
-                { $in: ['$status', ['clocked_in', 'clocked_out', 'on_break', 'late']] },
+                {
+                  $in: [
+                    '$status',
+                    ['clocked_in', 'clocked_out', 'on_break', 'late'],
+                  ],
+                },
                 1,
-                0
-              ]
-            }
+                0,
+              ],
+            },
           },
           absentDays: {
             $sum: {
-              $cond: [{ $eq: ['$status', 'absent'] }, 1, 0]
-            }
+              $cond: [{ $eq: ['$status', 'absent'] }, 1, 0],
+            },
           },
           lateDays: {
             $sum: {
-              $cond: [{ $eq: ['$status', 'late'] }, 1, 0]
-            }
+              $cond: [{ $eq: ['$status', 'late'] }, 1, 0],
+            },
           },
           totalWorkMinutes: { $sum: '$totalWorkTime' },
           totalOvertimeMinutes: { $sum: '$overtimeMinutes' },
-          averageWorkMinutes: { $avg: '$totalWorkTime' }
-        }
-      }
+          averageWorkMinutes: { $avg: '$totalWorkTime' },
+        },
+      },
     ])
 
     const stats = summary[0] || {
@@ -81,20 +93,27 @@ export async function GET(request: NextRequest) {
       lateDays: 0,
       totalWorkMinutes: 0,
       totalOvertimeMinutes: 0,
-      averageWorkMinutes: 0
+      averageWorkMinutes: 0,
     }
 
     // Calculate attendance rate
     const workingDays = stats.presentDays + stats.absentDays
-    const attendanceRate = workingDays > 0 ? (stats.presentDays / workingDays) * 100 : 0
+    const attendanceRate =
+      workingDays > 0 ? (stats.presentDays / workingDays) * 100 : 0
 
     // Convert minutes to hours
     const totalWorkHours = Math.round((stats.totalWorkMinutes / 60) * 100) / 100
-    const totalOvertimeHours = Math.round((stats.totalOvertimeMinutes / 60) * 100) / 100
-    const averageWorkHours = Math.round((stats.averageWorkMinutes / 60) * 100) / 100
+    const totalOvertimeHours =
+      Math.round((stats.totalOvertimeMinutes / 60) * 100) / 100
+    const averageWorkHours =
+      Math.round((stats.averageWorkMinutes / 60) * 100) / 100
 
     // Get today's workspace attendance summary (who's currently working)
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    )
     const todayEnd = new Date(todayStart)
     todayEnd.setDate(todayEnd.getDate() + 1)
 
@@ -102,16 +121,16 @@ export async function GET(request: NextRequest) {
       {
         $match: {
           workspaceId,
-          date: { $gte: todayStart, $lt: todayEnd }
-        }
+          date: { $gte: todayStart, $lt: todayEnd },
+        },
       },
       {
         $lookup: {
           from: 'users',
           localField: 'userId',
           foreignField: '_id',
-          as: 'user'
-        }
+          as: 'user',
+        },
       },
       { $unwind: '$user' },
       {
@@ -123,10 +142,10 @@ export async function GET(request: NextRequest) {
           clockIn: 1,
           clockOut: 1,
           workType: 1,
-          totalWorkTime: 1
-        }
+          totalWorkTime: 1,
+        },
       },
-      { $sort: { clockIn: 1 } }
+      { $sort: { clockIn: 1 } },
     ])
 
     // Group today's attendance by status
@@ -148,17 +167,17 @@ export async function GET(request: NextRequest) {
         totalWorkHours,
         totalOvertimeHours,
         averageWorkHours,
-        attendanceRate: Math.round(attendanceRate * 100) / 100
+        attendanceRate: Math.round(attendanceRate * 100) / 100,
       },
       todayAttendance: {
         total: todayAttendance.length,
         byStatus: todayByStatus,
-        records: todayAttendance
+        records: todayAttendance,
       },
       dateRange: {
         start: start.toISOString(),
-        end: end.toISOString()
-      }
+        end: end.toISOString(),
+      },
     })
   } catch (error) {
     log.error('Get attendance summary error:', error)

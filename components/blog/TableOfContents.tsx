@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { cn } from '@/lib/utils'
 import { List } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface TocItem {
   id: string
@@ -60,7 +60,9 @@ export default function TableOfContents({ items }: TableOfContentsProps) {
               href={`#${item.id}`}
               onClick={e => {
                 e.preventDefault()
-                document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' })
+                document
+                  .getElementById(item.id)
+                  ?.scrollIntoView({ behavior: 'smooth' })
               }}
               className={cn(
                 'block text-sm leading-relaxed transition-colors',

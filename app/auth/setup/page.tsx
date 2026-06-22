@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { Briefcase, User, Building, Mail, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,8 +17,6 @@ import {
 } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 // Profile setup functionality will be implemented with MongoDB
-import { toast } from 'sonner'
-import { Briefcase, User, Building, Mail, Users } from 'lucide-react'
 
 interface SetupFormData {
   fullName: string

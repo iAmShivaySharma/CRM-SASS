@@ -1,13 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 import { Blog } from '@/lib/mongodb/models/Blog'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { z } from 'zod'
 
 const updateCategorySchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+  slug: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .optional(),
   description: z.string().max(500).optional(),
   metaTitle: z.string().max(70).optional(),
   metaDescription: z.string().max(160).optional(),
@@ -25,7 +30,10 @@ export async function PUT(
 
     const auth = await verifyAuthToken(request)
     if (!auth) {
-      return NextResponse.json({ message: 'Authentication required' }, { status: 401 })
+      return NextResponse.json(
+        { message: 'Authentication required' },
+        { status: 401 }
+      )
     }
 
     const { id } = await params
@@ -39,15 +47,23 @@ export async function PUT(
       )
     }
 
-    const category = await BlogCategory.findByIdAndUpdate(id, validation.data, { new: true })
+    const category = await BlogCategory.findByIdAndUpdate(id, validation.data, {
+      new: true,
+    })
     if (!category) {
-      return NextResponse.json({ message: 'Category not found' }, { status: 404 })
+      return NextResponse.json(
+        { message: 'Category not found' },
+        { status: 404 }
+      )
     }
 
     return NextResponse.json({ category })
   } catch (error) {
     console.error('Error updating category:', error)
-    return NextResponse.json({ message: 'Failed to update category' }, { status: 500 })
+    return NextResponse.json(
+      { message: 'Failed to update category' },
+      { status: 500 }
+    )
   }
 }
 
@@ -61,7 +77,10 @@ export async function DELETE(
 
     const auth = await verifyAuthToken(request)
     if (!auth) {
-      return NextResponse.json({ message: 'Authentication required' }, { status: 401 })
+      return NextResponse.json(
+        { message: 'Authentication required' },
+        { status: 401 }
+      )
     }
 
     const { id } = await params
@@ -70,19 +89,27 @@ export async function DELETE(
     const blogCount = await Blog.countDocuments({ categoryId: id })
     if (blogCount > 0) {
       return NextResponse.json(
-        { message: `Cannot delete: ${blogCount} blog post(s) use this category. Reassign them first.` },
+        {
+          message: `Cannot delete: ${blogCount} blog post(s) use this category. Reassign them first.`,
+        },
         { status: 400 }
       )
     }
 
     const category = await BlogCategory.findByIdAndDelete(id)
     if (!category) {
-      return NextResponse.json({ message: 'Category not found' }, { status: 404 })
+      return NextResponse.json(
+        { message: 'Category not found' },
+        { status: 404 }
+      )
     }
 
     return NextResponse.json({ message: 'Category deleted' })
   } catch (error) {
     console.error('Error deleting category:', error)
-    return NextResponse.json({ message: 'Failed to delete category' }, { status: 500 })
+    return NextResponse.json(
+      { message: 'Failed to delete category' },
+      { status: 500 }
+    )
   }
 }

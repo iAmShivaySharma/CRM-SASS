@@ -1,9 +1,16 @@
 'use client'
 
 import * as React from 'react'
-import * as RechartsPrimitive from 'recharts'
-
+import type * as RechartsPrimitiveTypes from 'recharts'
 import { cn } from '@/lib/utils'
+
+// Lazy accessor — recharts is loaded into the module cache by consumers
+// (via dynamic import) before these components ever render, so this
+// resolves synchronously from cache rather than pulling the library eagerly.
+function getRechart(): typeof RechartsPrimitiveTypes {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require('recharts')
+}
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const
@@ -39,12 +46,13 @@ const ChartContainer = React.forwardRef<
   React.ComponentProps<'div'> & {
     config: ChartConfig
     children: React.ComponentProps<
-      typeof RechartsPrimitive.ResponsiveContainer
+      typeof RechartsPrimitiveTypes.ResponsiveContainer
     >['children']
   }
 >(({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`
+  const RechartsPrimitive = getRechart()
 
   return (
     <ChartContext.Provider value={{ config }}>
@@ -100,11 +108,22 @@ ${colorConfig
   )
 }
 
-const ChartTooltip = RechartsPrimitive.Tooltip
+function getChartTooltip() {
+  return getRechart().Tooltip
+}
+
+const ChartTooltip = React.forwardRef<
+  React.ComponentRef<typeof RechartsPrimitiveTypes.Tooltip>,
+  React.ComponentProps<typeof RechartsPrimitiveTypes.Tooltip>
+>((props, ref) => {
+  const Tooltip = getChartTooltip()
+  return <Tooltip ref={ref} {...props} />
+})
+ChartTooltip.displayName = 'ChartTooltip'
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  React.ComponentProps<typeof RechartsPrimitiveTypes.Tooltip> &
     React.ComponentProps<'div'> & {
       hideLabel?: boolean
       hideIndicator?: boolean
@@ -256,12 +275,23 @@ const ChartTooltipContent = React.forwardRef<
 )
 ChartTooltipContent.displayName = 'ChartTooltip'
 
-const ChartLegend = RechartsPrimitive.Legend
+function getChartLegend() {
+  return getRechart().Legend
+}
+
+const ChartLegend = React.forwardRef<
+  React.ComponentRef<typeof RechartsPrimitiveTypes.Legend>,
+  React.ComponentProps<typeof RechartsPrimitiveTypes.Legend>
+>((props, ref) => {
+  const Legend = getChartLegend()
+  return <Legend ref={ref} {...props} />
+})
+ChartLegend.displayName = 'ChartLegend'
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<'div'> &
-    Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
+    Pick<RechartsPrimitiveTypes.LegendProps, 'payload' | 'verticalAlign'> & {
       hideIcon?: boolean
       nameKey?: string
     }

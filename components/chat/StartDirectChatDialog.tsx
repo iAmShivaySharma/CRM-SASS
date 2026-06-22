@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
+import { MessageSquare, Search } from 'lucide-react'
+import { type RootState } from '@/lib/store'
 import { useCreateChatRoomMutation } from '@/lib/api/chatApi'
 import { useGetWorkspaceMembersQuery } from '@/lib/api/mongoApi'
 import {
@@ -16,7 +17,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { MessageSquare, Search } from 'lucide-react'
 
 interface StartDirectChatDialogProps {
   trigger?: React.ReactNode

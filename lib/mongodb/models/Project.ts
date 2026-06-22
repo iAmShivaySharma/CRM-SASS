@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IProject extends Document {
+export interface IProject extends Omit<Document, '_id'> {
   _id: string
   name: string
   description?: string

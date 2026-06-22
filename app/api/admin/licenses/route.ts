@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { WorkspaceMember, Plan } from '@/lib/mongodb/client'
 import { LicenseKey } from '@/lib/mongodb/models/LicenseKey'
 import { log } from '@/lib/logging/logger'
-import { z } from 'zod'
 
 const generateKeysSchema = z.object({
   planId: z.string().min(1, 'Plan ID is required'),
@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check admin access via workspace membership
-    const workspaceId = request.headers.get('x-workspace-id') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      request.headers.get('x-workspace-id') || auth.user.lastActiveWorkspaceId
     if (!workspaceId) {
       return NextResponse.json(
         { message: 'Workspace context required' },
@@ -43,10 +44,7 @@ export async function GET(request: NextRequest) {
     }).populate('roleId')
 
     if (!membership) {
-      return NextResponse.json(
-        { message: 'Access denied' },
-        { status: 403 }
-      )
+      return NextResponse.json({ message: 'Access denied' }, { status: 403 })
     }
 
     const role = membership.roleId as any
@@ -114,7 +112,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check admin access via workspace membership
-    const workspaceId = request.headers.get('x-workspace-id') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      request.headers.get('x-workspace-id') || auth.user.lastActiveWorkspaceId
     if (!workspaceId) {
       return NextResponse.json(
         { message: 'Workspace context required' },
@@ -129,10 +128,7 @@ export async function POST(request: NextRequest) {
     }).populate('roleId')
 
     if (!membership) {
-      return NextResponse.json(
-        { message: 'Access denied' },
-        { status: 403 }
-      )
+      return NextResponse.json({ message: 'Access denied' }, { status: 403 })
     }
 
     const role = membership.roleId as any
@@ -148,7 +144,10 @@ export async function POST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { message: 'Validation error', errors: parsed.error.flatten().fieldErrors },
+        {
+          message: 'Validation error',
+          errors: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 }
       )
     }
@@ -158,10 +157,7 @@ export async function POST(request: NextRequest) {
     // Verify plan exists
     const plan = await Plan.findById(planId)
     if (!plan) {
-      return NextResponse.json(
-        { message: 'Plan not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Plan not found' }, { status: 404 })
     }
 
     // Generate unique keys with batch ID
@@ -204,14 +200,19 @@ export async function POST(request: NextRequest) {
       generatedLicenses.push(license)
     }
 
-    log.info(`Generated ${count} license key(s) for plan ${planId} by user ${auth.user.id}`)
+    log.info(
+      `Generated ${count} license key(s) for plan ${planId} by user ${auth.user.id}`
+    )
 
-    return NextResponse.json({
-      success: true,
-      message: `${count} license key(s) generated successfully`,
-      licenses: generatedLicenses,
-      batchId: count > 1 ? batchId : undefined,
-    }, { status: 201 })
+    return NextResponse.json(
+      {
+        success: true,
+        message: `${count} license key(s) generated successfully`,
+        licenses: generatedLicenses,
+        batchId: count > 1 ? batchId : undefined,
+      },
+      { status: 201 }
+    )
   } catch (error) {
     log.error('Generate license keys error:', error)
     return NextResponse.json(

@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
-import { GoogleOAuthProvider, MicrosoftOAuthProvider } from '@/lib/auth/oauth-providers'
+import {
+  GoogleOAuthProvider,
+  MicrosoftOAuthProvider,
+} from '@/lib/auth/oauth-providers'
 import { log } from '@/lib/logging/logger'
 
 export async function GET(
@@ -15,14 +18,17 @@ export async function GET(
     const workspaceId = searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const state = Buffer.from(
       JSON.stringify({
         userId: auth.user.id,
         workspaceId,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       })
     ).toString('base64')
 
@@ -40,13 +46,16 @@ export async function GET(
         break
 
       default:
-        return NextResponse.json({ error: 'Unsupported provider' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Unsupported provider' },
+          { status: 400 }
+        )
     }
 
     log.info('OAuth flow initiated', {
       provider,
       userId: auth.user.id,
-      workspaceId
+      workspaceId,
     })
 
     return NextResponse.json({ authUrl })

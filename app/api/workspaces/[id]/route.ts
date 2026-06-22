@@ -7,7 +7,9 @@
  * - DELETE: Delete workspace (owner only)
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import mongoose from 'mongoose'
 import { requireAuth } from '@/lib/security/auth-middleware'
 import {
   Workspace,
@@ -25,8 +27,6 @@ import {
 } from '@/lib/logging/middleware'
 import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
-import { z } from 'zod'
-import mongoose from 'mongoose'
 
 // Supported currencies and timezones
 const SUPPORTED_CURRENCIES = [

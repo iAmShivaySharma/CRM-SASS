@@ -2,6 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import {
+  User,
+  Bell,
+  Shield,
+  Palette,
+  Globe,
+  Key,
+  Trash2,
+  Save,
+  Eye,
+  EyeOff,
+  Building2,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import {
   Card,
   CardContent,
   CardDescription,
@@ -43,20 +57,6 @@ import {
   getSupportedCurrencies,
   getSupportedTimezones,
 } from '@/lib/utils/workspace-formatting'
-import {
-  User,
-  Bell,
-  Shield,
-  Palette,
-  Globe,
-  Key,
-  Trash2,
-  Save,
-  Eye,
-  EyeOff,
-  Building2,
-} from 'lucide-react'
-import { toast } from 'sonner'
 
 const colorOptions = [
   { name: 'Blue', value: '#3b82f6' },

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { Lead, Workspace } from '@/lib/mongodb/client'
 
 export async function POST(request: NextRequest) {

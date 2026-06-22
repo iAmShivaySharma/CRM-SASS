@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,6 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useCreateProjectMutation } from '@/lib/api/projectsApi'
-import { toast } from 'sonner'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),

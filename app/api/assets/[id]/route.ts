@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Asset } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -18,14 +18,13 @@ export async function GET(
 
     const { id } = await params
 
-    const asset = await Asset.findById(id)
-      .populate('createdBy', 'fullName email')
+    const asset = await Asset.findById(id).populate(
+      'createdBy',
+      'fullName email'
+    )
 
     if (!asset) {
-      return NextResponse.json(
-        { error: 'Asset not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 })
     }
 
     return NextResponse.json({ asset })
@@ -57,17 +56,31 @@ export async function PUT(
     const asset = await Asset.findById(id)
 
     if (!asset) {
-      return NextResponse.json(
-        { error: 'Asset not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 })
     }
 
     const allowedFields = [
-      'name', 'category', 'subcategory', 'brand', 'model', 'serialNumber',
-      'assetTag', 'purchaseDate', 'purchasePrice', 'vendor', 'condition',
-      'status', 'location', 'department', 'warranty', 'specifications',
-      'images', 'documents', 'depreciation', 'insurance', 'notes'
+      'name',
+      'category',
+      'subcategory',
+      'brand',
+      'model',
+      'serialNumber',
+      'assetTag',
+      'purchaseDate',
+      'purchasePrice',
+      'vendor',
+      'condition',
+      'status',
+      'location',
+      'department',
+      'warranty',
+      'specifications',
+      'images',
+      'documents',
+      'depreciation',
+      'insurance',
+      'notes',
     ]
 
     for (const field of allowedFields) {
@@ -80,17 +93,22 @@ export async function PUT(
 
     log.info('Asset updated', {
       assetId: id,
-      updatedBy: auth.user._id
+      updatedBy: auth.user._id,
     })
 
-    const updated = await Asset.findById(id)
-      .populate('createdBy', 'fullName email')
+    const updated = await Asset.findById(id).populate(
+      'createdBy',
+      'fullName email'
+    )
 
     return NextResponse.json({ success: true, asset: updated })
   } catch (error) {
     log.error('Update asset error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update asset' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to update asset',
+      },
       { status: 500 }
     )
   }
@@ -114,15 +132,16 @@ export async function DELETE(
     const asset = await Asset.findById(id)
 
     if (!asset) {
-      return NextResponse.json(
-        { error: 'Asset not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 })
     }
 
     if (asset.status !== 'available') {
       return NextResponse.json(
-        { error: 'Only available assets can be deleted. This asset is currently ' + asset.status },
+        {
+          error:
+            'Only available assets can be deleted. This asset is currently ' +
+            asset.status,
+        },
         { status: 400 }
       )
     }
@@ -131,7 +150,7 @@ export async function DELETE(
 
     log.info('Asset deleted', {
       assetId: id,
-      deletedBy: auth.user._id
+      deletedBy: auth.user._id,
     })
 
     return NextResponse.json({ success: true, message: 'Asset deleted' })

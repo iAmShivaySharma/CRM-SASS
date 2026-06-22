@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface ISubscription extends Document {
+export interface ISubscription extends Omit<Document, '_id'> {
   _id: string
   workspaceId: string
   planId: string

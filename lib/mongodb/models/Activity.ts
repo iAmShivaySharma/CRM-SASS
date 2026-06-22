@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IActivity extends Document {
+export interface IActivity extends Omit<Document, '_id'> {
   _id: string
   workspaceId: string
   entityType: string

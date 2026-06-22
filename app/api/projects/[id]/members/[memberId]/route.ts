@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Project, ProjectMember, WorkspaceMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -64,7 +64,11 @@ export const DELETE = withSecurityLogging(
         }
 
         const { id: projectId, memberId } = await params
-        const project = await checkProjectAccess(projectId, auth.user.id, 'manage')
+        const project = await checkProjectAccess(
+          projectId,
+          auth.user.id,
+          'manage'
+        )
 
         if (!project) {
           return NextResponse.json(

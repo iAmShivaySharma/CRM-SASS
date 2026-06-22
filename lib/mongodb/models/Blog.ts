@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
-export interface IBlog extends Document {
+export interface IBlog extends Omit<Document, '_id'> {
   _id: string
   title: string
   slug: string
@@ -35,7 +35,14 @@ export interface IBlog extends Document {
   jsonLd: Record<string, any>
   // Performance
   priority: number // 0-1 for sitemap priority
-  changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
+  changeFrequency:
+    | 'always'
+    | 'hourly'
+    | 'daily'
+    | 'weekly'
+    | 'monthly'
+    | 'yearly'
+    | 'never'
   // Engagement
   views: number
   // Internal
@@ -179,7 +186,15 @@ const BlogSchema = new Schema<IBlog>(
     },
     changeFrequency: {
       type: String,
-      enum: ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'],
+      enum: [
+        'always',
+        'hourly',
+        'daily',
+        'weekly',
+        'monthly',
+        'yearly',
+        'never',
+      ],
       default: 'weekly',
     },
     // Engagement
@@ -229,7 +244,11 @@ BlogSchema.pre('save', function (this: IBlog, next) {
   }
 
   // Auto-set publishedAt when status changes to published
-  if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
+  if (
+    this.isModified('status') &&
+    this.status === 'published' &&
+    !this.publishedAt
+  ) {
     this.publishedAt = new Date()
   }
 
@@ -248,5 +267,4 @@ if (typeof window === 'undefined') {
 }
 
 export const Blog =
-  mongoose.models?.Blog ||
-  mongoose.model<IBlog>('Blog', BlogSchema)
+  mongoose.models?.Blog || mongoose.model<IBlog>('Blog', BlogSchema)

@@ -5,7 +5,7 @@
  * with proper fallbacks for development and production environments.
  */
 
-import { NextRequest } from 'next/server'
+import { type NextRequest } from 'next/server'
 
 /**
  * Extract client IP address from Next.js request

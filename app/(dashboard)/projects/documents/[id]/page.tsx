@@ -13,6 +13,7 @@ import {
   Globe,
   Lock,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetDocumentQuery,
@@ -36,7 +37,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TiptapEditor } from '@/components/ui/tiptap-editor-improved'
-import { toast } from 'sonner'
 
 export default function DocumentEditorPage() {
   const params = useParams()
@@ -172,40 +172,40 @@ export default function DocumentEditorPage() {
     return (
       <div className="flex h-screen flex-col bg-background">
         {/* Header Skeleton */}
-        <div className="border-b bg-background/95 backdrop-blur p-4">
+        <div className="border-b bg-background/95 p-4 backdrop-blur">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+              <div className="h-8 w-32 animate-pulse rounded bg-muted" />
               <div className="flex items-center gap-2">
-                <div className="h-6 w-16 bg-muted rounded animate-pulse" />
-                <div className="h-6 w-20 bg-muted rounded animate-pulse" />
+                <div className="h-6 w-16 animate-pulse rounded bg-muted" />
+                <div className="h-6 w-20 animate-pulse rounded bg-muted" />
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-8 w-24 bg-muted rounded animate-pulse" />
-              <div className="h-10 w-20 bg-muted rounded animate-pulse" />
+              <div className="h-8 w-24 animate-pulse rounded bg-muted" />
+              <div className="h-10 w-20 animate-pulse rounded bg-muted" />
             </div>
           </div>
         </div>
 
         {/* Content Skeleton */}
         <div className="flex-1 overflow-auto">
-          <div className="mx-auto max-w-4xl p-8 space-y-8">
-            <div className="h-12 w-96 bg-muted rounded animate-pulse" />
+          <div className="mx-auto max-w-4xl space-y-8 p-8">
+            <div className="h-12 w-96 animate-pulse rounded bg-muted" />
             <div className="space-y-2">
               <div className="flex gap-2">
-                <div className="h-6 w-20 bg-muted rounded animate-pulse" />
-                <div className="h-6 w-24 bg-muted rounded animate-pulse" />
-                <div className="h-6 w-16 bg-muted rounded animate-pulse" />
+                <div className="h-6 w-20 animate-pulse rounded bg-muted" />
+                <div className="h-6 w-24 animate-pulse rounded bg-muted" />
+                <div className="h-6 w-16 animate-pulse rounded bg-muted" />
               </div>
-              <div className="h-10 w-full max-w-md bg-muted rounded animate-pulse" />
+              <div className="h-10 w-full max-w-md animate-pulse rounded bg-muted" />
             </div>
             <div className="space-y-4">
-              <div className="h-4 w-full bg-muted rounded animate-pulse" />
-              <div className="h-4 w-5/6 bg-muted rounded animate-pulse" />
-              <div className="h-4 w-4/6 bg-muted rounded animate-pulse" />
-              <div className="h-4 w-full bg-muted rounded animate-pulse" />
-              <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-full animate-pulse rounded bg-muted" />
+              <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
+              <div className="h-4 w-4/6 animate-pulse rounded bg-muted" />
+              <div className="h-4 w-full animate-pulse rounded bg-muted" />
+              <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
             </div>
           </div>
         </div>

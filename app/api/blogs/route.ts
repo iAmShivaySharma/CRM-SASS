@@ -1,13 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Blog } from '@/lib/mongodb/models/Blog'
 import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { z } from 'zod'
 
 const createBlogSchema = z.object({
   title: z.string().min(1).max(200),
-  slug: z.string().min(1).max(200).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  slug: z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   content: z.string().min(1),
   excerpt: z.string().max(300).optional(),
   featuredImage: z.string().optional(),
@@ -48,7 +52,10 @@ export async function GET(request: NextRequest) {
 
     const url = new URL(request.url)
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'))
-    const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get('limit') || '12')))
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(url.searchParams.get('limit') || '12'))
+    )
     const category = url.searchParams.get('category')
     const tag = url.searchParams.get('tag')
     const search = url.searchParams.get('search')

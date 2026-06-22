@@ -1,28 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useAppSelector } from '@/lib/hooks'
-import {
-  useGetNotificationsQuery,
-  useUpdateNotificationMutation,
-} from '@/lib/api/notificationsApi'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Bell,
   CheckCircle2,
@@ -45,8 +23,30 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useAppSelector } from '@/lib/hooks'
+import {
+  useGetNotificationsQuery,
+  useUpdateNotificationMutation,
+} from '@/lib/api/notificationsApi'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 interface NotificationItem {
   id: string

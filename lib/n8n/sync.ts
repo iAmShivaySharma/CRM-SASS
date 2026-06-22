@@ -3,9 +3,9 @@
  * Syncs workflows from n8n instance to MongoDB
  */
 
-import { createN8nClient, N8nWorkflow } from './client'
 import { WorkflowCatalog, WorkflowCategory } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
+import { createN8nClient, type N8nWorkflow } from './client'
 
 export interface SyncResult {
   success: boolean
@@ -26,7 +26,7 @@ export class WorkflowSyncService {
       updatedCount: 0,
       errorCount: 0,
       errors: [],
-      workflows: []
+      workflows: [],
     }
 
     try {
@@ -61,13 +61,18 @@ export class WorkflowSyncService {
         } catch (error: any) {
           console.error(`Error syncing workflow ${n8nWorkflow.name}:`, error)
           result.errorCount++
-          result.errors.push(`${n8nWorkflow.name}: ${error?.message || 'Unknown error'}`)
+          result.errors.push(
+            `${n8nWorkflow.name}: ${error?.message || 'Unknown error'}`
+          )
         }
       }
 
-      result.success = result.errorCount === 0 || (result.syncedCount + result.updatedCount) > 0
+      result.success =
+        result.errorCount === 0 || result.syncedCount + result.updatedCount > 0
 
-      console.log(`Sync completed: ${result.syncedCount} new, ${result.updatedCount} updated, ${result.errorCount} errors`)
+      console.log(
+        `Sync completed: ${result.syncedCount} new, ${result.updatedCount} updated, ${result.errorCount} errors`
+      )
 
       return result
     } catch (error: any) {
@@ -77,10 +82,12 @@ export class WorkflowSyncService {
     }
   }
 
-  async syncSingleWorkflow(n8nWorkflow: N8nWorkflow): Promise<{ wasUpdated: boolean }> {
+  async syncSingleWorkflow(
+    n8nWorkflow: N8nWorkflow
+  ): Promise<{ wasUpdated: boolean }> {
     // Check if workflow already exists
     let catalogWorkflow = await WorkflowCatalog.findOne({
-      n8nWorkflowId: n8nWorkflow.id
+      n8nWorkflowId: n8nWorkflow.id,
     })
 
     // Analyze workflow to extract metadata
@@ -115,13 +122,13 @@ export class WorkflowSyncService {
           connections: n8nWorkflow.connections,
           settings: n8nWorkflow.settings,
           active: n8nWorkflow.active,
-          lastSyncAt: new Date()
+          lastSyncAt: new Date(),
         },
         usage: {
           totalExecutions: 0,
           avgExecutionTime: 0,
-          successRate: 100
-        }
+          successRate: 100,
+        },
       })
 
       await catalogWorkflow.save()
@@ -136,56 +143,56 @@ export class WorkflowSyncService {
         name: 'Content Creation',
         description: 'AI-powered content generation workflows',
         icon: 'FileText',
-        sortOrder: 1
+        sortOrder: 1,
       },
       {
         name: 'Data Processing',
         description: 'Data analysis and transformation workflows',
         icon: 'Database',
-        sortOrder: 2
+        sortOrder: 2,
       },
       {
         name: 'Marketing',
         description: 'Marketing automation and campaign workflows',
         icon: 'Megaphone',
-        sortOrder: 3
+        sortOrder: 3,
       },
       {
         name: 'Social Media',
         description: 'Social media management and posting workflows',
         icon: 'Share2',
-        sortOrder: 4
+        sortOrder: 4,
       },
       {
         name: 'Sales',
         description: 'Sales automation and lead management workflows',
         icon: 'TrendingUp',
-        sortOrder: 5
+        sortOrder: 5,
       },
       {
         name: 'Finance',
         description: 'Financial processing and reporting workflows',
         icon: 'DollarSign',
-        sortOrder: 6
+        sortOrder: 6,
       },
       {
         name: 'API Integration',
         description: 'API calls and third-party integrations',
         icon: 'Link',
-        sortOrder: 7
+        sortOrder: 7,
       },
       {
         name: 'Webhooks',
         description: 'Webhook processing and automation',
         icon: 'Webhook',
-        sortOrder: 8
+        sortOrder: 8,
       },
       {
         name: 'General',
         description: 'General purpose automation workflows',
         icon: 'Settings',
-        sortOrder: 9
-      }
+        sortOrder: 9,
+      },
     ]
 
     for (const categoryData of defaultCategories) {
@@ -210,7 +217,7 @@ export class WorkflowSyncService {
           name: 'General',
           description: 'General purpose automation workflows',
           icon: 'Settings',
-          sortOrder: 999
+          sortOrder: 999,
         })
         await category.save()
       }
@@ -221,15 +228,18 @@ export class WorkflowSyncService {
 
   private generateDescription(workflow: N8nWorkflow): string {
     const nodeTypes = workflow.nodes?.map(node => node.type) || []
-    const hasAI = nodeTypes.some(type =>
-      type.toLowerCase().includes('openrouter') ||
-      type.toLowerCase().includes('ai') ||
-      type.toLowerCase().includes('openai')
+    const hasAI = nodeTypes.some(
+      type =>
+        type.toLowerCase().includes('openrouter') ||
+        type.toLowerCase().includes('ai') ||
+        type.toLowerCase().includes('openai')
     )
 
     const hasWebhook = nodeTypes.some(type => type.includes('Webhook'))
     const hasHttp = nodeTypes.some(type => type.includes('Http'))
-    const hasEmail = nodeTypes.some(type => type.includes('Gmail') || type.includes('Email'))
+    const hasEmail = nodeTypes.some(
+      type => type.includes('Gmail') || type.includes('Email')
+    )
 
     let description = `Automated workflow: ${workflow.name}`
 
@@ -300,7 +310,10 @@ export class WorkflowSyncService {
       const workflow = await this.n8nClient.getWorkflow(n8nWorkflowId)
       return workflow
     } catch (error) {
-      console.error(`Error fetching workflow details for ${n8nWorkflowId}:`, error)
+      console.error(
+        `Error fetching workflow details for ${n8nWorkflowId}:`,
+        error
+      )
       throw error
     }
   }

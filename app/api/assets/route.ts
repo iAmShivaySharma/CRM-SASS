@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Asset } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -14,10 +14,14 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const category = searchParams.get('category')
@@ -45,8 +49,7 @@ export async function GET(request: NextRequest) {
     const total = await Asset.countDocuments(query)
 
     // Get assets
-    let assetsQuery = Asset.find(query)
-      .populate('createdBy', 'fullName email')
+    let assetsQuery = Asset.find(query).populate('createdBy', 'fullName email')
 
     if (search) {
       assetsQuery = assetsQuery.sort({ score: { $meta: 'textScore' } })
@@ -54,9 +57,7 @@ export async function GET(request: NextRequest) {
       assetsQuery = assetsQuery.sort({ createdAt: -1 })
     }
 
-    const assets = await assetsQuery
-      .skip((page - 1) * limit)
-      .limit(limit)
+    const assets = await assetsQuery.skip((page - 1) * limit).limit(limit)
 
     return NextResponse.json({
       assets,
@@ -64,8 +65,8 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     log.error('Get assets error:', error)
@@ -90,7 +91,10 @@ export async function POST(request: NextRequest) {
     const workspaceId = body.workspaceId || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const {
@@ -114,12 +118,24 @@ export async function POST(request: NextRequest) {
       documents,
       depreciation,
       insurance,
-      notes
+      notes,
     } = body
 
-    if (!name || !category || !brand || !model || !serialNumber || !purchaseDate || purchasePrice === undefined || !location) {
+    if (
+      !name ||
+      !category ||
+      !brand ||
+      !model ||
+      !serialNumber ||
+      !purchaseDate ||
+      purchasePrice === undefined ||
+      !location
+    ) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, category, brand, model, serialNumber, purchaseDate, purchasePrice, location' },
+        {
+          error:
+            'Missing required fields: name, category, brand, model, serialNumber, purchaseDate, purchasePrice, location',
+        },
         { status: 400 }
       )
     }
@@ -147,7 +163,7 @@ export async function POST(request: NextRequest) {
       documents,
       depreciation,
       insurance,
-      notes
+      notes,
     })
 
     await asset.save()
@@ -158,17 +174,17 @@ export async function POST(request: NextRequest) {
       assetId: asset._id,
       name,
       category,
-      serialNumber
+      serialNumber,
     })
 
-    return NextResponse.json(
-      { success: true, asset },
-      { status: 201 }
-    )
+    return NextResponse.json({ success: true, asset }, { status: 201 })
   } catch (error) {
     log.error('Create asset error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create asset' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to create asset',
+      },
       { status: 500 }
     )
   }

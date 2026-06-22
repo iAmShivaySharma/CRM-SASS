@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Save, X, Info, Copy, ExternalLink, Settings, Code } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Card,
   CardContent,
@@ -33,7 +35,6 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Save, X, Info, Copy, ExternalLink, Settings, Code } from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useCreateWebhookMutation,
@@ -42,7 +43,6 @@ import {
   availableEvents,
   type Webhook,
 } from '@/lib/api/webhookApi'
-import { toast } from 'sonner'
 
 const webhookFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),

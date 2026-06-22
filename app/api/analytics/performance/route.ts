@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { startOfDay, endOfDay, subDays, isWithinInterval } from 'date-fns'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { MongoDBClient } from '@/lib/mongodb/client'
-import { startOfDay, endOfDay, subDays, isWithinInterval } from 'date-fns'
 
 export async function GET(request: NextRequest) {
   try {

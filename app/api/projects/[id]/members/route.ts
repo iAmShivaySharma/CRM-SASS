@@ -1,6 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { Project, ProjectMember, User, WorkspaceMember } from '@/lib/mongodb/client'
+import {
+  Project,
+  ProjectMember,
+  User,
+  WorkspaceMember,
+} from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
   withLogging,
@@ -8,7 +14,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { z } from 'zod'
 
 const addMemberSchema = z.object({
   userId: z.string(),
@@ -70,7 +75,11 @@ export const GET = withSecurityLogging(
         }
 
         const { id: projectId } = await params
-        const project = await checkProjectAccess(projectId, auth.user.id, 'read')
+        const project = await checkProjectAccess(
+          projectId,
+          auth.user.id,
+          'read'
+        )
 
         if (!project) {
           return NextResponse.json(
@@ -100,17 +109,21 @@ export const GET = withSecurityLogging(
           joinedAt: member.joinedAt,
           createdAt: member.createdAt,
           updatedAt: member.updatedAt,
-          user: member.userId ? {
-            id: member.userId._id,
-            fullName: member.userId.fullName,
-            email: member.userId.email,
-            avatarUrl: member.userId.avatarUrl,
-          } : undefined,
-          role: member.roleId ? {
-            id: member.roleId._id,
-            name: member.roleId.name,
-            permissions: member.roleId.permissions,
-          } : undefined,
+          user: member.userId
+            ? {
+                id: member.userId._id,
+                fullName: member.userId.fullName,
+                email: member.userId.email,
+                avatarUrl: member.userId.avatarUrl,
+              }
+            : undefined,
+          role: member.roleId
+            ? {
+                id: member.roleId._id,
+                name: member.roleId.name,
+                permissions: member.roleId.permissions,
+              }
+            : undefined,
         }))
 
         await logUserActivity(
@@ -160,7 +173,11 @@ export const POST = withSecurityLogging(
         }
 
         const { id: projectId } = await params
-        const project = await checkProjectAccess(projectId, auth.user.id, 'manage')
+        const project = await checkProjectAccess(
+          projectId,
+          auth.user.id,
+          'manage'
+        )
 
         if (!project) {
           return NextResponse.json(
@@ -234,10 +251,10 @@ export const POST = withSecurityLogging(
         await newMember.save()
 
         // Populate the response
-        const populatedMember = await ProjectMember.findById(newMember._id)
+        const populatedMember = (await ProjectMember.findById(newMember._id)
           .populate('userId', 'fullName email avatarUrl')
           .populate('roleId', 'name permissions')
-          .lean() as any
+          .lean()) as any
 
         const transformedMember = {
           id: populatedMember!._id,
@@ -250,17 +267,21 @@ export const POST = withSecurityLogging(
           joinedAt: populatedMember!.joinedAt,
           createdAt: populatedMember!.createdAt,
           updatedAt: populatedMember!.updatedAt,
-          user: populatedMember!.userId ? {
-            id: populatedMember!.userId._id,
-            fullName: populatedMember!.userId.fullName,
-            email: populatedMember!.userId.email,
-            avatarUrl: populatedMember!.userId.avatarUrl,
-          } : undefined,
-          role: populatedMember!.roleId ? {
-            id: populatedMember!.roleId._id,
-            name: populatedMember!.roleId.name,
-            permissions: populatedMember!.roleId.permissions,
-          } : undefined,
+          user: populatedMember!.userId
+            ? {
+                id: populatedMember!.userId._id,
+                fullName: populatedMember!.userId.fullName,
+                email: populatedMember!.userId.email,
+                avatarUrl: populatedMember!.userId.avatarUrl,
+              }
+            : undefined,
+          role: populatedMember!.roleId
+            ? {
+                id: populatedMember!.roleId._id,
+                name: populatedMember!.roleId.name,
+                permissions: populatedMember!.roleId.permissions,
+              }
+            : undefined,
         }
 
         await logUserActivity(

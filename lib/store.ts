@@ -16,6 +16,8 @@ import { enginesApi } from './api/enginesApi'
 import { emailApi } from './api/emailApi'
 import { attendanceApi } from './api/attendanceApi'
 import { shiftsApi } from './api/shiftsApi'
+import { leaveApi } from './api/leaveApi'
+import { assetApi } from './api/assetApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -46,6 +48,8 @@ export const store = configureStore({
     [enginesApi.reducerPath]: enginesApi.reducer,
     [attendanceApi.reducerPath]: attendanceApi.reducer,
     [shiftsApi.reducerPath]: shiftsApi.reducer,
+    [leaveApi.reducerPath]: leaveApi.reducer,
+    [assetApi.reducerPath]: assetApi.reducer,
     [emailApi.reducerPath]: emailApi.reducer,
   } as any,
   preloadedState,
@@ -67,6 +71,8 @@ export const store = configureStore({
       enginesApi.middleware,
       attendanceApi.middleware,
       shiftsApi.middleware,
+      leaveApi.middleware,
+      assetApi.middleware,
       emailApi.middleware
     ),
 })

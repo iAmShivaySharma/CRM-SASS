@@ -8,6 +8,17 @@
 'use client'
 
 import { useState } from 'react'
+import {
+  Bell,
+  Check,
+  X,
+  Settings,
+  User,
+  MessageSquare,
+  AlertCircle,
+  Info,
+  CheckCircle,
+} from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetNotificationsQuery,
@@ -25,17 +36,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Bell,
-  Check,
-  X,
-  Settings,
-  User,
-  MessageSquare,
-  AlertCircle,
-  Info,
-  CheckCircle,
-} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Notification {

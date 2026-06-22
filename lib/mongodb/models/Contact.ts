@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
-export interface IContact extends Document {
+export interface IContact extends Omit<Document, '_id'> {
   _id: string
   workspaceId: string
   name: string

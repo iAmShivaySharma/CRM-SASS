@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { dodoPayments, DodoWebhookEvent } from '@/lib/dodo/client'
+import { type NextRequest, NextResponse } from 'next/server'
+import { dodoPayments, type DodoWebhookEvent } from '@/lib/dodo/client'
 import { Workspace, Subscription } from '@/lib/mongodb/client'
 
 export async function POST(request: NextRequest) {

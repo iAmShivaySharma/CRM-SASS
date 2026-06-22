@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -17,13 +17,16 @@ export async function GET(request: NextRequest) {
     const workspaceId = searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const accounts = await EmailAccount.find({
       userId: auth.user._id,
       workspaceId,
-      isActive: true
+      isActive: true,
     }).sort({ isDefault: -1, createdAt: -1 })
 
     return NextResponse.json({
@@ -39,9 +42,9 @@ export async function GET(request: NextRequest) {
         settings: {
           syncEnabled: account.settings.syncEnabled,
           syncInterval: account.settings.syncInterval,
-          lastSyncAt: account.settings.lastSyncAt
-        }
-      }))
+          lastSyncAt: account.settings.lastSyncAt,
+        },
+      })),
     })
   } catch (error) {
     log.error('Get email accounts error:', error)
@@ -67,7 +70,10 @@ export async function POST(request: NextRequest) {
     const workspaceId = sp.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const {
@@ -76,7 +82,7 @@ export async function POST(request: NextRequest) {
       emailAddress,
       smtpConfig,
       imapConfig,
-      settings = {}
+      settings = {},
     } = body
 
     if (!provider || !displayName || !emailAddress) {
@@ -89,7 +95,7 @@ export async function POST(request: NextRequest) {
     const existingAccount = await EmailAccount.findOne({
       emailAddress,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     if (existingAccount) {
@@ -102,7 +108,7 @@ export async function POST(request: NextRequest) {
     const accountCount = await EmailAccount.countDocuments({
       userId: auth.user._id,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     const isFirstAccount = accountCount === 0
@@ -123,16 +129,16 @@ export async function POST(request: NextRequest) {
           inbox: 'INBOX',
           sent: 'INBOX.Sent',
           drafts: 'INBOX.Drafts',
-          trash: 'INBOX.Trash'
-        }
-      }
+          trash: 'INBOX.Trash',
+        },
+      },
     })
 
     if (provider === 'smtp' && smtpConfig) {
       account.smtpConfig = {
         host: smtpConfig.host,
         port: smtpConfig.port,
-        secure: smtpConfig.secure
+        secure: smtpConfig.secure,
       }
       account.setSmtpCredentials(smtpConfig.username, smtpConfig.password)
     }
@@ -141,7 +147,7 @@ export async function POST(request: NextRequest) {
       account.imapConfig = {
         host: imapConfig.host,
         port: imapConfig.port,
-        secure: imapConfig.secure
+        secure: imapConfig.secure,
       }
       account.setImapCredentials(imapConfig.username, imapConfig.password)
     }
@@ -152,18 +158,23 @@ export async function POST(request: NextRequest) {
       userId: auth.user._id,
       workspaceId,
       provider,
-      accountId: account._id
+      accountId: account._id,
     })
 
     return NextResponse.json({
       success: true,
       accountId: account._id,
-      message: 'Email account created successfully'
+      message: 'Email account created successfully',
     })
   } catch (error) {
     log.error('Create email account error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create email account' },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create email account',
+      },
       { status: 500 }
     )
   }

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Task, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -8,7 +9,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { z } from 'zod'
 
 const createTaskSchema = z.object({
   title: z.string().min(1).max(200),
@@ -22,12 +22,16 @@ const createTaskSchema = z.object({
   estimatedHours: z.number().min(0).optional(),
   dependencies: z.array(z.string()).optional(),
   customFields: z.record(z.any()).optional(),
-  attachments: z.array(z.object({
-    name: z.string(),
-    url: z.string(),
-    type: z.string(),
-    size: z.number(),
-  })).optional(),
+  attachments: z
+    .array(
+      z.object({
+        name: z.string(),
+        url: z.string(),
+        type: z.string(),
+        size: z.number(),
+      })
+    )
+    .optional(),
 })
 
 async function checkProjectTaskAccess(projectId: string, userId: string) {
@@ -88,7 +92,7 @@ export const GET = withSecurityLogging(
           search,
         })
 
-        let query: any = {}
+        const query: any = {}
 
         if (projectId) {
           // Single project query
@@ -113,13 +117,15 @@ export const GET = withSecurityLogging(
             workspaceId,
           }).select('_id')
 
-          const workspaceProjectIds = workspaceProjects.map(p => p._id.toString())
+          const workspaceProjectIds = workspaceProjects.map(p =>
+            p._id.toString()
+          )
 
           // Then get user's memberships only for projects in this workspace
           const userProjects = await ProjectMember.find({
             userId: auth.user.id,
             status: 'active',
-            projectId: { $in: workspaceProjectIds }
+            projectId: { $in: workspaceProjectIds },
           }).select('projectId')
 
           const publicProjects = await Project.find({

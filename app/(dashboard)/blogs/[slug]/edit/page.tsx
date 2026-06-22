@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import BlogEditor from '@/components/blog/BlogEditor'
 import { Loader2 } from 'lucide-react'
+import BlogEditor from '@/components/blog/BlogEditor'
 
 export default function EditBlogPage() {
   const params = useParams()
@@ -18,7 +18,9 @@ export default function EditBlogPage() {
         const res = await fetch(`/api/blogs/${params.slug}`)
         if (!res.ok) {
           // Try fetching directly without status filter
-          const allRes = await fetch(`/api/blogs?search=${params.slug}&status=draft`)
+          const allRes = await fetch(
+            `/api/blogs?search=${params.slug}&status=draft`
+          )
           const allData = await allRes.json()
           const found = allData.blogs?.find((b: any) => b.slug === params.slug)
           if (found) {

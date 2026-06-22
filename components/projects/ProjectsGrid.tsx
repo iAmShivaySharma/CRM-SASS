@@ -1,7 +1,7 @@
 'use client'
 
-import { ProjectCard } from './ProjectCard'
 import type { Project } from '@/lib/api/projectsApi'
+import { ProjectCard } from './ProjectCard'
 
 interface ProjectsGridProps {
   projects: Project[]

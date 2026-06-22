@@ -14,6 +14,11 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -34,17 +39,12 @@ import {
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NotificationBell } from '@/components/ui/notification-bell'
-import { TimeTrackingCard } from './TimeTrackingCard'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { logout } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import { useCreateWorkspaceMutation } from '@/lib/api/mongoApi'
 import { useLogoutMutation } from '@/lib/api/authApi'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { toast } from 'sonner'
+import { TimeTrackingCard } from './TimeTrackingCard'
 
 // Workspace creation validation schema
 const workspaceSchema = z.object({
@@ -175,7 +175,6 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           {/* Notifications */}
           <NotificationBell />
 
-
           {/* User Menu - Simple dropdown for settings and logout */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -198,8 +197,12 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -210,7 +213,6 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
               </div>
               <DropdownMenuSeparator />
 
-
               <DropdownMenuItem onClick={() => router.push('/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
@@ -220,7 +222,10 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-destructive"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
               </DropdownMenuItem>
@@ -258,7 +263,9 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 className={errors.name ? 'border-destructive' : ''}
               />
               {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 

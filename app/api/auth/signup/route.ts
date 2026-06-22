@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { signUp } from '@/lib/mongodb/auth'
 
 export async function POST(request: NextRequest) {
@@ -15,7 +15,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Sign up user using MongoDB
-    const result = await signUp({ email, password, fullName: name, workspaceName })
+    const result = await signUp({
+      email,
+      password,
+      fullName: name,
+      workspaceName,
+    })
 
     if (result.error) {
       return NextResponse.json({ message: result.error }, { status: 400 })

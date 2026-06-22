@@ -64,6 +64,11 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
     }
 
     initializeAuth()
+
+    // Clean up OAuth temp cookie if present
+    if (document.cookie.includes('oauth_user_data')) {
+      document.cookie = 'oauth_user_data=; path=/; max-age=0'
+    }
   }, [dispatch])
 
   return <>{children}</>

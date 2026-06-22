@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Task, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -60,7 +60,10 @@ export async function POST(
 
     // Check if time tracking is already active
     if (task.timeTracking.isActive) {
-      return NextResponse.json({ error: 'Time tracking is already active' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Time tracking is already active' },
+        { status: 400 }
+      )
     }
 
     const now = new Date()
@@ -89,18 +92,21 @@ export async function POST(
         timeTracking: {
           isActive: task.timeTracking.isActive,
           totalTracked: task.timeTracking.totalTracked,
-          sessions: task.timeTracking.sessions.map((session: {
-            startedAt: Date
-            endedAt?: Date
-            duration?: number
-            userId: string
-          }) => ({
-            startedAt: session.startedAt.toISOString(),
-            endedAt: session.endedAt?.toISOString(),
-            duration: session.duration,
-            userId: session.userId,
-          })),
-          currentSessionStart: task.timeTracking.currentSessionStart?.toISOString(),
+          sessions: task.timeTracking.sessions.map(
+            (session: {
+              startedAt: Date
+              endedAt?: Date
+              duration?: number
+              userId: string
+            }) => ({
+              startedAt: session.startedAt.toISOString(),
+              endedAt: session.endedAt?.toISOString(),
+              duration: session.duration,
+              userId: session.userId,
+            })
+          ),
+          currentSessionStart:
+            task.timeTracking.currentSessionStart?.toISOString(),
         },
         order: task.order,
         dependencies: task.dependencies,

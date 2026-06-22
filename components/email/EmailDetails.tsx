@@ -1,12 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   Reply,
   ReplyAll,
@@ -24,9 +18,20 @@ import {
   Calendar,
   Link as LinkIcon,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useAppSelector } from '@/lib/hooks'
 
 interface EmailMessage {
@@ -93,7 +98,11 @@ interface EmailDetailsProps {
   onDelete: () => void
 }
 
-export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) {
+export function EmailDetails({
+  emailId,
+  onReply,
+  onDelete,
+}: EmailDetailsProps) {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [email, setEmail] = useState<EmailMessage | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -109,7 +118,9 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
     setIsLoading(true)
 
     try {
-      const response = await fetch(`/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`)
+      const response = await fetch(
+        `/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`
+      )
       if (!response.ok) throw new Error('Failed to fetch email')
 
       const data = await response.json()
@@ -127,11 +138,14 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
   }
 
   const updateMessage = async (data: Record<string, any>) => {
-    const response = await fetch(`/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
+    const response = await fetch(
+      `/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }
+    )
     if (!response.ok) throw new Error('Failed to update email')
     return response
   }
@@ -139,7 +153,9 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
   const markAsRead = async () => {
     try {
       await updateMessage({ isRead: true })
-      setEmail(prev => prev ? { ...prev, isRead: true, readAt: new Date() } : null)
+      setEmail(prev =>
+        prev ? { ...prev, isRead: true, readAt: new Date() } : null
+      )
     } catch (error) {
       console.error('Mark as read error:', error)
     }
@@ -149,7 +165,7 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
     if (!email) return
     try {
       await updateMessage({ isStarred: !email.isStarred })
-      setEmail(prev => prev ? { ...prev, isStarred: !prev.isStarred } : null)
+      setEmail(prev => (prev ? { ...prev, isStarred: !prev.isStarred } : null))
     } catch (error) {
       toast.error('Failed to update star status')
     }
@@ -168,9 +184,12 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
   const deleteEmail = async () => {
     if (!confirm('Are you sure you want to delete this email?')) return
     try {
-      const response = await fetch(`/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`, {
-        method: 'DELETE',
-      })
+      const response = await fetch(
+        `/api/email/messages/${emailId}?workspaceId=${currentWorkspace?.id}`,
+        {
+          method: 'DELETE',
+        }
+      )
       if (!response.ok) throw new Error('Failed to delete email')
       toast.success('Email deleted')
       onDelete()
@@ -181,7 +200,9 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
   const downloadAttachment = async (attachmentId: string, filename: string) => {
     try {
-      const response = await fetch(`/api/email/attachments/${attachmentId}?workspaceId=${currentWorkspace?.id}`)
+      const response = await fetch(
+        `/api/email/attachments/${attachmentId}?workspaceId=${currentWorkspace?.id}`
+      )
       if (!response.ok) throw new Error('Failed to download attachment')
 
       const blob = await response.blob()
@@ -198,11 +219,14 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
     }
   }
 
-  const linkToCRM = async (type: 'lead' | 'contact' | 'project' | 'task', id: string) => {
+  const linkToCRM = async (
+    type: 'lead' | 'contact' | 'project' | 'task',
+    id: string
+  ) => {
     try {
       const key = `linked${type.charAt(0).toUpperCase() + type.slice(1)}Id`
       await updateMessage({ [key]: id })
-      setEmail(prev => prev ? { ...prev, [key]: id } : null)
+      setEmail(prev => (prev ? { ...prev, [key]: id } : null))
       toast.success(`Linked to ${type}`)
     } catch (error) {
       toast.error('Failed to link to CRM')
@@ -213,7 +237,9 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
     if (!email) return undefined
     return {
       messageId: email.messageId,
-      subject: email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`,
+      subject: email.subject.startsWith('Re:')
+        ? email.subject
+        : `Re: ${email.subject}`,
       from: email.from.email,
       to: email.to.map(r => r.email),
     }
@@ -259,17 +285,17 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
       </div>
     )
   }
 
   if (!email) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex h-full items-center justify-center text-gray-500">
         <div className="text-center">
-          <div className="text-4xl mb-4">📧</div>
+          <div className="mb-4 text-4xl">📧</div>
           <p>Email not found</p>
         </div>
       </div>
@@ -277,16 +303,14 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <div className="flex items-center justify-between mb-4">
+    <div className="flex h-full flex-col">
+      <div className="border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleStar}
-            >
-              <Star className={`h-4 w-4 ${email.isStarred ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`} />
+            <Button variant="ghost" size="sm" onClick={toggleStar}>
+              <Star
+                className={`h-4 w-4 ${email.isStarred ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`}
+              />
             </Button>
 
             <Badge className={getPriorityColor(email.priority)}>
@@ -303,7 +327,7 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
 
             {email.isSnoozed && (
               <Badge variant="outline" className="text-orange-600">
-                <Clock className="h-3 w-3 mr-1" />
+                <Clock className="mr-1 h-3 w-3" />
                 Snoozed
               </Badge>
             )}
@@ -315,7 +339,7 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
               size="sm"
               onClick={() => onReply(getReplyData())}
             >
-              <Reply className="h-4 w-4 mr-2" />
+              <Reply className="mr-2 h-4 w-4" />
               Reply
             </Button>
 
@@ -327,44 +351,57 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onSelect={() => onReply(getReplyData())}>
-                  <Reply className="h-4 w-4 mr-2" />
+                  <Reply className="mr-2 h-4 w-4" />
                   Reply
                 </DropdownMenuItem>
 
                 <DropdownMenuItem onSelect={() => onReply(getReplyData())}>
-                  <ReplyAll className="h-4 w-4 mr-2" />
+                  <ReplyAll className="mr-2 h-4 w-4" />
                   Reply All
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={() => onReply({
-                  ...getReplyData()!,
-                  subject: email.subject.startsWith('Fwd:') ? email.subject : `Fwd: ${email.subject}`,
-                  from: '',
-                  to: [],
-                })}>
-                  <Forward className="h-4 w-4 mr-2" />
+                <DropdownMenuItem
+                  onSelect={() =>
+                    onReply({
+                      ...getReplyData()!,
+                      subject: email.subject.startsWith('Fwd:')
+                        ? email.subject
+                        : `Fwd: ${email.subject}`,
+                      from: '',
+                      to: [],
+                    })
+                  }
+                >
+                  <Forward className="mr-2 h-4 w-4" />
                   Forward
                 </DropdownMenuItem>
 
                 <DropdownMenuItem onSelect={() => moveToFolder('ARCHIVE')}>
-                  <Archive className="h-4 w-4 mr-2" />
+                  <Archive className="mr-2 h-4 w-4" />
                   Archive
                 </DropdownMenuItem>
 
                 <DropdownMenuItem onSelect={() => moveToFolder('TRASH')}>
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Move to Trash
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onSelect={() => setShowRawContent(!showRawContent)}
                 >
-                  {showRawContent ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                  {showRawContent ? (
+                    <EyeOff className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Eye className="mr-2 h-4 w-4" />
+                  )}
                   {showRawContent ? 'Hide' : 'Show'} Raw
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={deleteEmail} className="text-red-600">
-                  <Trash2 className="h-4 w-4 mr-2" />
+                <DropdownMenuItem
+                  onSelect={deleteEmail}
+                  className="text-red-600"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Delete Permanently
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -372,7 +409,7 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
           </div>
         </div>
 
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <h1 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           {email.subject || '(No Subject)'}
         </h1>
 
@@ -380,13 +417,16 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
           <Avatar className="h-10 w-10">
             <AvatarFallback>
               {email.from.name
-                ? email.from.name.split(' ').map(n => n[0]).join('').toUpperCase()
-                : email.from.email[0].toUpperCase()
-              }
+                ? email.from.name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase()
+                : email.from.email[0].toUpperCase()}
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">
@@ -398,7 +438,9 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {formatDate(email.receivedAt || email.sentAt || email.createdAt)}
+                  {formatDate(
+                    email.receivedAt || email.sentAt || email.createdAt
+                  )}
                 </p>
                 {email.direction === 'outbound' && (
                   <Badge variant="outline" className="text-xs">
@@ -411,49 +453,58 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
             <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               <p>
                 <span className="font-medium">To:</span>{' '}
-                {email.to.map(recipient => recipient.name || recipient.email).join(', ')}
+                {email.to
+                  .map(recipient => recipient.name || recipient.email)
+                  .join(', ')}
               </p>
 
               {email.cc && email.cc.length > 0 && (
                 <p>
                   <span className="font-medium">Cc:</span>{' '}
-                  {email.cc.map(recipient => recipient.name || recipient.email).join(', ')}
+                  {email.cc
+                    .map(recipient => recipient.name || recipient.email)
+                    .join(', ')}
                 </p>
               )}
 
               {email.bcc && email.bcc.length > 0 && (
                 <p>
                   <span className="font-medium">Bcc:</span>{' '}
-                  {email.bcc.map(recipient => recipient.name || recipient.email).join(', ')}
+                  {email.bcc
+                    .map(recipient => recipient.name || recipient.email)
+                    .join(', ')}
                 </p>
               )}
             </div>
           </div>
         </div>
 
-        {(email.linkedLeadId || email.linkedContactId || email.linkedProjectId || email.linkedTaskId) && (
+        {(email.linkedLeadId ||
+          email.linkedContactId ||
+          email.linkedProjectId ||
+          email.linkedTaskId) && (
           <div className="mt-3 flex flex-wrap gap-2">
             {email.linkedLeadId && (
               <Badge variant="outline" className="text-green-600">
-                <User className="h-3 w-3 mr-1" />
+                <User className="mr-1 h-3 w-3" />
                 Linked to Lead
               </Badge>
             )}
             {email.linkedContactId && (
               <Badge variant="outline" className="text-blue-600">
-                <User className="h-3 w-3 mr-1" />
+                <User className="mr-1 h-3 w-3" />
                 Linked to Contact
               </Badge>
             )}
             {email.linkedProjectId && (
               <Badge variant="outline" className="text-purple-600">
-                <Calendar className="h-3 w-3 mr-1" />
+                <Calendar className="mr-1 h-3 w-3" />
                 Linked to Project
               </Badge>
             )}
             {email.linkedTaskId && (
               <Badge variant="outline" className="text-orange-600">
-                <Calendar className="h-3 w-3 mr-1" />
+                <Calendar className="mr-1 h-3 w-3" />
                 Linked to Task
               </Badge>
             )}
@@ -466,8 +517,8 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
           <Card className="mb-4">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium flex items-center">
-                  <Paperclip className="h-4 w-4 mr-2" />
+                <h3 className="flex items-center text-sm font-medium">
+                  <Paperclip className="mr-2 h-4 w-4" />
                   Attachments ({email.attachments.length})
                 </h3>
               </div>
@@ -477,21 +528,29 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
                 {email.attachments.map((attachment, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    className="flex items-center justify-between rounded-lg bg-gray-50 p-2 dark:bg-gray-700"
                   >
                     <div className="flex items-center space-x-2">
                       <Paperclip className="h-4 w-4 text-gray-400" />
                       <div>
-                        <p className="text-sm font-medium">{attachment.filename}</p>
+                        <p className="text-sm font-medium">
+                          {attachment.filename}
+                        </p>
                         <p className="text-xs text-gray-500">
-                          {formatFileSize(attachment.size)} • {attachment.contentType}
+                          {formatFileSize(attachment.size)} •{' '}
+                          {attachment.contentType}
                         </p>
                       </div>
                     </div>
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => downloadAttachment(attachment.attachmentId, attachment.filename)}
+                      onClick={() =>
+                        downloadAttachment(
+                          attachment.attachmentId,
+                          attachment.filename
+                        )
+                      }
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -502,9 +561,9 @@ export function EmailDetails({ emailId, onReply, onDelete }: EmailDetailsProps) 
           </Card>
         )}
 
-        <div className="prose prose-sm dark:prose-invert max-w-none">
+        <div className="prose prose-sm max-w-none dark:prose-invert">
           {showRawContent ? (
-            <pre className="whitespace-pre-wrap text-xs bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto">
+            <pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-gray-100 p-4 text-xs dark:bg-gray-800">
               {email.bodyText}
             </pre>
           ) : email.bodyHtml ? (

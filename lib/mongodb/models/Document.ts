@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
-export interface IProjectDocument extends Document {
+export interface IProjectDocument extends Omit<Document, '_id'> {
   _id: string
   title: string
   content: string // HTML string for rich text content
@@ -21,7 +21,7 @@ export interface IProjectDocument extends Document {
   updatedAt: Date
 }
 
-export interface IDocumentVersion extends Document {
+export interface IDocumentVersion extends Omit<Document, '_id'> {
   _id: string
   documentId: string
   version: number

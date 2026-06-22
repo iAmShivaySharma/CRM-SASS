@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { UserPlus, Search } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import { useGetWorkspaceMembersQuery } from '@/lib/api/mongoApi'
 import { useAddProjectMemberMutation } from '@/lib/api/projectsApi'
@@ -19,7 +20,6 @@ import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
 
 interface InviteMemberDialogProps {
   open: boolean
@@ -40,14 +40,10 @@ export function InviteMemberDialog({
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Get workspace members
-  const {
-    data: membersData,
-    isLoading: membersLoading,
-  } = useGetWorkspaceMembersQuery(
-    currentWorkspace?.id || '',
-    { skip: !currentWorkspace?.id || !open }
-  )
-
+  const { data: membersData, isLoading: membersLoading } =
+    useGetWorkspaceMembersQuery(currentWorkspace?.id || '', {
+      skip: !currentWorkspace?.id || !open,
+    })
 
   const [addProjectMember] = useAddProjectMemberMutation()
 
@@ -56,8 +52,8 @@ export function InviteMemberDialog({
       member.status === 'active' &&
       !existingMemberIds.includes(member.user?.id || '') &&
       (search === '' ||
-       member.user?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-       member.user?.email?.toLowerCase().includes(search.toLowerCase()))
+        member.user?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+        member.user?.email?.toLowerCase().includes(search.toLowerCase()))
   )
 
   const selectedUser = availableMembers.find(m => m.user?.id === selectedUserId)
@@ -104,7 +100,8 @@ export function InviteMemberDialog({
             Invite Member to Project
           </DialogTitle>
           <DialogDescription>
-            Select a workspace member to add to this project. Their existing workspace role will be used for project access.
+            Select a workspace member to add to this project. Their existing
+            workspace role will be used for project access.
           </DialogDescription>
         </DialogHeader>
 
@@ -130,13 +127,17 @@ export function InviteMemberDialog({
             <div className="max-h-60 space-y-2 overflow-y-auto">
               {membersLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="text-sm text-muted-foreground">Loading members...</div>
+                  <div className="text-sm text-muted-foreground">
+                    Loading members...
+                  </div>
                 </div>
               ) : availableMembers.length === 0 ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground">
-                      {search ? 'No members found matching your search' : 'No available members to invite'}
+                      {search
+                        ? 'No members found matching your search'
+                        : 'No available members to invite'}
                     </div>
                   </div>
                 </div>
@@ -155,7 +156,9 @@ export function InviteMemberDialog({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={(member.user as any)?.avatarUrl || undefined} />
+                            <AvatarImage
+                              src={(member.user as any)?.avatarUrl || undefined}
+                            />
                             <AvatarFallback>
                               {member.user?.fullName
                                 ?.split(' ')
@@ -164,7 +167,7 @@ export function InviteMemberDialog({
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium text-sm">
+                            <div className="text-sm font-medium">
                               {member.user?.fullName || 'Unknown User'}
                             </div>
                             <div className="text-xs text-muted-foreground">
@@ -192,7 +195,9 @@ export function InviteMemberDialog({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={(selectedUser.user as any)?.avatarUrl || undefined} />
+                      <AvatarImage
+                        src={(selectedUser.user as any)?.avatarUrl || undefined}
+                      />
                       <AvatarFallback>
                         {selectedUser.user?.fullName
                           ?.split(' ')
@@ -209,9 +214,7 @@ export function InviteMemberDialog({
                       </div>
                     </div>
                   </div>
-                  <Badge variant="secondary">
-                    Workspace Member
-                  </Badge>
+                  <Badge variant="secondary">Workspace Member</Badge>
                 </div>
               </CardContent>
             </Card>

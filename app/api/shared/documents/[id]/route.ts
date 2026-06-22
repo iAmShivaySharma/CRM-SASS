@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { ProjectDocument, Project } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 
@@ -28,10 +28,7 @@ export async function GET(
 
     if (!document) {
       console.log('Document not found in database')
-      return NextResponse.json(
-        { error: 'Document not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
     console.log('Document found:', document.title)

@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { GoogleOAuthProvider, MicrosoftOAuthProvider } from '@/lib/auth/oauth-providers'
+import { type NextRequest, NextResponse } from 'next/server'
+import {
+  GoogleOAuthProvider,
+  MicrosoftOAuthProvider,
+} from '@/lib/auth/oauth-providers'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import EmailAccount from '@/lib/mongodb/models/EmailAccount'
 import { log } from '@/lib/logging/logger'
@@ -41,12 +44,19 @@ export async function GET(
       log.error('OAuth callback state expired', {
         provider,
         userId: state.userId,
-        age: Date.now() - state.timestamp
+        age: Date.now() - state.timestamp,
       })
-      return NextResponse.redirect(`${appUrl}/email?error=state_expired&provider=${provider}`)
+      return NextResponse.redirect(
+        `${appUrl}/email?error=state_expired&provider=${provider}`
+      )
     }
 
-    let tokens: { accessToken: string; refreshToken: string; expiresIn: number; scope?: string }
+    let tokens: {
+      accessToken: string
+      refreshToken: string
+      expiresIn: number
+      scope?: string
+    }
     let userInfo: { email: string; name: string }
 
     switch (provider) {
@@ -68,7 +78,10 @@ export async function GET(
     }
 
     if (!userInfo.email) {
-      log.error('OAuth callback failed to get user email', { provider, userId: state.userId })
+      log.error('OAuth callback failed to get user email', {
+        provider,
+        userId: state.userId,
+      })
       return NextResponse.redirect(errorRedirect)
     }
 
@@ -79,7 +92,7 @@ export async function GET(
     const existingAccount = await EmailAccount.findOne({
       emailAddress: userInfo.email,
       userId: state.userId,
-      workspaceId: state.workspaceId
+      workspaceId: state.workspaceId,
     }).select('+oauthAccessToken +oauthRefreshToken')
 
     let savedAccountId: string
@@ -99,13 +112,13 @@ export async function GET(
         provider: emailProvider,
         emailAddress: userInfo.email,
         userId: state.userId,
-        workspaceId: state.workspaceId
+        workspaceId: state.workspaceId,
       })
     } else {
       const accountCount = await EmailAccount.countDocuments({
         userId: state.userId,
         workspaceId: state.workspaceId,
-        isActive: true
+        isActive: true,
       })
 
       const newAccount = new EmailAccount({
@@ -122,15 +135,17 @@ export async function GET(
           syncInterval: 15,
           folders: {
             inbox: 'INBOX',
-            sent: emailProvider === 'gmail' ? '[Gmail]/Sent Mail' : 'Sent Items',
+            sent:
+              emailProvider === 'gmail' ? '[Gmail]/Sent Mail' : 'Sent Items',
             drafts: emailProvider === 'gmail' ? '[Gmail]/Drafts' : 'Drafts',
-            trash: emailProvider === 'gmail' ? '[Gmail]/Trash' : 'Deleted Items'
-          }
+            trash:
+              emailProvider === 'gmail' ? '[Gmail]/Trash' : 'Deleted Items',
+          },
         },
         stats: {
           emailsSent: 0,
-          emailsReceived: 0
-        }
+          emailsReceived: 0,
+        },
       })
 
       newAccount.setOAuthTokens(
@@ -147,7 +162,7 @@ export async function GET(
         emailAddress: userInfo.email,
         userId: state.userId,
         workspaceId: state.workspaceId,
-        isDefault: accountCount === 0
+        isDefault: accountCount === 0,
       })
     }
 

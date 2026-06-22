@@ -8,6 +8,19 @@
 'use client'
 
 import { useState } from 'react'
+import {
+  User,
+  Settings,
+  LogOut,
+  Crown,
+  CreditCard,
+  HelpCircle,
+  ChevronUp,
+  Zap,
+  Star,
+  Clock,
+  Timer,
+} from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
 import { useLogoutMutation } from '@/lib/api/authApi'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -29,19 +42,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import {
-  User,
-  Settings,
-  LogOut,
-  Crown,
-  CreditCard,
-  HelpCircle,
-  ChevronUp,
-  Zap,
-  Star,
-  Clock,
-  Timer,
-} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
 

@@ -1,6 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { Project, ProjectMember, Task, WorkspaceMember } from '@/lib/mongodb/client'
+import {
+  Project,
+  ProjectMember,
+  Task,
+  WorkspaceMember,
+} from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
   withLogging,
@@ -8,7 +14,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { z } from 'zod'
 
 const updateProjectSchema = z.object({
   name: z.string().min(1).max(100).optional(),

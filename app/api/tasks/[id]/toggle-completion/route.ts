@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { MongoDBClient } from '@/lib/mongodb/client'
 import { Task } from '@/lib/mongodb/models'
@@ -34,10 +34,7 @@ export async function PATCH(
     // Get the current task
     const currentTask = await Task.findById(taskId)
     if (!currentTask) {
-      return NextResponse.json(
-        { message: 'Task not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Task not found' }, { status: 404 })
     }
 
     // Update task completion status
@@ -53,11 +50,9 @@ export async function PATCH(
       updateData.completedBy = undefined
     }
 
-    const updatedTask = await Task.findByIdAndUpdate(
-      taskId,
-      updateData,
-      { new: true }
-    ).populate('assigneeId', 'fullName email avatarUrl')
+    const updatedTask = await Task.findByIdAndUpdate(taskId, updateData, {
+      new: true,
+    }).populate('assigneeId', 'fullName email avatarUrl')
 
     if (!updatedTask) {
       return NextResponse.json(
@@ -67,9 +62,7 @@ export async function PATCH(
     }
 
     // Create activity notification
-    const activityTitle = completed
-      ? 'Task Completed'
-      : 'Task Reopened'
+    const activityTitle = completed ? 'Task Completed' : 'Task Reopened'
 
     const activityMessage = completed
       ? `Task "${updatedTask.title}" has been marked as completed`
@@ -86,14 +79,16 @@ export async function PATCH(
         entityId: updatedTask._id.toString(),
         createdBy: auth.user._id,
         notificationLevel: 'personal',
-        targetUserIds: updatedTask.assigneeId ? [updatedTask.assigneeId] : undefined,
+        targetUserIds: updatedTask.assigneeId
+          ? [updatedTask.assigneeId]
+          : undefined,
         metadata: {
           taskId: updatedTask._id.toString(),
           taskTitle: updatedTask.title,
           completed,
           projectId: updatedTask.projectId,
           priority: updatedTask.priority,
-        }
+        },
       })
     } catch (notificationError) {
       console.error('Failed to create notification:', notificationError)
@@ -140,9 +135,8 @@ export async function PATCH(
         ...updatedTask.toJSON(),
         id: updatedTask._id,
         assignee: updatedTask.assigneeId,
-      }
+      },
     })
-
   } catch (error) {
     console.error('Error toggling task completion:', error)
     return NextResponse.json(

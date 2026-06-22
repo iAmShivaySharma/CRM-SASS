@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
@@ -61,12 +61,17 @@ export async function POST(request: NextRequest) {
       file.type
     )
 
-    const uploadResult = await uploadFile(secureFilePath, fileBuffer, file.type, {
-      'uploaded-by': auth.user._id,
-      'original-name': file.name,
-      'upload-date': new Date().toISOString(),
-      'context': 'blog',
-    })
+    const uploadResult = await uploadFile(
+      secureFilePath,
+      fileBuffer,
+      file.type,
+      {
+        'uploaded-by': auth.user._id,
+        'original-name': file.name,
+        'upload-date': new Date().toISOString(),
+        context: 'blog',
+      }
+    )
 
     if (!uploadResult.success) {
       return NextResponse.json(

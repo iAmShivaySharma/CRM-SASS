@@ -26,6 +26,7 @@ import {
   XCircle,
   Eye,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -61,10 +62,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useAppSelector } from '@/lib/hooks'
-import { toast } from 'sonner'
-import { LeadForm } from './LeadForm'
 import { cn } from '@/lib/utils'
 import { useWorkspaceFormatting } from '@/lib/utils/workspace-formatting'
+import { LeadForm } from './LeadForm'
 
 interface Lead {
   id: string
@@ -168,10 +168,12 @@ export function EnhancedLeadList() {
         })
 
         if (searchTerm) params.append('search', searchTerm)
-        if (statusFilter && statusFilter !== 'all')
+        if (statusFilter && statusFilter !== 'all') {
           params.append('status', statusFilter)
-        if (priorityFilter && priorityFilter !== 'all')
+        }
+        if (priorityFilter && priorityFilter !== 'all') {
           params.append('priority', priorityFilter)
+        }
         if (assignedToFilter) params.append('assignedTo', assignedToFilter)
 
         const response = await fetch(`/api/leads?${params}`, {

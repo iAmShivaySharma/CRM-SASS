@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAppSelector } from '@/lib/hooks'
 import { Toaster as Sonner } from 'sonner'
+import { useAppSelector } from '@/lib/hooks'
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 

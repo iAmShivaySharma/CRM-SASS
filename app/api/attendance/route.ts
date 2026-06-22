@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Attendance, Shift } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -13,10 +13,14 @@ export async function GET(request: NextRequest) {
       )
     }
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const userId = searchParams.get('userId') || auth.user._id
@@ -28,13 +32,13 @@ export async function GET(request: NextRequest) {
     // Build query
     const query: any = {
       userId,
-      workspaceId
+      workspaceId,
     }
 
     if (startDate && endDate) {
       query.date = {
         $gte: new Date(startDate),
-        $lte: new Date(endDate)
+        $lte: new Date(endDate),
       }
     }
 
@@ -56,8 +60,8 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     log.error('Get attendance records error:', error)
@@ -81,21 +85,25 @@ export async function POST(request: NextRequest) {
     const workspaceId = body.workspaceId || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const {
       action, // 'clock_in', 'clock_out', 'break_start', 'break_end'
       workType = 'office',
       location,
-      notes
+      notes,
     } = body
 
     // Get user-agent info
     const userAgent = request.headers.get('user-agent') || ''
-    const ip = request.headers.get('x-forwarded-for') ||
-               request.headers.get('x-real-ip') ||
-               'unknown'
+    const ip =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
 
     // Get today's attendance record
     const today = new Date()
@@ -104,7 +112,10 @@ export async function POST(request: NextRequest) {
     let attendance = await Attendance.findOne({
       userId: auth.user._id,
       workspaceId,
-      date: { $gte: today, $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) }
+      date: {
+        $gte: today,
+        $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
+      },
     })
 
     const now = new Date()
@@ -128,14 +139,16 @@ export async function POST(request: NextRequest) {
           clockIn: now,
           status: 'clocked_in',
           workType,
-          location: location ? {
-            clockInLocation: location
-          } : undefined,
+          location: location
+            ? {
+                clockInLocation: location,
+              }
+            : undefined,
           notes,
           ip,
           device: userAgent,
           shiftId: shift?._id,
-          regularHours: shift?.totalHours || 8
+          regularHours: shift?.totalHours || 8,
         })
 
         // Check if late
@@ -149,7 +162,7 @@ export async function POST(request: NextRequest) {
           userId: auth.user._id,
           workspaceId,
           attendanceId: attendance._id,
-          clockInTime: now
+          clockInTime: now,
         })
 
         break
@@ -168,14 +181,14 @@ export async function POST(request: NextRequest) {
         if (location) {
           attendance.location = {
             ...attendance.location,
-            clockOutLocation: location
+            clockOutLocation: location,
           }
         }
 
         if (notes) {
-          attendance.notes = attendance.notes ?
-            `${attendance.notes}\nClock out: ${notes}` :
-            `Clock out: ${notes}`
+          attendance.notes = attendance.notes
+            ? `${attendance.notes}\nClock out: ${notes}`
+            : `Clock out: ${notes}`
         }
 
         // Calculate work time and overtime
@@ -195,7 +208,7 @@ export async function POST(request: NextRequest) {
           totalBreakTime: attendance.totalBreakTime,
           calculatedWorkTime,
           totalWorkTime: attendance.totalWorkTime,
-          overtimeMinutes: attendance.overtimeMinutes
+          overtimeMinutes: attendance.overtimeMinutes,
         })
 
         break
@@ -245,10 +258,7 @@ export async function POST(request: NextRequest) {
         break
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
 
     // Populate fields for response
@@ -257,12 +267,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       attendance,
-      message: `Successfully ${action.replace('_', ' ')}`
+      message: `Successfully ${action.replace('_', ' ')}`,
     })
   } catch (error) {
     log.error('Attendance action error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Attendance action failed' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Attendance action failed',
+      },
       { status: 500 }
     )
   }

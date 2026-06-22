@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Plan, Workspace, WorkspaceMember } from '@/lib/mongodb/client'
@@ -17,10 +17,7 @@ export async function POST(request: NextRequest) {
     const { planId } = await request.json()
 
     if (!planId) {
-      return NextResponse.json(
-        { error: 'planId is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'planId is required' }, { status: 400 })
     }
 
     // Get user's active workspace
@@ -58,7 +55,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already on this plan
-    if (workspace.planId === planId && workspace.subscriptionStatus === 'active') {
+    if (
+      workspace.planId === planId &&
+      workspace.subscriptionStatus === 'active'
+    ) {
       return NextResponse.json(
         { error: 'Already subscribed to this plan' },
         { status: 400 }

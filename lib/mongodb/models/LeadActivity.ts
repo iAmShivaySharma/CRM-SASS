@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface ILeadActivity extends Document {
+export interface ILeadActivity extends Omit<Document, '_id'> {
   _id: string
   leadId: string
   workspaceId: string

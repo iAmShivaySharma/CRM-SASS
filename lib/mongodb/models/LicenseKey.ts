@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose'
 import crypto from 'crypto'
 
-export interface ILicenseKey extends Document {
+export interface ILicenseKey extends Omit<Document, '_id'> {
   _id: string
   key: string
   planId: string
@@ -160,7 +160,9 @@ LicenseKeySchema.methods.activate = async function (
   workspaceId: string
 ): Promise<ILicenseKey> {
   if (this.status !== 'active') {
-    throw new Error(`License key is not active (current status: ${this.status})`)
+    throw new Error(
+      `License key is not active (current status: ${this.status})`
+    )
   }
 
   if (this.currentActivations >= this.maxActivations) {
@@ -196,5 +198,5 @@ LicenseKeySchema.methods.revoke = async function (
 }
 
 export const LicenseKey =
-  (mongoose.models?.LicenseKey as ILicenseKeyModel) ||
+  (mongoose.models?.LicenseKey as unknown as ILicenseKeyModel) ||
   mongoose.model<ILicenseKey, ILicenseKeyModel>('LicenseKey', LicenseKeySchema)

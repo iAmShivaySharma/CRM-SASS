@@ -1,15 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Card, CardContent } from '@/components/ui/card'
 import {
   Send,
   Paperclip,
@@ -30,9 +21,29 @@ import {
   Users,
   Calendar,
   Clock,
-  FileText
+  FileText,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Card, CardContent } from '@/components/ui/card'
 import { useAppSelector } from '@/lib/hooks'
 
 interface EmailComposeProps {
@@ -87,7 +98,7 @@ export function EmailCompose({
   accountId,
   onEmailSent,
   replyTo,
-  forwardFrom
+  forwardFrom,
 }: EmailComposeProps) {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [emailData, setEmailData] = useState(() => {
@@ -98,7 +109,7 @@ export function EmailCompose({
         cc: '',
         bcc: '',
         subject: replyTo.subject,
-        body: `\n\n--- Original Message ---\nFrom: ${replyTo.from}\nTo: ${replyTo.to.join(', ')}\nSubject: ${replyTo.subject}\n\n`
+        body: `\n\n--- Original Message ---\nFrom: ${replyTo.from}\nTo: ${replyTo.to.join(', ')}\nSubject: ${replyTo.subject}\n\n`,
       }
     }
     if (forwardFrom) {
@@ -107,8 +118,10 @@ export function EmailCompose({
         to: '',
         cc: '',
         bcc: '',
-        subject: forwardFrom.subject.startsWith('Fwd:') ? forwardFrom.subject : `Fwd: ${forwardFrom.subject}`,
-        body: `\n\n--- Forwarded Message ---\n${forwardFrom.content}`
+        subject: forwardFrom.subject.startsWith('Fwd:')
+          ? forwardFrom.subject
+          : `Fwd: ${forwardFrom.subject}`,
+        body: `\n\n--- Forwarded Message ---\n${forwardFrom.content}`,
       }
     }
     return {
@@ -117,7 +130,7 @@ export function EmailCompose({
       cc: '',
       bcc: '',
       subject: '',
-      body: ''
+      body: '',
     }
   })
 
@@ -146,14 +159,18 @@ export function EmailCompose({
 
   const fetchAccounts = async () => {
     try {
-      const response = await fetch(`/api/email/accounts?workspaceId=${currentWorkspace?.id}`)
+      const response = await fetch(
+        `/api/email/accounts?workspaceId=${currentWorkspace?.id}`
+      )
       if (!response.ok) throw new Error('Failed to fetch accounts')
 
       const data = await response.json()
       setAccounts(data.accounts || [])
 
       if (accountId) {
-        const account = data.accounts?.find((acc: EmailAccount) => acc._id === accountId)
+        const account = data.accounts?.find(
+          (acc: EmailAccount) => acc._id === accountId
+        )
         if (account) {
           setEmailData(prev => ({ ...prev, from: account._id }))
         }
@@ -165,7 +182,9 @@ export function EmailCompose({
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch(`/api/email/templates?workspaceId=${currentWorkspace?.id}`)
+      const response = await fetch(
+        `/api/email/templates?workspaceId=${currentWorkspace?.id}`
+      )
       if (!response.ok) throw new Error('Failed to fetch templates')
 
       const data = await response.json()
@@ -181,14 +200,16 @@ export function EmailCompose({
         ...prev,
         to: replyTo.from,
         subject: replyTo.subject,
-        body: `\n\n--- Original Message ---\nFrom: ${replyTo.from}\nTo: ${replyTo.to.join(', ')}\nSubject: ${replyTo.subject}\n\n`
+        body: `\n\n--- Original Message ---\nFrom: ${replyTo.from}\nTo: ${replyTo.to.join(', ')}\nSubject: ${replyTo.subject}\n\n`,
       }))
     } else if (forwardFrom) {
       setEmailData(prev => ({
         ...prev,
         to: '',
-        subject: forwardFrom.subject.startsWith('Fwd:') ? forwardFrom.subject : `Fwd: ${forwardFrom.subject}`,
-        body: `\n\n--- Forwarded Message ---\n${forwardFrom.content}`
+        subject: forwardFrom.subject.startsWith('Fwd:')
+          ? forwardFrom.subject
+          : `Fwd: ${forwardFrom.subject}`,
+        body: `\n\n--- Forwarded Message ---\n${forwardFrom.content}`,
       }))
     } else {
       setEmailData({
@@ -197,7 +218,7 @@ export function EmailCompose({
         cc: '',
         bcc: '',
         subject: '',
-        body: ''
+        body: '',
       })
     }
   }
@@ -214,17 +235,19 @@ export function EmailCompose({
         id: Math.random().toString(36).substring(2),
         file,
         uploading: true,
-        uploaded: false
+        uploaded: false,
       }
 
       setAttachments(prev => [...prev, attachment])
 
       setTimeout(() => {
-        setAttachments(prev => prev.map(att =>
-          att.id === attachment.id
-            ? { ...att, uploading: false, uploaded: true }
-            : att
-        ))
+        setAttachments(prev =>
+          prev.map(att =>
+            att.id === attachment.id
+              ? { ...att, uploading: false, uploaded: true }
+              : att
+          )
+        )
       }, 1000)
     })
 
@@ -244,7 +267,7 @@ export function EmailCompose({
     setEmailData(prev => ({
       ...prev,
       subject: template.subject,
-      body: template.bodyHtml
+      body: template.bodyHtml,
     }))
 
     setSelectedTemplate(templateId)
@@ -262,19 +285,24 @@ export function EmailCompose({
     setIsDraft(true)
 
     try {
-      const response = await fetch(`/api/email/drafts?workspaceId=${currentWorkspace?.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountId: emailData.from,
-          ...emailData,
-          attachments: attachments.filter(att => att.uploaded).map(att => ({
-            filename: att.file.name,
-            size: att.file.size,
-            type: att.file.type
-          }))
-        })
-      })
+      const response = await fetch(
+        `/api/email/drafts?workspaceId=${currentWorkspace?.id}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountId: emailData.from,
+            ...emailData,
+            attachments: attachments
+              .filter(att => att.uploaded)
+              .map(att => ({
+                filename: att.file.name,
+                size: att.file.size,
+                type: att.file.type,
+              })),
+          }),
+        }
+      )
 
       if (!response.ok) throw new Error('Failed to save draft')
 
@@ -312,25 +340,36 @@ export function EmailCompose({
         formData.append('inReplyTo', replyTo.messageId)
       }
 
-      attachments.filter(att => att.uploaded).forEach(att => {
-        formData.append('attachments', att.file)
-      })
+      attachments
+        .filter(att => att.uploaded)
+        .forEach(att => {
+          formData.append('attachments', att.file)
+        })
 
-      const response = await fetch(`/api/email/send?workspaceId=${currentWorkspace?.id}`, {
-        method: 'POST',
-        body: formData
-      })
+      const response = await fetch(
+        `/api/email/send?workspaceId=${currentWorkspace?.id}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
 
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.error || 'Failed to send email')
       }
 
-      toast.success(scheduleDate ? 'Email scheduled successfully' : 'Email sent successfully')
+      toast.success(
+        scheduleDate
+          ? 'Email scheduled successfully'
+          : 'Email sent successfully'
+      )
       onEmailSent()
       onClose()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to send email')
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to send email'
+      )
     } finally {
       setIsSending(false)
     }
@@ -346,11 +385,11 @@ export function EmailCompose({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center">
-              <Send className="h-5 w-5 mr-2" />
+              <Send className="mr-2 h-5 w-5" />
               {replyTo ? 'Reply' : forwardFrom ? 'Forward' : 'Compose Email'}
             </div>
             <div className="flex items-center space-x-2">
@@ -374,7 +413,11 @@ export function EmailCompose({
                 onClick={saveDraft}
                 disabled={isDraft}
               >
-                {isDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isDraft ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </DialogTitle>
@@ -383,7 +426,12 @@ export function EmailCompose({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="from">From</Label>
-            <Select value={emailData.from} onValueChange={(value) => setEmailData(prev => ({ ...prev, from: value }))}>
+            <Select
+              value={emailData.from}
+              onValueChange={value =>
+                setEmailData(prev => ({ ...prev, from: value }))
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select email account" />
               </SelectTrigger>
@@ -392,7 +440,9 @@ export function EmailCompose({
                   <SelectItem key={account._id} value={account._id}>
                     <div className="flex items-center">
                       <span className="font-medium">{account.displayName}</span>
-                      <span className="ml-2 text-sm text-muted-foreground">&lt;{account.emailAddress}&gt;</span>
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        &lt;{account.emailAddress}&gt;
+                      </span>
                     </div>
                   </SelectItem>
                 ))}
@@ -406,7 +456,9 @@ export function EmailCompose({
               <Input
                 id="to"
                 value={emailData.to}
-                onChange={(e) => setEmailData(prev => ({ ...prev, to: e.target.value }))}
+                onChange={e =>
+                  setEmailData(prev => ({ ...prev, to: e.target.value }))
+                }
                 placeholder="recipient@email.com"
                 className="flex-1"
               />
@@ -435,7 +487,9 @@ export function EmailCompose({
               <Input
                 id="cc"
                 value={emailData.cc}
-                onChange={(e) => setEmailData(prev => ({ ...prev, cc: e.target.value }))}
+                onChange={e =>
+                  setEmailData(prev => ({ ...prev, cc: e.target.value }))
+                }
                 placeholder="cc@email.com"
               />
             </div>
@@ -447,7 +501,9 @@ export function EmailCompose({
               <Input
                 id="bcc"
                 value={emailData.bcc}
-                onChange={(e) => setEmailData(prev => ({ ...prev, bcc: e.target.value }))}
+                onChange={e =>
+                  setEmailData(prev => ({ ...prev, bcc: e.target.value }))
+                }
                 placeholder="bcc@email.com"
               />
             </div>
@@ -459,11 +515,18 @@ export function EmailCompose({
               <Input
                 id="subject"
                 value={emailData.subject}
-                onChange={(e) => setEmailData(prev => ({ ...prev, subject: e.target.value }))}
+                onChange={e =>
+                  setEmailData(prev => ({ ...prev, subject: e.target.value }))
+                }
                 placeholder="Email subject"
                 className="flex-1"
               />
-              <Select value={priority} onValueChange={(value) => setPriority(value as 'low' | 'normal' | 'high')}>
+              <Select
+                value={priority}
+                onValueChange={value =>
+                  setPriority(value as 'low' | 'normal' | 'high')
+                }
+              >
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -477,7 +540,7 @@ export function EmailCompose({
           </div>
 
           {isRichText && (
-            <div className="flex items-center space-x-1 p-2 border rounded-lg bg-gray-50 dark:bg-gray-800">
+            <div className="flex items-center space-x-1 rounded-lg border bg-gray-50 p-2 dark:bg-gray-800">
               <Button
                 variant="ghost"
                 size="sm"
@@ -558,7 +621,7 @@ export function EmailCompose({
                   onClick={() => setIsRichText(true)}
                   className="text-sm"
                 >
-                  <Eye className="h-4 w-4 mr-1" />
+                  <Eye className="mr-1 h-4 w-4" />
                   Rich Text
                 </Button>
               )}
@@ -568,10 +631,10 @@ export function EmailCompose({
               <div
                 ref={editorRef}
                 contentEditable
-                className="min-h-[200px] p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="min-h-[200px] rounded-lg border p-3 focus:outline-none focus:ring-2 focus:ring-primary"
                 style={{ whiteSpace: 'pre-wrap' }}
                 dangerouslySetInnerHTML={{ __html: emailData.body }}
-                onInput={(e) => {
+                onInput={e => {
                   const target = e.target as HTMLDivElement
                   setEmailData(prev => ({ ...prev, body: target.innerHTML }))
                 }}
@@ -580,7 +643,9 @@ export function EmailCompose({
               <Textarea
                 id="body"
                 value={emailData.body.replace(/<[^>]*>/g, '')}
-                onChange={(e) => setEmailData(prev => ({ ...prev, body: e.target.value }))}
+                onChange={e =>
+                  setEmailData(prev => ({ ...prev, body: e.target.value }))
+                }
                 placeholder="Type your message here..."
                 className="min-h-[200px] resize-none"
               />
@@ -590,19 +655,25 @@ export function EmailCompose({
           {attachments.length > 0 && (
             <Card>
               <CardContent className="p-3">
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <Label className="text-sm font-medium">Attachments</Label>
                   <Badge variant="secondary">
-                    {attachments.length} file{attachments.length !== 1 ? 's' : ''}
+                    {attachments.length} file
+                    {attachments.length !== 1 ? 's' : ''}
                   </Badge>
                 </div>
                 <div className="space-y-2">
                   {attachments.map(attachment => (
-                    <div key={attachment.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div
+                      key={attachment.id}
+                      className="flex items-center justify-between rounded-lg bg-gray-50 p-2 dark:bg-gray-800"
+                    >
                       <div className="flex items-center space-x-2">
                         <FileText className="h-4 w-4" />
                         <div>
-                          <p className="text-sm font-medium">{attachment.file.name}</p>
+                          <p className="text-sm font-medium">
+                            {attachment.file.name}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {formatFileSize(attachment.file.size)}
                           </p>
@@ -635,12 +706,8 @@ export function EmailCompose({
 
           <div className="flex items-center justify-between pt-4">
             <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleFileSelect}
-              >
-                <Paperclip className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={handleFileSelect}>
+                <Paperclip className="mr-2 h-4 w-4" />
                 Attach
               </Button>
 
@@ -653,12 +720,14 @@ export function EmailCompose({
               />
 
               <div className="flex items-center space-x-2">
-                <Label htmlFor="schedule" className="text-sm">Schedule:</Label>
+                <Label htmlFor="schedule" className="text-sm">
+                  Schedule:
+                </Label>
                 <Input
                   id="schedule"
                   type="datetime-local"
                   value={scheduleDate}
-                  onChange={(e) => setScheduleDate(e.target.value)}
+                  onChange={e => setScheduleDate(e.target.value)}
                   className="w-48"
                 />
               </div>
@@ -670,12 +739,17 @@ export function EmailCompose({
               </Button>
               <Button
                 onClick={sendEmail}
-                disabled={isSending || !emailData.from || !emailData.to || !emailData.subject}
+                disabled={
+                  isSending ||
+                  !emailData.from ||
+                  !emailData.to ||
+                  !emailData.subject
+                }
               >
                 {isSending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Send className="h-4 w-4 mr-2" />
+                  <Send className="mr-2 h-4 w-4" />
                 )}
                 {scheduleDate ? 'Schedule' : 'Send'}
               </Button>

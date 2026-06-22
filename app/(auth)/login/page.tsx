@@ -1,34 +1,32 @@
 import { Suspense } from 'react'
 import { ModernLoginForm } from '@/components/auth/ModernLoginForm'
 
-function LoginFormWrapper() {
-  return <ModernLoginForm />
-}
-
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="space-y-4 w-full max-w-sm">
-          <div className="space-y-2 text-center">
-            <div className="h-8 w-32 bg-muted rounded animate-pulse mx-auto" />
-            <div className="h-4 w-48 bg-muted rounded animate-pulse mx-auto" />
-          </div>
-          <div className="space-y-4 p-6 rounded-lg border">
-            <div className="space-y-2">
-              <div className="h-4 w-16 bg-muted rounded animate-pulse" />
-              <div className="h-10 w-full bg-muted rounded animate-pulse" />
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="w-full max-w-sm space-y-4">
+            <div className="space-y-2 text-center">
+              <div className="mx-auto h-8 w-32 animate-pulse rounded bg-muted" />
+              <div className="mx-auto h-4 w-48 animate-pulse rounded bg-muted" />
             </div>
-            <div className="space-y-2">
-              <div className="h-4 w-20 bg-muted rounded animate-pulse" />
-              <div className="h-10 w-full bg-muted rounded animate-pulse" />
+            <div className="space-y-4 rounded-lg border p-6">
+              <div className="space-y-2">
+                <div className="h-4 w-16 animate-pulse rounded bg-muted" />
+                <div className="h-10 w-full animate-pulse rounded bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+                <div className="h-10 w-full animate-pulse rounded bg-muted" />
+              </div>
+              <div className="h-10 w-full animate-pulse rounded bg-muted" />
             </div>
-            <div className="h-10 w-full bg-muted rounded animate-pulse" />
           </div>
         </div>
-      </div>
-    }>
-      <LoginFormWrapper />
+      }
+    >
+      <ModernLoginForm />
     </Suspense>
   )
 }

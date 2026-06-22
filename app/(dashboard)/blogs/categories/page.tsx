@@ -1,14 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Edit, Save, X } from 'lucide-react'
+import { Plus, Trash2, Edit, Save, X, ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 
 interface Category {
   id: string
@@ -90,7 +89,14 @@ export default function BlogCategoriesPage() {
       }
 
       toast.success('Category created!')
-      setForm({ name: '', slug: '', description: '', metaTitle: '', metaDescription: '', order: 0 })
+      setForm({
+        name: '',
+        slug: '',
+        description: '',
+        metaTitle: '',
+        metaDescription: '',
+        order: 0,
+      })
       setShowForm(false)
       fetchCategories()
     } catch {
@@ -104,7 +110,9 @@ export default function BlogCategoriesPage() {
     if (!confirm('Delete this category?')) return
 
     try {
-      const res = await fetch(`/api/blogs/categories/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/blogs/categories/${id}`, {
+        method: 'DELETE',
+      })
       if (res.ok) {
         toast.success('Category deleted')
         fetchCategories()
@@ -127,21 +135,27 @@ export default function BlogCategoriesPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Blog Categories</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              Blog Categories
+            </h1>
             <p className="text-sm text-muted-foreground">
               Manage categories to organize your blog posts
             </p>
           </div>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+          {showForm ? (
+            <X className="mr-2 h-4 w-4" />
+          ) : (
+            <Plus className="mr-2 h-4 w-4" />
+          )}
           {showForm ? 'Cancel' : 'New Category'}
         </Button>
       </div>
 
       {/* Create Form */}
       {showForm && (
-        <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+        <div className="space-y-4 rounded-lg border border-border bg-card p-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="cat-name">Name</Label>
@@ -160,7 +174,9 @@ export default function BlogCategoriesPage() {
                 onChange={e =>
                   setForm(prev => ({
                     ...prev,
-                    slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                    slug: e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9-]/g, ''),
                   }))
                 }
                 placeholder="sales-tips"
@@ -171,19 +187,29 @@ export default function BlogCategoriesPage() {
               <Textarea
                 id="cat-desc"
                 value={form.description}
-                onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
+                onChange={e =>
+                  setForm(prev => ({ ...prev, description: e.target.value }))
+                }
                 placeholder="Brief description of this category..."
                 rows={2}
               />
             </div>
             <div>
               <Label htmlFor="cat-meta-title">
-                Meta Title <span className="text-xs text-muted-foreground">({form.metaTitle.length}/70)</span>
+                Meta Title{' '}
+                <span className="text-xs text-muted-foreground">
+                  ({form.metaTitle.length}/70)
+                </span>
               </Label>
               <Input
                 id="cat-meta-title"
                 value={form.metaTitle}
-                onChange={e => setForm(prev => ({ ...prev, metaTitle: e.target.value.slice(0, 70) }))}
+                onChange={e =>
+                  setForm(prev => ({
+                    ...prev,
+                    metaTitle: e.target.value.slice(0, 70),
+                  }))
+                }
                 placeholder="SEO title"
                 maxLength={70}
               />
@@ -194,18 +220,29 @@ export default function BlogCategoriesPage() {
                 id="cat-order"
                 type="number"
                 value={form.order}
-                onChange={e => setForm(prev => ({ ...prev, order: parseInt(e.target.value) || 0 }))}
+                onChange={e =>
+                  setForm(prev => ({
+                    ...prev,
+                    order: parseInt(e.target.value) || 0,
+                  }))
+                }
               />
             </div>
             <div className="sm:col-span-2">
               <Label htmlFor="cat-meta-desc">
-                Meta Description <span className="text-xs text-muted-foreground">({form.metaDescription.length}/160)</span>
+                Meta Description{' '}
+                <span className="text-xs text-muted-foreground">
+                  ({form.metaDescription.length}/160)
+                </span>
               </Label>
               <Textarea
                 id="cat-meta-desc"
                 value={form.metaDescription}
                 onChange={e =>
-                  setForm(prev => ({ ...prev, metaDescription: e.target.value.slice(0, 160) }))
+                  setForm(prev => ({
+                    ...prev,
+                    metaDescription: e.target.value.slice(0, 160),
+                  }))
                 }
                 placeholder="SEO description for this category page"
                 rows={2}
@@ -237,21 +274,31 @@ export default function BlogCategoriesPage() {
           <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                <td
+                  colSpan={5}
+                  className="px-4 py-12 text-center text-muted-foreground"
+                >
                   Loading...
                 </td>
               </tr>
             ) : categories.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                <td
+                  colSpan={5}
+                  className="px-4 py-12 text-center text-muted-foreground"
+                >
                   No categories yet. Create one to start writing blog posts.
                 </td>
               </tr>
             ) : (
               categories.map(cat => (
                 <tr key={cat.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium text-foreground">{cat.name}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{cat.slug}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">
+                    {cat.name}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {cat.slug}
+                  </td>
                   <td className="hidden px-4 py-3 text-sm text-muted-foreground md:table-cell">
                     {cat.postCount}
                   </td>

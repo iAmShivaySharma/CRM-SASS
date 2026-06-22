@@ -1,10 +1,15 @@
 import nodemailer from 'nodemailer'
 import { google } from 'googleapis'
-import { Client } from '@microsoft/microsoft-graph-client'
-import { AuthenticationProvider } from '@microsoft/microsoft-graph-client'
+import {
+  Client,
+  AuthenticationProvider,
+} from '@microsoft/microsoft-graph-client'
 import Imap from 'imap'
 import { simpleParser } from 'mailparser'
-import { GoogleOAuthProvider, MicrosoftOAuthProvider } from '@/lib/auth/oauth-providers'
+import {
+  GoogleOAuthProvider,
+  MicrosoftOAuthProvider,
+} from '@/lib/auth/oauth-providers'
 import { EmailAccount, EmailMessage } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
 
@@ -41,10 +46,18 @@ export abstract class BaseEmailProvider {
     this.account = account
   }
 
-  abstract sendEmail(options: EmailSendOptions): Promise<{ success: boolean; messageId?: string; error?: string }>
-  abstract syncEmails(options?: EmailSyncOptions): Promise<{ success: boolean; count: number; error?: string }>
+  abstract sendEmail(
+    options: EmailSendOptions
+  ): Promise<{ success: boolean; messageId?: string; error?: string }>
+  abstract syncEmails(
+    options?: EmailSyncOptions
+  ): Promise<{ success: boolean; count: number; error?: string }>
   abstract testConnection(): Promise<{ success: boolean; error?: string }>
-  abstract getFolders(): Promise<{ success: boolean; folders?: any[]; error?: string }>
+  abstract getFolders(): Promise<{
+    success: boolean
+    folders?: any[]
+    error?: string
+  }>
 }
 
 // Gmail Provider
@@ -72,7 +85,7 @@ export class GmailProvider extends BaseEmailProvider {
 
       this.oauth2Client.setCredentials({
         access_token: tokens.accessToken,
-        refresh_token: tokens.refreshToken
+        refresh_token: tokens.refreshToken,
       })
 
       this.gmail = google.gmail({ version: 'v1', auth: this.oauth2Client })
@@ -82,41 +95,48 @@ export class GmailProvider extends BaseEmailProvider {
     }
   }
 
-  async sendEmail(options: EmailSendOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  async sendEmail(
+    options: EmailSendOptions
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       const message = this.createMimeMessage(options)
 
       const response = await this.gmail.users.messages.send({
         userId: 'me',
         requestBody: {
-          raw: Buffer.from(message).toString('base64url')
-        }
+          raw: Buffer.from(message).toString('base64url'),
+        },
       })
 
       await this.account.recordEmailSent()
 
       return {
         success: true,
-        messageId: response.data.id
+        messageId: response.data.id,
       }
     } catch (error) {
       log.error('Gmail send error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to send email'
+        error: error instanceof Error ? error.message : 'Failed to send email',
       }
     }
   }
 
-  async syncEmails(options?: EmailSyncOptions): Promise<{ success: boolean; count: number; error?: string }> {
+  async syncEmails(
+    options?: EmailSyncOptions
+  ): Promise<{ success: boolean; count: number; error?: string }> {
     try {
       // Sync from all main folders
-      const foldersToSync = options?.folder && options.folder !== 'INBOX'
-        ? [options.folder]
-        : ['INBOX', 'SENT', 'DRAFT', 'TRASH', 'STARRED']
+      const foldersToSync =
+        options?.folder && options.folder !== 'INBOX'
+          ? [options.folder]
+          : ['INBOX', 'SENT', 'DRAFT', 'TRASH', 'STARRED']
 
       let totalSynced = 0
-      const perFolderLimit = Math.ceil((options?.limit || 50) / foldersToSync.length)
+      const perFolderLimit = Math.ceil(
+        (options?.limit || 50) / foldersToSync.length
+      )
 
       for (const labelId of foldersToSync) {
         try {
@@ -126,7 +146,7 @@ export class GmailProvider extends BaseEmailProvider {
             userId: 'me',
             labelIds: [labelId],
             q: query || undefined,
-            maxResults: perFolderLimit
+            maxResults: perFolderLimit,
           })
 
           if (!response.data.messages) continue
@@ -136,7 +156,7 @@ export class GmailProvider extends BaseEmailProvider {
               // Check if message already exists before fetching full content
               const existing = await EmailMessage.findOne({
                 messageId: message.id,
-                emailAccountId: this.account._id
+                emailAccountId: this.account._id,
               })
 
               if (existing) continue
@@ -144,10 +164,12 @@ export class GmailProvider extends BaseEmailProvider {
               const fullMessage = await this.gmail.users.messages.get({
                 userId: 'me',
                 id: message.id,
-                format: 'full'
+                format: 'full',
               })
 
-              const emailMessage = await this.parseGmailMessage(fullMessage.data)
+              const emailMessage = await this.parseGmailMessage(
+                fullMessage.data
+              )
               await emailMessage.save()
               totalSynced++
             } catch (parseError) {
@@ -168,7 +190,7 @@ export class GmailProvider extends BaseEmailProvider {
       return {
         success: false,
         count: 0,
-        error: error instanceof Error ? error.message : 'Failed to sync emails'
+        error: error instanceof Error ? error.message : 'Failed to sync emails',
       }
     }
   }
@@ -180,28 +202,34 @@ export class GmailProvider extends BaseEmailProvider {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Connection test failed'
+        error:
+          error instanceof Error ? error.message : 'Connection test failed',
       }
     }
   }
 
-  async getFolders(): Promise<{ success: boolean; folders?: any[]; error?: string }> {
+  async getFolders(): Promise<{
+    success: boolean
+    folders?: any[]
+    error?: string
+  }> {
     try {
       const response = await this.gmail.users.labels.list({ userId: 'me' })
 
-      const folders = response.data.labels?.map((label: any) => ({
-        id: label.id,
-        name: label.name,
-        type: label.type,
-        messagesTotal: label.messagesTotal,
-        messagesUnread: label.messagesUnread
-      })) || []
+      const folders =
+        response.data.labels?.map((label: any) => ({
+          id: label.id,
+          name: label.name,
+          type: label.type,
+          messagesTotal: label.messagesTotal,
+          messagesUnread: label.messagesUnread,
+        })) || []
 
       return { success: true, folders }
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get folders'
+        error: error instanceof Error ? error.message : 'Failed to get folders',
       }
     }
   }
@@ -211,14 +239,24 @@ export class GmailProvider extends BaseEmailProvider {
     const headers = [
       `From: ${this.account.emailAddress}`,
       `To: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`,
-      ...(options.cc ? [`Cc: ${Array.isArray(options.cc) ? options.cc.join(', ') : options.cc}`] : []),
-      ...(options.bcc ? [`Bcc: ${Array.isArray(options.bcc) ? options.bcc.join(', ') : options.bcc}`] : []),
+      ...(options.cc
+        ? [
+            `Cc: ${Array.isArray(options.cc) ? options.cc.join(', ') : options.cc}`,
+          ]
+        : []),
+      ...(options.bcc
+        ? [
+            `Bcc: ${Array.isArray(options.bcc) ? options.bcc.join(', ') : options.bcc}`,
+          ]
+        : []),
       `Subject: ${options.subject}`,
       ...(options.replyTo ? [`Reply-To: ${options.replyTo}`] : []),
       ...(options.inReplyTo ? [`In-Reply-To: ${options.inReplyTo}`] : []),
-      ...(options.references ? [`References: ${options.references.join(' ')}`] : []),
+      ...(options.references
+        ? [`References: ${options.references.join(' ')}`]
+        : []),
       `MIME-Version: 1.0`,
-      `Content-Type: multipart/mixed; boundary="${boundary}"`
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
     ]
 
     let body = headers.join('\r\n') + '\r\n\r\n'
@@ -265,7 +303,9 @@ export class GmailProvider extends BaseEmailProvider {
 
   private async parseGmailMessage(gmailMessage: any): Promise<any> {
     const headers = gmailMessage.payload.headers
-    const getHeader = (name: string) => headers.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value
+    const getHeader = (name: string) =>
+      headers.find((h: any) => h.name.toLowerCase() === name.toLowerCase())
+        ?.value
 
     const emailMessage = new EmailMessage({
       userId: this.account.userId,
@@ -276,7 +316,7 @@ export class GmailProvider extends BaseEmailProvider {
 
       from: {
         email: getHeader('From') || '',
-        name: this.extractEmailName(getHeader('From') || '')
+        name: this.extractEmailName(getHeader('From') || ''),
       },
 
       to: this.parseEmailAddresses(getHeader('To') || ''),
@@ -285,8 +325,12 @@ export class GmailProvider extends BaseEmailProvider {
 
       subject: getHeader('Subject') || '',
 
-      direction: (gmailMessage.labelIds || []).includes('SENT') ? 'outbound' : 'inbound',
-      status: (gmailMessage.labelIds || []).includes('SENT') ? 'sent' : 'delivered',
+      direction: (gmailMessage.labelIds || []).includes('SENT')
+        ? 'outbound'
+        : 'inbound',
+      status: (gmailMessage.labelIds || []).includes('SENT')
+        ? 'sent'
+        : 'delivered',
 
       sentAt: new Date(parseInt(gmailMessage.internalDate)),
       receivedAt: new Date(parseInt(gmailMessage.internalDate)),
@@ -302,8 +346,8 @@ export class GmailProvider extends BaseEmailProvider {
         rawHeaders: headers,
         internalDate: new Date(parseInt(gmailMessage.internalDate)),
         size: gmailMessage.sizeEstimate,
-        flags: gmailMessage.labelIds
-      }
+        flags: gmailMessage.labelIds,
+      },
     })
 
     // Extract body content
@@ -338,7 +382,9 @@ export class GmailProvider extends BaseEmailProvider {
     return { text, html }
   }
 
-  private parseEmailAddresses(addressString: string): Array<{ name?: string; email: string }> {
+  private parseEmailAddresses(
+    addressString: string
+  ): Array<{ name?: string; email: string }> {
     if (!addressString) return []
 
     return addressString.split(',').map(addr => {
@@ -387,12 +433,14 @@ export class SMTPProvider extends BaseEmailProvider {
       secure: this.account.smtpConfig.secure,
       auth: {
         user: credentials.username,
-        pass: credentials.password
-      }
+        pass: credentials.password,
+      },
     })
   }
 
-  async sendEmail(options: EmailSendOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  async sendEmail(
+    options: EmailSendOptions
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       const mailOptions = {
         from: this.account.emailAddress,
@@ -405,7 +453,7 @@ export class SMTPProvider extends BaseEmailProvider {
         attachments: options.attachments,
         replyTo: options.replyTo,
         inReplyTo: options.inReplyTo,
-        references: options.references
+        references: options.references,
       }
 
       const info = await this.transporter.sendMail(mailOptions)
@@ -413,18 +461,22 @@ export class SMTPProvider extends BaseEmailProvider {
 
       return {
         success: true,
-        messageId: info.messageId
+        messageId: info.messageId,
       }
     } catch (error) {
       log.error('SMTP send error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to send email'
+        error: error instanceof Error ? error.message : 'Failed to send email',
       }
     }
   }
 
-  async syncEmails(): Promise<{ success: boolean; count: number; error?: string }> {
+  async syncEmails(): Promise<{
+    success: boolean
+    count: number
+    error?: string
+  }> {
     // SMTP is send-only, no sync capability
     return { success: true, count: 0 }
   }
@@ -436,12 +488,17 @@ export class SMTPProvider extends BaseEmailProvider {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Connection test failed'
+        error:
+          error instanceof Error ? error.message : 'Connection test failed',
       }
     }
   }
 
-  async getFolders(): Promise<{ success: boolean; folders?: any[]; error?: string }> {
+  async getFolders(): Promise<{
+    success: boolean
+    folders?: any[]
+    error?: string
+  }> {
     // SMTP doesn't have folders
     return { success: true, folders: [] }
   }
@@ -466,9 +523,14 @@ export class EmailProviderFactory {
 
 // Email Service Manager
 export class EmailService {
-  static async sendEmail(accountId: string, options: EmailSendOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  static async sendEmail(
+    accountId: string,
+    options: EmailSendOptions
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      const account = await EmailAccount.findById(accountId).select('+oauthAccessToken +oauthRefreshToken')
+      const account = await EmailAccount.findById(accountId).select(
+        '+oauthAccessToken +oauthRefreshToken'
+      )
       if (!account || !account.isActive) {
         return { success: false, error: 'Email account not found or inactive' }
       }
@@ -482,7 +544,7 @@ export class EmailService {
         log.info(`Email sent successfully from ${account.emailAddress}`, {
           accountId,
           messageId: result.messageId,
-          subject: options.subject
+          subject: options.subject,
         })
       }
 
@@ -491,16 +553,25 @@ export class EmailService {
       log.error('Email service error:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Email service error'
+        error: error instanceof Error ? error.message : 'Email service error',
       }
     }
   }
 
-  static async syncAccountEmails(accountId: string, options?: EmailSyncOptions): Promise<{ success: boolean; count: number; error?: string }> {
+  static async syncAccountEmails(
+    accountId: string,
+    options?: EmailSyncOptions
+  ): Promise<{ success: boolean; count: number; error?: string }> {
     try {
-      const account = await EmailAccount.findById(accountId).select('+oauthAccessToken +oauthRefreshToken')
+      const account = await EmailAccount.findById(accountId).select(
+        '+oauthAccessToken +oauthRefreshToken'
+      )
       if (!account || !account.isActive || !account.settings.syncEnabled) {
-        return { success: false, count: 0, error: 'Account not found or sync disabled' }
+        return {
+          success: false,
+          count: 0,
+          error: 'Account not found or sync disabled',
+        }
       }
 
       const provider = await EmailProviderFactory.createProvider(account)
@@ -508,7 +579,9 @@ export class EmailService {
 
       if (result.success) {
         await account.recordEmailReceived()
-        log.info(`Synced ${result.count} emails for account ${account.emailAddress}`)
+        log.info(
+          `Synced ${result.count} emails for account ${account.emailAddress}`
+        )
       }
 
       return result
@@ -517,14 +590,18 @@ export class EmailService {
       return {
         success: false,
         count: 0,
-        error: error instanceof Error ? error.message : 'Email sync error'
+        error: error instanceof Error ? error.message : 'Email sync error',
       }
     }
   }
 
-  static async testAccountConnection(accountId: string): Promise<{ success: boolean; error?: string }> {
+  static async testAccountConnection(
+    accountId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
-      const account = await EmailAccount.findById(accountId).select('+oauthAccessToken +oauthRefreshToken')
+      const account = await EmailAccount.findById(accountId).select(
+        '+oauthAccessToken +oauthRefreshToken'
+      )
       if (!account) {
         return { success: false, error: 'Account not found' }
       }
@@ -534,7 +611,8 @@ export class EmailService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Connection test failed'
+        error:
+          error instanceof Error ? error.message : 'Connection test failed',
       }
     }
   }

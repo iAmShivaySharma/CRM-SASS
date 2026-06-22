@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Task, Project, ProjectMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -63,7 +63,9 @@ export async function POST(
     // Stop any existing active session
     if (task.timeTracking.isActive && task.timeTracking.currentSessionStart) {
       const sessionDuration = Math.floor(
-        (now.getTime() - new Date(task.timeTracking.currentSessionStart).getTime()) / 1000
+        (now.getTime() -
+          new Date(task.timeTracking.currentSessionStart).getTime()) /
+          1000
       )
 
       // Add the completed session
@@ -85,7 +87,7 @@ export async function POST(
       taskId,
       isActive: task.timeTracking.isActive,
       currentSessionStart: task.timeTracking.currentSessionStart,
-      totalTracked: task.timeTracking.totalTracked
+      totalTracked: task.timeTracking.totalTracked,
     })
 
     await task.save()
@@ -94,7 +96,7 @@ export async function POST(
       taskId,
       isActive: task.timeTracking.isActive,
       currentSessionStart: task.timeTracking.currentSessionStart,
-      totalTracked: task.timeTracking.totalTracked
+      totalTracked: task.timeTracking.totalTracked,
     })
 
     return NextResponse.json({
@@ -115,18 +117,21 @@ export async function POST(
         timeTracking: {
           isActive: task.timeTracking.isActive,
           totalTracked: task.timeTracking.totalTracked,
-          sessions: task.timeTracking.sessions.map((session: {
-            startedAt: Date
-            endedAt?: Date
-            duration?: number
-            userId: string
-          }) => ({
-            startedAt: session.startedAt.toISOString(),
-            endedAt: session.endedAt?.toISOString(),
-            duration: session.duration,
-            userId: session.userId,
-          })),
-          currentSessionStart: task.timeTracking.currentSessionStart?.toISOString(),
+          sessions: task.timeTracking.sessions.map(
+            (session: {
+              startedAt: Date
+              endedAt?: Date
+              duration?: number
+              userId: string
+            }) => ({
+              startedAt: session.startedAt.toISOString(),
+              endedAt: session.endedAt?.toISOString(),
+              duration: session.duration,
+              userId: session.userId,
+            })
+          ),
+          currentSessionStart:
+            task.timeTracking.currentSessionStart?.toISOString(),
         },
         order: task.order,
         dependencies: task.dependencies,

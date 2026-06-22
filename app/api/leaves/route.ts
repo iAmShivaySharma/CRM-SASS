@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { LeaveRequest } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -14,10 +14,14 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const status = searchParams.get('status')
@@ -54,8 +58,8 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     log.error('Get leave requests error:', error)
@@ -80,7 +84,10 @@ export async function POST(request: NextRequest) {
     const workspaceId = body.workspaceId || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const {
@@ -92,18 +99,28 @@ export async function POST(request: NextRequest) {
       leavePolicyId,
       attachments,
       emergencyContact,
-      handoverDetails
+      handoverDetails,
     } = body
 
-    if (!leaveType || !startDate || !endDate || !totalDays || !reason || !leavePolicyId) {
+    if (
+      !leaveType ||
+      !startDate ||
+      !endDate ||
+      !totalDays ||
+      !reason ||
+      !leavePolicyId
+    ) {
       return NextResponse.json(
-        { error: 'Missing required fields: leaveType, startDate, endDate, totalDays, reason, leavePolicyId' },
+        {
+          error:
+            'Missing required fields: leaveType, startDate, endDate, totalDays, reason, leavePolicyId',
+        },
         { status: 400 }
       )
     }
 
     // Check for overlapping requests
-    const overlapping = await LeaveRequest.getOverlappingRequests(
+    const overlapping = await (LeaveRequest as any).getOverlappingRequests(
       auth.user._id,
       new Date(startDate),
       new Date(endDate)
@@ -111,7 +128,10 @@ export async function POST(request: NextRequest) {
 
     if (overlapping && overlapping.length > 0) {
       return NextResponse.json(
-        { error: 'You already have a leave request overlapping with these dates' },
+        {
+          error:
+            'You already have a leave request overlapping with these dates',
+        },
         { status: 409 }
       )
     }
@@ -128,7 +148,7 @@ export async function POST(request: NextRequest) {
       leavePolicyId,
       attachments,
       emergencyContact,
-      handoverDetails
+      handoverDetails,
     })
 
     await leaveRequest.save()
@@ -139,17 +159,19 @@ export async function POST(request: NextRequest) {
       leaveRequestId: leaveRequest._id,
       leaveType,
       startDate,
-      endDate
+      endDate,
     })
 
-    return NextResponse.json(
-      { success: true, leaveRequest },
-      { status: 201 }
-    )
+    return NextResponse.json({ success: true, leaveRequest }, { status: 201 })
   } catch (error) {
     log.error('Create leave request error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create leave request' },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create leave request',
+      },
       { status: 500 }
     )
   }

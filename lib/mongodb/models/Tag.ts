@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface ITag extends Document {
+export interface ITag extends Omit<Document, '_id'> {
   _id: string
   workspaceId: string
   name: string
@@ -54,7 +54,6 @@ const TagSchema = new Schema<ITag>(
   }
 )
 
-// Optimized indexes for performance
 if (typeof window === 'undefined') {
   TagSchema.index({ workspaceId: 1, name: 1 }, { unique: true })
 }

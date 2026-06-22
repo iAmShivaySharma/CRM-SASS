@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { EmailAccount } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -20,14 +20,17 @@ export async function POST(
     const workspaceId = new URL(request.url).searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const account = await EmailAccount.findOne({
       _id: accountId,
       userId: auth.user._id,
       workspaceId,
-      isActive: true
+      isActive: true,
     })
 
     if (!account) {
@@ -39,17 +42,22 @@ export async function POST(
     log.info(`Email account set as default: ${account.emailAddress}`, {
       userId: auth.user._id,
       workspaceId,
-      accountId
+      accountId,
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Default account updated successfully'
+      message: 'Default account updated successfully',
     })
   } catch (error) {
     log.error('Set default email account error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to set default account' },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to set default account',
+      },
       { status: 500 }
     )
   }

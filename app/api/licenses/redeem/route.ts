@@ -1,10 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { WorkspaceMember, Workspace, Subscription, Plan } from '@/lib/mongodb/client'
+import {
+  WorkspaceMember,
+  Workspace,
+  Subscription,
+  Plan,
+} from '@/lib/mongodb/client'
 import { LicenseKey } from '@/lib/mongodb/models/LicenseKey'
 import { log } from '@/lib/logging/logger'
-import { z } from 'zod'
 
 const redeemSchema = z.object({
   key: z.string().min(1, 'License key is required').trim(),
@@ -28,7 +33,10 @@ export async function POST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { message: 'Validation error', errors: parsed.error.flatten().fieldErrors },
+        {
+          message: 'Validation error',
+          errors: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 }
       )
     }
@@ -52,7 +60,10 @@ export async function POST(request: NextRequest) {
         revoked: 'This license key has been revoked',
       }
       return NextResponse.json(
-        { message: statusMessages[license.status] || 'License key is not available' },
+        {
+          message:
+            statusMessages[license.status] || 'License key is not available',
+        },
         { status: 400 }
       )
     }
@@ -71,16 +82,22 @@ export async function POST(request: NextRequest) {
     const plan = await Plan.findById(license.planId)
     if (!plan) {
       return NextResponse.json(
-        { message: 'The plan associated with this license key no longer exists' },
+        {
+          message: 'The plan associated with this license key no longer exists',
+        },
         { status: 400 }
       )
     }
 
     // Get user's current workspace
-    const workspaceId = request.headers.get('x-workspace-id') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      request.headers.get('x-workspace-id') || auth.user.lastActiveWorkspaceId
     if (!workspaceId) {
       return NextResponse.json(
-        { message: 'No active workspace found. Please select a workspace first.' },
+        {
+          message:
+            'No active workspace found. Please select a workspace first.',
+        },
         { status: 400 }
       )
     }
@@ -134,7 +151,10 @@ export async function POST(request: NextRequest) {
 
     const existingSubscription = await Subscription.findOne({ workspaceId })
     if (existingSubscription) {
-      await Subscription.findByIdAndUpdate(existingSubscription._id, subscriptionData)
+      await Subscription.findByIdAndUpdate(
+        existingSubscription._id,
+        subscriptionData
+      )
     } else {
       const subscription = new Subscription(subscriptionData)
       await subscription.save()
@@ -167,10 +187,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     // Handle activation errors from the model method
     if (error.message?.includes('License key')) {
-      return NextResponse.json(
-        { message: error.message },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: error.message }, { status: 400 })
     }
 
     log.error('Redeem license key error:', error)

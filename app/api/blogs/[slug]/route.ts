@@ -1,24 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Blog } from '@/lib/mongodb/models/Blog'
 import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { z } from 'zod'
 
 const updateBlogSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  slug: z.string().min(1).max(200).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+  slug: z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .optional(),
   content: z.string().min(1).optional(),
   excerpt: z.string().max(300).optional(),
   featuredImage: z.string().optional(),
   featuredImageAlt: z.string().max(200).optional(),
   categoryId: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  author: z.object({
-    name: z.string().min(1),
-    avatar: z.string().optional(),
-    bio: z.string().optional(),
-  }).optional(),
+  author: z
+    .object({
+      name: z.string().min(1),
+      avatar: z.string().optional(),
+      bio: z.string().optional(),
+    })
+    .optional(),
   status: z.enum(['draft', 'published', 'archived']).optional(),
   metaTitle: z.string().max(70).optional(),
   metaDescription: z.string().max(160).optional(),
@@ -72,7 +79,9 @@ export async function GET(
         slug: { $in: (blog as any).relatedSlugs },
         status: 'published',
       })
-        .select('title slug excerpt featuredImage featuredImageAlt publishedAt readTime')
+        .select(
+          'title slug excerpt featuredImage featuredImageAlt publishedAt readTime'
+        )
         .lean()
     }
 
@@ -83,7 +92,9 @@ export async function GET(
         slug: { $ne: slug },
         status: 'published',
       })
-        .select('title slug excerpt featuredImage featuredImageAlt publishedAt readTime')
+        .select(
+          'title slug excerpt featuredImage featuredImageAlt publishedAt readTime'
+        )
         .sort({ publishedAt: -1 })
         .limit(3 - relatedPosts.length)
         .lean()
@@ -158,10 +169,17 @@ export async function PUT(
     }
 
     // Handle category change
-    if (validation.data.categoryId && validation.data.categoryId !== blog.categoryId) {
+    if (
+      validation.data.categoryId &&
+      validation.data.categoryId !== blog.categoryId
+    ) {
       await Promise.all([
-        BlogCategory.findByIdAndUpdate(blog.categoryId, { $inc: { postCount: -1 } }),
-        BlogCategory.findByIdAndUpdate(validation.data.categoryId, { $inc: { postCount: 1 } }),
+        BlogCategory.findByIdAndUpdate(blog.categoryId, {
+          $inc: { postCount: -1 },
+        }),
+        BlogCategory.findByIdAndUpdate(validation.data.categoryId, {
+          $inc: { postCount: 1 },
+        }),
       ])
     }
 

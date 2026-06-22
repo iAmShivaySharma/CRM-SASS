@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export interface IWebhookLog extends Document {
+export interface IWebhookLog extends Omit<Document, '_id'> {
   _id: string
   webhookId: string
   workspaceId: string

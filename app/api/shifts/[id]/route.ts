@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Shift, Attendance } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -19,13 +19,16 @@ export async function GET(
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const { id } = await params
     const shift = await Shift.findOne({
       _id: id,
-      workspaceId
+      workspaceId,
     }).populate('createdBy', 'name email')
 
     if (!shift) {
@@ -36,12 +39,12 @@ export async function GET(
     const employeeCount = await Attendance.distinct('userId', {
       workspaceId,
       shiftId: shift._id,
-      date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+      date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
     }).then((users: any[]) => users.length)
 
     return NextResponse.json({
       ...shift.toObject(),
-      employeeCount
+      employeeCount,
     })
   } catch (error) {
     log.error('Get shift error:', error)
@@ -68,7 +71,10 @@ export async function PUT(
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const body = await request.json()
@@ -85,13 +91,13 @@ export async function PUT(
       isFlexible,
       color,
       allowedWorkTypes,
-      overtimeRules
+      overtimeRules,
     } = body
 
     const { id } = await params
     const shift = await Shift.findOne({
       _id: id,
-      workspaceId
+      workspaceId,
     })
 
     if (!shift) {
@@ -128,18 +134,21 @@ export async function PUT(
       userId: auth.user._id,
       workspaceId,
       shiftId: shift._id,
-      shiftName: shift.name
+      shiftName: shift.name,
     })
 
     return NextResponse.json({
       success: true,
       shift,
-      message: 'Shift updated successfully'
+      message: 'Shift updated successfully',
     })
   } catch (error) {
     log.error('Update shift error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update shift' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to update shift',
+      },
       { status: 500 }
     )
   }
@@ -161,13 +170,16 @@ export async function DELETE(
     const workspaceId = auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const { id } = await params
     const shift = await Shift.findOne({
       _id: id,
-      workspaceId
+      workspaceId,
     })
 
     if (!shift) {
@@ -177,12 +189,15 @@ export async function DELETE(
     // Check if shift is being used by any attendance records
     const attendanceCount = await Attendance.countDocuments({
       workspaceId,
-      shiftId: shift._id
+      shiftId: shift._id,
     })
 
     if (attendanceCount > 0) {
       return NextResponse.json(
-        { error: 'Cannot delete shift that has attendance records. Deactivate it instead.' },
+        {
+          error:
+            'Cannot delete shift that has attendance records. Deactivate it instead.',
+        },
         { status: 400 }
       )
     }
@@ -192,7 +207,7 @@ export async function DELETE(
       const anotherShift = await Shift.findOne({
         workspaceId,
         _id: { $ne: id },
-        isActive: true
+        isActive: true,
       })
 
       if (anotherShift) {
@@ -207,12 +222,12 @@ export async function DELETE(
       userId: auth.user._id,
       workspaceId,
       shiftId: id,
-      shiftName: shift.name
+      shiftName: shift.name,
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Shift deleted successfully'
+      message: 'Shift deleted successfully',
     })
   } catch (error) {
     log.error('Delete shift error:', error)

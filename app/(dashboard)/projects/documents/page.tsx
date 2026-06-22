@@ -15,6 +15,7 @@ import {
   Share2,
   Folder,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetProjectsQuery,
@@ -22,7 +23,10 @@ import {
   useCreateDocumentMutation,
   useDeleteDocumentMutation,
 } from '@/lib/api/projectsApi'
-import { useGetUserPreferencesQuery, usePatchUserPreferencesMutation } from '@/lib/api/userPreferencesApi'
+import {
+  useGetUserPreferencesQuery,
+  usePatchUserPreferencesMutation,
+} from '@/lib/api/userPreferencesApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -48,7 +52,6 @@ import {
   extractPlainText,
 } from '@/components/ui/tiptap-editor-improved'
 import { StatsCardSkeleton, CardSkeleton } from '@/components/ui/skeleton'
-import { toast } from 'sonner'
 
 export default function ProjectDocumentsPage() {
   const router = useRouter()
@@ -99,9 +102,15 @@ export default function ProjectDocumentsPage() {
 
   // Load saved project selection from preferences
   useEffect(() => {
-    if (userPreferences?.preferences?.workspace?.selectedProjectId && projectsData?.projects) {
-      const savedProjectId = userPreferences.preferences.workspace.selectedProjectId
-      const projectExists = projectsData.projects.some(p => p.id === savedProjectId)
+    if (
+      userPreferences?.preferences?.workspace?.selectedProjectId &&
+      projectsData?.projects
+    ) {
+      const savedProjectId =
+        userPreferences.preferences.workspace.selectedProjectId
+      const projectExists = projectsData.projects.some(
+        p => p.id === savedProjectId
+      )
       if (projectExists) {
         setProjectFilter(savedProjectId)
       }
@@ -117,8 +126,8 @@ export default function ProjectDocumentsPage() {
         await patchUserPreferences({
           workspace: {
             selectedProjectId: projectId,
-            lastActiveProjectId: projectId
-          }
+            lastActiveProjectId: projectId,
+          },
         })
       } catch (error) {
         console.error('Failed to save project selection:', error)

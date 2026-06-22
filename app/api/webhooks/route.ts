@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Webhook, WorkspaceMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -10,7 +11,6 @@ import {
   logBusinessEvent,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import crypto from 'crypto'
 
 // GET /api/webhooks - Get webhooks for a workspace
 export const GET = withSecurityLogging(

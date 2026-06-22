@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { EmailMessage } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -10,7 +10,10 @@ export async function GET(request: NextRequest) {
     const workspaceId = searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     const accountId = searchParams.get('accountId')
@@ -34,7 +37,7 @@ export async function GET(request: NextRequest) {
     const query: any = {
       userId: auth.user.id,
       workspaceId,
-      syncStatus: { $ne: 'ignored' }
+      syncStatus: { $ne: 'ignored' },
     }
 
     if (accountId) {
@@ -91,7 +94,7 @@ export async function GET(request: NextRequest) {
         { linkedLeadId: { $exists: true, $ne: null } },
         { linkedContactId: { $exists: true, $ne: null } },
         { linkedProjectId: { $exists: true, $ne: null } },
-        { linkedTaskId: { $exists: true, $ne: null } }
+        { linkedTaskId: { $exists: true, $ne: null } },
       ]
     }
 
@@ -105,7 +108,11 @@ export async function GET(request: NextRequest) {
       .select('-bodyHtml -bodyText -providerData.rawHeaders')
       .populate('linkedLeadId', 'name email status')
       .populate('linkedContactId', 'name email')
-      .sort(search ? { score: { $meta: 'textScore' }, receivedAt: -1 } : { receivedAt: -1 })
+      .sort(
+        search
+          ? { score: { $meta: 'textScore' }, receivedAt: -1 }
+          : { receivedAt: -1 }
+      )
       .skip((page - 1) * limit)
       .limit(limit)
 
@@ -115,8 +122,8 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     log.error('Get email messages error:', error)

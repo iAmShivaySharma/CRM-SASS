@@ -2,18 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useAppSelector } from '@/lib/hooks'
-import {
   Check,
   X,
   Crown,
@@ -27,6 +15,18 @@ import {
   Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAppSelector } from '@/lib/hooks'
 import { CardSkeleton, PageHeaderSkeleton } from '@/components/ui/skeleton'
 
 declare global {
@@ -138,7 +138,7 @@ const PLANS: PlanData[] = [
 ]
 
 function loadRazorpayScript(): Promise<boolean> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (window.Razorpay) {
       resolve(true)
       return
@@ -153,13 +153,15 @@ function loadRazorpayScript(): Promise<boolean> {
 
 export default function PlansPage() {
   const [isLoading, setIsLoading] = useState(true)
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(
+    null
+  )
   const [currentPlanId, setCurrentPlanId] = useState<string>('free')
   const [workspaceName, setWorkspaceName] = useState<string>('')
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null)
   const [billingTab, setBillingTab] = useState('plans')
 
-  const { currentWorkspace } = useAppSelector((state) => state.workspace)
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
 
   const fetchSubscription = useCallback(async () => {
     try {
@@ -230,7 +232,7 @@ export default function PlansPage() {
 
       const orderData = await orderResponse.json()
 
-      const plan = PLANS.find((p) => p.id === planId)
+      const plan = PLANS.find(p => p.id === planId)
 
       // Open Razorpay checkout
       const options = {
@@ -335,7 +337,7 @@ export default function PlansPage() {
     return Math.min(Math.round((current / limit) * 100), 100)
   }
 
-  const currentPlan = PLANS.find((p) => p.id === currentPlanId)
+  const currentPlan = PLANS.find(p => p.id === currentPlanId)
 
   if (isLoading) {
     return (
@@ -414,11 +416,7 @@ export default function PlansPage() {
         </Card>
       )}
 
-      <Tabs
-        value={billingTab}
-        onValueChange={setBillingTab}
-        className="w-full"
-      >
+      <Tabs value={billingTab} onValueChange={setBillingTab} className="w-full">
         <TabsList>
           <TabsTrigger value="plans">Plans</TabsTrigger>
           <TabsTrigger value="usage">Usage</TabsTrigger>
@@ -428,20 +426,18 @@ export default function PlansPage() {
         {/* Plans Tab */}
         <TabsContent value="plans" className="mt-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {PLANS.map((plan) => {
+            {PLANS.map(plan => {
               const isCurrent = plan.id === currentPlanId
               const isDowngrade =
-                PLANS.findIndex((p) => p.id === plan.id) <
-                PLANS.findIndex((p) => p.id === currentPlanId)
+                PLANS.findIndex(p => p.id === plan.id) <
+                PLANS.findIndex(p => p.id === currentPlanId)
               const isUpgrading = upgradingPlanId === plan.id
 
               return (
                 <Card
                   key={plan.id}
                   className={`relative flex flex-col ${
-                    plan.popular
-                      ? 'border-2 border-indigo-500 shadow-lg'
-                      : ''
+                    plan.popular ? 'border-2 border-indigo-500 shadow-lg' : ''
                   } ${isCurrent ? 'ring-2 ring-green-500' : ''}`}
                 >
                   {plan.popular && (
@@ -499,8 +495,8 @@ export default function PlansPage() {
                         isCurrent
                           ? 'outline'
                           : plan.popular
-                          ? 'default'
-                          : 'outline'
+                            ? 'default'
+                            : 'outline'
                       }
                       disabled={isCurrent || isDowngrade || isUpgrading}
                       onClick={() => handleUpgrade(plan.id)}
@@ -607,7 +603,9 @@ export default function PlansPage() {
                       This month
                     </span>
                     <span className="font-medium">
-                      0 / {currentPlan?.limits.apiCalls?.toLocaleString() || '1,000'}
+                      0 /{' '}
+                      {currentPlan?.limits.apiCalls?.toLocaleString() ||
+                        '1,000'}
                     </span>
                   </div>
                   <Progress
@@ -679,12 +677,12 @@ export default function PlansPage() {
                         : '-'}
                     </span>
                     <span className="text-gray-700 dark:text-gray-300">
-                      {PLANS.find((p) => p.id === subscription.planId)?.name ||
+                      {PLANS.find(p => p.id === subscription.planId)?.name ||
                         subscription.planId}
                     </span>
                     <span className="text-gray-700 dark:text-gray-300">
                       $
-                      {PLANS.find((p) => p.id === subscription.planId)?.price ||
+                      {PLANS.find(p => p.id === subscription.planId)?.price ||
                         0}
                     </span>
                     <Badge

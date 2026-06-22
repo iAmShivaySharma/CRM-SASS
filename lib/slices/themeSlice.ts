@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 export interface ThemePreset {
   id: string
@@ -217,8 +217,9 @@ const themeSlice = createSlice({
       const preferences = action.payload
       if (preferences.theme) {
         if (preferences.theme.mode) state.mode = preferences.theme.mode
-        if (preferences.theme.primaryColor)
+        if (preferences.theme.primaryColor) {
           state.primaryColor = preferences.theme.primaryColor
+        }
         if (preferences.theme.preset) state.preset = preferences.theme.preset
         if (preferences.theme.customTheme) {
           state.customTheme = {

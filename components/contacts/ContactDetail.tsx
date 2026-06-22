@@ -1,11 +1,5 @@
 'use client'
 
-import { Contact } from '@/lib/api/contactsApi'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
 import {
   Edit,
   Mail,
@@ -22,6 +16,12 @@ import {
   Tag,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { type Contact } from '@/lib/api/contactsApi'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
 
 interface ContactDetailProps {
   contact: Contact

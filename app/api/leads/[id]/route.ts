@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Lead, WorkspaceMember, Activity } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -10,7 +11,6 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
-import { z } from 'zod'
 
 // Validation schema for updating leads
 const updateLeadSchema = z.object({

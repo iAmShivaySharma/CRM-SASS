@@ -5,8 +5,12 @@
  * Google Forms can send data in various formats depending on the integration method.
  */
 
-import { NextRequest } from 'next/server'
-import { WebhookProcessor, ProcessedWebhookData, ProcessedLead } from './index'
+import { type NextRequest } from 'next/server'
+import {
+  type WebhookProcessor,
+  type ProcessedWebhookData,
+  type ProcessedLead,
+} from './index'
 
 export class GoogleFormsProcessor implements WebhookProcessor {
   name = 'Google Forms'

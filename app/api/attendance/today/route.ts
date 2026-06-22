@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Attendance, Shift } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
@@ -13,14 +13,21 @@ export async function GET(request: NextRequest) {
       )
     }
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
+    const workspaceId =
+      searchParams.get('workspaceId') || auth.user.lastActiveWorkspaceId
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'No workspace selected' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No workspace selected' },
+        { status: 400 }
+      )
     }
 
     // Get today's attendance
-    const attendance = await Attendance.getTodayAttendance(auth.user._id, workspaceId)
+    const attendance = await Attendance.getTodayAttendance(
+      auth.user._id,
+      workspaceId
+    )
 
     let todayAttendance = null
     let shift = null
@@ -76,16 +83,23 @@ export async function GET(request: NextRequest) {
         clockIn: attendance.clockIn,
         clockOut: attendance.clockOut,
         totalBreakTime: attendance.totalBreakTime,
-        calculatedWorkTime: currentWorkTime
+        calculatedWorkTime: currentWorkTime,
       })
 
       // Also update the totalWorkTime field for current work time display
       attendance.totalWorkTime = currentWorkTime
 
       // Calculate expected clock out time
-      if (shift && attendance.clockIn && typeof shift === 'object' && 'totalHours' in shift) {
+      if (
+        shift &&
+        attendance.clockIn &&
+        typeof shift === 'object' &&
+        'totalHours' in shift
+      ) {
         const shiftDurationMs = shift.totalHours * 60 * 60 * 1000
-        expectedClockOut = new Date(attendance.clockIn.getTime() + shiftDurationMs)
+        expectedClockOut = new Date(
+          attendance.clockIn.getTime() + shiftDurationMs
+        )
       }
     } else if (attendance && attendance.status === 'clocked_out') {
       // For clocked out status, use the saved totalWorkTime
@@ -95,13 +109,16 @@ export async function GET(request: NextRequest) {
         userId: auth.user._id,
         workspaceId,
         savedTotalWorkTime: attendance.totalWorkTime,
-        currentWorkTime
+        currentWorkTime,
       })
     }
 
     // Get workspace attendance summary for today
     const today = new Date()
-    const workspaceSummary = await Attendance.getWorkspaceSummary(workspaceId, today)
+    const workspaceSummary = await Attendance.getWorkspaceSummary(
+      workspaceId,
+      today
+    )
 
     return NextResponse.json({
       attendance: todayAttendance,
@@ -110,16 +127,16 @@ export async function GET(request: NextRequest) {
         canClockIn,
         canClockOut,
         canStartBreak,
-        canEndBreak
+        canEndBreak,
       },
       currentWorkTime,
       expectedClockOut,
-      workspaceSummary
+      workspaceSummary,
     })
   } catch (error) {
     log.error('Get today attendance error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch today\'s attendance' },
+      { error: "Failed to fetch today's attendance" },
       { status: 500 }
     )
   }
