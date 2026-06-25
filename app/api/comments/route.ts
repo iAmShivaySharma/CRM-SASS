@@ -30,9 +30,9 @@ async function verifyEntityAccess(
   userId: string
 ): Promise<{ workspaceId: string } | null> {
   if (entityType === 'task') {
-    const task = await Task.findById(entityId).lean()
+    const task = (await Task.findById(entityId).lean()) as any
     if (!task) return null
-    const project = await Project.findById(task.projectId).lean()
+    const project = (await Project.findById(task.projectId).lean()) as any
     if (!project) return null
     const member = await ProjectMember.findOne({
       projectId: task.projectId,
@@ -50,7 +50,7 @@ async function verifyEntityAccess(
   }
 
   if (entityType === 'project') {
-    const project = await Project.findById(entityId).lean()
+    const project = (await Project.findById(entityId).lean()) as any
     if (!project) return null
     const member = await ProjectMember.findOne({
       projectId: entityId,
@@ -68,9 +68,9 @@ async function verifyEntityAccess(
   }
 
   if (entityType === 'document') {
-    const doc = await ProjectDocument.findById(entityId).lean()
+    const doc = (await ProjectDocument.findById(entityId).lean()) as any
     if (!doc) return null
-    const project = await Project.findById(doc.projectId).lean()
+    const project = (await Project.findById(doc.projectId).lean()) as any
     if (!project) return null
     const member = await ProjectMember.findOne({
       projectId: doc.projectId,
