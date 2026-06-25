@@ -40,6 +40,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { WorkspaceSwitcher } from './WorkspaceSwitcher'
 import { UserProfile } from './UserProfile'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
 
 interface SidebarProps {
   collapsed: boolean
@@ -62,6 +63,7 @@ const navigation = [
     icon: TrendingUp,
     category: 'section',
     id: 'sales',
+    permission: Permission.LEADS_VIEW,
   },
   {
     name: 'Leads',
@@ -69,6 +71,7 @@ const navigation = [
     icon: Users,
     category: 'sales',
     parent: 'sales',
+    permission: Permission.LEADS_VIEW,
   },
   {
     name: 'Contacts',
@@ -76,6 +79,7 @@ const navigation = [
     icon: Contact,
     category: 'sales',
     parent: 'sales',
+    permission: Permission.CONTACTS_VIEW,
   },
   {
     name: 'Lead Statuses',
@@ -83,6 +87,7 @@ const navigation = [
     icon: Circle,
     category: 'sales',
     parent: 'sales',
+    permission: Permission.LEAD_STATUSES_VIEW,
   },
   {
     name: 'Lead Tags',
@@ -90,6 +95,7 @@ const navigation = [
     icon: Tag,
     category: 'sales',
     parent: 'sales',
+    permission: Permission.TAGS_VIEW,
   },
   {
     name: 'Webhooks',
@@ -97,6 +103,7 @@ const navigation = [
     icon: Webhook,
     category: 'sales',
     parent: 'sales',
+    permission: Permission.WEBHOOKS_VIEW,
   },
 
   {
@@ -105,6 +112,7 @@ const navigation = [
     icon: UserPlus,
     category: 'section',
     id: 'hr',
+    permission: Permission.MEMBERS_VIEW,
   },
   {
     name: 'Attendance',
@@ -119,6 +127,7 @@ const navigation = [
     icon: User,
     category: 'hr',
     parent: 'hr',
+    permission: Permission.MEMBERS_VIEW,
   },
   {
     name: 'Leaves',
@@ -137,7 +146,13 @@ const navigation = [
 
   { name: 'Engines', href: '/engines', icon: Settings2, category: 'main' },
 
-  { name: 'Chat', href: '/chat', icon: MessageSquare, category: 'main' },
+  {
+    name: 'Chat',
+    href: '/chat',
+    icon: MessageSquare,
+    category: 'main',
+    permission: Permission.CHAT_VIEW,
+  },
   { name: 'Calls', href: '/calls', icon: Phone, category: 'main' },
   { name: 'Email', href: '/email', icon: Mail, category: 'main' },
 
@@ -147,6 +162,7 @@ const navigation = [
     icon: FolderKanban,
     category: 'section',
     id: 'projects',
+    permission: Permission.PROJECTS_VIEW,
   },
   {
     name: 'Projects',
@@ -154,6 +170,7 @@ const navigation = [
     icon: Folder,
     category: 'projects',
     parent: 'projects',
+    permission: Permission.PROJECTS_VIEW,
   },
   {
     name: 'Tasks',
@@ -161,6 +178,7 @@ const navigation = [
     icon: CheckSquare,
     category: 'projects',
     parent: 'projects',
+    permission: Permission.TASKS_VIEW,
   },
   {
     name: 'Members',
@@ -168,6 +186,7 @@ const navigation = [
     icon: Users,
     category: 'projects',
     parent: 'projects',
+    permission: Permission.PROJECT_MEMBERS_VIEW,
   },
   {
     name: 'Documents',
@@ -175,13 +194,38 @@ const navigation = [
     icon: FileText,
     category: 'projects',
     parent: 'projects',
+    permission: Permission.DOCUMENTS_VIEW,
   },
 
   { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3, category: 'main' },
-  { name: 'Roles', href: '/roles', icon: UserCheck, category: 'main' },
-  { name: 'Workspace', href: '/workspace', icon: Building, category: 'main' },
-  { name: 'Settings', href: '/settings', icon: Settings, category: 'main' },
+  {
+    name: 'Analytics',
+    href: '/analytics',
+    icon: BarChart3,
+    category: 'main',
+    permission: Permission.ANALYTICS_VIEW,
+  },
+  {
+    name: 'Roles',
+    href: '/roles',
+    icon: UserCheck,
+    category: 'main',
+    permission: Permission.ROLES_VIEW,
+  },
+  {
+    name: 'Workspace',
+    href: '/workspace',
+    icon: Building,
+    category: 'main',
+    permission: Permission.WORKSPACE_VIEW,
+  },
+  {
+    name: 'Settings',
+    href: '/settings',
+    icon: Settings,
+    category: 'main',
+    permission: Permission.SETTINGS_VIEW,
+  },
 ]
 
 export function Sidebar({
@@ -191,6 +235,29 @@ export function Sidebar({
   onMobileMenuToggle,
 }: SidebarProps) {
   const pathname = usePathname()
+  const { userPermissions } = usePermissions()
+
+  const hasNavPermission = (permission?: Permission) => {
+    if (!permission) return true
+    if (userPermissions.length === 0) return true
+    const permStr = permission as string
+    if (userPermissions.includes('*:*' as Permission)) return true
+    const [resource] = permStr.split('.')
+    if (userPermissions.includes(`${resource}.*` as Permission)) return true
+    return userPermissions.includes(permission)
+  }
+
+  const filteredNavigation = navigation.filter(item => {
+    if (!item.permission) return true
+    if (item.category === 'section' && item.id) {
+      const children = navigation.filter(n => n.parent === item.id)
+      return children.some(child =>
+        hasNavPermission(child.permission as Permission)
+      )
+    }
+    return hasNavPermission(item.permission)
+  })
+
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
@@ -212,7 +279,7 @@ export function Sidebar({
     const isSection = item.category === 'section'
     const isSubItem = item.parent
     const isExpanded = item.id ? expandedSections[item.id] : false
-    const hasSubItems = navigation.some(nav => nav.parent === item.id)
+    const hasSubItems = filteredNavigation.some(nav => nav.parent === item.id)
 
     if (isSubItem && !expandedSections[item.parent]) {
       return null
@@ -365,7 +432,7 @@ export function Sidebar({
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <div className="space-y-1">
-            {navigation.map(item => renderNavItem(item))}
+            {filteredNavigation.map(item => renderNavItem(item))}
           </div>
         </nav>
 

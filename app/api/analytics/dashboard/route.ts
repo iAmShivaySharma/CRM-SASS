@@ -5,6 +5,7 @@ import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Lead } from '@/lib/mongodb/client'
 import { log } from '@/lib/logging/logger'
 import { cached } from '@/lib/redis/cache'
+import { checkPermission } from '@/lib/security/check-permission'
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,6 +29,13 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    const permError = await checkPermission(
+      authResult.user.id,
+      workspaceId,
+      'analytics.view'
+    )
+    if (permError) return permError
 
     const endDate = to ? new Date(to) : new Date()
     const startDate = from ? new Date(from) : subDays(endDate, 30)

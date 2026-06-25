@@ -9,6 +9,7 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const updateTaskSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -87,6 +88,13 @@ export const GET = withSecurityLogging(
           )
         }
 
+        const permError = await checkPermission(
+          auth.user.id,
+          taskData.project.workspaceId.toString(),
+          'tasks.view'
+        )
+        if (permError) return permError
+
         await taskData.task.populate('assigneeId', 'fullName email avatarUrl')
 
         await logUserActivity(
@@ -154,6 +162,13 @@ export const PUT = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          taskData.project.workspaceId.toString(),
+          'tasks.edit'
+        )
+        if (permError) return permError
 
         const body = await request.json()
 
@@ -251,6 +266,13 @@ export const DELETE = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          taskData.project.workspaceId.toString(),
+          'tasks.delete'
+        )
+        if (permError) return permError
 
         await Task.findByIdAndDelete(id)
 

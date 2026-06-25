@@ -10,6 +10,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { cached, invalidateCache } from '@/lib/redis/cache'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const createSprintSchema = z.object({
   name: z.string().min(1).max(100),
@@ -72,6 +73,13 @@ export const GET = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          project.workspaceId.toString(),
+          'tasks.view'
+        )
+        if (permError) return permError
 
         const query: any = { projectId }
         if (status) query.status = status
@@ -177,6 +185,13 @@ export const POST = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          project.workspaceId.toString(),
+          'tasks.create'
+        )
+        if (permError) return permError
 
         const start = new Date(startDate)
         const end = new Date(endDate)

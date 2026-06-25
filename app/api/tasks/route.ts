@@ -10,6 +10,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { cached, invalidateCache } from '@/lib/redis/cache'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const createTaskSchema = z.object({
   title: z.string().min(1).max(200),
@@ -89,8 +90,20 @@ export const GET = withSecurityLogging(
               { status: 404 }
             )
           }
+          const permError = await checkPermission(
+            auth.user.id,
+            project.workspaceId.toString(),
+            'tasks.view'
+          )
+          if (permError) return permError
           query.projectId = projectId
         } else if (workspaceId) {
+          const permError = await checkPermission(
+            auth.user.id,
+            workspaceId,
+            'tasks.view'
+          )
+          if (permError) return permError
           const workspaceProjects = await Project.find({
             workspaceId,
           }).select('_id')
@@ -233,6 +246,13 @@ export const POST = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          project.workspaceId.toString(),
+          'tasks.create'
+        )
+        if (permError) return permError
 
         const lastTask = await Task.findOne({
           projectId: validationResult.data.projectId,

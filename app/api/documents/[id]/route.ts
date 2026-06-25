@@ -9,6 +9,7 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const updateDocumentSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -107,6 +108,13 @@ export const GET = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          document.workspaceId?.toString() || '',
+          'documents.view'
+        )
+        if (permError) return permError
 
         await document.populate('createdBy', 'fullName email avatarUrl')
         await document.populate('lastEditedBy', 'fullName email avatarUrl')
@@ -211,6 +219,13 @@ export const PUT = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          document.workspaceId?.toString() || '',
+          'documents.edit'
+        )
+        if (permError) return permError
 
         if (document.createdBy !== auth.user.id) {
           const projectMember = await ProjectMember.findOne({
@@ -320,6 +335,13 @@ export const DELETE = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          document.workspaceId?.toString() || '',
+          'documents.delete'
+        )
+        if (permError) return permError
 
         if (document.createdBy !== auth.user.id) {
           return NextResponse.json(

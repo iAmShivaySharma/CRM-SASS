@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/mongodb/auth'
-import { User } from '@/lib/mongodb/models'
+import { User, WorkspaceMember } from '@/lib/mongodb/models'
 import { logSecurityEvent } from './validation'
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -18,9 +18,14 @@ export function hasPermission(
 ): boolean {
   if (userPermissions.includes('*:*')) return true
 
-  const [resource, action] = requiredPermission.split(':')
+  const separator = requiredPermission.includes('.') ? '.' : ':'
+  const [resource] = requiredPermission.split(separator)
 
-  if (userPermissions.includes(`${resource}:*`)) return true
+  if (
+    userPermissions.includes(`${resource}.*`) ||
+    userPermissions.includes(`${resource}:*`)
+  )
+    return true
 
   return userPermissions.includes(requiredPermission)
 }
@@ -142,7 +147,29 @@ export async function requireAuth(
       }
     }
 
-    const userPermissions = ['*:*']
+    let userPermissions: string[] = []
+    const workspaceId =
+      request.headers.get('x-workspace-id') ||
+      request.nextUrl.searchParams.get('workspaceId')
+
+    if (workspaceId) {
+      const membership = await WorkspaceMember.findOne({
+        userId: user._id,
+        workspaceId,
+        status: 'active',
+      }).populate('roleId')
+
+      const role = membership?.roleId as any
+      userPermissions = role?.permissions || []
+    } else {
+      const membership = await WorkspaceMember.findOne({
+        userId: user._id,
+        status: 'active',
+      }).populate('roleId')
+
+      const role = membership?.roleId as any
+      userPermissions = role?.permissions || []
+    }
 
     if (
       requiredPermission &&

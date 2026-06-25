@@ -6,6 +6,7 @@ import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { User } from '@/lib/mongodb/models/User'
 import { Workspace } from '@/lib/mongodb/models/Workspace'
 import { WorkspaceMember } from '@/lib/mongodb/models/WorkspaceMember'
+import { Role } from '@/lib/mongodb/models/Role'
 
 // POST /api/auth/verify - Verify JWT token validity
 export const POST = withSecurityLogging(
@@ -33,18 +34,35 @@ export const POST = withSecurityLogging(
         )
       }
 
-      // Token is valid, now get user's default workspace
       await connectToMongoDB()
 
-      // Find the first workspace the user is a member of
-      const workspaceMembership = await WorkspaceMember.findOne({
-        userId: authResult.user.id,
-        status: 'active',
-      })
-        .populate('workspaceId')
-        .sort({ createdAt: 1 }) // Get the oldest (first created) membership
+      const user = authResult.user
+      const lastActiveWsId = user.lastActiveWorkspaceId
+
+      let workspaceMembership
+      if (lastActiveWsId) {
+        workspaceMembership = await WorkspaceMember.findOne({
+          userId: user.id,
+          workspaceId: lastActiveWsId,
+          status: 'active',
+        })
+          .populate('workspaceId')
+          .populate('roleId')
+      }
+
+      if (!workspaceMembership) {
+        workspaceMembership = await WorkspaceMember.findOne({
+          userId: user.id,
+          status: 'active',
+        })
+          .populate('workspaceId')
+          .populate('roleId')
+          .sort({ createdAt: 1 })
+      }
 
       const defaultWorkspace = workspaceMembership?.workspaceId
+      const userRole = workspaceMembership?.roleId as any
+      const userPermissions: string[] = userRole?.permissions || []
 
       log.info('Token verification successful', {
         userId: authResult.user.id,
@@ -59,6 +77,11 @@ export const POST = withSecurityLogging(
           id: authResult.user.id,
           email: authResult.user.email,
           fullName: authResult.user.fullName,
+          name: authResult.user.fullName,
+          role: userRole?.name || 'user',
+          roleId: userRole?._id?.toString() || '',
+          permissions: userPermissions,
+          workspaceId: defaultWorkspace?._id?.toString() || '',
         },
         workspace: defaultWorkspace
           ? {

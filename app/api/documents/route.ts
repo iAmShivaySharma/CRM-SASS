@@ -9,6 +9,7 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const createDocumentSchema = z.object({
   title: z.string().min(1).max(200),
@@ -105,6 +106,13 @@ export const GET = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          project.workspaceId.toString(),
+          'documents.view'
+        )
+        if (permError) return permError
 
         const query: any = { projectId }
         if (type) query.type = type
@@ -225,6 +233,13 @@ export const POST = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          project.workspaceId.toString(),
+          'documents.create'
+        )
+        if (permError) return permError
 
         const document = new ProjectDocument({
           ...validationResult.data,

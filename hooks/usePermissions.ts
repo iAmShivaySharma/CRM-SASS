@@ -60,6 +60,9 @@ export function usePermissions(): UserPermissions {
     () =>
       (permission: Permission): boolean => {
         if (!isAuthenticated || !user) return false
+        if (user.permissions?.includes('*:*')) return true
+        const [resource] = (permission as string).split('.')
+        if (userPermissions.includes(`${resource}.*` as Permission)) return true
         return userPermissions.includes(permission)
       },
     [isAuthenticated, user, userPermissions]

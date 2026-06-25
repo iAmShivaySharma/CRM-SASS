@@ -5,6 +5,7 @@ interface User {
   email: string
   name: string
   role: string
+  roleId: string
   workspaceId: string
   permissions: string[]
 }

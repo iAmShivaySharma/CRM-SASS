@@ -26,9 +26,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: result.error }, { status: 400 })
     }
 
-    // Create response with user data (no token in response body)
     const response = NextResponse.json({
-      user: result.user,
+      user: {
+        ...result.user?.toJSON(),
+        role: 'Owner',
+        roleId: '',
+        permissions: ['*:*'],
+      },
       workspace: result.workspace,
       success: true,
     })

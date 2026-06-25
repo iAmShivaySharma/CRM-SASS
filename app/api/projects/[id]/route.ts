@@ -14,6 +14,7 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const updateProjectSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -97,6 +98,14 @@ export const GET = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          project.workspaceId.toString(),
+          'projects.view'
+        )
+        if (permError) return permError
+
         const [memberCount, taskCount, completedTaskCount] = await Promise.all([
           ProjectMember.countDocuments({ projectId: id, status: 'active' }),
           Task.countDocuments({ projectId: id }),
@@ -169,6 +178,13 @@ export const PUT = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          project.workspaceId.toString(),
+          'projects.edit'
+        )
+        if (permError) return permError
 
         const body = await request.json()
 
@@ -257,6 +273,13 @@ export const DELETE = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          project.workspaceId.toString(),
+          'projects.delete'
+        )
+        if (permError) return permError
 
         if (project.createdBy !== auth.user.id) {
           return NextResponse.json(

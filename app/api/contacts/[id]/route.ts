@@ -11,6 +11,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { invalidateCache } from '@/lib/redis/cache'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const updateContactSchema = z.object({
   name: z
@@ -116,18 +117,12 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const userMembership = await WorkspaceMember.findOne({
+        const permError = await checkPermission(
+          auth.user.id,
           workspaceId,
-          userId: auth.user.id,
-          status: 'active',
-        }).lean()
-
-        if (!userMembership) {
-          return NextResponse.json(
-            { message: 'Access denied' },
-            { status: 403 }
-          )
-        }
+          'contacts.view'
+        )
+        if (permError) return permError
 
         const contact = await Contact.findOne({ _id: contactId, workspaceId })
           .populate('tagIds', 'name color')
@@ -191,6 +186,13 @@ export const PUT = withSecurityLogging(
           )
         }
 
+        const permError = await checkPermission(
+          auth.user.id,
+          workspaceId,
+          'contacts.edit'
+        )
+        if (permError) return permError
+
         const validationResult = updateContactSchema.safeParse(body)
         if (!validationResult.success) {
           return NextResponse.json(
@@ -203,19 +205,6 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData = validationResult.data
-
-        const userMembership = await WorkspaceMember.findOne({
-          workspaceId,
-          userId: auth.user.id,
-          status: 'active',
-        }).lean()
-
-        if (!userMembership) {
-          return NextResponse.json(
-            { message: 'Access denied' },
-            { status: 403 }
-          )
-        }
 
         const contact = await Contact.findOne({ _id: contactId, workspaceId })
         if (!contact) {
@@ -350,18 +339,12 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        const member = await WorkspaceMember.findOne({
-          userId: auth.user.id,
+        const permError = await checkPermission(
+          auth.user.id,
           workspaceId,
-          status: 'active',
-        }).lean()
-
-        if (!member) {
-          return NextResponse.json(
-            { message: 'Access denied' },
-            { status: 403 }
-          )
-        }
+          'contacts.delete'
+        )
+        if (permError) return permError
 
         const contact = await Contact.findOne({
           _id: contactId,

@@ -19,6 +19,7 @@ import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
 import { cached, invalidateCache } from '@/lib/redis/cache'
 import { activityQueue, notificationQueue } from '@/lib/queue/queues'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const createLeadSchema = z.object({
   name: z.string().min(1).max(100),
@@ -83,18 +84,12 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const member = await WorkspaceMember.findOne({
-          userId: auth.user.id,
+        const permError = await checkPermission(
+          auth.user.id,
           workspaceId,
-          status: 'active',
-        })
-
-        if (!member) {
-          return NextResponse.json(
-            { message: 'Access denied' },
-            { status: 403 }
-          )
-        }
+          'leads.view'
+        )
+        if (permError) return permError
 
         const query: any = { workspaceId }
 
@@ -213,6 +208,13 @@ export const POST = withSecurityLogging(
             { status: 400 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          workspaceId,
+          'leads.create'
+        )
+        if (permError) return permError
 
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,

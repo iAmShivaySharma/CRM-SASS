@@ -15,6 +15,7 @@ import {
   logBusinessEvent,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const createProjectSchema = z.object({
   name: z.string().min(1).max(100),
@@ -74,18 +75,12 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const member = await WorkspaceMember.findOne({
-          userId: auth.user.id,
+        const permError = await checkPermission(
+          auth.user.id,
           workspaceId,
-          status: 'active',
-        })
-
-        if (!member) {
-          return NextResponse.json(
-            { message: 'Access denied' },
-            { status: 403 }
-          )
-        }
+          'projects.view'
+        )
+        if (permError) return permError
 
         const query: any = { workspaceId }
 
@@ -217,6 +212,13 @@ export const POST = withSecurityLogging(
         }
 
         const { workspaceId } = validationResult.data
+
+        const permError = await checkPermission(
+          auth.user.id,
+          workspaceId,
+          'projects.create'
+        )
+        if (permError) return permError
 
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,

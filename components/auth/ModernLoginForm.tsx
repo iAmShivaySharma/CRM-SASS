@@ -131,10 +131,12 @@ export function ModernLoginForm() {
             user: {
               id: result.user.id,
               email: result.user.email,
-              name: result.user.fullName || result.user.email,
-              role: 'user',
+              name:
+                result.user.fullName || result.user.name || result.user.email,
+              role: result.user.role || 'user',
+              roleId: result.user.roleId || '',
               workspaceId: result.workspace?.id || '',
-              permissions: [],
+              permissions: result.user.permissions || [],
             },
           })
         )

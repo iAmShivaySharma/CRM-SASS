@@ -12,6 +12,7 @@ import {
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
 import { invalidateCache } from '@/lib/redis/cache'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const updateLeadSchema = z.object({
   name: z
@@ -98,6 +99,13 @@ export const PUT = withSecurityLogging(
             { status: 400 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          workspaceId,
+          'leads.edit'
+        )
+        if (permError) return permError
 
         const validationResult = updateLeadSchema.safeParse(body)
         if (!validationResult.success) {
@@ -399,6 +407,13 @@ export const DELETE = withSecurityLogging(
             { status: 400 }
           )
         }
+
+        const permError = await checkPermission(
+          auth.user.id,
+          workspaceId,
+          'leads.delete'
+        )
+        if (permError) return permError
 
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,

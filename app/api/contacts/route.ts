@@ -12,6 +12,7 @@ import {
 import { log } from '@/lib/logging/logger'
 import { cached, invalidateCache } from '@/lib/redis/cache'
 import { activityQueue } from '@/lib/queue/queues'
+import { checkPermission } from '@/lib/security/check-permission'
 
 const createContactSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
@@ -109,18 +110,12 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const userMembership = await WorkspaceMember.findOne({
+        const permError = await checkPermission(
+          auth.user.id,
           workspaceId,
-          userId: auth.user.id,
-          status: 'active',
-        })
-
-        if (!userMembership) {
-          return NextResponse.json(
-            { message: 'Access denied' },
-            { status: 403 }
-          )
-        }
+          'contacts.view'
+        )
+        if (permError) return permError
 
         const query: any = { workspaceId }
 
@@ -216,6 +211,13 @@ export const POST = withSecurityLogging(
           )
         }
 
+        const permError = await checkPermission(
+          auth.user.id,
+          workspaceId,
+          'contacts.create'
+        )
+        if (permError) return permError
+
         const validationResult = createContactSchema.safeParse(body)
         if (!validationResult.success) {
           return NextResponse.json(
@@ -224,19 +226,6 @@ export const POST = withSecurityLogging(
               errors: validationResult.error.errors,
             },
             { status: 400 }
-          )
-        }
-
-        const member = await WorkspaceMember.findOne({
-          userId: auth.user.id,
-          workspaceId,
-          status: 'active',
-        })
-
-        if (!member) {
-          return NextResponse.json(
-            { message: 'Access denied' },
-            { status: 403 }
           )
         }
 

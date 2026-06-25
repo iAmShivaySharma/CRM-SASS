@@ -27,7 +27,16 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
             // Restore user session in Redux (token is in HTTP-only cookie)
             dispatch(
               loginSuccess({
-                user: data.user,
+                user: {
+                  id: data.user.id,
+                  email: data.user.email,
+                  name: data.user.fullName || data.user.name || data.user.email,
+                  role: data.user.role || 'user',
+                  roleId: data.user.roleId || '',
+                  workspaceId:
+                    data.user.workspaceId || data.workspace?.id || '',
+                  permissions: data.user.permissions || [],
+                },
               })
             )
 

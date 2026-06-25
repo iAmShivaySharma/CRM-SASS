@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { signIn } from '@/lib/mongodb/auth'
+import { WorkspaceMember } from '@/lib/mongodb/models/WorkspaceMember'
+import { connectToMongoDB } from '@/lib/mongodb/connection'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,9 +21,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: result.error }, { status: 401 })
     }
 
-    // Create response with user data (no token in response body)
+    await connectToMongoDB()
+    let userRole: any = null
+    let userPermissions: string[] = []
+
+    if (result.user && result.workspace) {
+      const membership = await WorkspaceMember.findOne({
+        workspaceId: result.workspace._id,
+        userId: result.user._id,
+        status: 'active',
+      }).populate('roleId')
+
+      userRole = membership?.roleId as any
+      userPermissions = userRole?.permissions || []
+    }
+
     const response = NextResponse.json({
-      user: result.user,
+      user: {
+        ...result.user?.toJSON(),
+        role: userRole?.name || 'user',
+        roleId: userRole?._id?.toString() || '',
+        permissions: userPermissions,
+      },
       workspace: result.workspace,
       success: true,
     })

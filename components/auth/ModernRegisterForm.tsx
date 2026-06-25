@@ -222,10 +222,11 @@ export function ModernRegisterForm() {
             user: {
               id: result.user.id,
               email: result.user.email,
-              name: result.user.fullName,
-              role: 'owner',
+              name: result.user.fullName || result.user.email,
+              role: result.user.role || 'Owner',
+              roleId: result.user.roleId || '',
               workspaceId: result.workspace.id,
-              permissions: [],
+              permissions: result.user.permissions || ['*:*'],
             },
           })
         )

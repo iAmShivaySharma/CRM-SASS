@@ -35,6 +35,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
+import { updateUser } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import {
   useGetUserWorkspacesQuery,
@@ -206,6 +207,26 @@ export function WorkspaceSwitcher({
       }
 
       await updateLastActiveWorkspace({ workspaceId: workspace.id }).unwrap()
+
+      try {
+        const permRes = await fetch(
+          `/api/user/workspace-permissions?workspaceId=${workspace.id}`,
+          { credentials: 'include' }
+        )
+        if (permRes.ok) {
+          const permData = await permRes.json()
+          dispatch(
+            updateUser({
+              role: permData.role,
+              roleId: permData.roleId,
+              permissions: permData.permissions,
+              workspaceId: workspace.id,
+            })
+          )
+        }
+      } catch (permError) {
+        console.error('Error loading workspace permissions:', permError)
+      }
 
       toast.success(`Switched to ${workspace.name}`)
     } catch (error) {
