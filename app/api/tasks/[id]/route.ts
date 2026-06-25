@@ -40,7 +40,7 @@ async function checkTaskAccess(taskId: string, userId: string) {
   const task = await Task.findById(taskId)
   if (!task) return null
 
-  const project = await Project.findById(task.projectId).lean()
+  const project = (await Project.findById(task.projectId).lean()) as any
   if (!project) return null
 
   const projectMember = await ProjectMember.findOne({
