@@ -428,10 +428,10 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        const lead = await Lead.findOne({
+        const lead = (await Lead.findOne({
           _id: leadId,
           workspaceId,
-        }).lean()
+        }).lean()) as any
 
         if (!lead) {
           return NextResponse.json(
