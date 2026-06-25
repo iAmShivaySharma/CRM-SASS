@@ -284,6 +284,7 @@ const ChartLegend = React.forwardRef<
   React.ComponentProps<typeof RechartsPrimitiveTypes.Legend>
 >((props, ref) => {
   const Legend = getChartLegend()
+  // @ts-expect-error recharts Legend ref type mismatch
   return <Legend ref={ref} {...props} />
 })
 ChartLegend.displayName = 'ChartLegend'
