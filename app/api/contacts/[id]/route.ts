@@ -206,7 +206,10 @@ export const PUT = withSecurityLogging(
 
         const updateData = validationResult.data
 
-        const contact = await Contact.findOne({ _id: contactId, workspaceId })
+        const contact = (await Contact.findOne({
+          _id: contactId,
+          workspaceId,
+        })) as any
         if (!contact) {
           return NextResponse.json(
             { message: 'Contact not found' },
@@ -346,10 +349,10 @@ export const DELETE = withSecurityLogging(
         )
         if (permError) return permError
 
-        const contact = await Contact.findOne({
+        const contact = (await Contact.findOne({
           _id: contactId,
           workspaceId,
-        }).lean()
+        }).lean()) as any
 
         if (!contact) {
           return NextResponse.json(
