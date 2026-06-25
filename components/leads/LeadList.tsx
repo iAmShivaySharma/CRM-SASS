@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Plus,
   Search,
@@ -53,21 +53,6 @@ import {
 import { useConvertLeadToContactMutation } from '@/lib/api/contactsApi'
 import { LeadDetailsSheet } from './LeadDetailsSheet'
 import { LeadForm } from './LeadForm'
-
-const statusColors = {
-  new: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  contacted:
-    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  qualified:
-    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  proposal:
-    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-  negotiation:
-    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-  closed_won:
-    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300',
-  closed_lost: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
-}
 
 export function LeadList() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -130,7 +115,7 @@ export function LeadList() {
     if (!currentWorkspace?.id) return
 
     try {
-      const result = await convertLeadToContact({
+      await convertLeadToContact({
         leadId: lead.id,
         workspaceId: currentWorkspace.id,
       }).unwrap()
@@ -318,7 +303,7 @@ export function LeadList() {
                         lead.tagIds.length > 0 ? (
                           lead.tagIds.slice(0, 2).map((tag: any) => (
                             <Badge
-                              key={tag.id || tag._id}
+                              key={tag.id || tag._id || tag.name}
                               variant="outline"
                               className="text-xs"
                               style={{
@@ -402,19 +387,6 @@ export function LeadList() {
           )}
         </CardContent>
       </Card>
-
-      {/* Lead Creation Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create New Lead</DialogTitle>
-            <DialogDescription>
-              Add a new lead to your workspace
-            </DialogDescription>
-          </DialogHeader>
-          <LeadForm onSuccess={() => setIsCreateOpen(false)} />
-        </DialogContent>
-      </Dialog>
 
       {/* Lead Details Sheet */}
       <LeadDetailsSheet
