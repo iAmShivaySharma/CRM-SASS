@@ -128,13 +128,13 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        const membership = await WorkspaceMember.findOne({
+        const membership = (await WorkspaceMember.findOne({
           workspaceId: webhook.workspaceId,
           userId: auth.user.id,
           status: 'active',
         })
           .populate('roleId')
-          .lean()
+          .lean()) as any
 
         if (!membership) {
           return NextResponse.json(
@@ -230,13 +230,13 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        const membership = await WorkspaceMember.findOne({
+        const membership = (await WorkspaceMember.findOne({
           workspaceId: webhook.workspaceId,
           userId: auth.user.id,
           status: 'active',
         })
           .populate('roleId')
-          .lean()
+          .lean()) as any
 
         if (!membership) {
           return NextResponse.json(
