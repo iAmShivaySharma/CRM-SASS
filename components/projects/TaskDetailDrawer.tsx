@@ -191,7 +191,7 @@ export function TaskDetailDrawer({
                 <h4 className="mb-1.5 text-xs font-medium text-muted-foreground">
                   Time Tracking
                 </h4>
-                <TimeTracker task={task} size="sm" variant="default" />
+                <TimeTracker task={task} size="sm" variant="compact" />
               </div>
             )}
 
