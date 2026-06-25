@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useParams, notFound } from 'next/navigation'
-import { Grid, List, Users, FileText, BarChart3 } from 'lucide-react'
+import { Grid, List, Users, FileText, BarChart3, Zap } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAppSelector } from '@/lib/hooks'
 import {
@@ -10,12 +10,15 @@ import {
   useGetTasksQuery,
   useGetProjectMembersQuery,
   useGetDocumentsQuery,
+  type Task,
 } from '@/lib/api/projectsApi'
 import { ProjectHeader } from '@/components/projects/ProjectHeader'
 import { KanbanBoard } from '@/components/projects/KanbanBoard'
 import { TasksList } from '@/components/projects/TasksList'
+import { TaskDetailDrawer } from '@/components/projects/TaskDetailDrawer'
 import { ProjectMembers } from '@/components/projects/ProjectMembers'
 import { ProjectDocuments } from '@/components/projects/ProjectDocuments'
+import { SprintBoard } from '@/components/projects/SprintBoard'
 import dynamic from 'next/dynamic'
 
 const ProjectAnalytics = dynamic(
@@ -33,15 +36,20 @@ export default function ProjectDetailPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const projectId = params?.id as string
   const [taskViewMode, setTaskViewMode] = useState<'kanban' | 'list'>('kanban')
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false)
 
-  // Fetch project data
+  const handleViewTask = (task: Task) => {
+    setSelectedTask(task)
+    setIsTaskDrawerOpen(true)
+  }
+
   const {
     data: projectData,
     isLoading: projectLoading,
     error: projectError,
   } = useGetProjectQuery({ id: projectId }, { skip: !projectId })
 
-  // Fetch tasks for this project
   const {
     data: tasksData,
     isLoading: tasksLoading,
@@ -54,11 +62,9 @@ export default function ProjectDetailPage() {
     { skip: !projectId || !currentWorkspace?.id }
   )
 
-  // Fetch project members
   const { data: membersData, isLoading: membersLoading } =
     useGetProjectMembersQuery({ projectId }, { skip: !projectId })
 
-  // Fetch project documents
   const { data: documentsData, isLoading: documentsLoading } =
     useGetDocumentsQuery({ projectId }, { skip: !projectId })
 
@@ -73,7 +79,6 @@ export default function ProjectDetailPage() {
   if (projectLoading) {
     return (
       <div className="space-y-6">
-        {/* Header Skeleton */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="h-8 w-48 animate-pulse rounded bg-muted" />
@@ -98,7 +103,6 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Content Skeleton */}
         <div className="space-y-4">
           <div className="h-10 w-full animate-pulse rounded bg-muted" />
           <div className="grid gap-6 md:grid-cols-4">
@@ -123,15 +127,17 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Project Header */}
       <ProjectHeader project={project} />
 
-      {/* Tabs Navigation */}
       <Tabs defaultValue="tasks" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="tasks" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Tasks ({tasks.length})
+          </TabsTrigger>
+          <TabsTrigger value="sprints" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Sprints
           </TabsTrigger>
           <TabsTrigger value="members" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
@@ -147,7 +153,6 @@ export default function ProjectDetailPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tasks Tab */}
         <TabsContent value="tasks" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -182,6 +187,7 @@ export default function ProjectDetailPage() {
               projectId={projectId}
               isLoading={tasksLoading}
               error={tasksError}
+              onEditTask={handleViewTask}
             />
           ) : (
             <TasksList
@@ -189,11 +195,15 @@ export default function ProjectDetailPage() {
               projectId={projectId}
               isLoading={tasksLoading}
               error={tasksError}
+              onEditTask={handleViewTask}
             />
           )}
         </TabsContent>
 
-        {/* Members Tab */}
+        <TabsContent value="sprints" className="space-y-6">
+          <SprintBoard projectId={projectId} onEditTask={handleViewTask} />
+        </TabsContent>
+
         <TabsContent value="members" className="space-y-6">
           <ProjectMembers
             projectId={projectId}
@@ -202,7 +212,6 @@ export default function ProjectDetailPage() {
           />
         </TabsContent>
 
-        {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-6">
           <ProjectDocuments
             projectId={projectId}
@@ -211,7 +220,6 @@ export default function ProjectDetailPage() {
           />
         </TabsContent>
 
-        {/* Analytics Tab */}
         <TabsContent value="analytics" className="space-y-6">
           <ProjectAnalytics
             tasks={tasks}
@@ -221,6 +229,15 @@ export default function ProjectDetailPage() {
           />
         </TabsContent>
       </Tabs>
+
+      <TaskDetailDrawer
+        task={selectedTask}
+        open={isTaskDrawerOpen}
+        onClose={() => {
+          setIsTaskDrawerOpen(false)
+          setSelectedTask(null)
+        }}
+      />
     </div>
   )
 }

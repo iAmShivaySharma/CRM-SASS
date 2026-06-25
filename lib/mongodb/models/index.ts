@@ -34,10 +34,22 @@ export {
 export { Column, type IColumn } from './Column'
 
 // Execution Engine Models
-export { default as WorkflowCatalog, type IWorkflowCatalog } from './WorkflowCatalog'
-export { default as WorkflowCategory, type IWorkflowCategory } from './WorkflowCategory'
-export { default as WorkflowExecution, type IWorkflowExecution } from './WorkflowExecution'
-export { default as CustomerApiKey, type ICustomerApiKey } from './CustomerApiKey'
+export {
+  default as WorkflowCatalog,
+  type IWorkflowCatalog,
+} from './WorkflowCatalog'
+export {
+  default as WorkflowCategory,
+  type IWorkflowCategory,
+} from './WorkflowCategory'
+export {
+  default as WorkflowExecution,
+  type IWorkflowExecution,
+} from './WorkflowExecution'
+export {
+  default as CustomerApiKey,
+  type ICustomerApiKey,
+} from './CustomerApiKey'
 export { default as UserInput, type IUserInput } from './UserInput'
 // HR & Attendance Models
 export { default as Attendance, type IAttendance } from './Attendance'
@@ -64,3 +76,9 @@ export { LicenseKey, type ILicenseKey } from './LicenseKey'
 // Blog Module
 export { Blog, type IBlog } from './Blog'
 export { BlogCategory, type IBlogCategory } from './BlogCategory'
+
+// Comments
+export { Comment, type IComment, type ICommentEditHistory } from './Comment'
+
+// Sprint Planning
+export { Sprint, type ISprint } from './Sprint'

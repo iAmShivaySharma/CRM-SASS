@@ -18,6 +18,7 @@ import { attendanceApi } from './api/attendanceApi'
 import { shiftsApi } from './api/shiftsApi'
 import { leaveApi } from './api/leaveApi'
 import { assetApi } from './api/assetApi'
+import { commentsApi } from './api/commentsApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -51,6 +52,7 @@ export const store = configureStore({
     [leaveApi.reducerPath]: leaveApi.reducer,
     [assetApi.reducerPath]: assetApi.reducer,
     [emailApi.reducerPath]: emailApi.reducer,
+    [commentsApi.reducerPath]: commentsApi.reducer,
   } as any,
   preloadedState,
   middleware: getDefaultMiddleware =>
@@ -73,7 +75,8 @@ export const store = configureStore({
       shiftsApi.middleware,
       leaveApi.middleware,
       assetApi.middleware,
-      emailApi.middleware
+      emailApi.middleware,
+      commentsApi.middleware
     ),
 })
 

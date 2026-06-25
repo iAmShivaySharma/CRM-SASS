@@ -39,11 +39,12 @@ import {
   type IProjectJoinRequest,
 } from './models/ProjectInvitation'
 import { Column, type IColumn } from './models/Column'
+import { MessageRead, type IMessageRead } from './models/MessageRead'
+import { Comment, type IComment } from './models/Comment'
+import { Sprint, type ISprint } from './models/Sprint'
 
-// Database client class to replace Supabase functionality
 export class MongoDBClient {
   constructor() {
-    // Ensure connection on instantiation
     this.ensureConnection()
   }
 
@@ -51,7 +52,6 @@ export class MongoDBClient {
     await connectToMongoDB()
   }
 
-  // User operations
   async createUser(userData: Partial<IUser>): Promise<IUser> {
     await this.ensureConnection()
     const user = new User(userData)
@@ -60,17 +60,17 @@ export class MongoDBClient {
 
   async getUserById(id: string): Promise<IUser | null> {
     await this.ensureConnection()
-    return await User.findById(id)
+    return await User.findById(id).lean()
   }
 
   async findUserById(id: string): Promise<IUser | null> {
     await this.ensureConnection()
-    return await User.findById(id)
+    return await User.findById(id).lean()
   }
 
   async getUserByEmail(email: string): Promise<IUser | null> {
     await this.ensureConnection()
-    return await User.findOne({ email })
+    return await User.findOne({ email }).lean()
   }
 
   async updateUser(id: string, updates: Partial<IUser>): Promise<IUser | null> {
@@ -78,7 +78,6 @@ export class MongoDBClient {
     return await User.findByIdAndUpdate(id, updates, { new: true })
   }
 
-  // Workspace operations
   async createWorkspace(
     workspaceData: Partial<IWorkspace>
   ): Promise<IWorkspace> {
@@ -89,17 +88,17 @@ export class MongoDBClient {
 
   async getWorkspaceById(id: string): Promise<IWorkspace | null> {
     await this.ensureConnection()
-    return await Workspace.findById(id)
+    return await Workspace.findById(id).lean()
   }
 
   async findWorkspaceById(id: string): Promise<IWorkspace | null> {
     await this.ensureConnection()
-    return await Workspace.findById(id)
+    return await Workspace.findById(id).lean()
   }
 
   async getWorkspaceBySlug(slug: string): Promise<IWorkspace | null> {
     await this.ensureConnection()
-    return await Workspace.findOne({ slug })
+    return await Workspace.findOne({ slug }).lean()
   }
 
   async findWorkspaceMember(
@@ -111,7 +110,7 @@ export class MongoDBClient {
       workspaceId,
       userId,
       status: 'active',
-    })
+    }).lean()
   }
 
   async getUserWorkspaces(userId: string): Promise<IWorkspace[]> {
@@ -123,7 +122,6 @@ export class MongoDBClient {
     return members.map((member: any) => member.workspaceId as IWorkspace)
   }
 
-  // Lead operations
   async getLeads(
     workspaceId: string,
     filters?: { status?: string }
@@ -133,7 +131,7 @@ export class MongoDBClient {
     if (filters?.status) {
       query.status = filters.status
     }
-    return await Lead.find(query).sort({ createdAt: -1 })
+    return await Lead.find(query).sort({ createdAt: -1 }).lean()
   }
 
   async createLead(leadData: Partial<ILead>): Promise<ILead> {
@@ -153,10 +151,9 @@ export class MongoDBClient {
     return !!result
   }
 
-  // Role operations
   async getRolesByWorkspace(workspaceId: string): Promise<IRole[]> {
     await this.ensureConnection()
-    return await Role.find({ workspaceId })
+    return await Role.find({ workspaceId }).lean()
   }
 
   async createRole(roleData: Partial<IRole>): Promise<IRole> {
@@ -165,7 +162,6 @@ export class MongoDBClient {
     return await role.save()
   }
 
-  // Activity operations
   async createActivity(activityData: Partial<IActivity>): Promise<IActivity> {
     await this.ensureConnection()
     const activity = new Activity(activityData)
@@ -183,10 +179,9 @@ export class MongoDBClient {
       .populate('performedBy', 'fullName email')
   }
 
-  // Webhook operations
   async getWebhooks(workspaceId: string): Promise<IWebhook[]> {
     await this.ensureConnection()
-    return await Webhook.find({ workspaceId }).sort({ createdAt: -1 })
+    return await Webhook.find({ workspaceId }).sort({ createdAt: -1 }).lean()
   }
 
   async createWebhook(webhookData: Partial<IWebhook>): Promise<IWebhook> {
@@ -211,10 +206,9 @@ export class MongoDBClient {
 
   async getWebhookByUrl(url: string): Promise<IWebhook | null> {
     await this.ensureConnection()
-    return await Webhook.findOne({ url, isActive: true })
+    return await Webhook.findOne({ url, isActive: true }).lean()
   }
 
-  // Webhook log operations
   async createWebhookLog(logData: Partial<IWebhookLog>): Promise<IWebhookLog> {
     await this.ensureConnection()
     const log = new WebhookLog(logData)
@@ -229,9 +223,9 @@ export class MongoDBClient {
     return await WebhookLog.find({ webhookId })
       .sort({ createdAt: -1 })
       .limit(limit)
+      .lean()
   }
 
-  // Lead activity operations
   async createLeadActivity(
     activityData: Partial<ILeadActivity>
   ): Promise<ILeadActivity> {
@@ -249,9 +243,9 @@ export class MongoDBClient {
       .sort({ createdAt: -1 })
       .limit(limit)
       .populate('performedBy', 'fullName email avatar')
+      .lean()
   }
 
-  // Chat Room operations
   async createChatRoom(chatRoomData: Partial<IChatRoom>): Promise<IChatRoom> {
     await this.ensureConnection()
     const chatRoom = new ChatRoom(chatRoomData)
@@ -296,7 +290,6 @@ export class MongoDBClient {
     return !!result
   }
 
-  // Message operations
   async createMessage(messageData: Partial<IMessage>): Promise<IMessage> {
     await this.ensureConnection()
     const message = new Message(messageData)
@@ -358,27 +351,39 @@ export class MongoDBClient {
     messageIds?: string[]
   ): Promise<void> {
     await this.ensureConnection()
+
     const filter =
       messageIds && messageIds.length > 0
         ? { _id: { $in: messageIds }, chatRoomId }
         : { chatRoomId, senderId: { $ne: userId } }
 
-    await Message.updateMany(filter, {
-      $addToSet: {
-        readBy: {
-          userId,
-          readAt: new Date(),
+    const messages = await Message.find(filter).select('_id').lean()
+
+    if (messages.length === 0) return
+
+    const now = new Date()
+    const ops = messages.map((msg: any) => ({
+      updateOne: {
+        filter: { messageId: msg._id.toString(), userId },
+        update: {
+          $setOnInsert: {
+            messageId: msg._id.toString(),
+            chatRoomId,
+            userId,
+            readAt: now,
+          },
         },
+        upsert: true,
       },
-    })
+    }))
+
+    await MessageRead.bulkWrite(ops, { ordered: false })
   }
 }
 
-// Create singleton instance
 export const mongoClient = new MongoDBClient()
 export default mongoClient
 
-// Export models for direct use
 export {
   User,
   Workspace,
@@ -405,4 +410,7 @@ export {
   ProjectInvitation,
   ProjectJoinRequest,
   Column,
+  MessageRead,
+  Comment,
+  Sprint,
 }
