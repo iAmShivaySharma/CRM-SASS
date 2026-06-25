@@ -71,11 +71,10 @@ export default function ContactsPage() {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value)
-    setPage(1) // Reset to first page when searching
+    setPage(1)
   }
 
   const handleFilterChange = (filterType: string, value: string) => {
-    // Convert "all" values to empty string for API filtering
     const filterValue = value === 'all' ? '' : value
 
     switch (filterType) {
@@ -89,7 +88,7 @@ export default function ContactsPage() {
         setPriorityFilter(filterValue)
         break
     }
-    setPage(1) // Reset to first page when filtering
+    setPage(1)
   }
 
   const clearFilters = () => {
@@ -112,7 +111,6 @@ export default function ContactsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Contacts</h1>
@@ -140,7 +138,6 @@ export default function ContactsPage() {
         </Dialog>
       </div>
 
-      {/* Stats Cards */}
       {contactsData && (
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
@@ -199,7 +196,6 @@ export default function ContactsPage() {
         </div>
       )}
 
-      {/* Search and Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Search & Filter</CardTitle>
@@ -271,7 +267,6 @@ export default function ContactsPage() {
             )}
           </div>
 
-          {/* Active Filters Display */}
           {(searchTerm || statusFilter || categoryFilter || priorityFilter) && (
             <div className="mt-4 flex flex-wrap gap-2">
               {searchTerm && (
@@ -291,7 +286,6 @@ export default function ContactsPage() {
         </CardContent>
       </Card>
 
-      {/* Contact List */}
       <ContactList
         contactsData={contactsData}
         isLoading={isLoading}

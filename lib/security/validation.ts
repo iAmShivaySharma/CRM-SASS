@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
 
-// Common validation schemas
 export const emailSchema = z.string().email('Invalid email format').max(255)
 export const passwordSchema = z
   .string()
@@ -19,8 +18,6 @@ export const phoneSchema = z
 export const objectIdSchema = z
   .string()
   .regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId format')
-
-// Auth validation schemas
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, 'Password is required'),
@@ -36,8 +33,6 @@ export const signupSchema = z.object({
     .max(100)
     .optional(),
 })
-
-// Lead validation schemas
 export const createLeadSchema = z.object({
   workspaceId: objectIdSchema,
   name: z.string().min(1, 'Name is required').max(100),
@@ -55,8 +50,6 @@ export const createLeadSchema = z.object({
 export const updateLeadSchema = createLeadSchema
   .partial()
   .omit({ workspaceId: true })
-
-// Role validation schemas
 export const createRoleSchema = z.object({
   workspaceId: objectIdSchema,
   name: z.string().min(1, 'Name is required').max(50),
@@ -65,8 +58,6 @@ export const createRoleSchema = z.object({
     .array(z.string().regex(/^[a-z_]+:[a-z_*]+$/, 'Invalid permission format'))
     .min(1),
 })
-
-// Webhook validation schemas
 export const webhookLeadSchema = z.object({
   name: z.string().min(1).max(100),
   email: emailSchema.optional(),
@@ -115,18 +106,14 @@ export const createWebhookSchema = z.object({
 export const updateWebhookSchema = createWebhookSchema
   .partial()
   .omit({ workspaceId: true })
-
-// Sanitization functions
 export function sanitizeString(input: string): string {
   if (typeof input !== 'string') return ''
 
-  // Remove HTML tags and scripts
   const cleaned = DOMPurify.sanitize(input, {
     ALLOWED_TAGS: [],
     ALLOWED_ATTR: [],
   })
 
-  // Trim whitespace
   return cleaned.trim()
 }
 
@@ -158,15 +145,12 @@ export function sanitizeObject(obj: any): any {
 
   return obj
 }
-
-// MongoDB injection prevention
 export function preventNoSQLInjection(obj: any): any {
   if (obj === null || obj === undefined) return obj
 
   if (typeof obj === 'object' && !Array.isArray(obj)) {
     const cleaned: any = {}
     for (const [key, value] of Object.entries(obj)) {
-      // Remove MongoDB operators
       if (!key.startsWith('$') && key !== '__proto__') {
         cleaned[key] = preventNoSQLInjection(value)
       }
@@ -180,8 +164,6 @@ export function preventNoSQLInjection(obj: any): any {
 
   return obj
 }
-
-// Validation middleware factory
 export function validateRequest<T>(schema: z.ZodSchema<T>) {
   return async (
     request: Request
@@ -191,13 +173,10 @@ export function validateRequest<T>(schema: z.ZodSchema<T>) {
     try {
       const body = await request.json()
 
-      // Sanitize input
       const sanitizedBody = sanitizeObject(body)
 
-      // Prevent NoSQL injection
       const cleanBody = preventNoSQLInjection(sanitizedBody)
 
-      // Validate with Zod
       const result = schema.safeParse(cleanBody)
 
       if (!result.success) {
@@ -213,8 +192,6 @@ export function validateRequest<T>(schema: z.ZodSchema<T>) {
     }
   }
 }
-
-// IP validation
 export function isValidIP(ip: string): boolean {
   const ipv4Regex =
     /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
@@ -222,12 +199,9 @@ export function isValidIP(ip: string): boolean {
 
   return ipv4Regex.test(ip) || ipv6Regex.test(ip)
 }
-
-// User agent validation
 export function isValidUserAgent(userAgent: string): boolean {
   if (!userAgent || userAgent.length > 500) return false
 
-  // Block suspicious user agents
   const suspiciousPatterns = [
     /bot/i,
     /crawler/i,
@@ -241,12 +215,10 @@ export function isValidUserAgent(userAgent: string): boolean {
 
   return !suspiciousPatterns.some(pattern => pattern.test(userAgent))
 }
-
-// File upload validation (for future use)
 export const fileUploadSchema = z.object({
   filename: z.string().min(1).max(255),
   mimetype: z.enum(['image/jpeg', 'image/png', 'image/gif', 'application/pdf']),
-  size: z.number().max(5 * 1024 * 1024), // 5MB max
+  size: z.number().max(5 * 1024 * 1024),
 })
 
 export function validateFileUpload(file: any): {
@@ -259,7 +231,6 @@ export function validateFileUpload(file: any): {
     return { success: false, error: result.error.errors[0].message }
   }
 
-  // Additional security checks
   const filename = result.data.filename.toLowerCase()
   const dangerousExtensions = [
     '.exe',
@@ -278,16 +249,12 @@ export function validateFileUpload(file: any): {
 
   return { success: true }
 }
-
-// Export validation helpers
 export const validators = {
   email: (email: string) => emailSchema.safeParse(email).success,
   password: (password: string) => passwordSchema.safeParse(password).success,
   phone: (phone: string) => phoneSchema.safeParse(phone).success,
   objectId: (id: string) => objectIdSchema.safeParse(id).success,
 }
-
-// Security logging helper
 export function logSecurityEvent(
   event: string,
   details: any,
@@ -300,10 +267,6 @@ export function logSecurityEvent(
     details: sanitizeObject(details),
   }
 
-  console.log(`[SECURITY-${severity.toUpperCase()}]`, JSON.stringify(logEntry))
-
-  // In production, send to security monitoring service
   if (process.env.NODE_ENV === 'production' && severity === 'high') {
-    // TODO: Send to security monitoring service (e.g., Sentry, DataDog)
   }
 }

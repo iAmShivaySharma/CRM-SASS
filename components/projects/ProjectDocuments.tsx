@@ -140,50 +140,41 @@ export function ProjectDocuments({
 
   const handleDownloadDocument = (doc: Document) => {
     try {
-      // Create PDF
       const pdf = new jsPDF()
 
-      // Better content extraction - handle different content formats
       let content = ''
 
       if (typeof doc.content === 'string') {
-        // If it's HTML, extract text properly
         const tempDiv = document.createElement('div')
         tempDiv.innerHTML = doc.content
         content = tempDiv.textContent || tempDiv.innerText || doc.content
 
-        // If still looks like HTML tags, strip them
         content = content
           .replace(/<[^>]*>/g, ' ')
           .replace(/\s+/g, ' ')
           .trim()
       } else if (doc.content && typeof doc.content === 'object') {
-        // If it's JSON/Tiptap format, extract text recursively
         const extractTextFromJSON = (node: any): string => {
           if (typeof node === 'string') return node
           if (!node) return ''
 
           let text = ''
 
-          // Handle text nodes
           if (node.text) {
             text += node.text
           }
 
-          // Handle content arrays
           if (Array.isArray(node.content)) {
             node.content.forEach((child: any) => {
               const childText = extractTextFromJSON(child)
               text += childText
 
-              // Add line breaks for block elements
               if (node.type === 'paragraph' || node.type === 'heading') {
                 text += '\n'
               }
             })
           }
 
-          // Add line breaks for block elements
           if (node.type === 'paragraph' || node.type === 'heading') {
             text += '\n'
           }
@@ -196,19 +187,16 @@ export function ProjectDocuments({
         content = String(doc.content || 'No content available')
       }
 
-      // Clean up the content
       content = content
-        .replace(/\n\s*\n/g, '\n\n') // Clean up multiple line breaks
-        .replace(/^\s+|\s+$/g, '') // Trim whitespace
-        .replace(/[^\x20-\x7E\n\t]/g, '') // Remove non-printable characters except newlines and tabs
+        .replace(/\n\s*\n/g, '\n\n')
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/[^\x20-\x7E\n\t]/g, '')
 
       const filename = `${doc.title.replace(/[^a-z0-9\s]/gi, '_').replace(/\s+/g, '_')}.pdf`
 
-      // Add title
       pdf.setFontSize(20)
       pdf.text(doc.title, 20, 30)
 
-      // Add creation date
       pdf.setFontSize(12)
       pdf.text(
         `Created: ${new Date(doc.createdAt).toLocaleDateString()}`,
@@ -221,10 +209,8 @@ export function ProjectDocuments({
         55
       )
 
-      // Add content
       pdf.setFontSize(11)
 
-      // Split content into lines that fit the page width
       const pageWidth = pdf.internal.pageSize.getWidth()
       const margins = 20
       const maxLineWidth = pageWidth - margins * 2
@@ -240,13 +226,11 @@ export function ProjectDocuments({
           pdf.addPage()
           currentY = margins
         }
-        // Ensure line is a string and clean
         const cleanLine = String(line).replace(/[^\x20-\x7E\n\t]/g, '')
         pdf.text(cleanLine, margins, currentY)
         currentY += lineHeight
       })
 
-      // Download the PDF
       pdf.save(filename)
       toast.success('Document downloaded as PDF')
     } catch (error) {
@@ -330,7 +314,6 @@ export function ProjectDocuments({
         </Button>
       </div>
 
-      {/* Search and Filters */}
       <div className="flex items-center gap-4">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -360,7 +343,6 @@ export function ProjectDocuments({
         </div>
       </div>
 
-      {/* Documents Display */}
       {filteredDocuments.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="p-12">
@@ -455,7 +437,6 @@ export function ProjectDocuments({
                   {extractPlainText(document.content, 150)}
                 </p>
 
-                {/* Tags */}
                 {document.tags && document.tags.length > 0 && (
                   <div className="mb-4 flex flex-wrap gap-1">
                     {document.tags.slice(0, 3).map((tag, index) => (
@@ -471,7 +452,6 @@ export function ProjectDocuments({
                   </div>
                 )}
 
-                {/* Author and Date */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-2">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">

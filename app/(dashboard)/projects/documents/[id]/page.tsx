@@ -57,7 +57,6 @@ export default function DocumentEditorPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
-  // Get document data
   const {
     data: documentData,
     isLoading: documentLoading,
@@ -66,7 +65,6 @@ export default function DocumentEditorPage() {
 
   const [updateDocument] = useUpdateDocumentMutation()
 
-  // Initialize form with document data
   useEffect(() => {
     if (documentData?.document) {
       const doc = documentData.document
@@ -75,7 +73,6 @@ export default function DocumentEditorPage() {
       console.log('Document tags:', doc.tags)
 
       setTitle(doc.title)
-      // Handle conversion from array format to HTML string
       const contentToSet = Array.isArray(doc.content)
         ? doc.content
             .map(block =>
@@ -171,7 +168,6 @@ export default function DocumentEditorPage() {
   if (documentLoading) {
     return (
       <div className="flex h-screen flex-col bg-background">
-        {/* Header Skeleton */}
         <div className="border-b bg-background/95 p-4 backdrop-blur">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -188,7 +184,6 @@ export default function DocumentEditorPage() {
           </div>
         </div>
 
-        {/* Content Skeleton */}
         <div className="flex-1 overflow-auto">
           <div className="mx-auto max-w-4xl space-y-8 p-8">
             <div className="h-12 w-96 animate-pulse rounded bg-muted" />
@@ -233,7 +228,6 @@ export default function DocumentEditorPage() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      {/* Header */}
       <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-4">
@@ -322,10 +316,8 @@ export default function DocumentEditorPage() {
         </div>
       </div>
 
-      {/* Document Content */}
       <div className="flex-1 overflow-auto">
         <div className="mx-auto max-w-4xl p-8">
-          {/* Title */}
           <div className="mb-8">
             <Input
               value={title}
@@ -335,7 +327,6 @@ export default function DocumentEditorPage() {
             />
           </div>
 
-          {/* Tags */}
           <div className="mb-6">
             <div className="mb-2 flex flex-wrap gap-2">
               {tags.map((tag, index) => (
@@ -369,7 +360,6 @@ export default function DocumentEditorPage() {
             </div>
           </div>
 
-          {/* Rich Text Editor */}
           <div className="mb-8">
             <TiptapEditor
               content={content}

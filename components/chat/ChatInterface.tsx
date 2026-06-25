@@ -66,14 +66,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     [chatRoomsData?.chatRooms]
   )
 
-  // Auto-select first chat room if none selected
   useEffect(() => {
     if (chatRooms.length > 0 && !selectedChatRoom) {
       setSelectedChatRoom(chatRooms[0].id)
     }
   }, [chatRooms, selectedChatRoom])
 
-  // Join/leave chat rooms when selection changes
   useEffect(() => {
     if (selectedChatRoom && isConnected) {
       joinChatRoom(selectedChatRoom)
@@ -102,7 +100,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   if (chatRoomsLoading) {
     return (
       <div className={cn('flex h-full', className)}>
-        {/* Chat rooms sidebar skeleton */}
         <div className="w-80 space-y-4 border-r bg-muted/10 p-4">
           <div className="flex items-center justify-between">
             <div className="h-6 w-20 animate-pulse rounded bg-muted" />
@@ -116,7 +113,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           </div>
         </div>
 
-        {/* Chat messages area skeleton */}
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 items-center justify-center">
             <div className="space-y-3 text-center">
@@ -158,7 +154,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
       })
 
       if (response.ok) {
-        // Refetch chat rooms
         window.location.reload()
       } else {
         console.error('Failed to initialize default chat rooms')

@@ -80,7 +80,6 @@ export async function PUT(
 
     return NextResponse.json({ chatRoom: populatedRoom })
   } catch (error) {
-    console.error('Update chat room error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -162,7 +161,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Chat room deleted successfully' })
   } catch (error) {
-    console.error('Delete chat room error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

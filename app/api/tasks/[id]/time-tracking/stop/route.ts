@@ -59,11 +59,6 @@ export async function POST(
 
     // Check if time tracking is active
     if (!task.timeTracking.isActive) {
-      console.log('Time tracking state:', {
-        isActive: task.timeTracking.isActive,
-        currentSessionStart: task.timeTracking.currentSessionStart,
-        totalTracked: task.timeTracking.totalTracked,
-      })
       return NextResponse.json(
         { error: 'Time tracking is not currently active' },
         { status: 400 }
@@ -142,7 +137,6 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error('Error stopping time tracking:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

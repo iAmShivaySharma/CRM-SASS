@@ -126,7 +126,6 @@ const ChatRoomSchema = new Schema<IChatRoom>(
   }
 )
 
-// Optimized indexes for performance
 if (typeof window === 'undefined') {
   ChatRoomSchema.index({ workspaceId: 1, type: 1 })
   ChatRoomSchema.index({ participants: 1 })

@@ -16,8 +16,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`Starting workflow sync initiated by user ${auth.user.email}`)
-
     // Perform the sync
     const syncResult = await workflowSyncService.syncAllWorkflows()
 
@@ -49,8 +47,6 @@ export async function POST(request: NextRequest) {
       ) // 207 Multi-Status for partial success
     }
   } catch (error) {
-    console.error('Workflow sync API error:', error)
-
     return NextResponse.json(
       {
         success: false,
@@ -85,8 +81,6 @@ export async function GET(request: NextRequest) {
       version: connectionTest.version,
     })
   } catch (error) {
-    console.error('n8n connection test error:', error)
-
     return NextResponse.json(
       {
         success: false,

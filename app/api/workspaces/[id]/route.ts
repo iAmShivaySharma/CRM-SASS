@@ -1,12 +1,3 @@
-/**
- * Individual Workspace API Endpoint
- *
- * Handles CRUD operations for specific workspaces including:
- * - GET: Retrieve workspace details with members
- * - PUT: Update workspace information
- * - DELETE: Delete workspace (owner only)
- */
-
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import mongoose from 'mongoose'
@@ -28,7 +19,6 @@ import {
 import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
 
-// Supported currencies and timezones
 const SUPPORTED_CURRENCIES = [
   'USD',
   'EUR',
@@ -81,7 +71,6 @@ const SUPPORTED_TIMEZONES = [
   'Pacific/Auckland',
 ] as const
 
-// Validation schemas
 const updateWorkspaceSchema = z.object({
   name: z
     .string()
@@ -127,7 +116,6 @@ const updateWorkspaceSchema = z.object({
     .optional(),
 })
 
-// GET /api/workspaces/[id] - Get workspace details
 export const GET = withSecurityLogging(
   withLogging(
     async (
@@ -137,10 +125,8 @@ export const GET = withSecurityLogging(
       const startTime = Date.now()
 
       try {
-        // Ensure database connection
         await connectToMongoDB()
 
-        // Rate limiting
         const clientIp = getClientIP(request)
         const rateLimitResult = await rateLimit(clientIp, 'api')
         if (!rateLimitResult.success) {
@@ -150,7 +136,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Authentication
         const authResult = await requireAuth(request)
         if (!authResult.success) {
           return authResult.response
@@ -159,7 +144,6 @@ export const GET = withSecurityLogging(
         const userId = authResult.user.id
         const { id: workspaceId } = await params
 
-        // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
           return NextResponse.json(
             { message: 'Invalid workspace ID format' },
@@ -167,7 +151,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Find workspace and check user access
         const workspace = await Workspace.findById(workspaceId)
         if (!workspace) {
           return NextResponse.json(
@@ -176,7 +159,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check if user is a member of this workspace
         const membership = await WorkspaceMember.findOne({
           workspaceId,
           userId,
@@ -192,7 +174,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Get all workspace members with their details
         const members = await WorkspaceMember.find({
           workspaceId,
           status: 'active',
@@ -201,10 +182,8 @@ export const GET = withSecurityLogging(
           .populate('roleId', 'name permissions')
           .sort({ createdAt: 1 })
 
-        // Get member count
         const memberCount = members.length
 
-        // Format response
         const workspaceDetails = {
           id: workspace._id,
           name: workspace.name,
@@ -225,14 +204,13 @@ export const GET = withSecurityLogging(
             name:
               member.userId?.name || member.email?.split('@')[0] || 'Unknown',
             email: member.userId?.email || member.email || 'No email',
-            avatar: null, // Avatar not implemented yet
+            avatar: null,
             role: member.roleId?.name || 'Member',
             status: member.status,
             joinedAt: member.createdAt,
           })),
         }
 
-        // Log successful access
         logUserActivity(userId, 'workspace_viewed', 'workspace', {
           workspaceId,
           workspaceName: workspace.name,
@@ -272,7 +250,6 @@ export const GET = withSecurityLogging(
   )
 )
 
-// PUT /api/workspaces/[id] - Update workspace
 export const PUT = withSecurityLogging(
   withLogging(
     async (
@@ -282,10 +259,8 @@ export const PUT = withSecurityLogging(
       const startTime = Date.now()
 
       try {
-        // Ensure database connection
         await connectToMongoDB()
 
-        // Rate limiting
         const clientIp = getClientIP(request)
         const rateLimitResult = await rateLimit(clientIp, 'api')
         if (!rateLimitResult.success) {
@@ -295,7 +270,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Authentication
         const authResult = await requireAuth(request)
         if (!authResult.success) {
           return authResult.response
@@ -304,7 +278,6 @@ export const PUT = withSecurityLogging(
         const userId = authResult.user.id
         const { id: workspaceId } = await params
 
-        // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
           return NextResponse.json(
             { message: 'Invalid workspace ID format' },
@@ -312,7 +285,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Parse and validate request body
         const body = await request.json()
         const validationResult = updateWorkspaceSchema.safeParse(body)
 
@@ -329,7 +301,6 @@ export const PUT = withSecurityLogging(
         const { name, description, slug, currency, timezone, settings } =
           validationResult.data
 
-        // Find workspace and check user permissions
         const workspace = await Workspace.findById(workspaceId)
         if (!workspace) {
           return NextResponse.json(
@@ -338,7 +309,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Check if user has admin/owner permissions
         const membership = await WorkspaceMember.findOne({
           workspaceId,
           userId,
@@ -355,7 +325,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Check if slug is unique (if provided and different)
         if (slug && slug !== workspace.slug) {
           const existingWorkspace = await Workspace.findOne({
             slug,
@@ -370,7 +339,6 @@ export const PUT = withSecurityLogging(
           }
         }
 
-        // Update workspace
         const updateData: any = {
           ...(name && { name }),
           ...(description !== undefined && { description }),
@@ -380,7 +348,6 @@ export const PUT = withSecurityLogging(
           updatedAt: new Date(),
         }
 
-        // Handle settings update - merge with existing settings
         if (settings) {
           const existingSettings = workspace.settings || {}
           updateData.settings = {
@@ -395,7 +362,6 @@ export const PUT = withSecurityLogging(
           { new: true }
         )
 
-        // Log activity in the Activity collection for recent activity display
         try {
           await Activity.create({
             workspaceId,
@@ -413,15 +379,8 @@ export const PUT = withSecurityLogging(
               newValues: updateData,
             },
           })
-        } catch (activityError) {
-          console.error(
-            'Failed to log workspace update activity:',
-            activityError
-          )
-          // Don't fail the update if activity logging fails
-        }
+        } catch (activityError) {}
 
-        // Log successful update
         logUserActivity(userId, 'workspace_updated', 'workspace', {
           workspaceId,
           workspaceName: updatedWorkspace.name,
@@ -473,7 +432,6 @@ export const PUT = withSecurityLogging(
   )
 )
 
-// DELETE /api/workspaces/[id] - Delete workspace (Owner only)
 export const DELETE = withSecurityLogging(
   withLogging(
     async (
@@ -483,10 +441,8 @@ export const DELETE = withSecurityLogging(
       const startTime = Date.now()
 
       try {
-        // Ensure database connection
         await connectToMongoDB()
 
-        // Rate limiting
         const clientIp = getClientIP(request)
         const rateLimitResult = await rateLimit(clientIp, 'api')
         if (!rateLimitResult.success) {
@@ -496,7 +452,6 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Authentication
         const authResult = await requireAuth(request)
         if (!authResult.success) {
           return authResult.response
@@ -505,7 +460,6 @@ export const DELETE = withSecurityLogging(
         const userId = authResult.user.id
         const { id: workspaceId } = await params
 
-        // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
           return NextResponse.json(
             { message: 'Invalid workspace ID format' },
@@ -513,7 +467,6 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Find workspace and check ownership
         const workspace = await Workspace.findById(workspaceId)
         if (!workspace) {
           return NextResponse.json(
@@ -522,7 +475,6 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Check if user is the owner
         const membership = await WorkspaceMember.findOne({
           workspaceId,
           userId,
@@ -539,22 +491,16 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Start transaction for safe deletion
         const session = await mongoose.startSession()
         session.startTransaction()
 
         try {
-          // Delete all workspace members
           await WorkspaceMember.deleteMany({ workspaceId }, { session })
 
-          // Delete the workspace
           await Workspace.findByIdAndDelete(workspaceId, { session })
-
-          // TODO: Delete related data (leads, activities, etc.)
 
           await session.commitTransaction()
 
-          // Log successful deletion
           logUserActivity(userId, 'workspace_deleted', 'workspace', {
             workspaceId,
             workspaceName: workspace.name,

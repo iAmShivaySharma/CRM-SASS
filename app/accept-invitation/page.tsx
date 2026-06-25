@@ -69,7 +69,6 @@ function AcceptInvitationContent() {
   const [result, setResult] = useState<AcceptanceResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Registration form state
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -78,7 +77,6 @@ function AcceptInvitationContent() {
     if (!token) return
 
     try {
-      // First, validate the invitation token (no auth required)
       const invitationResponse = await fetch('/api/invitations/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,7 +93,6 @@ function AcceptInvitationContent() {
 
       setInvitation(invitationData.invitation)
 
-      // Check if user is authenticated and if it's the correct user
       try {
         const authResponse = await fetch('/api/auth/verify', {
           method: 'GET',
@@ -112,11 +109,9 @@ function AcceptInvitationContent() {
             setUserState('wrong-user')
           }
         } else {
-          // User not authenticated
           setUserState('guest')
         }
       } catch (authError) {
-        // Authentication check failed, treat as guest
         setUserState('guest')
       }
     } catch (err) {
@@ -133,7 +128,6 @@ function AcceptInvitationContent() {
       return
     }
 
-    // Validate invitation token and check user authentication state
     validateInvitationAndUserState()
   }, [token, validateInvitationAndUserState])
 
@@ -224,7 +218,6 @@ function AcceptInvitationContent() {
     }
   }
 
-  // Loading state
   if (userState === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -238,7 +231,6 @@ function AcceptInvitationContent() {
     )
   }
 
-  // Error state
   if (userState === 'error' || !invitation) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -266,7 +258,6 @@ function AcceptInvitationContent() {
     )
   }
 
-  // Success state
   if (result?.success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -312,7 +303,6 @@ function AcceptInvitationContent() {
     )
   }
 
-  // Wrong user logged in
   if (userState === 'wrong-user') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -369,7 +359,6 @@ function AcceptInvitationContent() {
     )
   }
 
-  // Correct user logged in
   if (userState === 'correct-user') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -435,7 +424,6 @@ function AcceptInvitationContent() {
     )
   }
 
-  // Guest user - show registration form
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">

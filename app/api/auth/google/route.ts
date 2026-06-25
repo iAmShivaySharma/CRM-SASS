@@ -38,7 +38,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ url: authUrl })
   } catch (error) {
-    console.error('Google OAuth init error:', error)
     return NextResponse.json(
       { error: 'Failed to initialize Google authentication' },
       { status: 500 }

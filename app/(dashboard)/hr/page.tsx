@@ -187,7 +187,6 @@ export default function HRPage() {
 
   return (
     <div className="w-full space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
@@ -209,7 +208,6 @@ export default function HRPage() {
         </div>
       </div>
 
-      {/* Quick Stats Overview */}
       <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -292,7 +290,6 @@ export default function HRPage() {
         </Card>
       </div>
 
-      {/* Today's Quick Overview */}
       <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
           <AttendanceWidget compact={false} showDetails={true} />
@@ -354,7 +351,6 @@ export default function HRPage() {
         </div>
       </div>
 
-      {/* HR Modules */}
       <div className="w-full">
         <h2 className="mb-4 text-xl font-semibold">HR Modules</h2>
         <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
@@ -381,7 +377,6 @@ export default function HRPage() {
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Quick Stats */}
                   <div className="grid grid-cols-2 gap-4">
                     {module.stats.map((stat, index) => (
                       <div
@@ -398,7 +393,6 @@ export default function HRPage() {
                     ))}
                   </div>
 
-                  {/* Quick Actions */}
                   <div className="border-t pt-3">
                     <div className="mb-2 text-xs text-muted-foreground">
                       Quick Actions:

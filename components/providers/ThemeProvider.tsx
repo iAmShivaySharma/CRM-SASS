@@ -11,10 +11,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   )
   const dispatch = useAppDispatch()
 
-  // Load theme preferences from server using RTK Query
   const { data: preferences } = useGetUserPreferencesQuery()
 
-  // Load theme from server preferences when available
   useEffect(() => {
     if (preferences?.preferences?.theme) {
       dispatch(loadThemeFromPreferences(preferences.preferences))
@@ -24,7 +22,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = document.documentElement
 
-    // Apply theme mode
     if (mode === 'auto') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
       const applySystemTheme = () => {
@@ -40,7 +37,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [mode])
 
-  // Helper function to convert hex to HSL
   const hexToHsl = (hex: string): string => {
     if (!hex || !hex.startsWith('#')) return '0 0% 50%'
 
@@ -77,8 +73,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = document.documentElement
 
-    // Apply custom theme colors in HSL format for Tailwind CSS
-    // Use primaryColor from state if available, otherwise use customTheme.colors.primary
     const effectivePrimaryColor = primaryColor || customTheme.colors.primary
     if (effectivePrimaryColor) {
       const primaryHsl = hexToHsl(effectivePrimaryColor)
@@ -136,7 +130,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       )
     }
 
-    // Apply typography
     root.style.setProperty('--font-family', customTheme.typography.fontFamily)
 
     const fontSizeMap = {
@@ -149,7 +142,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       fontSizeMap[customTheme.typography.fontSize as keyof typeof fontSizeMap]
     )
 
-    // Apply spacing density
     const spacingMap = {
       compact: '0.75',
       comfortable: '1',
@@ -160,7 +152,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       spacingMap[customTheme.spacing.density as keyof typeof spacingMap]
     )
 
-    // Apply border radius
     const borderRadiusMap = {
       none: '0px',
       small: '4px',
@@ -172,13 +163,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       borderRadiusMap[customTheme.borderRadius as keyof typeof borderRadiusMap]
     )
 
-    // Apply animations
     root.style.setProperty(
       '--animation-duration',
       customTheme.animations ? '200ms' : '0ms'
     )
 
-    // Apply CSS classes for density
     root.classList.remove(
       'density-compact',
       'density-comfortable',
@@ -186,14 +175,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     )
     root.classList.add(`density-${customTheme.spacing.density}`)
 
-    // Apply CSS classes for animations
     root.classList.toggle('animations-disabled', !customTheme.animations)
   }, [customTheme, primaryColor])
 
   return <>{children}</>
 }
 
-// Theme utility functions
 export const getThemeValue = (property: string) => {
   return getComputedStyle(document.documentElement).getPropertyValue(
     `--${property}`
@@ -206,7 +193,6 @@ export const applyThemeToElement = (element: HTMLElement, theme: any) => {
   })
 }
 
-// Theme presets for quick switching
 export const themePresets = {
   blue: {
     primary: '#2563eb',
@@ -242,7 +228,6 @@ export const themePresets = {
   },
 }
 
-// CSS-in-JS theme object for styled components
 export const createThemeObject = (customTheme: any) => ({
   colors: customTheme.colors,
   typography: {
@@ -281,7 +266,6 @@ export const createThemeObject = (customTheme: any) => ({
   },
 })
 
-// Hook for accessing theme values in components
 export const useTheme = () => {
   const theme = useAppSelector(state => state.theme)
   return {

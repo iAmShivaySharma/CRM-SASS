@@ -153,7 +153,6 @@ export default function BlogCategoriesPage() {
         </Button>
       </div>
 
-      {/* Create Form */}
       {showForm && (
         <div className="space-y-4 rounded-lg border border-border bg-card p-6">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -259,7 +258,6 @@ export default function BlogCategoriesPage() {
         </div>
       )}
 
-      {/* Categories List */}
       <div className="overflow-hidden rounded-lg border border-border">
         <table className="w-full">
           <thead className="bg-muted/50">

@@ -117,7 +117,6 @@ export default function PublicDocumentPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto max-w-4xl px-4 py-8">
-        {/* Document Header */}
         <Card className="mb-6">
           <CardHeader>
             <div className="flex items-start space-x-4">
@@ -150,7 +149,6 @@ export default function PublicDocumentPage() {
           </CardHeader>
         </Card>
 
-        {/* Document Content */}
         <Card>
           <CardContent className="p-0">
             <TiptapReader
@@ -161,7 +159,6 @@ export default function PublicDocumentPage() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <div className="mt-8 text-center text-sm text-muted-foreground">
           This document is shared publicly for viewing only.
         </div>

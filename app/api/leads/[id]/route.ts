@@ -11,8 +11,8 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
+import { invalidateCache } from '@/lib/redis/cache'
 
-// Validation schema for updating leads
 const updateLeadSchema = z.object({
   name: z
     .string()
@@ -63,11 +63,10 @@ const updateLeadSchema = z.object({
     .regex(/^[a-f\d]{24}$/i, 'Invalid user ID format')
     .optional()
     .or(z.literal('')),
-  customFields: z.record(z.any()).optional(), // Allow custom fields as key-value pairs
-  customData: z.record(z.any()).optional(), // Support both customFields and customData
+  customFields: z.record(z.any()).optional(),
+  customData: z.record(z.any()).optional(),
 })
 
-// PUT /api/leads/[id] - Update a lead
 export const PUT = withSecurityLogging(
   withLogging(
     async (
@@ -75,18 +74,12 @@ export const PUT = withSecurityLogging(
       { params }: { params: Promise<{ id: string }> }
     ) => {
       const startTime = Date.now()
-      console.log('=== LEAD UPDATE API DEBUG START ===')
 
       try {
-        console.log('Connecting to MongoDB...')
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
 
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
-        console.log('Auth result:', auth ? 'Success' : 'Failed')
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
@@ -94,30 +87,20 @@ export const PUT = withSecurityLogging(
         }
 
         const { id: leadId } = await params
-        console.log('Lead ID:', leadId)
-        console.log('Reading request body...')
         const body = await request.json()
-        console.log('Request body:', body)
 
-        // Get workspaceId from query params
         const url = new URL(request.url)
         const workspaceId = url.searchParams.get('workspaceId')
-        console.log('Workspace ID:', workspaceId)
 
         if (!workspaceId) {
-          console.log('No workspace ID provided')
           return NextResponse.json(
             { message: 'Workspace ID is required' },
             { status: 400 }
           )
         }
 
-        // Validate request body
-        console.log('Validating request body...')
         const validationResult = updateLeadSchema.safeParse(body)
-        console.log('Validation result:', validationResult.success)
         if (!validationResult.success) {
-          console.log('Validation errors:', validationResult.error.errors)
           return NextResponse.json(
             {
               message: 'Validation failed',
@@ -129,30 +112,25 @@ export const PUT = withSecurityLogging(
 
         const updateData = validationResult.data
 
-        // Check if user has access to this workspace
-        console.log('Checking workspace membership...')
         const userMembership = await WorkspaceMember.findOne({
           workspaceId,
           userId: auth.user.id,
           status: 'active',
-        })
-        console.log('User membership found:', !!userMembership)
+        }).lean()
 
         if (!userMembership) {
-          console.log('Access denied - no workspace membership')
           return NextResponse.json(
             { message: 'Access denied' },
             { status: 403 }
           )
         }
 
-        // Additional security: Validate that statusId and tagIds belong to the same workspace
         if (updateData.statusId && updateData.statusId !== '') {
           const { LeadStatus } = await import('@/lib/mongodb/client')
           const statusExists = await LeadStatus.findOne({
             _id: updateData.statusId,
             workspaceId,
-          })
+          }).lean()
           if (!statusExists) {
             return NextResponse.json(
               { message: 'Invalid status ID' },
@@ -166,7 +144,7 @@ export const PUT = withSecurityLogging(
           const validTags = await Tag.find({
             _id: { $in: updateData.tagIds },
             workspaceId,
-          })
+          }).lean()
           if (validTags.length !== updateData.tagIds.length) {
             return NextResponse.json(
               { message: 'One or more invalid tag IDs' },
@@ -180,7 +158,7 @@ export const PUT = withSecurityLogging(
             workspaceId,
             userId: updateData.assignedTo,
             status: 'active',
-          })
+          }).lean()
           if (!assignedUserMembership) {
             return NextResponse.json(
               { message: 'Invalid assigned user ID' },
@@ -189,37 +167,21 @@ export const PUT = withSecurityLogging(
           }
         }
 
-        // Find and update the lead
-        console.log(
-          'Finding lead with ID:',
-          leadId,
-          'in workspace:',
-          workspaceId
-        )
         const lead = await Lead.findOne({ _id: leadId, workspaceId })
-        console.log('Lead found:', !!lead)
         if (!lead) {
-          console.log('Lead not found')
           return NextResponse.json(
             { message: 'Lead not found' },
             { status: 404 }
           )
         }
 
-        // Track changes for activity logging
         const changes: { field: string; oldValue: any; newValue: any }[] = []
         const originalLead = lead.toObject()
 
-        // Update the lead with provided data
-        console.log('Updating lead with data:', updateData)
-
-        // Handle custom fields mapping (frontend sends customFields, model uses customData)
         if (updateData.customFields) {
-          console.log('Updating custom fields:', updateData.customFields)
           const oldCustomData = { ...lead.customData }
           lead.customData = { ...lead.customData, ...updateData.customFields }
 
-          // Track custom field changes
           Object.keys(updateData.customFields).forEach(key => {
             if (oldCustomData[key] !== updateData.customFields![key]) {
               changes.push({
@@ -230,16 +192,13 @@ export const PUT = withSecurityLogging(
             }
           })
 
-          delete updateData.customFields // Remove from updateData to avoid overwriting
+          delete updateData.customFields
         }
 
-        // Handle direct customData updates
         if (updateData.customData) {
-          console.log('Updating custom data:', updateData.customData)
           const oldCustomData = { ...lead.customData }
           lead.customData = { ...lead.customData, ...updateData.customData }
 
-          // Track custom data changes
           Object.keys(updateData.customData).forEach(key => {
             if (oldCustomData[key] !== updateData.customData![key]) {
               changes.push({
@@ -250,10 +209,9 @@ export const PUT = withSecurityLogging(
             }
           })
 
-          delete updateData.customData // Remove from updateData to avoid overwriting
+          delete updateData.customData
         }
 
-        // Track regular field changes
         Object.keys(updateData).forEach(key => {
           const typedKey = key as keyof typeof updateData
           if (originalLead[typedKey] !== updateData[typedKey]) {
@@ -267,18 +225,14 @@ export const PUT = withSecurityLogging(
 
         Object.assign(lead, updateData)
         lead.updatedAt = new Date()
-        console.log('Saving lead...')
         await lead.save()
-        console.log('Lead saved successfully')
 
-        // Populate the updated lead
         const populatedLead = await Lead.findById(leadId)
           .populate('statusId', 'name color')
           .populate('tagIds', 'name color')
           .populate('assignedTo', 'fullName email')
           .lean()
 
-        // Log activity in the Activity collection for recent activity display
         try {
           await Activity.create({
             workspaceId,
@@ -293,17 +247,12 @@ export const PUT = withSecurityLogging(
               changes: changes,
             },
           })
-        } catch (activityError) {
-          console.error('Failed to log lead update activity:', activityError)
-          // Don't fail the update if activity logging fails
-        }
+        } catch (activityError) {}
 
-        // Log detailed lead activity
         if (changes.length > 0) {
           try {
             const { LeadActivity } = await import('@/lib/mongodb/client')
 
-            // Determine activity type based on changes
             let activityType: 'updated' | 'status_changed' | 'assigned' =
               'updated'
             let description = `Updated lead "${lead.name}"`
@@ -328,13 +277,9 @@ export const PUT = withSecurityLogging(
                 totalChanges: changes.length,
               },
             })
-          } catch (leadActivityError) {
-            console.error('Failed to log lead activity:', leadActivityError)
-            // Don't fail the request if lead activity logging fails
-          }
+          } catch (leadActivityError) {}
         }
 
-        // Log the activity
         logUserActivity(auth.user.id, 'lead_updated', 'lead', {
           leadId,
           leadName: lead.name,
@@ -349,14 +294,12 @@ export const PUT = withSecurityLogging(
           updatedFields: Object.keys(updateData),
         })
 
-        // Create notification for lead update (only for significant changes)
         if (changes.length > 0) {
           try {
             let notificationTitle = 'Lead Updated'
             let notificationMessage = `${auth.user.fullName || auth.user.email} updated lead: ${lead.name}`
             let notificationType: 'info' | 'success' | 'warning' = 'info'
 
-            // Customize notification based on type of change
             const statusChange = changes.find(c => c.field === 'statusId')
             const assignmentChange = changes.find(c => c.field === 'assignedTo')
 
@@ -379,7 +322,7 @@ export const PUT = withSecurityLogging(
               entityId: leadId,
               createdBy: auth.user.id,
               notificationLevel: 'team',
-              excludeUserIds: [auth.user.id], // Don't notify the updater
+              excludeUserIds: [auth.user.id],
               metadata: {
                 leadName: lead.name,
                 updatedFields: Object.keys(updateData),
@@ -387,13 +330,7 @@ export const PUT = withSecurityLogging(
                 changeCount: changes.length,
               },
             })
-          } catch (notificationError) {
-            console.error(
-              'Failed to create lead update notification:',
-              notificationError
-            )
-            // Don't fail the update if notification fails
-          }
+          } catch (notificationError) {}
         }
 
         log.info(`Lead updated successfully`, {
@@ -404,18 +341,14 @@ export const PUT = withSecurityLogging(
           duration: Date.now() - startTime,
         })
 
+        await invalidateCache('leads:' + workspaceId + ':*')
+
         return NextResponse.json({
           success: true,
           message: 'Lead updated successfully',
           lead: populatedLead,
         })
       } catch (error) {
-        console.error('=== LEAD UPDATE API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Update lead error:', error)
         return NextResponse.json(
           {
@@ -439,7 +372,6 @@ export const PUT = withSecurityLogging(
   )
 )
 
-// DELETE /api/leads/[id] - Delete a lead
 export const DELETE = withSecurityLogging(
   withLogging(
     async (
@@ -468,12 +400,11 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Verify user has access to this workspace
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
           workspaceId,
           status: 'active',
-        })
+        }).lean()
 
         if (!member) {
           return NextResponse.json(
@@ -482,11 +413,10 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Check if lead exists
         const lead = await Lead.findOne({
           _id: leadId,
           workspaceId,
-        })
+        }).lean()
 
         if (!lead) {
           return NextResponse.json(
@@ -495,7 +425,6 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Delete the lead
         await Lead.findByIdAndDelete(leadId)
 
         logUserActivity(auth.user.id, 'lead.delete', 'lead', {
@@ -508,6 +437,8 @@ export const DELETE = withSecurityLogging(
           leadId,
           leadName: lead.name,
         })
+
+        await invalidateCache('leads:' + workspaceId + ':*')
 
         return NextResponse.json({
           success: true,

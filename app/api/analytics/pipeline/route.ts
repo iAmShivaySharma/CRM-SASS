@@ -1,7 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { startOfDay, endOfDay, subDays, isWithinInterval } from 'date-fns'
+import { subDays } from 'date-fns'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { MongoDBClient } from '@/lib/mongodb/client'
+import { Lead } from '@/lib/mongodb/client'
+import { connectToMongoDB } from '@/lib/mongodb/connection'
+import { log } from '@/lib/logging/logger'
+import { cached } from '@/lib/redis/cache'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { user } = authResult
+    await connectToMongoDB()
 
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
@@ -24,61 +27,60 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const client = new MongoDBClient()
-
-    // Default date range (last 30 days)
     const endDate = to ? new Date(to) : new Date()
     const startDate = from ? new Date(from) : subDays(endDate, 30)
 
-    // Get leads
-    const leads = await client.getLeads(workspaceId)
+    const cacheKey = `analytics:${workspaceId}:pipeline:${from || ''}:${to || ''}`
 
-    // Filter leads by date range
-    const filteredLeads = leads.filter(lead => {
-      const createdAt = new Date(lead.createdAt)
-      return isWithinInterval(createdAt, { start: startDate, end: endDate })
-    })
-
-    // Group leads by status
-    const statusGroups = new Map<string, { leads: any[]; totalValue: number }>()
-
-    // Group filtered leads
-    filteredLeads.forEach(lead => {
-      const statusName = typeof lead.status === 'string' ? lead.status : 'new' // default status
-
-      if (!statusGroups.has(statusName)) {
-        statusGroups.set(statusName, { leads: [], totalValue: 0 })
-      }
-
-      const group = statusGroups.get(statusName)!
-      group.leads.push(lead)
-      group.totalValue += lead.value || 0
-    })
-
-    const totalLeads = filteredLeads.length
-    const totalValue = filteredLeads.reduce(
-      (sum, lead) => sum + (lead.value || 0),
-      0
+    const [results] = await cached(cacheKey, 300, () =>
+      Lead.aggregate([
+        {
+          $match: {
+            workspaceId,
+            createdAt: { $gte: startDate, $lte: endDate },
+          },
+        },
+        {
+          $facet: {
+            byStatus: [
+              {
+                $group: {
+                  _id: { $ifNull: ['$status', 'new'] },
+                  count: { $sum: 1 },
+                  totalValue: { $sum: { $ifNull: ['$value', 0] } },
+                },
+              },
+              { $sort: { count: -1 } },
+            ],
+            totals: [
+              {
+                $group: {
+                  _id: null,
+                  totalLeads: { $sum: 1 },
+                  totalValue: { $sum: { $ifNull: ['$value', 0] } },
+                },
+              },
+            ],
+          },
+        },
+      ])
     )
 
-    // Convert to pipeline analytics format
-    const pipelineData = Array.from(statusGroups.entries())
-      .filter(([_, group]) => group.leads.length > 0) // Only include statuses with leads
-      .map(([statusName, group]) => ({
-        statusName,
-        count: group.leads.length,
-        percentage:
-          totalLeads > 0 ? (group.leads.length / totalLeads) * 100 : 0,
-        value: group.totalValue,
-      }))
-      .sort((a, b) => b.count - a.count) // Sort by count descending
+    const totalLeads = results.totals[0]?.totalLeads || 0
+
+    const pipelineData = results.byStatus.map((group: any) => ({
+      statusName: group._id,
+      count: group.count,
+      percentage: totalLeads > 0 ? (group.count / totalLeads) * 100 : 0,
+      value: group.totalValue,
+    }))
 
     return NextResponse.json({
       success: true,
       data: pipelineData,
     })
   } catch (error) {
-    console.error('Pipeline analytics error:', error)
+    log.error('Pipeline analytics error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

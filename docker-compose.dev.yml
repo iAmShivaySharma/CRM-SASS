@@ -15,6 +15,23 @@ services:
     networks:
       - crm-dev-network
 
+  redis-dev:
+    image: redis:7-alpine
+    container_name: crm-redis-dev
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - crm-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   app-dev:
     build:
       context: .
@@ -29,6 +46,7 @@ services:
       - NODE_ENV=development
     depends_on:
       - mongodb-dev
+      - redis-dev
     networks:
       - crm-dev-network
     volumes:
@@ -38,6 +56,8 @@ services:
 
 volumes:
   mongodb_dev_data:
+    driver: local
+  redis_dev_data:
     driver: local
 
 networks:

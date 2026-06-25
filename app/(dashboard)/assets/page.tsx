@@ -92,7 +92,6 @@ export default function AssetsPage() {
 
   return (
     <div className="flex flex-col space-y-6 p-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -114,7 +113,6 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -196,7 +194,6 @@ export default function AssetsPage() {
         </Card>
       </div>
 
-      {/* Asset Status Overview */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -290,7 +287,6 @@ export default function AssetsPage() {
         </Card>
       </div>
 
-      {/* Alerts and Info */}
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
@@ -366,7 +362,6 @@ export default function AssetsPage() {
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}

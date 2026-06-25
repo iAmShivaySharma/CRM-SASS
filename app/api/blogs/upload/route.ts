@@ -88,7 +88,6 @@ export async function POST(request: NextRequest) {
       type: file.type,
     })
   } catch (error) {
-    console.error('Blog image upload error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

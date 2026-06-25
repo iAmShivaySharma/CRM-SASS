@@ -176,13 +176,7 @@ export const POST = withSecurityLogging(
               invitation.invitedBy.fullName || invitation.invitedBy.email,
           },
         })
-      } catch (notificationError) {
-        console.error(
-          'Failed to create user registration notification:',
-          notificationError
-        )
-        // Don't fail the registration if notification fails
-      }
+      } catch (notificationError) {}
 
       log.info(
         `New user registered and invitation accepted for workspace ${invitation.workspaceId._id}`,

@@ -59,7 +59,6 @@ export function TimeTrackingCard() {
   const [attendanceAction, { isLoading: isActionLoading }] =
     useAttendanceActionMutation()
 
-  // Update current time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
@@ -68,7 +67,6 @@ export function TimeTrackingCard() {
     return () => clearInterval(timer)
   }, [])
 
-  // Calculate live work time
   const calculateLiveWorkTime = (attendance: any) => {
     if (!attendance || !attendance.clockIn) return 0
 
@@ -76,7 +74,6 @@ export function TimeTrackingCard() {
       return attendance.totalWorkTime || 0
     }
 
-    // Calculate current work time for active status
     const now = new Date()
     const workTime = Math.floor(
       (now.getTime() - new Date(attendance.clockIn).getTime()) / (1000 * 60)
@@ -84,7 +81,6 @@ export function TimeTrackingCard() {
     return Math.max(0, workTime - (attendance.totalBreakTime || 0))
   }
 
-  // Get user location
   const getCurrentLocation = (): Promise<{
     latitude: number
     longitude: number
@@ -109,7 +105,7 @@ export function TimeTrackingCard() {
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 300000, // 5 minutes
+          maximumAge: 300000,
         }
       )
     })
@@ -121,12 +117,10 @@ export function TimeTrackingCard() {
     try {
       let locationData = null
 
-      // Get location for clock in/out actions
       if (action === 'clock_in' || action === 'clock_out') {
         try {
           locationData = await getCurrentLocation()
         } catch (error) {
-          // Location is optional - continue without it
           console.warn('Could not get location:', error)
         }
       }

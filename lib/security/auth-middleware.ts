@@ -12,24 +12,19 @@ export interface AuthenticatedRequest extends NextRequest {
   }
 }
 
-// Permission checking helper
 export function hasPermission(
   userPermissions: string[],
   requiredPermission: string
 ): boolean {
-  // Check for wildcard permissions
   if (userPermissions.includes('*:*')) return true
 
   const [resource, action] = requiredPermission.split(':')
 
-  // Check for resource wildcard
   if (userPermissions.includes(`${resource}:*`)) return true
 
-  // Check for exact permission
   return userPermissions.includes(requiredPermission)
 }
 
-// Extract token from request
 function extractToken(request: NextRequest): string | null {
   const authHeader = request.headers.get('authorization')
 
@@ -37,7 +32,6 @@ function extractToken(request: NextRequest): string | null {
     return authHeader.substring(7)
   }
 
-  // Also check for token in cookies (for browser requests)
   const cookieToken = request.cookies.get('auth_token')?.value
   if (cookieToken) {
     return cookieToken
@@ -46,7 +40,6 @@ function extractToken(request: NextRequest): string | null {
   return null
 }
 
-// Get client information for logging
 function getClientInfo(request: NextRequest) {
   return {
     ip:
@@ -59,7 +52,6 @@ function getClientInfo(request: NextRequest) {
   }
 }
 
-// Main authentication middleware
 export async function requireAuth(
   request: NextRequest,
   requiredPermission?: string
@@ -88,7 +80,6 @@ export async function requireAuth(
       }
     }
 
-    // Verify JWT token
     const decoded = verifyToken(token)
     if (!decoded || !decoded.userId) {
       logSecurityEvent(
@@ -109,7 +100,6 @@ export async function requireAuth(
       }
     }
 
-    // Get user from database
     const user = await User.findById(decoded.userId).select('-password')
     if (!user) {
       logSecurityEvent(
@@ -131,7 +121,6 @@ export async function requireAuth(
       }
     }
 
-    // Check if user account is active
     if (user.status === 'suspended' || user.status === 'deleted') {
       logSecurityEvent(
         'auth_suspended_user',
@@ -153,10 +142,8 @@ export async function requireAuth(
       }
     }
 
-    // Get user permissions (simplified - in real app, get from workspace membership)
-    const userPermissions = ['*:*'] // Admin permissions for now
+    const userPermissions = ['*:*']
 
-    // Check required permission
     if (
       requiredPermission &&
       !hasPermission(userPermissions, requiredPermission)
@@ -183,7 +170,6 @@ export async function requireAuth(
       }
     }
 
-    // Update last activity
     await User.findByIdAndUpdate(user._id, {
       lastSignInAt: new Date(),
       lastActivityAt: new Date(),
@@ -219,7 +205,6 @@ export async function requireAuth(
   }
 }
 
-// Workspace-specific authentication
 export async function requireWorkspaceAuth(
   request: NextRequest,
   workspaceId: string,
@@ -234,9 +219,6 @@ export async function requireWorkspaceAuth(
     return authResult
   }
 
-  // TODO: Check workspace membership and permissions
-  // For now, assume user has access to all workspaces
-
   return {
     success: true,
     user: authResult.user,
@@ -244,7 +226,6 @@ export async function requireWorkspaceAuth(
   }
 }
 
-// API route wrapper for authentication
 export function withAuth(
   handler: (
     request: NextRequest,
@@ -263,7 +244,6 @@ export function withAuth(
   }
 }
 
-// API route wrapper for workspace authentication
 export function withWorkspaceAuth(
   handler: (
     request: NextRequest,
@@ -301,25 +281,21 @@ export function withWorkspaceAuth(
   }
 }
 
-// Session management helpers
 export function createSecureSession(userId: string, workspaceId?: string) {
   const sessionData = {
     userId,
     workspaceId,
     createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   }
 
-  // In production, store in Redis or database
   return sessionData
 }
 
 export function invalidateSession(sessionId: string) {
-  // In production, remove from Redis or database
   logSecurityEvent('session_invalidated', { sessionId }, 'low')
 }
 
-// Brute force protection
 const loginAttempts = new Map<
   string,
   { count: number; lastAttempt: number; blockedUntil?: number }
@@ -336,7 +312,6 @@ export function checkBruteForce(identifier: string): {
     return { allowed: true }
   }
 
-  // Check if still blocked
   if (attempts.blockedUntil && now < attempts.blockedUntil) {
     return {
       allowed: false,
@@ -344,7 +319,6 @@ export function checkBruteForce(identifier: string): {
     }
   }
 
-  // Reset if last attempt was more than 15 minutes ago
   if (now - attempts.lastAttempt > 15 * 60 * 1000) {
     loginAttempts.delete(identifier)
     return { allowed: true }
@@ -360,9 +334,8 @@ export function recordFailedLogin(identifier: string) {
   attempts.count++
   attempts.lastAttempt = now
 
-  // Block for 1 hour after 5 failed attempts
   if (attempts.count >= 5) {
-    attempts.blockedUntil = now + 60 * 60 * 1000 // 1 hour
+    attempts.blockedUntil = now + 60 * 60 * 1000
     logSecurityEvent(
       'brute_force_detected',
       { identifier, attempts: attempts.count },

@@ -1,6 +1,4 @@
 import * as yup from 'yup'
-
-// Lead form validation schema
 export const leadFormSchema = yup.object({
   name: yup
     .string()
@@ -78,8 +76,6 @@ export const leadFormSchema = yup.object({
 
   customFields: yup.object().default({}),
 })
-
-// Lead update validation schema (all fields optional except name)
 export const leadUpdateSchema = yup.object({
   name: yup
     .string()
@@ -151,8 +147,6 @@ export const leadUpdateSchema = yup.object({
 
   customFields: yup.object(),
 })
-
-// Custom field validation schema
 export const customFieldSchema = yup.object({
   key: yup
     .string()
@@ -171,13 +165,9 @@ export const customFieldSchema = yup.object({
     .max(500, 'Field value must be less than 500 characters')
     .trim(),
 })
-
-// Type definitions for form data
 export type LeadFormData = yup.InferType<typeof leadFormSchema>
 export type LeadUpdateData = yup.InferType<typeof leadUpdateSchema>
 export type CustomFieldData = yup.InferType<typeof customFieldSchema>
-
-// Helper function to validate custom fields
 export const validateCustomFields = (
   customFields: Record<string, any>
 ): string[] => {
@@ -195,8 +185,6 @@ export const validateCustomFields = (
 
   return errors
 }
-
-// Helper function to clean form data
 export const cleanLeadFormData = (data: any): LeadFormData => {
   return leadFormSchema.cast(data) as LeadFormData
 }

@@ -1,7 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { startOfDay, endOfDay, subDays, isWithinInterval } from 'date-fns'
+import { subDays } from 'date-fns'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { MongoDBClient } from '@/lib/mongodb/client'
+import { connectToMongoDB } from '@/lib/mongodb/connection'
+import { Lead } from '@/lib/mongodb/client'
+import { log } from '@/lib/logging/logger'
+import { cached } from '@/lib/redis/cache'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { user } = authResult
+    await connectToMongoDB()
 
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
@@ -26,13 +29,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const client = new MongoDBClient()
-
-    // Default date range (last 30 days)
     const endDate = to ? new Date(to) : new Date()
     const startDate = from ? new Date(from) : subDays(endDate, 30)
 
-    // Comparison period (previous 30 days)
     const compareEndDate = compareTo
       ? new Date(compareTo)
       : subDays(startDate, 1)
@@ -40,56 +39,115 @@ export async function GET(request: NextRequest) {
       ? new Date(compareFrom)
       : subDays(compareEndDate, 30)
 
-    // Get all leads for the workspace
-    const leads = await client.getLeads(workspaceId)
+    const convertedStatuses = ['converted', 'closed', 'won']
+    const closedStatuses = ['converted', 'closed', 'won', 'lost', 'cancelled']
 
-    // Filter leads by date range
-    const currentPeriodLeads = leads.filter(lead => {
-      const createdAt = new Date(lead.createdAt)
-      return isWithinInterval(createdAt, { start: startDate, end: endDate })
-    })
+    const cacheKey = `analytics:${workspaceId}:dashboard:${from || ''}:${to || ''}`
 
-    const previousPeriodLeads = leads.filter(lead => {
-      const createdAt = new Date(lead.createdAt)
-      return isWithinInterval(createdAt, {
-        start: compareStartDate,
-        end: compareEndDate,
-      })
-    })
-
-    // Calculate metrics for current period
-    const totalLeads = currentPeriodLeads.length
-    const convertedLeads = currentPeriodLeads.filter(
-      lead =>
-        lead.status === 'converted' ||
-        lead.status === 'closed' ||
-        lead.status === 'won'
-    ).length
-    const conversionRate =
-      totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0
-    const totalRevenue = currentPeriodLeads.reduce(
-      (sum, lead) => sum + (lead.value || 0),
-      0
+    const [stats] = await cached(cacheKey, 300, () =>
+      Lead.aggregate([
+        { $match: { workspaceId } },
+        {
+          $facet: {
+            currentPeriod: [
+              {
+                $match: {
+                  createdAt: { $gte: startDate, $lte: endDate },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  totalLeads: { $sum: 1 },
+                  convertedLeads: {
+                    $sum: {
+                      $cond: [{ $in: ['$status', convertedStatuses] }, 1, 0],
+                    },
+                  },
+                  totalRevenue: { $sum: { $ifNull: ['$value', 0] } },
+                  activeDeals: {
+                    $sum: {
+                      $cond: [
+                        { $not: { $in: ['$status', closedStatuses] } },
+                        1,
+                        0,
+                      ],
+                    },
+                  },
+                },
+              },
+            ],
+            previousPeriod: [
+              {
+                $match: {
+                  createdAt: { $gte: compareStartDate, $lte: compareEndDate },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  totalLeads: { $sum: 1 },
+                  convertedLeads: {
+                    $sum: {
+                      $cond: [{ $in: ['$status', convertedStatuses] }, 1, 0],
+                    },
+                  },
+                  totalRevenue: { $sum: { $ifNull: ['$value', 0] } },
+                },
+              },
+            ],
+            monthlyRevenue: [
+              {
+                $match: {
+                  createdAt: {
+                    $gte: subDays(new Date(), 30),
+                    $lte: new Date(),
+                  },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  total: { $sum: { $ifNull: ['$value', 0] } },
+                },
+              },
+            ],
+            newLeads: [
+              {
+                $match: {
+                  createdAt: { $gte: subDays(new Date(), 7), $lte: new Date() },
+                },
+              },
+              { $count: 'count' },
+            ],
+          },
+        },
+      ])
     )
 
-    // Calculate metrics for previous period
-    const totalLeadsPrevious = previousPeriodLeads.length
-    const convertedLeadsPrevious = previousPeriodLeads.filter(
-      lead =>
-        lead.status === 'converted' ||
-        lead.status === 'closed' ||
-        lead.status === 'won'
-    ).length
+    const current = stats.currentPeriod[0] || {
+      totalLeads: 0,
+      convertedLeads: 0,
+      totalRevenue: 0,
+      activeDeals: 0,
+    }
+    const previous = stats.previousPeriod[0] || {
+      totalLeads: 0,
+      convertedLeads: 0,
+      totalRevenue: 0,
+    }
+
+    const totalLeads = current.totalLeads
+    const totalLeadsPrevious = previous.totalLeads
+    const conversionRate =
+      totalLeads > 0 ? (current.convertedLeads / totalLeads) * 100 : 0
     const conversionRatePrevious =
       totalLeadsPrevious > 0
-        ? (convertedLeadsPrevious / totalLeadsPrevious) * 100
+        ? (previous.convertedLeads / totalLeadsPrevious) * 100
         : 0
-    const totalRevenuePrevious = previousPeriodLeads.reduce(
-      (sum, lead) => sum + (lead.value || 0),
-      0
-    )
+    const totalRevenue = current.totalRevenue
+    const totalRevenuePrevious = previous.totalRevenue
 
-    // Calculate growth metrics
     const leadsGrowth =
       totalLeadsPrevious > 0
         ? ((totalLeads - totalLeadsPrevious) / totalLeadsPrevious) * 100
@@ -100,38 +158,12 @@ export async function GET(request: NextRequest) {
         : 0
     const growth = (leadsGrowth + revenueGrowth) / 2
 
-    // Quick stats (current period specific calculations)
-    const activeDeals = currentPeriodLeads.filter(
-      lead =>
-        !['converted', 'closed', 'won', 'lost', 'cancelled'].includes(
-          lead.status
-        )
-    ).length
+    const monthlyRevenue = stats.monthlyRevenue[0]?.total || 0
+    const newLeads = stats.newLeads[0]?.count || 0
 
-    // Monthly revenue (last 30 days)
-    const monthlyRevenue = currentPeriodLeads
-      .filter(lead => {
-        const createdAt = new Date(lead.createdAt)
-        return isWithinInterval(createdAt, {
-          start: subDays(new Date(), 30),
-          end: new Date(),
-        })
-      })
-      .reduce((sum, lead) => sum + (lead.value || 0), 0)
-
-    // New leads (last 7 days)
-    const newLeads = leads.filter(lead => {
-      const createdAt = new Date(lead.createdAt)
-      return isWithinInterval(createdAt, {
-        start: subDays(new Date(), 7),
-        end: new Date(),
-      })
-    }).length
-
-    // Performance metrics (mock values - can be calculated based on actual data)
-    const salesTargetProgress = Math.min((totalRevenue / 100000) * 100, 100) // Assuming $100k target
-    const leadQualityScore = Math.min(conversionRate * 3.5, 100) // Based on conversion rate
-    const customerSatisfaction = 85 + Math.random() * 15 // Mock value between 85-100
+    const salesTargetProgress = Math.min((totalRevenue / 100000) * 100, 100)
+    const leadQualityScore = Math.min(conversionRate * 3.5, 100)
+    const customerSatisfaction = 85 + Math.random() * 15
 
     const data = {
       totalLeads,
@@ -141,14 +173,10 @@ export async function GET(request: NextRequest) {
       totalRevenue,
       totalRevenuePrevious,
       growth,
-      growthPrevious: 0, // Could calculate from even earlier period
-
-      // Quick stats
-      activeDeals,
+      growthPrevious: 0,
+      activeDeals: current.activeDeals,
       monthlyRevenue,
       newLeads,
-
-      // Performance metrics
       salesTargetProgress,
       leadQualityScore,
       customerSatisfaction,
@@ -159,7 +187,7 @@ export async function GET(request: NextRequest) {
       data,
     })
   } catch (error) {
-    console.error('Dashboard analytics error:', error)
+    log.error('Dashboard analytics error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

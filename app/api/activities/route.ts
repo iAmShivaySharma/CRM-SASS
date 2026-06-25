@@ -5,7 +5,6 @@ import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { withLogging, withSecurityLogging } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 
-// GET /api/activities - Get workspace activities
 export const GET = withSecurityLogging(
   withLogging(async (request: NextRequest) => {
     const startTime = Date.now()
@@ -25,10 +24,7 @@ export const GET = withSecurityLogging(
       const workspaceId = url.searchParams.get('workspaceId')
       const limit = parseInt(url.searchParams.get('limit') || '50')
 
-      console.log('Activities API - workspaceId:', workspaceId, 'limit:', limit)
-
       if (!workspaceId) {
-        console.log('Activities API - No workspaceId provided')
         return NextResponse.json(
           {
             message: 'Workspace ID is required',
@@ -39,11 +35,6 @@ export const GET = withSecurityLogging(
         )
       }
 
-      // Check if user has access to this workspace
-      console.log(
-        'Activities API - Checking workspace membership for user:',
-        auth.user.id
-      )
       const userMembership = await WorkspaceMember.findOne({
         workspaceId,
         userId: auth.user.id,
@@ -51,7 +42,6 @@ export const GET = withSecurityLogging(
       })
 
       if (!userMembership) {
-        console.log('Activities API - User does not have access to workspace')
         return NextResponse.json(
           {
             message: 'Access denied',
@@ -62,22 +52,18 @@ export const GET = withSecurityLogging(
         )
       }
 
-      console.log('Activities API - User has access to workspace')
-
-      // Try to get real activities from the database
-      console.log('Activities API - Fetching activities from database')
       try {
         const activities = await Activity.find({
           workspaceId: workspaceId,
         })
+          .select(
+            'activityType entityType entityId description performedBy metadata createdAt workspaceId'
+          )
           .populate('performedBy', 'fullName email')
           .sort({ createdAt: -1 })
           .limit(limit)
           .lean()
 
-        console.log('Activities API - Found', activities.length, 'activities')
-
-        // Transform activities for frontend
         const transformedActivities = activities.map(activity => ({
           id:
             typeof activity._id === 'string'
@@ -102,19 +88,12 @@ export const GET = withSecurityLogging(
           total: transformedActivities.length,
         })
       } catch (activityError) {
-        console.error(
-          'Activities API - Error fetching activities:',
-          activityError
-        )
-
-        // Fallback to empty activities if there's an error
         return NextResponse.json({
           activities: [],
           total: 0,
         })
       }
     } catch (error) {
-      console.error('Activities API - General error:', error)
       const duration = Date.now() - startTime
       log.error(`Get activities failed after ${duration}ms`, {
         error: error instanceof Error ? error.message : 'Unknown error',

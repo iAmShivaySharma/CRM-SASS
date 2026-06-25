@@ -22,9 +22,6 @@ export interface CreateNotificationInput {
 }
 
 export class NotificationService {
-  /**
-   * Create notifications based on user roles and permissions
-   */
   static async createNotification(
     input: CreateNotificationInput
   ): Promise<INotification[]> {
@@ -60,7 +57,6 @@ export class NotificationService {
         )
       }
 
-      // Remove excluded users and the creator (to avoid self-notification)
       const finalRecipients = recipientUserIds.filter(
         userId => !excludeUserIds.includes(userId) && userId !== createdBy
       )
@@ -69,15 +65,12 @@ export class NotificationService {
         return []
       }
 
-      // Generate action URL if entity info is provided
       const actionUrl = this.generateActionUrl(entityType, entityId)
 
-      // Create notifications for all recipients
       const notifications: INotification[] = []
 
       for (const userId of finalRecipients) {
         try {
-          // Check for duplicates before creating
           if (activityId) {
             const existingActivity = await Notification.findOne({
               workspaceId,
@@ -87,7 +80,6 @@ export class NotificationService {
             if (existingActivity) continue
           }
 
-          // Check for recent duplicates for entity-based notifications
           if (entityType && entityId) {
             const recentDuplicate = await Notification.findOne({
               workspaceId,
@@ -95,7 +87,7 @@ export class NotificationService {
               entityType,
               entityId,
               type,
-              createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) }, // Within last hour
+              createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) },
             })
             if (recentDuplicate) continue
           }
@@ -118,25 +110,15 @@ export class NotificationService {
 
           const savedNotification = await notification.save()
           notifications.push(savedNotification)
-        } catch (error) {
-          // Log error but continue with other notifications
-          console.error(
-            `Failed to create notification for user ${userId}:`,
-            error
-          )
-        }
+        } catch (error) {}
       }
 
       return notifications
     } catch (error) {
-      console.error('Error creating notifications:', error)
       throw error
     }
   }
 
-  /**
-   * Get recipients based on notification level and user roles
-   */
   private static async getRecipientsByLevel(
     workspaceId: string,
     notificationLevel: string,
@@ -144,7 +126,6 @@ export class NotificationService {
     createdBy?: string
   ): Promise<string[]> {
     try {
-      // Get all workspace members with their roles
       const members = await WorkspaceMember.aggregate([
         { $match: { workspaceId, status: 'active' } },
         {
@@ -163,7 +144,6 @@ export class NotificationService {
       for (const member of members) {
         const userPermissions = member.role.permissions || []
 
-        // Check if user has required permissions
         if (requiredPermissions.length > 0) {
           const hasPermissions = this.checkPermissions(
             userPermissions,
@@ -172,17 +152,14 @@ export class NotificationService {
           if (!hasPermissions) continue
         }
 
-        // Apply notification level filtering
         switch (notificationLevel) {
           case 'workspace':
-            // Workspace-level: Only owners and admins
             if (this.isOwnerOrAdmin(userPermissions)) {
               eligibleUserIds.push(member.userId)
             }
             break
 
           case 'team':
-            // Team-level: Managers and above
             if (this.isManagerOrAbove(userPermissions)) {
               eligibleUserIds.push(member.userId)
             }
@@ -190,7 +167,6 @@ export class NotificationService {
 
           case 'personal':
           default:
-            // Personal-level: All users with required permissions
             eligibleUserIds.push(member.userId)
             break
         }
@@ -198,39 +174,28 @@ export class NotificationService {
 
       return eligibleUserIds
     } catch (error) {
-      console.error('Error getting recipients by level:', error)
       return []
     }
   }
 
-  /**
-   * Check if user has required permissions
-   */
   private static checkPermissions(
     userPermissions: string[],
     requiredPermissions: string[]
   ): boolean {
-    // Owners have full access
     if (userPermissions.includes('*:*')) {
       return true
     }
 
-    // Check each required permission
     return requiredPermissions.every(required => {
       return userPermissions.some(userPerm => {
-        // Exact match
         if (userPerm === required) return true
 
-        // Wildcard permission (e.g., 'leads:*' matches 'leads:read')
         const [entity, action] = required.split(':')
         return userPerm === `${entity}:*` || userPerm === '*:*'
       })
     })
   }
 
-  /**
-   * Check if user is owner or admin
-   */
   private static isOwnerOrAdmin(permissions: string[]): boolean {
     return (
       permissions.includes('*:*') ||
@@ -239,9 +204,6 @@ export class NotificationService {
     )
   }
 
-  /**
-   * Check if user is manager or above
-   */
   private static isManagerOrAbove(permissions: string[]): boolean {
     return (
       this.isOwnerOrAdmin(permissions) ||
@@ -250,9 +212,6 @@ export class NotificationService {
     )
   }
 
-  /**
-   * Generate action URL based on entity type
-   */
   private static generateActionUrl(
     entityType?: string,
     entityId?: string
@@ -281,9 +240,6 @@ export class NotificationService {
     }
   }
 
-  /**
-   * Mark notification as read
-   */
   static async markAsRead(
     notificationId: string,
     userId: string
@@ -296,14 +252,10 @@ export class NotificationService {
       )
       return !!result
     } catch (error) {
-      console.error('Error marking notification as read:', error)
       return false
     }
   }
 
-  /**
-   * Mark all notifications as read for a user
-   */
   static async markAllAsRead(
     workspaceId: string,
     userId: string
@@ -315,14 +267,10 @@ export class NotificationService {
       )
       return result.modifiedCount
     } catch (error) {
-      console.error('Error marking all notifications as read:', error)
       return 0
     }
   }
 
-  /**
-   * Get notifications for a user with filtering
-   */
   static async getUserNotifications(
     workspaceId: string,
     userId: string,
@@ -361,14 +309,10 @@ export class NotificationService {
         unreadCount,
       }
     } catch (error) {
-      console.error('Error getting user notifications:', error)
       return { notifications: [], total: 0, unreadCount: 0 }
     }
   }
 
-  /**
-   * Create notification for workflow input required
-   */
   static async notifyInputRequired(
     userInput: any,
     execution: any,
@@ -391,21 +335,12 @@ export class NotificationService {
           timeoutAt: userInput.timeoutAt,
           webhookUrl: userInput.webhookUrl,
           priority: userInput.metadata.priority,
-          timeRemaining: Math.floor(userInput.timeRemaining / (1000 * 60)), // minutes
+          timeRemaining: Math.floor(userInput.timeRemaining / (1000 * 60)),
         },
       })
-
-      console.log(
-        `Input required notification created for execution ${execution._id}`
-      )
-    } catch (error) {
-      console.error('Error creating input required notification:', error)
-    }
+    } catch (error) {}
   }
 
-  /**
-   * Create notification for workflow timeout warning
-   */
   static async notifyTimeoutWarning(
     userInput: any,
     execution: any,
@@ -430,18 +365,9 @@ export class NotificationService {
           urgent: true,
         },
       })
-
-      console.log(
-        `Timeout warning notification created for execution ${execution._id}`
-      )
-    } catch (error) {
-      console.error('Error creating timeout warning notification:', error)
-    }
+    } catch (error) {}
   }
 
-  /**
-   * Create notification for workflow execution completed
-   */
   static async notifyExecutionCompleted(
     execution: any,
     workflow: any,
@@ -466,18 +392,9 @@ export class NotificationService {
             Object.keys(execution.outputData).length > 0,
         },
       })
-
-      console.log(
-        `Completion notification created for execution ${execution._id}`
-      )
-    } catch (error) {
-      console.error('Error creating completion notification:', error)
-    }
+    } catch (error) {}
   }
 
-  /**
-   * Create notification for workflow execution failed
-   */
   static async notifyExecutionFailed(
     execution: any,
     workflow: any,
@@ -499,29 +416,20 @@ export class NotificationService {
           failedAt: execution.completedAt,
         },
       })
-
-      console.log(`Failure notification created for execution ${execution._id}`)
-    } catch (error) {
-      console.error('Error creating failure notification:', error)
-    }
+    } catch (error) {}
   }
 
-  /**
-   * Process pending workflow notifications
-   */
   static async processWorkflowNotifications(): Promise<void> {
     try {
-      // Import models dynamically to avoid circular dependencies
       const { UserInput, WorkflowExecution } = await import(
         '@/lib/mongodb/models'
       )
 
-      // Find high priority pending inputs that need timeout warnings (expiring in 15 minutes)
       const urgentInputs = await UserInput.find({
         status: 'pending',
         timeoutAt: {
           $gt: new Date(),
-          $lt: new Date(Date.now() + 15 * 60 * 1000), // Expiring in 15 minutes
+          $lt: new Date(Date.now() + 15 * 60 * 1000),
         },
         'metadata.priority': 'high',
       })
@@ -539,7 +447,6 @@ export class NotificationService {
         const workflow = execution.workflowCatalogId
         const user = execution.userId
 
-        // Check if we haven't sent a timeout warning recently
         const recentWarning = await this.constructor.prototype.constructor
           .model('Notification')
           .findOne({
@@ -547,7 +454,7 @@ export class NotificationService {
             entityId: execution._id.toString(),
             type: 'error',
             'metadata.urgent': true,
-            createdAt: { $gte: new Date(Date.now() - 10 * 60 * 1000) }, // Within last 10 minutes
+            createdAt: { $gte: new Date(Date.now() - 10 * 60 * 1000) },
           })
 
         if (!recentWarning) {
@@ -555,11 +462,10 @@ export class NotificationService {
         }
       }
 
-      // Find new input requests that need notifications (created in last 5 minutes, no notification sent)
       const newInputs = await UserInput.find({
         status: 'pending',
         timeoutAt: { $gt: new Date() },
-        createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) }, // Created in last 5 minutes
+        createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) },
       })
         .populate('executionId')
         .populate({
@@ -575,7 +481,6 @@ export class NotificationService {
         const workflow = execution.workflowCatalogId
         const user = execution.userId
 
-        // Check if we haven't sent an input required notification for this execution step
         const existingNotification =
           await this.constructor.prototype.constructor
             .model('Notification')
@@ -589,12 +494,6 @@ export class NotificationService {
           await this.notifyInputRequired(userInput, execution, workflow, user)
         }
       }
-
-      console.log(
-        `Processed ${urgentInputs.length} urgent and ${newInputs.length} new workflow notifications`
-      )
-    } catch (error) {
-      console.error('Error processing workflow notifications:', error)
-    }
+    } catch (error) {}
   }
 }

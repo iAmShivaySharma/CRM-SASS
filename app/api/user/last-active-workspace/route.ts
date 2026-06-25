@@ -47,7 +47,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('Get last active workspace error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -99,7 +98,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('Update last active workspace error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

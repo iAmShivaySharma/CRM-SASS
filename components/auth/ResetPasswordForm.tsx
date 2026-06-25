@@ -44,8 +44,6 @@ export function ResetPasswordForm() {
 
     setLoading(true)
     try {
-      // TODO: Implement password reset functionality with MongoDB
-      // For now, show a message that this feature is coming soon
       toast.info(
         'Password reset functionality will be available soon. Please contact support.'
       )
@@ -57,7 +55,6 @@ export function ResetPasswordForm() {
     }
   }
 
-  // Password strength indicator
   const getPasswordStrength = (password: string) => {
     if (!password) return { strength: 0, label: '', color: '' }
 

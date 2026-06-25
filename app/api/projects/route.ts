@@ -43,23 +43,16 @@ const createProjectSchema = z.object({
     .default({}),
 })
 
-// GET /api/projects - Get projects for a workspace with pagination and filtering
 export const GET = withSecurityLogging(
   withLogging(
     async (request: NextRequest) => {
       const startTime = Date.now()
-      console.log('=== PROJECTS API DEBUG START ===')
 
       try {
-        console.log('Connecting to MongoDB...')
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
 
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
-        console.log('Auth result:', auth ? 'Success' : 'Failed')
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
@@ -74,14 +67,6 @@ export const GET = withSecurityLogging(
         const search = url.searchParams.get('search')
         const skip = (page - 1) * limit
 
-        console.log('Request params:', {
-          workspaceId,
-          page,
-          limit,
-          status,
-          search,
-        })
-
         if (!workspaceId) {
           return NextResponse.json(
             { message: 'Workspace ID is required' },
@@ -89,8 +74,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check if user has access to workspace
-        console.log('Checking workspace access for user:', auth.user.id)
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
           workspaceId,
@@ -98,16 +81,12 @@ export const GET = withSecurityLogging(
         })
 
         if (!member) {
-          console.log('Access denied - user not a member of workspace')
           return NextResponse.json(
             { message: 'Access denied' },
             { status: 403 }
           )
         }
 
-        console.log('Workspace access confirmed')
-
-        // Build query for projects
         const query: any = { workspaceId }
 
         if (status) {
@@ -115,23 +94,14 @@ export const GET = withSecurityLogging(
         }
 
         if (search) {
-          query.$or = [
-            { name: { $regex: search, $options: 'i' } },
-            { description: { $regex: search, $options: 'i' } },
-          ]
+          query.$text = { $search: search }
         }
 
-        console.log('Built query:', JSON.stringify(query))
-
-        // Get projects where user is a member or based on visibility
         const projectMemberProjects = await ProjectMember.find({
           userId: auth.user.id,
           status: 'active',
         }).distinct('projectId')
 
-        console.log('User project memberships:', projectMemberProjects.length)
-
-        // Extend query to include visibility rules
         const visibilityQuery = {
           ...query,
           $or: [
@@ -141,25 +111,14 @@ export const GET = withSecurityLogging(
           ],
         }
 
-        console.log(
-          'Final query with visibility:',
-          JSON.stringify(visibilityQuery)
-        )
-
-        // Get total count
         const total = await Project.countDocuments(visibilityQuery)
-        console.log('Total projects found:', total)
 
-        // Get paginated projects
         const projects = await Project.find(visibilityQuery)
           .sort({ updatedAt: -1 })
           .skip(skip)
           .limit(limit)
           .lean()
 
-        console.log('Retrieved projects:', projects.length)
-
-        // Add member count and task counts for each project
         const projectsWithCounts = await Promise.all(
           projects.map(async project => {
             const [memberCount, taskCount, completedTaskCount] =
@@ -185,18 +144,12 @@ export const GET = withSecurityLogging(
           })
         )
 
-        console.log('Added counts to projects')
-
-        // Log user activity
         await logUserActivity(
           auth.user.id,
           'projects.list',
           'User listed projects',
           { entityType: 'Project', workspaceId, page, limit }
         )
-
-        const endTime = Date.now()
-        console.log(`=== PROJECTS API SUCCESS (${endTime - startTime}ms) ===`)
 
         return NextResponse.json({
           projects: projectsWithCounts,
@@ -210,12 +163,6 @@ export const GET = withSecurityLogging(
           },
         })
       } catch (error) {
-        console.error('=== PROJECTS API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Get projects error:', error)
         return NextResponse.json(
           {
@@ -239,22 +186,16 @@ export const GET = withSecurityLogging(
   )
 )
 
-// POST /api/projects - Create a new project
 export const POST = withSecurityLogging(
   withLogging(
     async (request: NextRequest) => {
       const startTime = Date.now()
-      console.log('=== CREATE PROJECT API DEBUG START ===')
 
       try {
-        console.log('Connecting to MongoDB...')
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
 
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
@@ -262,12 +203,10 @@ export const POST = withSecurityLogging(
         }
 
         const body = await request.json()
-        console.log('Request body received:', JSON.stringify(body, null, 2))
 
         const validationResult = createProjectSchema.safeParse(body)
 
         if (!validationResult.success) {
-          console.log('Validation failed:', validationResult.error.errors)
           return NextResponse.json(
             {
               message: 'Validation failed',
@@ -279,8 +218,6 @@ export const POST = withSecurityLogging(
 
         const { workspaceId } = validationResult.data
 
-        console.log('Checking workspace access for user:', auth.user.id)
-        // Check if user has access to workspace
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
           workspaceId,
@@ -288,54 +225,39 @@ export const POST = withSecurityLogging(
         })
 
         if (!member) {
-          console.log('Access denied - user not a member of workspace')
           return NextResponse.json(
             { message: 'Access denied' },
             { status: 403 }
           )
         }
-
-        console.log('Workspace access confirmed')
-
-        // Check if slug is unique within workspace
-        console.log('Checking slug uniqueness:', validationResult.data.slug)
         const existingProject = await Project.findOne({
           workspaceId,
           slug: validationResult.data.slug,
         })
 
         if (existingProject) {
-          console.log('Slug already exists')
           return NextResponse.json(
             { message: 'Project slug already exists in this workspace' },
             { status: 400 }
           )
         }
 
-        // Create the project
-        console.log('Creating new project...')
         const project = new Project({
           ...validationResult.data,
           createdBy: auth.user.id,
         })
 
         await project.save()
-        console.log('Project created with ID:', project._id)
-
-        // Add creator as project owner
-        console.log('Adding creator as project member...')
         const projectMember = new ProjectMember({
           projectId: project._id,
           userId: auth.user.id,
-          roleId: member.roleId, // Use their workspace role for now
+          roleId: member.roleId,
           status: 'active',
           joinedAt: new Date(),
         })
 
         await projectMember.save()
-        console.log('Project member added')
 
-        // Log activities
         await logUserActivity(
           auth.user.id,
           'projects.create',
@@ -348,11 +270,6 @@ export const POST = withSecurityLogging(
           projectName: project.name,
         })
 
-        const endTime = Date.now()
-        console.log(
-          `=== CREATE PROJECT API SUCCESS (${endTime - startTime}ms) ===`
-        )
-
         return NextResponse.json({
           project: {
             ...project.toJSON(),
@@ -362,12 +279,6 @@ export const POST = withSecurityLogging(
           },
         })
       } catch (error) {
-        console.error('=== CREATE PROJECT API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Create project error:', error)
         return NextResponse.json(
           {

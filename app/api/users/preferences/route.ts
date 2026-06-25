@@ -82,7 +82,6 @@ export async function GET(request: NextRequest) {
       preferences: user.preferences || {},
     })
   } catch (error) {
-    console.error('Get preferences error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -143,7 +142,6 @@ export async function PUT(request: NextRequest) {
       preferences: user.preferences,
     })
   } catch (error) {
-    console.error('Update preferences error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -205,7 +203,6 @@ export async function PATCH(request: NextRequest) {
       preferences: updatedUser.preferences,
     })
   } catch (error) {
-    console.error('Patch preferences error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

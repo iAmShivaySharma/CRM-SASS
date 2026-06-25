@@ -80,7 +80,6 @@ export function AttendanceWidget({
   const [attendanceAction, { isLoading: isActionLoading }] =
     useAttendanceActionMutation()
 
-  // Update current time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
@@ -89,7 +88,6 @@ export function AttendanceWidget({
     return () => clearInterval(timer)
   }, [])
 
-  // Get user location
   const getCurrentLocation = (): Promise<{
     latitude: number
     longitude: number
@@ -105,9 +103,7 @@ export function AttendanceWidget({
         async position => {
           const { latitude, longitude } = position.coords
 
-          // Try to get address from coordinates (optional)
           try {
-            // You can integrate with a geocoding service here
             resolve({ latitude, longitude, address: 'Current Location' })
           } catch {
             resolve({ latitude, longitude })
@@ -117,7 +113,7 @@ export function AttendanceWidget({
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 300000, // 5 minutes
+          maximumAge: 300000,
         }
       )
     })
@@ -129,13 +125,11 @@ export function AttendanceWidget({
     try {
       let locationData = null
 
-      // Get location for clock in/out actions
       if (action === 'clock_in' || action === 'clock_out') {
         try {
           locationData = await getCurrentLocation()
           setLocation(locationData)
         } catch (error) {
-          // Location is optional - continue without it
           console.warn('Could not get location:', error)
         }
       }
@@ -197,7 +191,6 @@ export function AttendanceWidget({
     return `${hours}h ${mins}m`
   }
 
-  // Calculate work progress
   const getWorkProgress = () => {
     if (!shift || !currentWorkTime) return 0
     const shiftMinutes = shift.totalHours * 60

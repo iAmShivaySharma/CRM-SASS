@@ -83,21 +83,7 @@ export async function POST(
     task.timeTracking.isActive = true
     task.timeTracking.currentSessionStart = now
 
-    console.log('Starting time tracking - before save:', {
-      taskId,
-      isActive: task.timeTracking.isActive,
-      currentSessionStart: task.timeTracking.currentSessionStart,
-      totalTracked: task.timeTracking.totalTracked,
-    })
-
     await task.save()
-
-    console.log('Starting time tracking - after save:', {
-      taskId,
-      isActive: task.timeTracking.isActive,
-      currentSessionStart: task.timeTracking.currentSessionStart,
-      totalTracked: task.timeTracking.totalTracked,
-    })
 
     return NextResponse.json({
       success: true,
@@ -143,7 +129,6 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error('Error starting time tracking:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

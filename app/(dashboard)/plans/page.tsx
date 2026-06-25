@@ -207,7 +207,6 @@ export default function PlansPage() {
     setUpgradingPlanId(planId)
 
     try {
-      // Load Razorpay script
       const loaded = await loadRazorpayScript()
       if (!loaded) {
         toast.error('Failed to load payment processor. Please try again.')
@@ -215,7 +214,6 @@ export default function PlansPage() {
         return
       }
 
-      // Create order on the backend
       const orderResponse = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -234,7 +232,6 @@ export default function PlansPage() {
 
       const plan = PLANS.find(p => p.id === planId)
 
-      // Open Razorpay checkout
       const options = {
         key: orderData.key,
         amount: orderData.amount,
@@ -313,7 +310,6 @@ export default function PlansPage() {
         if (verifyData.subscription) {
           setSubscription(verifyData.subscription)
         }
-        // Refresh subscription data
         await fetchSubscription()
       } else {
         toast.error('Payment verification failed. Please contact support.')
@@ -355,7 +351,6 @@ export default function PlansPage() {
 
   return (
     <div className="w-full space-y-6">
-      {/* Page Header */}
       <div className="w-full">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
           Plans & Billing
@@ -365,7 +360,6 @@ export default function PlansPage() {
         </p>
       </div>
 
-      {/* Current Plan Summary */}
       {subscription && (
         <Card>
           <CardHeader className="pb-3">
@@ -423,7 +417,6 @@ export default function PlansPage() {
           <TabsTrigger value="billing">Billing History</TabsTrigger>
         </TabsList>
 
-        {/* Plans Tab */}
         <TabsContent value="plans" className="mt-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {PLANS.map(plan => {
@@ -524,7 +517,6 @@ export default function PlansPage() {
           </div>
         </TabsContent>
 
-        {/* Usage Tab */}
         <TabsContent value="usage" className="mt-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card>
@@ -643,7 +635,6 @@ export default function PlansPage() {
           </div>
         </TabsContent>
 
-        {/* Billing History Tab */}
         <TabsContent value="billing" className="mt-6">
           <Card>
             <CardHeader>

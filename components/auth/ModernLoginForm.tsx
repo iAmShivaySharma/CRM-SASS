@@ -35,7 +35,6 @@ import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import { loadThemeFromPreferences } from '@/lib/slices/themeSlice'
 import { useLoginMutation } from '@/lib/api/authApi'
 
-// Industry-standard validation schema
 const loginSchema = z.object({
   email: z
     .string()
@@ -58,10 +57,8 @@ export function ModernLoginForm() {
   const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
 
-  // RTK Query mutation
   const [loginUser, { isLoading }] = useLoginMutation()
 
-  // Performance optimized state management
   const [loading, setLoading] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -69,7 +66,6 @@ export function ModernLoginForm() {
   const [isBlocked, setIsBlocked] = useState(false)
   const [blockTimeRemaining, setBlockTimeRemaining] = useState(0)
 
-  // Enhanced form with validation
   const {
     register,
     handleSubmit,
@@ -78,25 +74,23 @@ export function ModernLoginForm() {
     clearErrors,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    mode: 'onChange', // Real-time validation
+    mode: 'onChange',
     defaultValues: {
       email: '',
       password: '',
     },
   })
 
-  // Performance optimization: memoize redirect URL
   const redirectUrl = useMemo(() => {
     const redirect = searchParams?.get('redirect')
     const callbackUrl = searchParams?.get('callbackUrl')
     return redirect || callbackUrl || '/dashboard'
   }, [searchParams])
 
-  // Security: Monitor failed attempts
   useEffect(() => {
     if (attemptCount >= 3) {
       setIsBlocked(true)
-      setBlockTimeRemaining(300) // 5 minutes
+      setBlockTimeRemaining(300)
 
       const timer = setInterval(() => {
         setBlockTimeRemaining(prev => {
@@ -114,10 +108,8 @@ export function ModernLoginForm() {
     }
   }, [attemptCount])
 
-  // Enhanced submit function with security and performance optimizations
   const onSubmit = useCallback(
     async (data: LoginFormData) => {
-      // Security: Check if blocked
       if (isBlocked) {
         toast.error(
           `Too many failed attempts. Try again in ${Math.ceil(blockTimeRemaining / 60)} minutes.`
@@ -134,9 +126,6 @@ export function ModernLoginForm() {
           password: data.password,
         }).unwrap()
 
-        // RTK Query handles the response automatically, so we get here only on success
-
-        // Update Redux state (token is now in HTTP-only cookie)
         dispatch(
           loginSuccess({
             user: {
@@ -170,7 +159,6 @@ export function ModernLoginForm() {
           )
         }
 
-        // Security: Log successful login
         console.log('Login successful:', {
           userId: result.user.id,
           timestamp: new Date().toISOString(),
@@ -181,10 +169,8 @@ export function ModernLoginForm() {
           duration: 2000,
         })
 
-        // Show redirecting state
         setIsRedirecting(true)
 
-        // Fetch and apply theme preferences before redirect so there's no flash
         try {
           const prefsRes = await fetch('/api/users/preferences', {
             credentials: 'include',
@@ -195,9 +181,7 @@ export function ModernLoginForm() {
               dispatch(loadThemeFromPreferences(prefsData.preferences))
             }
           }
-        } catch {
-          // Theme fetch failed — not critical, will load on dashboard
-        }
+        } catch {}
 
         router.prefetch(redirectUrl)
 
@@ -205,12 +189,10 @@ export function ModernLoginForm() {
           router.replace(redirectUrl)
         }, 300)
 
-        // Don't reset loading — keep the redirecting state active
         return
       } catch (error: any) {
         console.error('Login error:', error)
 
-        // Handle RTK Query errors
         if (error?.status === 429) {
           toast.error('Too many login attempts. Please try again later.')
           setIsBlocked(true)
@@ -256,7 +238,6 @@ export function ModernLoginForm() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Side - Branding */}
       <div className="relative hidden overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 lg:flex lg:w-1/2">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
@@ -324,16 +305,13 @@ export function ModernLoginForm() {
           </div>
         </div>
 
-        {/* Decorative elements */}
         <div className="absolute right-0 top-0 h-64 w-64 -translate-y-32 translate-x-32 rounded-full bg-white/5"></div>
         <div className="absolute bottom-0 left-0 h-48 w-48 -translate-x-24 translate-y-24 rounded-full bg-white/5"></div>
         <div className="absolute right-1/4 top-1/2 h-32 w-32 rounded-full bg-white/5"></div>
       </div>
 
-      {/* Right Side - Login Form */}
       <div className="flex flex-1 items-center justify-center bg-gray-50 px-4 dark:bg-gray-900 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
-          {/* Mobile Logo */}
           <div className="text-center lg:hidden">
             <div className="mb-4 flex items-center justify-center space-x-2">
               <div className="rounded-lg bg-blue-600 p-2">

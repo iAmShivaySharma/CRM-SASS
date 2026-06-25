@@ -78,17 +78,11 @@ export async function seedDefaultLeadStatuses(
   ]
 
   try {
-    // Check if statuses already exist
     const existingCount = await LeadStatus.countDocuments({ workspaceId })
     if (existingCount === 0) {
       await LeadStatus.insertMany(defaultStatuses)
-      console.log(
-        `Created ${defaultStatuses.length} default lead statuses for workspace ${workspaceId}`
-      )
     }
-  } catch (error) {
-    console.error('Error seeding default lead statuses:', error)
-  }
+  } catch (error) {}
 }
 
 export async function seedDefaultTags(workspaceId: string, userId: string) {
@@ -138,17 +132,11 @@ export async function seedDefaultTags(workspaceId: string, userId: string) {
   ]
 
   try {
-    // Check if tags already exist
     const existingCount = await Tag.countDocuments({ workspaceId })
     if (existingCount === 0) {
       await Tag.insertMany(defaultTags)
-      console.log(
-        `Created ${defaultTags.length} default tags for workspace ${workspaceId}`
-      )
     }
-  } catch (error) {
-    console.error('Error seeding default tags:', error)
-  }
+  } catch (error) {}
 }
 
 export async function seedDefaultRoles(workspaceId: string, userId: string) {
@@ -158,7 +146,6 @@ export async function seedDefaultRoles(workspaceId: string, userId: string) {
       name: 'Owner',
       description: 'Full system access and workspace ownership',
       permissions: [
-        // All core permissions
         'leads.view',
         'leads.create',
         'leads.edit',
@@ -329,17 +316,11 @@ export async function seedDefaultRoles(workspaceId: string, userId: string) {
   ]
 
   try {
-    // Check if roles already exist
     const existingCount = await Role.countDocuments({ workspaceId })
     if (existingCount === 0) {
       await Role.insertMany(defaultRoles)
-      console.log(
-        `Created ${defaultRoles.length} default roles for workspace ${workspaceId}`
-      )
     }
-  } catch (error) {
-    console.error('Error seeding default roles:', error)
-  }
+  } catch (error) {}
 }
 
 export async function seedWorkspaceDefaults(

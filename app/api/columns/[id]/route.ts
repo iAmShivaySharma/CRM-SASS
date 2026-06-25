@@ -49,7 +49,6 @@ async function checkColumnAccess(columnId: string, userId: string) {
   return { column, project }
 }
 
-// PUT /api/columns/[id] - Update column
 export const PUT = withSecurityLogging(
   withLogging(
     async (
@@ -57,17 +56,12 @@ export const PUT = withSecurityLogging(
       { params }: { params: Promise<{ id: string }> }
     ) => {
       const startTime = Date.now()
-      console.log('=== UPDATE COLUMN API DEBUG START ===')
 
       try {
-        console.log('Connecting to MongoDB...')
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
 
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
@@ -75,12 +69,9 @@ export const PUT = withSecurityLogging(
         }
 
         const { id } = await params
-        console.log('Column ID:', id)
-        console.log('Checking column access...')
         const columnData = await checkColumnAccess(id, auth.user.id)
 
         if (!columnData) {
-          console.log('Column not found or access denied')
           return NextResponse.json(
             { message: 'Column not found or access denied' },
             { status: 404 }
@@ -88,12 +79,10 @@ export const PUT = withSecurityLogging(
         }
 
         const body = await request.json()
-        console.log('Request body received:', JSON.stringify(body, null, 2))
 
         const validationResult = updateColumnSchema.safeParse(body)
 
         if (!validationResult.success) {
-          console.log('Validation failed:', validationResult.error.errors)
           return NextResponse.json(
             {
               message: 'Validation failed',
@@ -103,19 +92,10 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        console.log('Updating column...')
-
-        // If slug is being updated, also update all tasks with the old slug
         if (
           validationResult.data.slug &&
           validationResult.data.slug !== columnData.column.slug
         ) {
-          console.log(
-            'Updating task statuses from',
-            columnData.column.slug,
-            'to',
-            validationResult.data.slug
-          )
           await Task.updateMany(
             {
               projectId: columnData.column.projectId,
@@ -138,11 +118,6 @@ export const PUT = withSecurityLogging(
           { changes: validationResult.data, columnId: id }
         )
 
-        const endTime = Date.now()
-        console.log(
-          `=== UPDATE COLUMN API SUCCESS (${endTime - startTime}ms) ===`
-        )
-
         return NextResponse.json({
           column: {
             ...updatedColumn?.toJSON(),
@@ -150,12 +125,6 @@ export const PUT = withSecurityLogging(
           },
         })
       } catch (error) {
-        console.error('=== UPDATE COLUMN API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Update column error:', error)
         return NextResponse.json(
           {
@@ -179,7 +148,6 @@ export const PUT = withSecurityLogging(
   )
 )
 
-// DELETE /api/columns/[id] - Delete column
 export const DELETE = withSecurityLogging(
   withLogging(
     async (
@@ -188,14 +156,10 @@ export const DELETE = withSecurityLogging(
     ) => {
       const startTime = Date.now()
       try {
-        console.log('Connecting to MongoDB...')
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
 
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
@@ -206,14 +170,12 @@ export const DELETE = withSecurityLogging(
         const columnData = await checkColumnAccess(id, auth.user.id)
 
         if (!columnData) {
-          console.log('Column not found or access denied')
           return NextResponse.json(
             { message: 'Column not found or access denied' },
             { status: 404 }
           )
         }
 
-        // Check if column has tasks
         const taskCount = await Task.countDocuments({
           projectId: columnData.column.projectId,
           status: columnData.column.slug,
@@ -229,7 +191,6 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Prevent deleting if it's the only column
         const columnCount = await Column.countDocuments({
           projectId: columnData.column.projectId,
         })
@@ -241,7 +202,6 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        console.log('Deleting column...')
         await Column.findByIdAndDelete(id)
 
         await logUserActivity(
@@ -251,19 +211,8 @@ export const DELETE = withSecurityLogging(
           { columnId: id }
         )
 
-        const endTime = Date.now()
-        console.log(
-          `=== DELETE COLUMN API SUCCESS (${endTime - startTime}ms) ===`
-        )
-
         return NextResponse.json({ success: true })
       } catch (error) {
-        console.error('=== DELETE COLUMN API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Delete column error:', error)
         return NextResponse.json(
           {

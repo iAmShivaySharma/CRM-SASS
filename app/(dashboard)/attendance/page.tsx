@@ -36,7 +36,6 @@ export default function AttendancePage() {
   const [activeTab, setActiveTab] = useState('overview')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
-  // Mock data for dashboard stats - would be workspace-specific in real implementation
   const stats = {
     totalEmployees: 45,
     presentToday: 38,
@@ -88,7 +87,6 @@ export default function AttendancePage() {
 
   return (
     <div className="w-full space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
@@ -110,7 +108,6 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -178,7 +175,6 @@ export default function AttendancePage() {
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
@@ -205,12 +201,10 @@ export default function AttendancePage() {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
-            {/* Attendance Widget */}
             <div className="lg:col-span-1">
               <AttendanceWidget compact={false} showDetails={true} />
             </div>
 
-            {/* Today's Overview */}
             <div className="lg:col-span-2">
               <Card className="h-full">
                 <CardHeader>
@@ -221,7 +215,6 @@ export default function AttendancePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* Quick Stats */}
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-green-600">
@@ -249,7 +242,6 @@ export default function AttendancePage() {
                       </div>
                     </div>
 
-                    {/* Attendance Rate */}
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Attendance Rate</span>
@@ -270,7 +262,6 @@ export default function AttendancePage() {
                       </div>
                     </div>
 
-                    {/* Quick Actions */}
                     <div className="flex space-x-2 pt-4">
                       <Button
                         variant="outline"
@@ -297,7 +288,6 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* Recent Activity */}
           <AttendanceOverview />
         </TabsContent>
 

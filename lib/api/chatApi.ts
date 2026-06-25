@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
-// Chat API Types
 export interface ChatRoom {
   id: string
   name: string
@@ -86,7 +85,6 @@ export const chatApi = createApi({
     baseUrl: '/api/chat',
     credentials: 'include',
     prepareHeaders: (headers, { endpoint }) => {
-      // Don't set Content-Type for file uploads - let browser set it automatically
       if (endpoint !== 'uploadFile') {
         headers.set('Content-Type', 'application/json')
       }
@@ -95,7 +93,6 @@ export const chatApi = createApi({
   }),
   tagTypes: ['ChatRoom', 'Message'],
   endpoints: builder => ({
-    // Chat Rooms
     getChatRooms: builder.query<
       { chatRooms: ChatRoom[] },
       { workspaceId: string; includeArchived?: boolean }
@@ -144,7 +141,6 @@ export const chatApi = createApi({
       }
     ),
 
-    // Messages
     getMessages: builder.query<
       {
         messages: Message[]
@@ -239,7 +235,6 @@ export const chatApi = createApi({
         method: 'POST',
         body: { emoji: data.emoji, chatRoomId: data.chatRoomId },
       }),
-      // Don't invalidate cache - let socket updates handle real-time changes
     }),
 
     removeReaction: builder.mutation<
@@ -251,10 +246,8 @@ export const chatApi = createApi({
         method: 'DELETE',
         body: { emoji: data.emoji, chatRoomId: data.chatRoomId },
       }),
-      // Don't invalidate cache - let socket updates handle real-time changes
     }),
 
-    // File upload
     uploadFile: builder.mutation<
       {
         success: boolean
@@ -284,7 +277,6 @@ export const chatApi = createApi({
       },
     }),
 
-    // Get upload configuration
     getUploadConfig: builder.query<
       {
         config: {

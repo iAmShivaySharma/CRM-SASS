@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { clearPersistedData } from '../middleware/persistenceMiddleware'
 
 interface User {
   id: string

@@ -46,12 +46,10 @@ export async function POST(request: NextRequest) {
         break
 
       default:
-        console.log(`Unhandled webhook event type: ${event.type}`)
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Webhook error:', error)
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

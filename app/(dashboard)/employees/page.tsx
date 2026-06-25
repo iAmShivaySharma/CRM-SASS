@@ -21,7 +21,6 @@ export default function EmployeesPage() {
   const [activeTab, setActiveTab] = useState('list')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
-  // Mock data for employee stats - would be workspace-specific in real implementation
   const stats = {
     totalEmployees: 45,
     activeEmployees: 42,
@@ -149,7 +148,6 @@ export default function EmployeesPage() {
 
   return (
     <div className="w-full space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
@@ -171,7 +169,6 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -235,7 +232,6 @@ export default function EmployeesPage() {
         </Card>
       </div>
 
-      {/* Department Overview */}
       <Card>
         <CardHeader>
           <CardTitle>Department Overview</CardTitle>
@@ -260,7 +256,6 @@ export default function EmployeesPage() {
         </CardContent>
       </Card>
 
-      {/* Main Content Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}

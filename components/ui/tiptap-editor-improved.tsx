@@ -89,12 +89,10 @@ export function TiptapEditor({
   const [imageAlt, setImageAlt] = useState('')
   const colorDropdownRef = useRef<HTMLDivElement>(null)
 
-  // Get initial content - handle HTML strings
   const getInitialContent = useCallback(() => {
     if (!content || content.trim() === '') {
       return '<p></p>'
     }
-    // Content is now expected to be an HTML string
     return content
   }, [content])
 
@@ -153,7 +151,6 @@ export function TiptapEditor({
     editable,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      // Use HTML format with proper encoding
       const html = editor.getHTML()
       onChange?.(html)
     },
@@ -164,7 +161,6 @@ export function TiptapEditor({
         'data-placeholder': placeholder,
       },
       transformPastedHTML: (html: string) => {
-        // Clean pasted HTML to prevent encoding issues
         const tempDiv = document.createElement('div')
         tempDiv.innerHTML = html
         return tempDiv.innerHTML
@@ -224,20 +220,17 @@ export function TiptapEditor({
     '#DB2777',
   ]
 
-  // Update editor content when content prop changes
   useEffect(() => {
     if (editor && !editor.isDestroyed) {
       const currentContent = editor.getHTML()
       const newContent = getInitialContent()
 
-      // Only update if content has actually changed
       if (currentContent !== newContent) {
         editor.commands.setContent(newContent, { emitUpdate: false })
       }
     }
   }, [editor, getInitialContent])
 
-  // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === 's') {
@@ -252,7 +245,6 @@ export function TiptapEditor({
     }
   }, [editable, onSave])
 
-  // Handle outside click for color dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -286,7 +278,6 @@ export function TiptapEditor({
     <div className={`rounded-lg border bg-background shadow-sm ${className}`}>
       {editable && (
         <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-lg border-b bg-gradient-to-r from-gray-50 to-white p-3 backdrop-blur-sm dark:from-gray-900 dark:to-gray-800">
-          {/* Undo/Redo */}
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -320,7 +311,6 @@ export function TiptapEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Headings */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8">
@@ -374,7 +364,6 @@ export function TiptapEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Text Formatting */}
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -436,7 +425,6 @@ export function TiptapEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Combined Text Color & Highlight */}
           <div className="relative" ref={colorDropdownRef}>
             <Button
               variant="ghost"
@@ -454,7 +442,6 @@ export function TiptapEditor({
 
             {showColorDropdown && (
               <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                {/* Text Color Section */}
                 <div className="mb-4">
                   <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
                     <div className="h-3 w-3 rounded border border-gray-300 dark:border-gray-600"></div>
@@ -486,7 +473,6 @@ export function TiptapEditor({
                   </div>
                 </div>
 
-                {/* Highlight Section */}
                 <div>
                   <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
                     <div className="h-3 w-3 rounded border border-yellow-300 bg-yellow-200"></div>
@@ -523,7 +509,6 @@ export function TiptapEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Lists */}
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -571,7 +556,6 @@ export function TiptapEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Insert Elements */}
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -629,7 +613,6 @@ export function TiptapEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* More Options */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -681,7 +664,6 @@ export function TiptapEditor({
         className={`prose prose-lg max-w-none focus-within:outline-none ${!editable ? 'rounded-lg' : 'rounded-b-lg'}`}
       />
 
-      {/* Link Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
         <DialogContent>
           <DialogHeader>
@@ -716,7 +698,6 @@ export function TiptapEditor({
         </DialogContent>
       </Dialog>
 
-      {/* Image Dialog */}
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
         <DialogContent>
           <DialogHeader>
@@ -918,27 +899,21 @@ export function TiptapEditor({
           pointer-events: none;
         }
 
-        /* Text color styles */
         .ProseMirror .text-style {
-          /* Ensure text color is preserved */
         }
 
-        /* Highlight styles */
         .ProseMirror .highlight {
           border-radius: 2px;
           padding: 0.1em 0.2em;
         }
 
-        /* Color preservation */
         .ProseMirror [style*='color'] {
-          /* Ensure inline color styles are preserved */
         }
       `}</style>
     </div>
   )
 }
 
-// Export a read-only version for displaying documents
 export function TiptapReader({
   content = '',
   className = '',
@@ -958,7 +933,6 @@ export function TiptapReader({
   )
 }
 
-// Utility function to safely extract plain text from Tiptap content
 export function extractPlainText(
   content: string | object,
   maxLength = 150
@@ -967,27 +941,21 @@ export function extractPlainText(
 
   let plainText = ''
 
-  // If content is HTML string, use proper DOM parsing
   if (typeof content === 'string') {
-    // Create a temporary DOM element to properly decode HTML entities and extract text
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = content
     plainText = tempDiv.textContent || tempDiv.innerText || ''
-  }
-  // If content is JSON object (Tiptap format), extract text from nodes
-  else if (typeof content === 'object' && content !== null) {
+  } else if (typeof content === 'object' && content !== null) {
     const extractTextFromNode = (node: any): string => {
       if (typeof node === 'string') return node
       if (!node) return ''
 
       let text = ''
 
-      // Extract text from current node
       if (node.text) {
         text += node.text
       }
 
-      // Add space after block elements
       if (
         node.type &&
         ['paragraph', 'heading', 'listItem'].includes(node.type)
@@ -995,7 +963,6 @@ export function extractPlainText(
         text += ' '
       }
 
-      // Recursively extract from content array
       if (Array.isArray(node.content)) {
         for (const child of node.content) {
           text += extractTextFromNode(child)
@@ -1008,7 +975,6 @@ export function extractPlainText(
     plainText = extractTextFromNode(content)
   }
 
-  // Clean up whitespace and return
   plainText = plainText.replace(/\s+/g, ' ').trim()
 
   return maxLength === Infinity
@@ -1017,16 +983,13 @@ export function extractPlainText(
         (plainText.length > maxLength ? '...' : '')
 }
 
-// Utility function to convert Tiptap JSON to HTML
 export function tiptapJsonToHtml(editor: any, json: object): string {
   if (!editor || !json) return ''
 
   try {
-    // Create a temporary editor instance to convert JSON to HTML
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = ''
 
-    // Use the existing editor to convert JSON to HTML
     const currentContent = editor.getJSON()
     editor.commands.setContent(json, false)
     const html = editor.getHTML()

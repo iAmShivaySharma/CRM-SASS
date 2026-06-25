@@ -17,7 +17,6 @@ export interface IBlog extends Omit<Document, '_id'> {
   }
   status: 'draft' | 'published' | 'archived'
   publishedAt: Date | null
-  // SEO fields
   metaTitle: string
   metaDescription: string
   metaKeywords: string[]
@@ -28,13 +27,10 @@ export interface IBlog extends Omit<Document, '_id'> {
   twitterTitle: string
   twitterDescription: string
   twitterImage: string
-  // Content metrics
   readTime: number
   wordCount: number
-  // Schema.org structured data
   jsonLd: Record<string, any>
-  // Performance
-  priority: number // 0-1 for sitemap priority
+  priority: number
   changeFrequency:
     | 'always'
     | 'hourly'
@@ -43,9 +39,7 @@ export interface IBlog extends Omit<Document, '_id'> {
     | 'monthly'
     | 'yearly'
     | 'never'
-  // Engagement
   views: number
-  // Internal
   isFeatured: boolean
   relatedSlugs: string[]
   tableOfContents: { id: string; text: string; level: number }[]
@@ -113,7 +107,6 @@ const BlogSchema = new Schema<IBlog>(
       type: Date,
       default: null,
     },
-    // SEO fields
     metaTitle: {
       type: String,
       default: '',
@@ -163,7 +156,6 @@ const BlogSchema = new Schema<IBlog>(
       type: String,
       default: '',
     },
-    // Content metrics
     readTime: {
       type: Number,
       default: 0,
@@ -172,12 +164,10 @@ const BlogSchema = new Schema<IBlog>(
       type: Number,
       default: 0,
     },
-    // Schema.org
     jsonLd: {
       type: Schema.Types.Mixed,
       default: {},
     },
-    // Sitemap
     priority: {
       type: Number,
       default: 0.7,
@@ -197,12 +187,10 @@ const BlogSchema = new Schema<IBlog>(
       ],
       default: 'weekly',
     },
-    // Engagement
     views: {
       type: Number,
       default: 0,
     },
-    // Internal
     isFeatured: {
       type: Boolean,
       default: false,
@@ -234,7 +222,6 @@ const BlogSchema = new Schema<IBlog>(
   }
 )
 
-// Auto-calculate read time and word count before save
 BlogSchema.pre('save', function (this: IBlog, next) {
   if (this.isModified('content')) {
     const plainText = this.content.replace(/<[^>]*>/g, '')
@@ -243,7 +230,6 @@ BlogSchema.pre('save', function (this: IBlog, next) {
     this.readTime = Math.max(1, Math.ceil(words.length / 200))
   }
 
-  // Auto-set publishedAt when status changes to published
   if (
     this.isModified('status') &&
     this.status === 'published' &&
@@ -262,7 +248,6 @@ if (typeof window === 'undefined') {
   BlogSchema.index({ tags: 1 })
   BlogSchema.index({ isFeatured: 1, status: 1 })
   BlogSchema.index({ status: 1, views: -1 })
-  // Text index for search
   BlogSchema.index({ title: 'text', excerpt: 'text', tags: 'text' })
 }
 

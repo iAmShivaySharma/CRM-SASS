@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
+
 const PROTECTED_ROUTES = [
   '/dashboard',
   '/leads',
@@ -29,11 +30,9 @@ const PUBLIC_ROUTES = [
 ]
 
 function isProtectedRoute(pathname: string): boolean {
-  // Check if it's explicitly a public route
   if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
     return false
   }
-
   return PROTECTED_ROUTES.some(route => pathname.startsWith(route))
 }
 
@@ -43,11 +42,8 @@ async function verifyToken(token: string): Promise<boolean> {
       process.env.JWT_SECRET || 'fallback-secret'
     )
     const { payload } = await jwtVerify(token, secret)
-
-    // Verify payload has required fields
     return !!(payload.userId && payload.exp && payload.exp > Date.now() / 1000)
-  } catch (error) {
-    console.error('[MIDDLEWARE] Token verification failed:', error)
+  } catch {
     return false
   }
 }
@@ -81,7 +77,7 @@ function handleCors(
     'Access-Control-Allow-Headers',
     'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control, X-File-Name'
   )
-  response.headers.set('Access-Control-Max-Age', '86400') // 24 hours
+  response.headers.set('Access-Control-Max-Age', '86400')
 
   return response
 }
@@ -100,18 +96,17 @@ async function verifyAuthFromRequest(request: NextRequest): Promise<boolean> {
     }
 
     return false
-  } catch (error) {
-    console.error('Auth verification error:', error)
+  } catch {
     return false
   }
 }
 
-const RATE_LIMITS = {
-  '/api/auth/login': { requests: 5, windowMs: 15 * 60 * 1000 }, // 5 requests per 15 minutes
-  '/api/auth/signup': { requests: 3, windowMs: 60 * 60 * 1000 }, // 3 requests per hour
-  '/api/leads': { requests: 100, windowMs: 15 * 60 * 1000 }, // 100 requests per 15 minutes
-  '/api/roles': { requests: 50, windowMs: 15 * 60 * 1000 }, // 50 requests per 15 minutes
-  default: { requests: 200, windowMs: 15 * 60 * 1000 }, // 200 requests per 15 minutes
+const RATE_LIMITS: Record<string, { requests: number; windowMs: number }> = {
+  '/api/auth/login': { requests: 5, windowMs: 15 * 60 * 1000 },
+  '/api/auth/signup': { requests: 3, windowMs: 60 * 60 * 1000 },
+  '/api/leads': { requests: 100, windowMs: 15 * 60 * 1000 },
+  '/api/roles': { requests: 50, windowMs: 15 * 60 * 1000 },
+  default: { requests: 200, windowMs: 15 * 60 * 1000 },
 }
 
 function getRateLimit(pathname: string) {
@@ -145,28 +140,26 @@ function checkRateLimit(
 
 function getClientIP(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for')
-  const realIP = request.headers.get('x-real-ip')
-
   if (forwarded) {
     return forwarded.split(',')[0].trim()
   }
 
+  const realIP = request.headers.get('x-real-ip')
   if (realIP) {
     return realIP
   }
 
-  return request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  return 'unknown'
 }
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  console.log(`[MIDDLEWARE] Processing: ${request.method} ${pathname}`)
-
   if (request.method === 'OPTIONS') {
     const response = new NextResponse(null, { status: 200 })
     return handleCors(request, response)
   }
+
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/static/') ||
@@ -180,8 +173,6 @@ export async function middleware(request: NextRequest) {
     const isAuthenticated = await verifyAuthFromRequest(request)
 
     if (!isAuthenticated) {
-      console.log(`[AUTH] Unauthorized access attempt to ${pathname}`)
-
       if (pathname.startsWith('/api/')) {
         return NextResponse.json(
           { message: 'Authentication required' },
@@ -193,24 +184,17 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
     }
-
-    console.log(`[AUTH] Authenticated access to ${pathname}`)
   }
 
   if (pathname === '/login' || pathname === '/signup') {
     const isAuthenticated = await verifyAuthFromRequest(request)
-
     if (isAuthenticated) {
-      console.log(
-        `[AUTH] Authenticated user redirected from ${pathname} to dashboard`
-      )
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 
   if (pathname === '/') {
     const isAuthenticated = await verifyAuthFromRequest(request)
-
     if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     } else {
@@ -286,15 +270,6 @@ export async function middleware(request: NextRequest) {
         Math.ceil(record.resetTime / 1000).toString()
       )
     }
-  }
-
-  if (
-    pathname.startsWith('/api/auth/') ||
-    pathname.startsWith('/api/webhooks/')
-  ) {
-    console.log(
-      `[SECURITY] ${request.method} ${pathname} from ${getClientIP(request)}`
-    )
   }
 
   return handleCors(request, response)

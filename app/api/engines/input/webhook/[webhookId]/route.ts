@@ -94,8 +94,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         )
       }
 
-      console.log(`Webhook input received for execution ${execution._id}`)
-
       // Return success response that n8n expects
       return NextResponse.json({
         success: true,
@@ -104,8 +102,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         status: execution.status,
       })
     } catch (n8nError) {
-      console.error('n8n webhook resume error:', n8nError)
-
       // Mark execution as failed
       await execution.markAsFailed(
         `Failed to resume workflow: ${n8nError instanceof Error ? n8nError.message : 'Unknown error'}`
@@ -122,8 +118,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
   } catch (error) {
-    console.error('Webhook input API error:', error)
-
     return NextResponse.json(
       {
         success: false,
@@ -199,8 +193,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       },
     })
   } catch (error) {
-    console.error('Get webhook status API error:', error)
-
     return NextResponse.json(
       {
         success: false,

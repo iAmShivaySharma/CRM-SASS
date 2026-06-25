@@ -90,9 +90,7 @@ export async function PATCH(
           priority: updatedTask.priority,
         },
       })
-    } catch (notificationError) {
-      console.error('Failed to create notification:', notificationError)
-    }
+    } catch (notificationError) {}
 
     // Send email notification if task has assignee and it's not the same person
     if (updatedTask.assigneeId && updatedTask.assigneeId !== auth.user._id) {
@@ -125,9 +123,7 @@ export async function PATCH(
             html: emailContent,
           })
         }
-      } catch (emailError) {
-        console.error('Failed to send email notification:', emailError)
-      }
+      } catch (emailError) {}
     }
 
     return NextResponse.json({
@@ -138,7 +134,6 @@ export async function PATCH(
       },
     })
   } catch (error) {
-    console.error('Error toggling task completion:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

@@ -1,6 +1,5 @@
 import { type NextRequest } from 'next/server'
-import jwt from 'jsonwebtoken'
-import { verifyAuthToken, generateToken } from './mongodb/auth'
+import { verifyAuthToken } from './mongodb/auth'
 
 export async function verifyMongoToken(request: NextRequest) {
   try {
@@ -13,8 +12,7 @@ export async function verifyMongoToken(request: NextRequest) {
       user: result.user,
       session: { user: result.user },
     }
-  } catch (error) {
-    console.error('Token verification error:', error)
+  } catch {
     return null
   }
 }
@@ -27,23 +25,4 @@ export async function requireAuth(request: NextRequest) {
   }
 
   return auth
-}
-
-export function createAuthResponse(message: string, status: number = 401) {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-}
-
-// Use MongoDB auth functions
-export { generateToken as signToken }
-export { verifyToken as verifyJwtToken } from './mongodb/auth'
-
-// Function for JWT token verification (used by API routes)
-export function verifyToken(token: string) {
-  const secret = process.env.JWT_SECRET || 'fallback-secret-key'
-  return jwt.verify(token, secret)
 }

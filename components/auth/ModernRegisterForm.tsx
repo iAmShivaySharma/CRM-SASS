@@ -40,7 +40,6 @@ import { loginSuccess } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import { useSignupMutation } from '@/lib/api/authApi'
 
-// Industry-standard validation schema with comprehensive security rules
 const registerSchema = z
   .object({
     fullName: z
@@ -98,10 +97,8 @@ export function ModernRegisterForm() {
   const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
 
-  // RTK Query mutation
   const [signupUser, { isLoading }] = useSignupMutation()
 
-  // Performance optimized state management
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -110,7 +107,6 @@ export function ModernRegisterForm() {
   const [blockTimeRemaining, setBlockTimeRemaining] = useState(0)
   const [passwordStrength, setPasswordStrength] = useState(0)
 
-  // Enhanced form with validation
   const {
     register,
     handleSubmit,
@@ -122,7 +118,7 @@ export function ModernRegisterForm() {
     trigger,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    mode: 'onChange', // Real-time validation
+    mode: 'onChange',
     defaultValues: {
       fullName: '',
       email: '',
@@ -133,22 +129,19 @@ export function ModernRegisterForm() {
     },
   })
 
-  // Performance optimization: memoize redirect URL
   const redirectUrl = useMemo(() => {
     const redirect = searchParams?.get('redirect')
     return redirect || '/dashboard'
   }, [searchParams])
 
-  // Watch form fields for real-time validation
   const watchedPassword = watch('password')
   const watchedEmail = watch('email')
   const watchedFullName = watch('fullName')
 
-  // Security: Monitor failed attempts
   useEffect(() => {
     if (attemptCount >= 3) {
       setIsBlocked(true)
-      setBlockTimeRemaining(600) // 10 minutes for registration
+      setBlockTimeRemaining(600)
 
       const timer = setInterval(() => {
         setBlockTimeRemaining(prev => {
@@ -166,7 +159,6 @@ export function ModernRegisterForm() {
     }
   }, [attemptCount])
 
-  // Password strength calculation
   const calculatePasswordStrength = useCallback((password: string): number => {
     let strength = 0
     if (password.length >= 8) strength += 1
@@ -179,7 +171,6 @@ export function ModernRegisterForm() {
     return Math.min(strength, 5)
   }, [])
 
-  // Performance: Calculate password strength
   useEffect(() => {
     if (watchedPassword) {
       const strength = calculatePasswordStrength(watchedPassword)
@@ -189,7 +180,6 @@ export function ModernRegisterForm() {
     }
   }, [watchedPassword, calculatePasswordStrength])
 
-  // Performance: Debounced password visibility toggles
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword(prev => !prev)
   }, [])
@@ -198,14 +188,12 @@ export function ModernRegisterForm() {
     setShowConfirmPassword(prev => !prev)
   }, [])
 
-  // Enhanced submit function with security and performance optimizations
   const onSubmit = useCallback(
     async (data: RegisterFormData) => {
       console.log('Form submitted with data:', data)
       console.log('Password strength:', passwordStrength)
       console.log('Is blocked:', isBlocked)
 
-      // Security: Check if blocked
       if (isBlocked) {
         toast.error(
           `Too many failed attempts. Try again in ${Math.ceil(blockTimeRemaining / 60)} minutes.`
@@ -213,7 +201,6 @@ export function ModernRegisterForm() {
         return
       }
 
-      // Additional client-side validation
       if (passwordStrength < 2) {
         toast.error('Please choose a stronger password')
         return
@@ -230,7 +217,6 @@ export function ModernRegisterForm() {
           workspaceName: data.workspaceName.trim(),
         }).unwrap()
 
-        // Update Redux state (token is now in HTTP-only cookie)
         dispatch(
           loginSuccess({
             user: {
@@ -254,7 +240,6 @@ export function ModernRegisterForm() {
           })
         )
 
-        // Security: Log successful registration
         console.log('Registration successful:', {
           userId: result.user.id,
           workspaceId: result.workspace.id,
@@ -266,7 +251,6 @@ export function ModernRegisterForm() {
           icon: '🎉',
         })
 
-        // Performance: Optimized redirect with preloading
         await router.prefetch(redirectUrl)
 
         setTimeout(() => {
@@ -275,7 +259,6 @@ export function ModernRegisterForm() {
       } catch (error: any) {
         console.error('Registration error:', error)
 
-        // Handle RTK Query errors
         if (error?.status === 429) {
           toast.error('Too many registration attempts. Please try again later.')
           setIsBlocked(true)
@@ -309,7 +292,6 @@ export function ModernRegisterForm() {
     ]
   )
 
-  // Password strength calculation helper
   const getPasswordStrength = useCallback(
     (password: string) => {
       if (!password) {
@@ -349,14 +331,12 @@ export function ModernRegisterForm() {
     [calculatePasswordStrength]
   )
 
-  // Get password strength for current password
   const currentPasswordStrength = useMemo(() => {
     return getPasswordStrength(watchedPassword || '')
   }, [watchedPassword, getPasswordStrength])
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Side - Branding */}
       <div className="relative hidden overflow-hidden bg-gradient-to-br from-green-600 via-emerald-700 to-teal-800 lg:flex lg:w-1/2">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
@@ -413,15 +393,12 @@ export function ModernRegisterForm() {
           </div>
         </div>
 
-        {/* Decorative elements */}
         <div className="absolute right-0 top-0 h-64 w-64 -translate-y-32 translate-x-32 rounded-full bg-white/5"></div>
         <div className="absolute bottom-0 left-0 h-48 w-48 -translate-x-24 translate-y-24 rounded-full bg-white/5"></div>
       </div>
 
-      {/* Right Side - Register Form */}
       <div className="flex flex-1 items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
-          {/* Mobile Logo */}
           <div className="text-center lg:hidden">
             <div className="mb-4 flex items-center justify-center space-x-2">
               <div className="rounded-lg bg-green-600 p-2">
@@ -445,9 +422,7 @@ export function ModernRegisterForm() {
 
             <CardContent className="px-6 pb-6">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {/* Name and Email Row */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {/* Full Name */}
                   <div className="space-y-2">
                     <Label
                       htmlFor="fullName"
@@ -478,7 +453,6 @@ export function ModernRegisterForm() {
                     )}
                   </div>
 
-                  {/* Email */}
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
@@ -510,7 +484,6 @@ export function ModernRegisterForm() {
                   </div>
                 </div>
 
-                {/* Workspace Name */}
                 <div className="space-y-2">
                   <Label
                     htmlFor="workspaceName"
@@ -542,9 +515,7 @@ export function ModernRegisterForm() {
                   )}
                 </div>
 
-                {/* Password Fields Row */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {/* Password */}
                   <div className="space-y-2">
                     <Label
                       htmlFor="password"
@@ -588,7 +559,6 @@ export function ModernRegisterForm() {
                     )}
                   </div>
 
-                  {/* Confirm Password */}
                   <div className="space-y-2">
                     <Label
                       htmlFor="confirmPassword"
@@ -634,7 +604,6 @@ export function ModernRegisterForm() {
                   </div>
                 </div>
 
-                {/* Password Strength Indicator */}
                 {watchedPassword && (
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
@@ -653,7 +622,6 @@ export function ModernRegisterForm() {
                   </div>
                 )}
 
-                {/* Terms and Conditions */}
                 <div className="flex items-center space-x-2">
                   <Controller
                     name="agreeToTerms"

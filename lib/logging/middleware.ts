@@ -1,15 +1,3 @@
-/**
- * Logging Middleware for Next.js API Routes
- *
- * Features:
- * - Request/Response logging
- * - Performance monitoring
- * - Error tracking
- * - Security event logging
- * - Rate limiting integration
- * - User activity tracking
- */
-
 import { type NextRequest, NextResponse } from 'next/server'
 import { log } from './logger'
 
@@ -31,9 +19,6 @@ interface ResponseLogData {
   error?: string
 }
 
-/**
- * HTTP Request/Response Logging Middleware
- */
 export function withLogging<T extends any[]>(
   handler: (...args: T) => Promise<NextResponse>,
   options: {
@@ -47,7 +32,6 @@ export function withLogging<T extends any[]>(
     const request = args[0] as NextRequest
     const startTime = Date.now()
 
-    // Extract request information
     const requestData: RequestLogData = {
       method: request.method,
       url: request.url,
@@ -58,7 +42,6 @@ export function withLogging<T extends any[]>(
         'unknown',
     }
 
-    // Add headers if requested (excluding sensitive ones)
     if (options.logHeaders) {
       const headers: Record<string, string> = {}
       request.headers.forEach((value, key) => {
@@ -69,36 +52,31 @@ export function withLogging<T extends any[]>(
       requestData.headers = headers
     }
 
-    // Add body if requested and method allows it
     if (options.logBody && ['POST', 'PUT', 'PATCH'].includes(request.method)) {
       try {
         const body = await request.clone().json()
         requestData.body = sanitizeBody(body, options.sensitiveFields)
-      } catch {
-        // Body is not JSON or empty
-      }
+      } catch {}
     }
 
-    // Log incoming request
-    log.info(`Incoming ${request.method} ${request.url}`, requestData)
+    if (process.env.NODE_ENV !== 'production') {
+      log.info(`Incoming ${request.method} ${request.url}`, requestData)
+    }
 
     let response: NextResponse
     let error: Error | null = null
 
     try {
-      // Execute the handler
       response = await handler(...args)
     } catch (err) {
       error = err instanceof Error ? err : new Error('Unknown error')
 
-      // Log error
       log.error(`API Error in ${request.method} ${request.url}`, {
         error: error.message,
         stack: error.stack,
         ...requestData,
       })
 
-      // Return error response
       response = NextResponse.json(
         { message: 'Internal server error' },
         { status: 500 }
@@ -115,13 +93,11 @@ export function withLogging<T extends any[]>(
       responseData.error = error.message
     }
 
-    // Log response
     log.http(request.method, request.url, response.status, duration, {
       ...requestData,
       ...responseData,
     })
 
-    // Log performance if slow
     if (duration > 1000) {
       log.performance(
         `Slow API call: ${request.method} ${request.url}`,
@@ -137,28 +113,23 @@ export function withLogging<T extends any[]>(
   }
 }
 
-/**
- * Security Event Logging Middleware
- */
 export function withSecurityLogging<T extends any[]>(
   handler: (...args: T) => Promise<NextResponse>
 ) {
   return async (...args: T): Promise<NextResponse> => {
     const request = args[0] as NextRequest
 
-    // Check for suspicious patterns
     const suspiciousPatterns = [
-      /\.\.\//, // Path traversal
-      /<script/i, // XSS attempts
-      /union.*select/i, // SQL injection
-      /javascript:/i, // JavaScript injection
-      /data:text\/html/i, // Data URI XSS
+      /\.\.\//,
+      /<script/i,
+      /union.*select/i,
+      /javascript:/i,
+      /data:text\/html/i,
     ]
 
     const url = request.url
     const userAgent = request.headers.get('user-agent') || ''
 
-    // Check URL for suspicious patterns
     if (suspiciousPatterns.some(pattern => pattern.test(url))) {
       log.security(
         'Suspicious URL pattern detected',
@@ -172,7 +143,6 @@ export function withSecurityLogging<T extends any[]>(
       )
     }
 
-    // Check for bot/crawler patterns
     const botPatterns = [/bot/i, /crawler/i, /spider/i, /scraper/i]
 
     if (botPatterns.some(pattern => pattern.test(userAgent))) {
@@ -191,9 +161,6 @@ export function withSecurityLogging<T extends any[]>(
   }
 }
 
-/**
- * Rate Limiting Logging Integration
- */
 export function logRateLimitEvent(
   identifier: string,
   endpoint: string,
@@ -219,9 +186,6 @@ export function logRateLimitEvent(
   }
 }
 
-/**
- * User Activity Logging
- */
 export function logUserActivity(
   userId: string,
   action: string,
@@ -231,9 +195,6 @@ export function logUserActivity(
   log.audit(action, userId, resource, details)
 }
 
-/**
- * Database Operation Logging
- */
 export function logDatabaseOperation(
   operation: string,
   collection: string,
@@ -243,9 +204,6 @@ export function logDatabaseOperation(
   log.database(`${operation} on ${collection}`, duration, details)
 }
 
-/**
- * Business Event Logging
- */
 export function logBusinessEvent(
   event: string,
   userId?: string,
@@ -259,9 +217,6 @@ export function logBusinessEvent(
   })
 }
 
-/**
- * Error Boundary Logging
- */
 export function logError(
   error: Error,
   context: string,
@@ -275,7 +230,6 @@ export function logError(
   })
 }
 
-// Helper functions
 function isSensitiveHeader(headerName: string): boolean {
   const sensitiveHeaders = [
     'authorization',
@@ -312,9 +266,6 @@ function sanitizeBody(body: any, sensitiveFields: string[] = []): any {
   return sanitized
 }
 
-/**
- * Performance Monitoring Decorator
- */
 export function withPerformanceMonitoring<T extends any[], R>(
   fn: (...args: T) => Promise<R>,
   operationName: string

@@ -165,9 +165,7 @@ export const POST = withSecurityLogging(
               convertedFromLead: true,
             },
           })
-        } catch (activityError) {
-          console.error('Failed to log conversion activities:', activityError)
-        }
+        } catch (activityError) {}
 
         // Log user activity
         logUserActivity(

@@ -65,7 +65,6 @@ export function RecentActivity() {
     { skip: !currentWorkspace?.id }
   )
 
-  // Extract activities from the response
   const activities = activitiesData?.activities || []
 
   if (isLoading) {

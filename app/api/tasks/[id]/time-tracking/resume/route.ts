@@ -118,7 +118,6 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error('Error resuming time tracking:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

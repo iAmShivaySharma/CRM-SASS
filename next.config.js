@@ -1,15 +1,54 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true, // ESLint runs via Husky pre-commit/pre-push
+    ignoreDuringBuilds: true,
   },
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ['mongoose'], // ✅ updated config
+  serverExternalPackages: ['mongoose'],
+  async headers() {
+    return [
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/api/analytics/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 's-maxage=300, stale-while-revalidate=600',
+          },
+        ],
+      },
+      {
+        source: '/api/leads',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 's-maxage=60, stale-while-revalidate=120',
+          },
+        ],
+      },
+      {
+        source: '/api/engines/catalog',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 's-maxage=3600, stale-while-revalidate=7200',
+          },
+        ],
+      },
+    ]
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // Handle MongoDB optional dependencies
       config.externals.push({
         kerberos: 'commonjs kerberos',
         '@mongodb-js/zstd': 'commonjs @mongodb-js/zstd',

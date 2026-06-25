@@ -56,8 +56,6 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Get cleanup job status error:', error)
-
     return NextResponse.json(
       {
         success: false,
@@ -121,8 +119,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`Manual cleanup job triggered by user ${auth.user.email}`)
-
     // Run cleanup job manually
     const stats = await runManualCleanup()
 
@@ -136,8 +132,6 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Manual cleanup job error:', error)
-
     return NextResponse.json(
       {
         success: false,

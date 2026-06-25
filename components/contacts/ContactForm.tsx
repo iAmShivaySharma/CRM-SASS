@@ -60,7 +60,6 @@ const contactSchema = z.object({
   notes: z.string().max(2000, 'Notes too long').optional().or(z.literal('')),
   lastContactDate: z.string().optional().or(z.literal('')),
   nextFollowUpDate: z.string().optional().or(z.literal('')),
-  // Address fields
   street: z.string().optional().or(z.literal('')),
   city: z.string().optional().or(z.literal('')),
   state: z.string().optional().or(z.literal('')),
@@ -123,7 +122,6 @@ export function ContactForm({
     },
   })
 
-  // RTK Query hooks
   const { data: membersData } = useGetWorkspaceMembersQuery(workspaceId, {
     skip: !workspaceId,
   })
@@ -136,7 +134,6 @@ export function ContactForm({
   const users = membersData?.members || []
   const tags = tagsData?.tags || []
 
-  // Initialize form with contact data if editing
   useEffect(() => {
     if (contact) {
       reset({
@@ -213,7 +210,6 @@ export function ContactForm({
           : undefined,
       }
 
-      // Add address only if at least one field is filled
       if (
         data.street ||
         data.city ||

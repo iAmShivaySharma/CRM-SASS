@@ -27,8 +27,6 @@ export interface ProcessedLead {
   tags?: string[]
   priority?: 'low' | 'medium' | 'high'
 }
-
-// Import all processors
 import { FacebookLeadsProcessor } from './facebook'
 import { GoogleFormsProcessor } from './google-forms'
 import { LinkedInProcessor } from './linkedin'
@@ -36,8 +34,6 @@ import { HubSpotProcessor } from './hubspot'
 import { ZapierProcessor } from './zapier'
 import { SwipePagesProcessor } from './swipepages'
 import { GenericProcessor } from './generic'
-
-// Registry of all available processors
 export const WEBHOOK_PROCESSORS: Record<string, WebhookProcessor> = {
   facebook: new FacebookLeadsProcessor(),
   'google-forms': new GoogleFormsProcessor(),
@@ -48,36 +44,26 @@ export const WEBHOOK_PROCESSORS: Record<string, WebhookProcessor> = {
   generic: new GenericProcessor(),
 }
 
-/**
- * Get the appropriate processor for a webhook type
- */
 export function getWebhookProcessor(type: string): WebhookProcessor {
   const processor = WEBHOOK_PROCESSORS[type.toLowerCase()]
   if (!processor) {
-    // Fall back to generic processor
     return WEBHOOK_PROCESSORS.generic
   }
   return processor
 }
 
-/**
- * Auto-detect webhook type based on request headers and data
- */
 export function detectWebhookType(request: NextRequest, data: any): string {
   const userAgent = request.headers.get('user-agent')?.toLowerCase() || ''
   const contentType = request.headers.get('content-type')?.toLowerCase() || ''
 
-  // Check for Facebook webhooks
   if (userAgent.includes('facebook') || data.object === 'page' || data.entry) {
     return 'facebook'
   }
 
-  // Check for Google Forms
   if (userAgent.includes('google') || data.form_response || data.formId) {
     return 'google-forms'
   }
 
-  // Check for LinkedIn
   if (
     userAgent.includes('linkedin') ||
     data.leadGenForms ||
@@ -86,17 +72,14 @@ export function detectWebhookType(request: NextRequest, data: any): string {
     return 'linkedin'
   }
 
-  // Check for HubSpot
   if (userAgent.includes('hubspot') || data.subscriptionType || data.portalId) {
     return 'hubspot'
   }
 
-  // Check for Zapier
   if (userAgent.includes('zapier') || request.headers.get('x-zapier-source')) {
     return 'zapier'
   }
 
-  // Check for SwipePages
   if (
     userAgent.includes('swipepages') ||
     request.headers.get('x-swipepages-webhook') ||
@@ -107,13 +90,9 @@ export function detectWebhookType(request: NextRequest, data: any): string {
     return 'swipepages'
   }
 
-  // Default to generic
   return 'generic'
 }
 
-/**
- * Process webhook data with the appropriate processor
- */
 export async function processWebhook(
   type: string,
   data: any,
@@ -121,25 +100,17 @@ export async function processWebhook(
 ): Promise<ProcessedWebhookData> {
   const processor = getWebhookProcessor(type)
 
-  // Validate the data first
   if (!processor.validate(data)) {
     throw new Error(`Invalid data format for ${type} webhook`)
   }
 
-  // Process the data
   return await processor.process(data, request)
 }
 
-/**
- * Get all available webhook types
- */
 export function getAvailableWebhookTypes(): string[] {
   return Object.keys(WEBHOOK_PROCESSORS)
 }
 
-/**
- * Get processor information
- */
 export function getProcessorInfo(type: string): {
   name: string
   description: string

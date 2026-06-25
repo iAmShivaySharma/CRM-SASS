@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
-// Analytics API Types
 export interface DashboardAnalytics {
   totalLeads: number
   totalLeadsPrevious: number
@@ -11,12 +10,10 @@ export interface DashboardAnalytics {
   growth: number
   growthPrevious: number
 
-  // Quick stats
   activeDeals: number
   monthlyRevenue: number
   newLeads: number
 
-  // Performance metrics
   salesTargetProgress: number
   leadQualityScore: number
   customerSatisfaction: number
@@ -74,7 +71,6 @@ export const analyticsApi = createApi({
     'Workspace',
   ],
   endpoints: builder => ({
-    // Dashboard Analytics
     getDashboardAnalytics: builder.query<
       { success: boolean; data: DashboardAnalytics },
       AnalyticsFilters
@@ -94,7 +90,6 @@ export const analyticsApi = createApi({
       providesTags: ['Analytics', 'Dashboard', 'Workspace'],
     }),
 
-    // Pipeline Analytics
     getPipelineAnalytics: builder.query<
       { success: boolean; data: PipelineAnalytics[] },
       AnalyticsFilters
@@ -110,7 +105,6 @@ export const analyticsApi = createApi({
       providesTags: ['Analytics', 'Pipeline', 'Workspace'],
     }),
 
-    // Time Series Analytics
     getTimeSeriesAnalytics: builder.query<
       { success: boolean; data: TimeSeriesData[] },
       AnalyticsFilters & { granularity?: 'day' | 'week' | 'month' }
@@ -126,7 +120,6 @@ export const analyticsApi = createApi({
       providesTags: ['Analytics', 'TimeSeries', 'Workspace'],
     }),
 
-    // Lead Source Analytics
     getLeadSourceAnalytics: builder.query<
       { success: boolean; data: LeadSourceAnalytics[] },
       AnalyticsFilters
@@ -142,7 +135,6 @@ export const analyticsApi = createApi({
       providesTags: ['Analytics', 'LeadSource', 'Workspace'],
     }),
 
-    // Performance Metrics
     getPerformanceMetrics: builder.query<
       {
         success: boolean

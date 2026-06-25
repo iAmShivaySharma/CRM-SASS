@@ -216,13 +216,7 @@ export async function POST(
               value: validationResult.data.value,
             },
           })
-        } catch (notificationError) {
-          console.error(
-            'Failed to create webhook lead notification:',
-            notificationError
-          )
-          // Don't fail webhook processing if notification fails
-        }
+        } catch (notificationError) {}
       } catch (error) {
         errors.push({
           leadData: leadData.name || leadData.email,
@@ -279,8 +273,6 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error('Webhook processing error:', error)
-
     // Update webhook statistics for failed request
     await Webhook.findByIdAndUpdate(webhookId, {
       $inc: {
@@ -305,9 +297,7 @@ export async function POST(
         userAgent: request.headers.get('user-agent') || '',
         ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
       })
-    } catch (logError) {
-      console.error('Failed to log webhook error:', logError)
-    }
+    } catch (logError) {}
 
     return NextResponse.json(
       { error: 'Internal server error' },

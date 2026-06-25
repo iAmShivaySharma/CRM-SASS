@@ -155,7 +155,6 @@ export const contactsApi = createApi({
   }),
   tagTypes: ['Contact', 'ContactsList'],
   endpoints: builder => ({
-    // Get all contacts
     getContacts: builder.query<ContactsListResponse, ContactsQueryParams>({
       query: ({
         workspaceId,
@@ -193,7 +192,6 @@ export const contactsApi = createApi({
           : [{ type: 'ContactsList', id: 'LIST' }],
     }),
 
-    // Get a single contact
     getContact: builder.query<
       ContactResponse,
       { id: string; workspaceId: string }
@@ -202,7 +200,6 @@ export const contactsApi = createApi({
       providesTags: (result, error, { id }) => [{ type: 'Contact', id }],
     }),
 
-    // Create a new contact
     createContact: builder.mutation<
       ContactResponse,
       { data: CreateContactRequest; workspaceId: string }
@@ -215,7 +212,6 @@ export const contactsApi = createApi({
       invalidatesTags: [{ type: 'ContactsList', id: 'LIST' }],
     }),
 
-    // Update a contact
     updateContact: builder.mutation<
       ContactResponse,
       { id: string; data: UpdateContactRequest; workspaceId: string }
@@ -231,7 +227,6 @@ export const contactsApi = createApi({
       ],
     }),
 
-    // Delete a contact
     deleteContact: builder.mutation<
       { success: boolean; message: string },
       { id: string; workspaceId: string }
@@ -246,7 +241,6 @@ export const contactsApi = createApi({
       ],
     }),
 
-    // Convert lead to contact
     convertLeadToContact: builder.mutation<
       ConvertLeadToContactResponse,
       { leadId: string; workspaceId: string }

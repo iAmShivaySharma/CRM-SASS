@@ -82,13 +82,11 @@ export function BlockEditor({
   const [imageAlt, setImageAlt] = useState('')
   const [selectedText, setSelectedText] = useState('')
 
-  // Convert content to HTML string
   const getContentAsHtml = useCallback(() => {
     if (typeof content === 'string') {
       return content
     }
     if (Array.isArray(content) && content.length > 0) {
-      // Convert block content to HTML
       return content
         .map(block => {
           if (typeof block === 'string') return block
@@ -106,7 +104,6 @@ export function BlockEditor({
     return ''
   }, [content])
 
-  // Initialize editor content
   useEffect(() => {
     if (editorRef.current && editable) {
       const htmlContent = getContentAsHtml()
@@ -129,7 +126,6 @@ export function BlockEditor({
     if (!onChange || !editorRef.current) return
 
     const htmlContent = editorRef.current.innerHTML
-    // Convert HTML back to blocks format
     const blocks = [
       {
         type: 'paragraph',
@@ -146,7 +142,6 @@ export function BlockEditor({
         onSave?.()
       }
 
-      // Enhanced Tab support for nested lists
       if (e.key === 'Tab') {
         e.preventDefault()
         const selection = window.getSelection()
@@ -156,14 +151,11 @@ export function BlockEditor({
 
           if (listItem) {
             if (e.shiftKey) {
-              // Outdent - move to parent level
               execCommand('outdent')
             } else {
-              // Indent - create nested list
               execCommand('indent')
             }
           } else {
-            // Regular indentation for non-list items
             if (e.shiftKey) {
               execCommand('outdent')
             } else {
@@ -173,7 +165,6 @@ export function BlockEditor({
         }
       }
 
-      // Enter key handling for lists
       if (e.key === 'Enter') {
         const selection = window.getSelection()
         if (selection && selection.rangeCount > 0) {
@@ -181,7 +172,6 @@ export function BlockEditor({
           const listItem = range.startContainer.parentElement?.closest('li')
 
           if (listItem && listItem.textContent?.trim() === '') {
-            // Empty list item - outdent or exit list
             e.preventDefault()
             execCommand('outdent')
           }
@@ -217,11 +207,9 @@ export function BlockEditor({
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0)
 
-      // Create checklist item container
       const checklistItem = document.createElement('div')
       checklistItem.className = 'checklist-item'
 
-      // Create checkbox
       const checkbox = document.createElement('input')
       checkbox.type = 'checkbox'
       checkbox.className = 'mr-2 rounded'
@@ -239,7 +227,6 @@ export function BlockEditor({
         handleInput()
       })
 
-      // Create text span
       const textSpan = document.createElement('span')
       textSpan.contentEditable = 'true'
       textSpan.textContent = 'Add your task here'
@@ -248,7 +235,6 @@ export function BlockEditor({
       checklistItem.appendChild(checkbox)
       checklistItem.appendChild(textSpan)
 
-      // Insert the checklist item
       const lineBreakBefore = document.createElement('br')
       const lineBreakAfter = document.createElement('br')
 
@@ -256,7 +242,6 @@ export function BlockEditor({
       range.insertNode(checklistItem)
       range.insertNode(lineBreakBefore)
 
-      // Focus on the text span
       const newRange = document.createRange()
       newRange.selectNodeContents(textSpan)
       selection.removeAllRanges()
@@ -393,7 +378,6 @@ export function BlockEditor({
     <div className={`bg-background ${className}`}>
       {editable && (
         <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b bg-background/80 p-3 backdrop-blur-sm">
-          {/* Undo/Redo */}
           <div className="flex items-center gap-1">
             {toolbarButtons.map(({ icon: Icon, command, title }) => (
               <Button
@@ -411,7 +395,6 @@ export function BlockEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Headings Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8">
@@ -441,7 +424,6 @@ export function BlockEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Text Formatting */}
           <div className="flex items-center gap-1">
             {formatButtons.map(({ icon: Icon, command, title }) => (
               <Button
@@ -459,7 +441,6 @@ export function BlockEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Text Color */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -486,7 +467,6 @@ export function BlockEditor({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Background Color */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -515,7 +495,6 @@ export function BlockEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Lists */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8">
@@ -545,7 +524,6 @@ export function BlockEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Alignment */}
           <div className="flex items-center gap-1">
             {alignButtons.map(({ icon: Icon, command, title }) => (
               <Button
@@ -563,7 +541,6 @@ export function BlockEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Insert Elements */}
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -606,7 +583,6 @@ export function BlockEditor({
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* More Options */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -632,7 +608,6 @@ export function BlockEditor({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Save Button */}
           <div className="ml-auto">
             {onSave && (
               <Button
@@ -670,7 +645,6 @@ export function BlockEditor({
         }
       />
 
-      {/* Link Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
         <DialogContent>
           <DialogHeader>
@@ -712,7 +686,6 @@ export function BlockEditor({
         </DialogContent>
       </Dialog>
 
-      {/* Image Dialog */}
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
         <DialogContent>
           <DialogHeader>
@@ -968,7 +941,6 @@ export function BlockEditor({
   )
 }
 
-// Export a read-only version for displaying documents
 export function BlockReader({
   content = '',
   className = '',

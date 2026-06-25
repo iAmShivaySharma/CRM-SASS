@@ -112,7 +112,6 @@ export default function BlogsManagementPage() {
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
@@ -135,7 +134,6 @@ export default function BlogsManagementPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -169,12 +167,10 @@ export default function BlogsManagementPage() {
         </Select>
       </div>
 
-      {/* Stats */}
       <div className="text-sm text-muted-foreground">
         {total} blog post{total !== 1 ? 's' : ''} found
       </div>
 
-      {/* Table */}
       <div className="overflow-hidden rounded-lg border border-border">
         <table className="w-full">
           <thead className="bg-muted/50">
@@ -280,7 +276,6 @@ export default function BlogsManagementPage() {
         </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <Button

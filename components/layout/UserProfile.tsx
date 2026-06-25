@@ -63,7 +63,7 @@ const mockUser = {
     features: ['Unlimited Leads', 'Advanced Analytics', 'Team Collaboration'],
     usage: {
       leads: { current: 1250, limit: 5000 },
-      storage: { current: 2.1, limit: 10 }, // GB
+      storage: { current: 2.1, limit: 10 },
       users: { current: 5, limit: 25 },
     },
   },
@@ -100,16 +100,14 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [logoutUser] = useLogoutMutation()
 
-  // Use real user data if available, otherwise use mock data
   const currentUser = user
     ? {
         ...user,
-        avatar: null, // User interface doesn't have avatar yet
-        plan: mockUser.plan, // Use mock plan data for now
+        avatar: null,
+        plan: mockUser.plan,
       }
     : mockUser
 
-  // Safe handling of user initials
   const userName = currentUser?.name || currentUser?.email || 'User'
   const userInitials = userName
     .split(' ')
@@ -120,11 +118,9 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
   const handleLogout = async () => {
     try {
       await logoutUser().unwrap()
-      // Redirect to login page
       window.location.href = '/login'
     } catch (error) {
       console.error('Logout error:', error)
-      // Even if logout API fails, redirect to login
       window.location.href = '/login'
     }
   }

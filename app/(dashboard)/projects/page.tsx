@@ -46,7 +46,6 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
@@ -60,7 +59,6 @@ export default function ProjectsPage() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-4">
           <StatsCardSkeleton />
@@ -123,7 +121,6 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      {/* Filters and Search */}
       <div className="flex items-center gap-4">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -164,7 +161,6 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* Projects Display */}
       {isLoading ? (
         viewMode === 'grid' ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -207,7 +203,6 @@ export default function ProjectsPage() {
         <ProjectsList projects={projectsData.projects} />
       )}
 
-      {/* Create Project Dialog */}
       <CreateProjectDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}

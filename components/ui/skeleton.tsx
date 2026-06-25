@@ -1,10 +1,3 @@
-/**
- * Enhanced Skeleton Loading Components
- *
- * Provides comprehensive skeleton loading patterns for different UI elements.
- * Fully responsive and follows design system patterns.
- */
-
 import { cn } from '@/lib/utils'
 
 function Skeleton({
@@ -19,7 +12,6 @@ function Skeleton({
   )
 }
 
-// Card Skeleton
 function CardSkeleton({
   className,
   ...props
@@ -42,7 +34,6 @@ function CardSkeleton({
   )
 }
 
-// Table Skeleton
 function TableSkeleton({
   rows = 5,
   columns = 4,
@@ -54,13 +45,11 @@ function TableSkeleton({
 } & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn('space-y-3', className)} {...props}>
-      {/* Header */}
       <div className="flex space-x-4">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1" />
         ))}
       </div>
-      {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div key={rowIndex} className="flex space-x-4">
           {Array.from({ length: columns }).map((_, colIndex) => (
@@ -72,7 +61,6 @@ function TableSkeleton({
   )
 }
 
-// Avatar Skeleton
 function AvatarSkeleton({
   className,
   ...props
@@ -82,7 +70,6 @@ function AvatarSkeleton({
   )
 }
 
-// Button Skeleton
 function ButtonSkeleton({
   className,
   ...props
@@ -92,7 +79,6 @@ function ButtonSkeleton({
   )
 }
 
-// Input Skeleton
 function InputSkeleton({
   className,
   ...props
@@ -105,7 +91,6 @@ function InputSkeleton({
   )
 }
 
-// Form Skeleton
 function FormSkeleton({
   fields = 3,
   className,
@@ -126,7 +111,6 @@ function FormSkeleton({
   )
 }
 
-// List Item Skeleton
 function ListItemSkeleton({
   className,
   ...props
@@ -146,7 +130,6 @@ function ListItemSkeleton({
   )
 }
 
-// Stats Card Skeleton
 function StatsCardSkeleton({
   className,
   ...props
@@ -167,7 +150,6 @@ function StatsCardSkeleton({
   )
 }
 
-// Page Header Skeleton
 function PageHeaderSkeleton({
   className,
   ...props
@@ -188,7 +170,6 @@ function PageHeaderSkeleton({
   )
 }
 
-// Workspace Switcher Skeleton
 function WorkspaceSwitcherSkeleton({
   className,
   ...props
@@ -208,13 +189,15 @@ function WorkspaceSwitcherSkeleton({
   )
 }
 
-// Kanban Column Skeleton
 function KanbanColumnSkeleton({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('space-y-4 rounded-lg border p-4', className)} {...props}>
+    <div
+      className={cn('space-y-4 rounded-lg border p-4', className)}
+      {...props}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Skeleton className="h-3 w-3 rounded-full" />
@@ -225,7 +208,7 @@ function KanbanColumnSkeleton({
       </div>
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="rounded-lg border p-3 space-y-2">
+          <div key={i} className="space-y-2 rounded-lg border p-3">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-full" />
             <Skeleton className="h-3 w-1/2" />
@@ -240,13 +223,18 @@ function KanbanColumnSkeleton({
   )
 }
 
-// Kanban Board Skeleton
 function KanbanBoardSkeleton({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('grid min-h-[600px] grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4', className)} {...props}>
+    <div
+      className={cn(
+        'grid min-h-[600px] grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4',
+        className
+      )}
+      {...props}
+    >
       {Array.from({ length: 4 }).map((_, i) => (
         <KanbanColumnSkeleton key={i} />
       ))}
@@ -254,7 +242,6 @@ function KanbanBoardSkeleton({
   )
 }
 
-// Chat Message Skeleton
 function ChatMessageSkeleton({
   className,
   ...props
@@ -274,7 +261,6 @@ function ChatMessageSkeleton({
   )
 }
 
-// Chat Messages List Skeleton
 function ChatMessagesListSkeleton({
   className,
   ...props

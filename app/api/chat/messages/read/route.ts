@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Message, ChatRoom } from '@/lib/mongodb/models'
+import { MessageRead } from '@/lib/mongodb/models/MessageRead'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 
 export async function POST(request: NextRequest) {
@@ -23,7 +24,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user has access to chat room
     const chatRoom = await ChatRoom.findById(chatRoomId)
 
     if (!chatRoom) {
@@ -40,24 +40,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Mark messages as read
     const filter =
       messageIds && messageIds.length > 0
         ? { _id: { $in: messageIds }, chatRoomId }
-        : { chatRoomId, senderId: { $ne: auth.user._id } } // Mark all messages not sent by user
+        : { chatRoomId, senderId: { $ne: auth.user._id } }
 
-    await Message.updateMany(filter, {
-      $addToSet: {
-        readBy: {
-          userId: auth.user._id,
-          readAt: new Date(),
+    const messages = await Message.find(filter).select('_id').lean()
+
+    if (messages.length > 0) {
+      const now = new Date()
+      const ops = messages.map((msg: any) => ({
+        updateOne: {
+          filter: { messageId: msg._id.toString(), userId: auth.user._id },
+          update: {
+            $setOnInsert: {
+              messageId: msg._id.toString(),
+              chatRoomId,
+              userId: auth.user._id,
+              readAt: now,
+            },
+          },
+          upsert: true,
         },
-      },
-    })
+      }))
+      await MessageRead.bulkWrite(ops, { ordered: false })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Mark messages read error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

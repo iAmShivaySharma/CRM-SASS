@@ -82,16 +82,10 @@ export async function PATCH(
 
     await apiKey.save()
 
-    console.log(
-      `API key updated for user ${auth.user.email}: ${apiKey.keyName}`
-    )
-
     return NextResponse.json({
       success: true,
     })
   } catch (error) {
-    console.error('Update API key error:', error)
-
     return NextResponse.json(
       {
         success: false,
@@ -145,16 +139,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'API key not found' }, { status: 404 })
     }
 
-    console.log(
-      `API key deleted for user ${auth.user.email}: ${apiKey.keyName}`
-    )
-
     return NextResponse.json({
       success: true,
     })
   } catch (error) {
-    console.error('Delete API key error:', error)
-
     return NextResponse.json(
       {
         success: false,

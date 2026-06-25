@@ -81,7 +81,6 @@ export default function LeavesPage() {
 
   return (
     <div className="flex flex-col space-y-6 p-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -104,7 +103,6 @@ export default function LeavesPage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -183,7 +181,6 @@ export default function LeavesPage() {
         </Card>
       </div>
 
-      {/* Leave Usage Overview */}
       <Card>
         <CardHeader>
           <CardTitle>Leave Usage Overview</CardTitle>
@@ -245,7 +242,6 @@ export default function LeavesPage() {
         </CardContent>
       </Card>
 
-      {/* Main Content Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}

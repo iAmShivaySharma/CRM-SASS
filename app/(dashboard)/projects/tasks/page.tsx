@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import { Plus, Search, Filter, List, Grid, LayoutGrid } from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
 import { useGetTasksQuery, useGetProjectsQuery } from '@/lib/api/projectsApi'
-import { useGetUserPreferencesQuery, usePatchUserPreferencesMutation } from '@/lib/api/userPreferencesApi'
+import {
+  useGetUserPreferencesQuery,
+  usePatchUserPreferencesMutation,
+} from '@/lib/api/userPreferencesApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,11 +33,9 @@ export default function TasksPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingTask, setEditingTask] = useState<any>(null)
 
-  // Get user preferences for project selection persistence
   const { data: userPreferences } = useGetUserPreferencesQuery()
   const [patchUserPreferences] = usePatchUserPreferencesMutation()
 
-  // Get available projects
   const { data: projectsData } = useGetProjectsQuery(
     {
       workspaceId: currentWorkspace?.id || '',
@@ -44,18 +45,22 @@ export default function TasksPage() {
     }
   )
 
-  // Load saved project selection from preferences
   useEffect(() => {
-    if (userPreferences?.preferences?.workspace?.selectedProjectId && projectsData?.projects) {
-      const savedProjectId = userPreferences.preferences.workspace.selectedProjectId
-      const projectExists = projectsData.projects.some(p => p.id === savedProjectId)
+    if (
+      userPreferences?.preferences?.workspace?.selectedProjectId &&
+      projectsData?.projects
+    ) {
+      const savedProjectId =
+        userPreferences.preferences.workspace.selectedProjectId
+      const projectExists = projectsData.projects.some(
+        p => p.id === savedProjectId
+      )
       if (projectExists) {
         setProjectFilter(savedProjectId)
       }
     }
   }, [userPreferences, projectsData])
 
-  // Save project selection to preferences
   const handleProjectFilterChange = async (projectId: string) => {
     setProjectFilter(projectId)
 
@@ -64,8 +69,8 @@ export default function TasksPage() {
         await patchUserPreferences({
           workspace: {
             selectedProjectId: projectId,
-            lastActiveProjectId: projectId
-          }
+            lastActiveProjectId: projectId,
+          },
         })
       } catch (error) {
         console.error('Failed to save project selection:', error)
@@ -73,7 +78,6 @@ export default function TasksPage() {
     }
   }
 
-  // Get tasks for selected project or all projects
   const {
     data: tasksData,
     isLoading,
@@ -113,7 +117,6 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
@@ -138,7 +141,6 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -183,7 +185,6 @@ export default function TasksPage() {
         </Card>
       </div>
 
-      {/* Filters and Search */}
       <div className="flex items-center gap-4">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -240,7 +241,6 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* Tasks Display */}
       {isLoading ? (
         viewMode === 'kanban' ? (
           <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
@@ -305,7 +305,6 @@ export default function TasksPage() {
         <TasksList tasks={tasksData?.tasks} onEditTask={handleEditTask} />
       )}
 
-      {/* Create Task Dialog */}
       <CreateTaskDialog
         open={showCreateDialog}
         onOpenChange={handleCloseDialog}

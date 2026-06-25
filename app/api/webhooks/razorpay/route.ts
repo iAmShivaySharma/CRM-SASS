@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
     }
 
-    // Verify webhook signature
     const isValid = verifyWebhookSignature(body, signature)
     if (!isValid) {
       log.warn('Razorpay webhook signature verification failed')
@@ -78,10 +77,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Handle payment.captured - a payment has been successfully captured
- * This fires for one-time payments. Activate the subscription.
- */
 async function handlePaymentCaptured(event: any) {
   const payment = event.payload.payment.entity
   const notes = payment.notes || {}
@@ -103,7 +98,6 @@ async function handlePaymentCaptured(event: any) {
   const periodEnd = new Date(now)
   periodEnd.setMonth(periodEnd.getMonth() + 1)
 
-  // Update or create subscription
   await (Subscription as any).findOneAndUpdate(
     { workspaceId },
     {
@@ -125,7 +119,6 @@ async function handlePaymentCaptured(event: any) {
     { upsert: true, new: true }
   )
 
-  // Update workspace
   await (Workspace as any).findByIdAndUpdate(workspaceId, {
     planId,
     subscriptionStatus: 'active',
@@ -138,9 +131,6 @@ async function handlePaymentCaptured(event: any) {
   })
 }
 
-/**
- * Handle subscription.activated - a Razorpay subscription has been activated
- */
 async function handleSubscriptionActivated(event: any) {
   const subscription = event.payload.subscription.entity
   const notes = subscription.notes || {}
@@ -189,10 +179,6 @@ async function handleSubscriptionActivated(event: any) {
   })
 }
 
-/**
- * Handle subscription.charged - a recurring charge was successful
- * Extend the subscription period
- */
 async function handleSubscriptionCharged(event: any) {
   const subscription = event.payload.subscription.entity
   const payment = event.payload.payment?.entity
@@ -238,9 +224,6 @@ async function handleSubscriptionCharged(event: any) {
   })
 }
 
-/**
- * Handle subscription.cancelled
- */
 async function handleSubscriptionCancelled(event: any) {
   const subscription = event.payload.subscription.entity
   const notes = subscription.notes || {}
@@ -262,7 +245,6 @@ async function handleSubscriptionCancelled(event: any) {
     }
   )
 
-  // Downgrade workspace to free plan
   await (Workspace as any).findByIdAndUpdate(workspaceId, {
     subscriptionStatus: 'cancelled',
   })
@@ -273,9 +255,6 @@ async function handleSubscriptionCancelled(event: any) {
   })
 }
 
-/**
- * Handle subscription.paused
- */
 async function handleSubscriptionPaused(event: any) {
   const subscription = event.payload.subscription.entity
   const notes = subscription.notes || {}
@@ -298,9 +277,6 @@ async function handleSubscriptionPaused(event: any) {
   })
 }
 
-/**
- * Handle subscription.resumed
- */
 async function handleSubscriptionResumed(event: any) {
   const subscription = event.payload.subscription.entity
   const notes = subscription.notes || {}
@@ -323,9 +299,6 @@ async function handleSubscriptionResumed(event: any) {
   })
 }
 
-/**
- * Handle payment.failed - mark subscription as past_due
- */
 async function handlePaymentFailed(event: any) {
   const payment = event.payload.payment.entity
   const notes = payment.notes || {}

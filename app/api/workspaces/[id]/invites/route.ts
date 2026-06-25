@@ -1,13 +1,3 @@
-/**
- * Workspace Invitations API Endpoint
- *
- * Handles workspace member invitations including:
- * - GET: List pending invitations
- * - POST: Send new invitation
- * - PUT: Resend invitation
- * - DELETE: Cancel invitation
- */
-
 import crypto from 'crypto'
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -33,7 +23,6 @@ import { getClientIP } from '@/lib/utils/ip-utils'
 import { NotificationService } from '@/lib/services/notificationService'
 import { emailService } from '@/lib/services/emailService'
 
-// Validation schemas
 const inviteUserSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase(),
   roleId: z.string().min(1, 'Role is required'),
@@ -43,12 +32,10 @@ const inviteUserSchema = z.object({
     .optional(),
 })
 
-// Generate invitation token
 function generateInviteToken(): string {
   return crypto.randomBytes(32).toString('hex')
 }
 
-// GET /api/workspaces/[id]/invites - List pending invitations
 export const GET = withSecurityLogging(
   withLogging(
     async (
@@ -58,10 +45,8 @@ export const GET = withSecurityLogging(
       const startTime = Date.now()
 
       try {
-        // Ensure database connection
         await connectToMongoDB()
 
-        // Rate limiting
         const clientIp = getClientIP(request)
         const rateLimitResult = await rateLimit(clientIp, 'api')
         if (!rateLimitResult.success) {
@@ -71,7 +56,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Authentication
         const authResult = await requireAuth(request)
         if (!authResult.success) {
           return authResult.response
@@ -80,7 +64,6 @@ export const GET = withSecurityLogging(
         const userId = authResult.user.id
         const { id: workspaceId } = await params
 
-        // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
           return NextResponse.json(
             { message: 'Invalid workspace ID format' },
@@ -88,7 +71,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check if user has permission to view invitations
         const membership = await WorkspaceMember.findOne({
           workspaceId,
           userId,
@@ -104,7 +86,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check permissions
         const userPermissions = membership.roleId?.permissions || []
         if (
           !userPermissions.includes('members.view') &&
@@ -119,7 +100,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Get pending invitations
         const pendingInvites = await Invitation.find({
           workspaceId,
           status: 'pending',
@@ -146,7 +126,6 @@ export const GET = withSecurityLogging(
           status: invite.status,
         }))
 
-        // Log successful access
         logUserActivity(userId, 'invitations_viewed', 'workspace', {
           workspaceId,
           inviteCount: invitations.length,
@@ -185,7 +164,6 @@ export const GET = withSecurityLogging(
   )
 )
 
-// POST /api/workspaces/[id]/invites - Send new invitation
 export const POST = withSecurityLogging(
   withLogging(
     async (
@@ -195,10 +173,8 @@ export const POST = withSecurityLogging(
       const startTime = Date.now()
 
       try {
-        // Ensure database connection
         await connectToMongoDB()
 
-        // Rate limiting - stricter for invitations
         const clientIp = getClientIP(request)
         const rateLimitResult = await rateLimit(clientIp, 'invites')
         if (!rateLimitResult.success) {
@@ -210,7 +186,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Authentication
         const authResult = await requireAuth(request)
         if (!authResult.success) {
           return authResult.response
@@ -219,7 +194,6 @@ export const POST = withSecurityLogging(
         const userId = authResult.user.id
         const { id: workspaceId } = await params
 
-        // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
           return NextResponse.json(
             { message: 'Invalid workspace ID format' },
@@ -227,7 +201,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Parse and validate request body
         const body = await request.json()
         const validationResult = inviteUserSchema.safeParse(body)
 
@@ -243,7 +216,6 @@ export const POST = withSecurityLogging(
 
         const { email, roleId, message } = validationResult.data
 
-        // Check if user has permission to invite members
         const membership = await WorkspaceMember.findOne({
           workspaceId,
           userId,
@@ -261,7 +233,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Check permissions
         const userPermissions = membership.roleId?.permissions || []
         if (
           !userPermissions.includes('members.invite') &&
@@ -276,7 +247,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Validate role exists and belongs to workspace
         const role = await Role.findOne({ _id: roleId, workspaceId })
         if (!role) {
           return NextResponse.json(
@@ -285,8 +255,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Check if user is already a member or has pending invitation
-        // First check for existing invitations
         const existingInvitation = await Invitation.findOne({
           workspaceId,
           email,
@@ -300,7 +268,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Check if user is already a workspace member
         const existingUser = await User.findOne({ email })
         if (existingUser) {
           const existingMember = await WorkspaceMember.findOne({
@@ -317,7 +284,6 @@ export const POST = withSecurityLogging(
           }
         }
 
-        // Get workspace details for invitation
         const workspace = await Workspace.findById(workspaceId)
         if (!workspace) {
           return NextResponse.json(
@@ -326,9 +292,8 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Create invitation
         const inviteToken = generateInviteToken()
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
         const invitation = new Invitation({
           workspaceId,
@@ -342,7 +307,6 @@ export const POST = withSecurityLogging(
 
         await invitation.save()
 
-        // Send invitation email
         try {
           const acceptUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/accept-invitation?token=${inviteToken}`
 
@@ -374,10 +338,8 @@ export const POST = withSecurityLogging(
           }
         } catch (emailError) {
           log.error('Error sending invitation email:', emailError)
-          // Don't fail the invitation creation if email fails
         }
 
-        // Log successful invitation
         logUserActivity(userId, 'member_invited', 'workspace', {
           workspaceId,
           invitedEmail: email,
@@ -392,7 +354,6 @@ export const POST = withSecurityLogging(
           duration: Date.now() - startTime,
         })
 
-        // Create notification for workspace invitation
         try {
           await NotificationService.createNotification({
             workspaceId,
@@ -403,7 +364,7 @@ export const POST = withSecurityLogging(
             entityId: workspaceId,
             createdBy: userId,
             notificationLevel: 'workspace',
-            excludeUserIds: [userId], // Don't notify the inviter
+            excludeUserIds: [userId],
             metadata: {
               invitedEmail: email,
               roleName: role.name,
@@ -411,13 +372,7 @@ export const POST = withSecurityLogging(
                 membership.userId.fullName || membership.userId.email,
             },
           })
-        } catch (notificationError) {
-          console.error(
-            'Failed to create invitation notification:',
-            notificationError
-          )
-          // Don't fail the invitation if notification fails
-        }
+        } catch (notificationError) {}
 
         log.info(
           `Member invited to workspace ${workspaceId} by user ${userId}`,

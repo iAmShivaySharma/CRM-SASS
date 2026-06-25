@@ -1,7 +1,3 @@
-/**
- * LinkedIn Lead Gen Forms Webhook Processor
- */
-
 import { type NextRequest } from 'next/server'
 import {
   type WebhookProcessor,
@@ -20,7 +16,6 @@ export class LinkedInProcessor implements WebhookProcessor {
     data: any,
     request: NextRequest
   ): Promise<ProcessedWebhookData> {
-    // LinkedIn-specific processing logic would go here
     const lead: ProcessedLead = {
       name: data.firstName + ' ' + data.lastName,
       email: data.emailAddress,

@@ -95,7 +95,6 @@ class EmailService {
     }
 
     try {
-      // Import email template
       const { getInvitationEmailTemplate } = await import(
         '@/lib/templates/email/invitationTemplate'
       )

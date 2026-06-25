@@ -4,7 +4,6 @@ import {
   type AuthenticationProvider,
 } from '@microsoft/microsoft-graph-client'
 
-// OAuth Configuration
 export interface OAuthConfig {
   clientId: string
   clientSecret: string
@@ -19,7 +18,6 @@ export interface OAuthTokens {
   scope?: string
 }
 
-// Google OAuth Provider
 export class GoogleOAuthProvider {
   private oauth2Client: any
 
@@ -54,7 +52,7 @@ export class GoogleOAuthProvider {
       access_type: 'offline',
       scope: scopes,
       state: state,
-      prompt: 'consent', // Force consent to get refresh token
+      prompt: 'consent',
     })
   }
 
@@ -69,7 +67,6 @@ export class GoogleOAuthProvider {
         scope: tokens.scope,
       }
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error)
       throw new Error('Failed to exchange authorization code for tokens')
     }
   }
@@ -89,7 +86,6 @@ export class GoogleOAuthProvider {
         scope: credentials.scope,
       }
     } catch (error) {
-      console.error('Error refreshing access token:', error)
       throw new Error('Failed to refresh access token')
     }
   }
@@ -111,7 +107,6 @@ export class GoogleOAuthProvider {
         verified_email: data.verified_email,
       }
     } catch (error) {
-      console.error('Error getting user info:', error)
       throw new Error('Failed to get user information')
     }
   }
@@ -125,7 +120,6 @@ export class GoogleOAuthProvider {
   }
 }
 
-// Microsoft OAuth Provider
 export class MicrosoftOAuthProvider {
   private config: OAuthConfig
 
@@ -191,11 +185,10 @@ export class MicrosoftOAuthProvider {
       return {
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
-        expiresIn: data.expires_in * 1000, // Convert to milliseconds
+        expiresIn: data.expires_in * 1000,
         scope: data.scope,
       }
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error)
       throw new Error('Failed to exchange authorization code for tokens')
     }
   }
@@ -231,7 +224,6 @@ export class MicrosoftOAuthProvider {
         scope: data.scope,
       }
     } catch (error) {
-      console.error('Error refreshing access token:', error)
       throw new Error('Failed to refresh access token')
     }
   }
@@ -258,7 +250,6 @@ export class MicrosoftOAuthProvider {
         surname: data.surname,
       }
     } catch (error) {
-      console.error('Error getting user info:', error)
       throw new Error('Failed to get user information')
     }
   }
@@ -272,7 +263,6 @@ export class MicrosoftOAuthProvider {
   }
 }
 
-// OAuth Provider Factory
 export class OAuthProviderFactory {
   static createProvider(provider: 'gmail' | 'outlook', config: OAuthConfig) {
     switch (provider) {
@@ -316,7 +306,6 @@ export class OAuthProviderFactory {
   }
 }
 
-// State management for OAuth flows
 export interface OAuthState {
   provider: 'gmail' | 'outlook'
   userId: string
@@ -327,7 +316,7 @@ export interface OAuthState {
 
 export class OAuthStateManager {
   private static states = new Map<string, OAuthState>()
-  private static readonly STATE_EXPIRY = 10 * 60 * 1000 // 10 minutes
+  private static readonly STATE_EXPIRY = 10 * 60 * 1000
 
   static generateState(
     provider: 'gmail' | 'outlook',
@@ -357,7 +346,6 @@ export class OAuthStateManager {
 
     this.states.set(stateId, state)
 
-    // Clean up expired states
     this.cleanupExpiredStates()
 
     return stateId
@@ -370,13 +358,11 @@ export class OAuthStateManager {
       return null
     }
 
-    // Check if state has expired
     if (Date.now() - state.timestamp > this.STATE_EXPIRY) {
       this.states.delete(stateId)
       return null
     }
 
-    // Remove state after validation (one-time use)
     this.states.delete(stateId)
     return state
   }

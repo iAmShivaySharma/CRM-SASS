@@ -19,7 +19,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     await connectToMongoDB()
 
-    // Verify authentication
     const auth = await verifyAuthToken(request)
     if (!auth) {
       return NextResponse.json(
@@ -37,7 +36,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
       status: 'active',
@@ -50,7 +48,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Get execution
     const execution = await WorkflowExecution.findOne({
       _id: id,
       userId: auth.user.id,
@@ -64,7 +61,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Get current input requirement
     const inputRequirement = execution.getCurrentInputRequirement()
 
     if (!inputRequirement) {
@@ -77,7 +73,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       })
     }
 
-    // Get pending input request
     const userInput = await UserInput.findOne({
       executionId: execution._id,
       status: 'pending',
@@ -112,8 +107,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       },
     })
   } catch (error) {
-    console.error('Get execution input API error:', error)
-
     return NextResponse.json(
       {
         success: false,
@@ -129,7 +122,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
     await connectToMongoDB()
 
-    // Verify authentication
     const auth = await verifyAuthToken(request)
     if (!auth) {
       return NextResponse.json(
@@ -155,7 +147,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Get user's current workspace
     const workspaceMember = await WorkspaceMember.findOne({
       userId: auth.user.id,
       status: 'active',
@@ -168,7 +159,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Get execution
     const execution = await WorkflowExecution.findOne({
       _id: id,
       userId: auth.user.id,
@@ -182,7 +172,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Check if execution is waiting for input
     if (!execution.dynamicInput.isWaitingForInput) {
       return NextResponse.json(
         { error: 'Execution is not waiting for input' },
@@ -190,7 +179,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Check if input has expired
     const inputRequirement = execution.getCurrentInputRequirement()
     if (inputRequirement?.isExpired) {
       return NextResponse.json(
@@ -199,7 +187,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Get pending user input
     const userInput = await UserInput.findOne({
       executionId: execution._id,
       status: 'pending',
@@ -213,7 +200,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Validate input data against schema
     const validationResult = validateInputData(inputData, userInput.inputSchema)
     if (!validationResult.isValid) {
       return NextResponse.json(
@@ -225,7 +211,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // If validation only, return success
     if (validateOnly) {
       return NextResponse.json({
         success: true,
@@ -238,23 +223,18 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
 
     try {
-      // Create n8n client
       const n8nClient = createN8nClient()
 
-      // Resume workflow with input
       const n8nResult = await n8nClient.resumeWorkflowWithInput(
         execution.n8nExecutionId,
         execution.dynamicInput.webhookUrl!,
         validationResult.sanitizedData
       )
 
-      // Update execution with received input
       await execution.receiveInput(validationResult.sanitizedData)
 
-      // Mark user input as received
       await userInput.markReceived(validationResult.sanitizedData)
 
-      // Check if workflow is now complete or waiting for more input
       if (n8nResult.finished) {
         await execution.markAsCompleted(
           n8nResult.data?.resultData || {},
@@ -262,10 +242,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
             (execution.startedAt?.getTime() || execution.createdAt.getTime())
         )
       }
-
-      console.log(
-        `Input received for execution ${execution._id} at step ${userInput.step}`
-      )
 
       return NextResponse.json({
         success: true,
@@ -288,8 +264,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         },
       })
     } catch (n8nError) {
-      console.error('n8n resume execution error:', n8nError)
-
       return NextResponse.json(
         {
           success: false,
@@ -301,8 +275,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
   } catch (error) {
-    console.error('Provide execution input API error:', error)
-
     return NextResponse.json(
       {
         success: false,
@@ -314,7 +286,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   }
 }
 
-// Helper function to validate input data against schema
 function validateInputData(
   inputData: any,
   schema: any
@@ -334,12 +305,10 @@ function validateInputData(
     }
   }
 
-  // Validate each field in the schema
   for (const [fieldName, fieldSchema] of Object.entries(schema)) {
     const fieldConfig = fieldSchema as any
     const value = inputData[fieldName]
 
-    // Check required fields
     if (
       fieldConfig.required &&
       (value === undefined || value === null || value === '')
@@ -348,7 +317,6 @@ function validateInputData(
       continue
     }
 
-    // Skip validation for optional empty fields
     if (
       !fieldConfig.required &&
       (value === undefined || value === null || value === '')
@@ -356,7 +324,6 @@ function validateInputData(
       continue
     }
 
-    // Type validation
     switch (fieldConfig.type) {
       case 'string':
         if (typeof value !== 'string') {
@@ -364,7 +331,6 @@ function validateInputData(
         } else {
           sanitizedData[fieldName] = value.trim()
 
-          // Length validation
           if (fieldConfig.minLength && value.length < fieldConfig.minLength) {
             errors.push(
               `Field '${fieldName}' must be at least ${fieldConfig.minLength} characters`
@@ -385,7 +351,6 @@ function validateInputData(
         } else {
           sanitizedData[fieldName] = numValue
 
-          // Range validation
           if (fieldConfig.min !== undefined && numValue < fieldConfig.min) {
             errors.push(
               `Field '${fieldName}' must be at least ${fieldConfig.min}`
@@ -427,7 +392,6 @@ function validateInputData(
         sanitizedData[fieldName] = value
     }
 
-    // Enum validation
     if (fieldConfig.enum && Array.isArray(fieldConfig.enum)) {
       if (!fieldConfig.enum.includes(value)) {
         errors.push(

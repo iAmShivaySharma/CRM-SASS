@@ -144,11 +144,17 @@ const LeadSchema = new Schema<ILead>(
 
 // Optimized indexes for performance
 if (typeof window === 'undefined') {
-  LeadSchema.index({ workspaceId: 1, status: 1 })
-  LeadSchema.index({ workspaceId: 1, assignedTo: 1 })
-  LeadSchema.index({ workspaceId: 1, createdAt: -1 })
+  LeadSchema.index({ workspaceId: 1, status: 1, createdAt: -1 })
+  LeadSchema.index({ workspaceId: 1, assignedTo: 1, status: 1 })
+  LeadSchema.index({ workspaceId: 1, source: 1, createdAt: -1 })
+  LeadSchema.index({ workspaceId: 1, priority: 1, status: 1 })
+  LeadSchema.index({ workspaceId: 1, tagIds: 1 })
   LeadSchema.index({ email: 1 }, { sparse: true })
   LeadSchema.index({ nextFollowUpAt: 1 }, { sparse: true })
+  LeadSchema.index(
+    { name: 'text', email: 'text', company: 'text', phone: 'text' },
+    { weights: { name: 10, email: 5, company: 3, phone: 1 } }
+  )
 }
 
 export const Lead =

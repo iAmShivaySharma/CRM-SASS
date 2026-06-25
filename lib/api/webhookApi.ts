@@ -32,7 +32,7 @@ export interface Webhook {
   createdAt: string
   updatedAt: string
   recentLogs?: WebhookLog[]
-  secret?: string // Only included in creation response
+  secret?: string
 }
 
 export interface WebhookLog {
@@ -113,7 +113,7 @@ export const webhookApi = createApi({
   reducerPath: 'webhookApi',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api/webhooks',
-    credentials: 'include', // Use HTTP-only cookies for authentication
+    credentials: 'include',
     prepareHeaders: headers => {
       headers.set('Content-Type', 'application/json')
       return headers

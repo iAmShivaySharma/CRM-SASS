@@ -1,7 +1,3 @@
-/**
- * Zapier Webhook Processor
- */
-
 import { type NextRequest } from 'next/server'
 import {
   type WebhookProcessor,
@@ -13,14 +9,13 @@ export class ZapierProcessor implements WebhookProcessor {
   name = 'Zapier'
 
   validate(data: any): boolean {
-    return true // Zapier can send any format
+    return true
   }
 
   async process(
     data: any,
     request: NextRequest
   ): Promise<ProcessedWebhookData> {
-    // Zapier-specific processing logic would go here
     const lead: ProcessedLead = {
       name:
         data.name || data.full_name || data.first_name + ' ' + data.last_name,

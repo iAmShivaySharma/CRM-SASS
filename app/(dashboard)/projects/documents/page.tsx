@@ -63,11 +63,9 @@ export default function ProjectDocumentsPage() {
   const [showEditorDialog, setShowEditorDialog] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
 
-  // Get user preferences for project selection persistence
   const { data: userPreferences } = useGetUserPreferencesQuery()
   const [patchUserPreferences] = usePatchUserPreferencesMutation()
 
-  // Get available projects
   const { data: projectsData } = useGetProjectsQuery(
     {
       workspaceId: currentWorkspace?.id || '',
@@ -77,7 +75,6 @@ export default function ProjectDocumentsPage() {
     }
   )
 
-  // Get documents for the selected project
   const {
     data: documentsData,
     isLoading: documentsLoading,
@@ -100,7 +97,6 @@ export default function ProjectDocumentsPage() {
   const [createDocument] = useCreateDocumentMutation()
   const [deleteDocument] = useDeleteDocumentMutation()
 
-  // Load saved project selection from preferences
   useEffect(() => {
     if (
       userPreferences?.preferences?.workspace?.selectedProjectId &&
@@ -117,7 +113,6 @@ export default function ProjectDocumentsPage() {
     }
   }, [userPreferences, projectsData])
 
-  // Save project selection to preferences
   const handleProjectFilterChange = async (projectId: string) => {
     setProjectFilter(projectId)
 
@@ -204,10 +199,8 @@ export default function ProjectDocumentsPage() {
 
   const handleShareDocument = async (doc: any) => {
     try {
-      // Generate a shareable link
       const shareUrl = `${window.location.origin}/shared/document/${doc.id}`
 
-      // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl)
       toast.success('Share link copied to clipboard!')
     } catch (error) {
@@ -216,7 +209,6 @@ export default function ProjectDocumentsPage() {
     }
   }
 
-  // Apply additional filtering on the client side
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch =
       search === '' ||
@@ -239,7 +231,6 @@ export default function ProjectDocumentsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -266,7 +257,6 @@ export default function ProjectDocumentsPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -310,7 +300,6 @@ export default function ProjectDocumentsPage() {
         </Card>
       </div>
 
-      {/* Filters and Search */}
       <div className="flex items-center gap-4">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -366,7 +355,6 @@ export default function ProjectDocumentsPage() {
         </div>
       </div>
 
-      {/* Documents Display */}
       {documentsLoading ? (
         viewMode === 'grid' ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -492,7 +480,6 @@ export default function ProjectDocumentsPage() {
                   {extractPlainText(document.content, 150)}
                 </p>
 
-                {/* Tags */}
                 {document.tags && document.tags.length > 0 && (
                   <div className="mb-4 flex flex-wrap gap-1">
                     {document.tags.slice(0, 3).map((tag, index) => (
@@ -508,7 +495,6 @@ export default function ProjectDocumentsPage() {
                   </div>
                 )}
 
-                {/* Author and Date */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-5 w-5">
@@ -603,7 +589,6 @@ export default function ProjectDocumentsPage() {
         </div>
       )}
 
-      {/* Document Editor Dialog */}
       {projectFilter && projectFilter !== 'all' && (
         <DocumentEditorDialog
           open={showEditorDialog}

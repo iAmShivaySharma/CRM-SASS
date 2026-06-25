@@ -69,7 +69,6 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Initialize default chat rooms error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

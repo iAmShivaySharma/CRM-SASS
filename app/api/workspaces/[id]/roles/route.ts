@@ -1,11 +1,3 @@
-/**
- * Workspace Roles API Endpoint
- *
- * Handles CRUD operations for workspace roles including:
- * - GET: List all roles in workspace
- * - POST: Create new role with permissions
- */
-
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import mongoose from 'mongoose'
@@ -24,7 +16,6 @@ import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
 import { getPermissionsForAPI } from '@/lib/permissions/constants'
 
-// Validation schemas
 const createRoleSchema = z.object({
   name: z
     .string()
@@ -40,7 +31,6 @@ const createRoleSchema = z.object({
     .min(1, 'At least one permission is required'),
 })
 
-// GET /api/workspaces/[id]/roles - List workspace roles
 export const GET = withSecurityLogging(
   withLogging(
     async (
@@ -50,10 +40,8 @@ export const GET = withSecurityLogging(
       const startTime = Date.now()
 
       try {
-        // Ensure database connection
         await connectToMongoDB()
 
-        // Authentication
         const auth = await verifyAuthToken(request)
         if (!auth) {
           return NextResponse.json(
@@ -65,7 +53,6 @@ export const GET = withSecurityLogging(
         const userId = auth.user.id
         const { id: workspaceId } = await params
 
-        // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
           return NextResponse.json(
             { message: 'Invalid workspace ID format' },
@@ -73,7 +60,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check if user has permission to view roles
         const membership = await WorkspaceMember.findOne({
           workspaceId,
           userId,
@@ -89,7 +75,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check permissions
         const userPermissions = membership.roleId?.permissions || []
         if (
           !userPermissions.includes('roles.view') &&
@@ -103,10 +88,8 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Get all roles for the workspace
         const roles = await Role.find({ workspaceId }).sort({ createdAt: 1 })
 
-        // Get member count for each role
         const rolesWithCounts = await Promise.all(
           roles.map(async role => {
             const memberCount = await WorkspaceMember.countDocuments({
@@ -128,7 +111,6 @@ export const GET = withSecurityLogging(
           })
         )
 
-        // Log successful access
         logUserActivity(userId, 'roles_viewed', 'workspace', {
           workspaceId,
           roleCount: roles.length,
@@ -149,7 +131,6 @@ export const GET = withSecurityLogging(
           }
         )
 
-        // Get available permissions from constants (no database operations)
         const formattedPermissions = getPermissionsForAPI()
 
         return NextResponse.json({
@@ -176,7 +157,6 @@ export const GET = withSecurityLogging(
   )
 )
 
-// POST /api/workspaces/[id]/roles - Create new role
 export const POST = withSecurityLogging(
   withLogging(
     async (
@@ -186,10 +166,8 @@ export const POST = withSecurityLogging(
       const startTime = Date.now()
 
       try {
-        // Ensure database connection
         await connectToMongoDB()
 
-        // Rate limiting
         const clientIp = getClientIP(request)
         const rateLimitResult = await rateLimit(clientIp, 'api')
         if (!rateLimitResult.success) {
@@ -199,7 +177,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Authentication
         const authResult = await requireAuth(request)
         if (!authResult.success) {
           return authResult.response
@@ -208,7 +185,6 @@ export const POST = withSecurityLogging(
         const userId = authResult.user.id
         const { id: workspaceId } = await params
 
-        // Validate workspace ID format
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
           return NextResponse.json(
             { message: 'Invalid workspace ID format' },
@@ -216,7 +192,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Parse and validate request body
         const body = await request.json()
         const validationResult = createRoleSchema.safeParse(body)
 
@@ -232,7 +207,6 @@ export const POST = withSecurityLogging(
 
         const { name, description, permissions } = validationResult.data
 
-        // Validate permissions exist
         const availablePermissions = getPermissionsForAPI()
         const availablePermissionNames = availablePermissions.map(p => p.id)
 
@@ -249,7 +223,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Check if user has permission to create roles
         const membership = await WorkspaceMember.findOne({
           workspaceId,
           userId,
@@ -265,7 +238,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Check permissions
         const userPermissions = membership.roleId?.permissions || []
         if (
           !userPermissions.includes('roles.create') &&
@@ -280,7 +252,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Check if role name already exists in workspace
         const existingRole = await Role.findOne({ workspaceId, name })
         if (existingRole) {
           return NextResponse.json(
@@ -291,7 +262,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Create new role
         const newRole = new Role({
           workspaceId,
           name,
@@ -302,7 +272,6 @@ export const POST = withSecurityLogging(
 
         await newRole.save()
 
-        // Log successful creation
         logUserActivity(userId, 'role_created', 'workspace', {
           workspaceId,
           roleId: newRole._id,

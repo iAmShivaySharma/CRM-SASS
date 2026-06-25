@@ -75,14 +75,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const { data: uploadConfig } = useGetUploadConfigQuery()
   const { sendMessage, startTyping, stopTyping } = useSocket()
 
-  // Handle typing indicators
   const handleTypingStart = useCallback(() => {
     if (!isTyping) {
       setIsTyping(true)
       startTyping(chatRoomId)
     }
 
-    // Clear existing timeout and set new one
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
@@ -125,19 +123,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const trimmedMessage = message.trim()
     const hasAttachments = attachedFiles.length > 0
 
-    // Don't send if no message and no attachments, or if already sending
     if (!trimmedMessage && !hasAttachments) return
     if (isSending) return
 
     const filesToSend = [...attachedFiles]
 
     try {
-      // Clear inputs immediately for better UX
       setMessage('')
       setAttachedFiles([])
       handleTypingStop()
 
-      // If there are file attachments, send them
       if (hasAttachments) {
         for (const file of filesToSend) {
           const messageType = file.type.startsWith('image/') ? 'image' : 'file'
@@ -146,7 +141,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             `Shared ${messageType === 'image' ? 'an image' : 'a file'}: ${file.name}`
           const tempId = `temp-file-${Date.now()}-${Math.random()}`
 
-          // Send via WebSocket for real-time updates
           sendMessage({
             chatRoomId,
             content: fileContent,
@@ -158,7 +152,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             replyTo: replyingTo?.id,
           })
 
-          // Send via API for persistence
           await createMessage({
             chatRoomId,
             content: fileContent,
@@ -170,10 +163,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           }).unwrap()
         }
       } else {
-        // Send text-only message
         const tempId = `temp-${Date.now()}`
 
-        // Send via WebSocket for real-time updates
         sendMessage({
           chatRoomId,
           content: trimmedMessage,
@@ -182,7 +173,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           replyTo: replyingTo?.id,
         })
 
-        // Send via API for persistence
         await createMessage({
           chatRoomId,
           content: trimmedMessage,
@@ -191,20 +181,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         }).unwrap()
       }
 
-      // Clear reply state
       onCancelReply?.()
 
-      // Focus back to input
       textareaRef.current?.focus()
     } catch (error) {
       console.error('Failed to send message:', error)
-      // Restore message and attachments on error
       setMessage(trimmedMessage)
       setAttachedFiles(filesToSend)
     }
   }
 
-  // Handle file upload - Upload file and add to attachments (don't auto-send)
   const handleFileUpload = async (file: File) => {
     if (!workspace.currentWorkspace?.id) {
       console.error('No workspace selected')
@@ -217,7 +203,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       console.log('Starting file upload process...')
       setUploadProgress('Uploading file...')
 
-      // Upload file to MinIO to get URL
       const uploadResult = await uploadFile({
         file,
         workspaceId: workspace.currentWorkspace.id,
@@ -229,7 +214,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       if (uploadResult.success && uploadResult.file.url) {
         setUploadProgress('File attached!')
 
-        // Add file to attachments (don't auto-send)
         const attachedFile: AttachedFile = {
           url: uploadResult.file.url,
           name: uploadResult.file.name,
@@ -246,12 +230,10 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     } catch (error) {
       console.error('File upload failed:', error)
 
-      // Show user-friendly error message
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error occurred'
       console.error('Detailed error:', errorMessage)
 
-      // You could add a toast notification here for better UX
       alert(`File upload failed: ${errorMessage}`)
     } finally {
       setIsUploading(false)
@@ -259,7 +241,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   }
 
-  // Remove attached file
   const removeAttachedFile = (fileId: string) => {
     setAttachedFiles(prev => prev.filter(file => file.id !== fileId))
   }
@@ -267,8 +248,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      // Validate file size and type
-      const maxSize = uploadConfig?.config.maxFileSize || 10 * 1024 * 1024 // 10MB default
+      const maxSize = uploadConfig?.config.maxFileSize || 10 * 1024 * 1024
       const allowedTypes = uploadConfig?.config.allowedTypes || []
 
       if (file.size > maxSize) {
@@ -286,7 +266,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       handleFileUpload(file)
     }
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -302,7 +281,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
     setMessage(newMessage)
 
-    // Set cursor position after inserted text
     setTimeout(() => {
       textarea.selectionStart = textarea.selectionEnd = start + text.length
       textarea.focus()
@@ -336,7 +314,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       message.slice(0, start) + formattedText + message.slice(end)
     setMessage(newMessage)
 
-    // Set cursor position
     setTimeout(() => {
       if (selectedText) {
         textarea.selectionStart = start
@@ -356,7 +333,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }, 0)
   }
 
-  // Auto-resize textarea
   const autoResize = () => {
     const textarea = textareaRef.current
     if (textarea) {
@@ -371,7 +347,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   return (
     <div className="bg-background">
-      {/* Reply Preview */}
       {replyingTo && (
         <div className="border-b border-border px-4 pb-2 pt-3">
           <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
@@ -398,7 +373,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         </div>
       )}
 
-      {/* File Attachments Preview */}
       {attachedFiles.length > 0 && (
         <div className="border-b border-border px-4 pb-2 pt-3">
           <div className="space-y-2">
@@ -442,7 +416,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
       <div className="p-4">
         <div className="flex items-end gap-2">
-          {/* File attachment button */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -462,7 +435,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             </Tooltip>
           </TooltipProvider>
 
-          {/* Hidden file input */}
           <input
             ref={fileInputRef}
             type="file"
@@ -474,9 +446,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             }
           />
 
-          {/* Main input area */}
           <div className="relative flex-1">
-            {/* Formatting toolbar */}
             <div className="flex items-center gap-1 pb-2">
               <TooltipProvider>
                 <Tooltip>
@@ -569,7 +539,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
               </TooltipProvider>
             </div>
 
-            {/* Text input */}
             <div className="relative">
               <Textarea
                 ref={textareaRef}
@@ -593,7 +562,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 rows={1}
               />
 
-              {/* Sending overlay */}
               {isSending && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-md bg-background/50 backdrop-blur-[1px]">
                   <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1">
@@ -610,7 +578,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
               )}
             </div>
 
-            {/* Emoji picker */}
             <div className="absolute bottom-2 right-2">
               <Popover>
                 <PopoverTrigger asChild>
@@ -661,7 +628,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             </div>
           </div>
 
-          {/* Send button */}
           <Button
             size="sm"
             onClick={handleSendMessage}
@@ -687,7 +653,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           </Button>
         </div>
 
-        {/* Character counter and hints */}
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
             {isUploading ? (

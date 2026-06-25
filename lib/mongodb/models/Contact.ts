@@ -9,11 +9,9 @@ export interface IContact extends Omit<Document, '_id'> {
   company?: string
   position?: string
 
-  // Business Information
   totalRevenue?: number
   totalPayments?: number
 
-  // Address Information
   address?: {
     street?: string
     city?: string
@@ -22,7 +20,6 @@ export interface IContact extends Omit<Document, '_id'> {
     country?: string
   }
 
-  // Milestones and Important Dates
   milestones?: Array<{
     title: string
     description?: string
@@ -32,37 +29,29 @@ export interface IContact extends Omit<Document, '_id'> {
     status: 'completed' | 'pending' | 'cancelled'
   }>
 
-  // Social and Web Presence
   website?: string
   linkedIn?: string
   twitter?: string
 
-  // Lead Source Information
   originalLeadId?: string
   convertedFromLead?: boolean
   leadConversionDate?: Date
 
-  // Custom Fields - Flexible key-value storage
   customData?: Record<string, any>
 
-  // Tags and Categories
   tagIds?: string[]
   category?: 'client' | 'prospect' | 'partner' | 'vendor' | 'other'
 
-  // Relationship Management
   assignedTo?: string
   accountManager?: string
 
-  // Status and Priority
   status: 'active' | 'inactive' | 'archived'
   priority: 'low' | 'medium' | 'high'
 
-  // Notes and Communication
   notes?: string
   lastContactDate?: Date
   nextFollowUpDate?: Date
 
-  // Metadata
   createdBy: mongoose.Types.ObjectId | string
   createdAt: Date
   updatedAt: Date
@@ -140,7 +129,6 @@ const ContactSchema = new Schema<IContact>(
       maxlength: 100,
     },
 
-    // Business Information
     totalRevenue: {
       type: Number,
       min: 0,
@@ -152,13 +140,10 @@ const ContactSchema = new Schema<IContact>(
       default: 0,
     },
 
-    // Address Information
     address: AddressSchema,
 
-    // Milestones
     milestones: [MilestoneSchema],
 
-    // Social and Web Presence
     website: {
       type: String,
       trim: true,
@@ -175,7 +160,6 @@ const ContactSchema = new Schema<IContact>(
       maxlength: 255,
     },
 
-    // Lead Source Information
     originalLeadId: {
       type: Schema.Types.ObjectId,
       ref: 'Lead',
@@ -186,13 +170,11 @@ const ContactSchema = new Schema<IContact>(
     },
     leadConversionDate: { type: Date },
 
-    // Custom Fields - Flexible storage
     customData: {
       type: Schema.Types.Mixed,
       default: {},
     },
 
-    // Tags and Categories
     tagIds: [
       {
         type: Schema.Types.ObjectId,
@@ -205,7 +187,6 @@ const ContactSchema = new Schema<IContact>(
       default: 'prospect',
     },
 
-    // Relationship Management
     assignedTo: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -215,7 +196,6 @@ const ContactSchema = new Schema<IContact>(
       ref: 'User',
     },
 
-    // Status and Priority
     status: {
       type: String,
       enum: ['active', 'inactive', 'archived'],
@@ -227,7 +207,6 @@ const ContactSchema = new Schema<IContact>(
       default: 'medium',
     },
 
-    // Notes and Communication
     notes: {
       type: String,
       maxlength: 2000,
@@ -235,7 +214,6 @@ const ContactSchema = new Schema<IContact>(
     lastContactDate: { type: Date },
     nextFollowUpDate: { type: Date },
 
-    // Metadata
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -257,7 +235,6 @@ const ContactSchema = new Schema<IContact>(
   }
 )
 
-// Indexes for performance
 ContactSchema.index({ workspaceId: 1, name: 1 })
 ContactSchema.index({ workspaceId: 1, email: 1 })
 ContactSchema.index({ workspaceId: 1, company: 1 })
@@ -265,8 +242,11 @@ ContactSchema.index({ workspaceId: 1, status: 1 })
 ContactSchema.index({ workspaceId: 1, assignedTo: 1 })
 ContactSchema.index({ workspaceId: 1, createdAt: -1 })
 ContactSchema.index({ originalLeadId: 1 })
+ContactSchema.index(
+  { name: 'text', email: 'text', company: 'text', phone: 'text' },
+  { weights: { name: 10, email: 5, company: 3, phone: 1 } }
+)
 
-// Virtual for full address
 ContactSchema.virtual('fullAddress').get(function () {
   if (!this.address) return ''
   const parts = [
@@ -279,7 +259,6 @@ ContactSchema.virtual('fullAddress').get(function () {
   return parts.join(', ')
 })
 
-// Virtual for total milestone value
 ContactSchema.virtual('totalMilestoneValue').get(function () {
   if (!this.milestones || this.milestones.length === 0) return 0
   return this.milestones
@@ -287,7 +266,6 @@ ContactSchema.virtual('totalMilestoneValue').get(function () {
     .reduce((total, m) => total + (m.amount || 0), 0)
 })
 
-// Pre-save middleware
 ContactSchema.pre('save', function (next) {
   this.updatedAt = new Date()
   next()

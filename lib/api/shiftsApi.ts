@@ -71,8 +71,7 @@ export const shiftsApi = createApi({
     credentials: 'include',
   }),
   tagTypes: ['Shift'],
-  endpoints: (builder) => ({
-    // Get all shifts
+  endpoints: builder => ({
     getShifts: builder.query<
       {
         shifts: Shift[]
@@ -97,13 +96,11 @@ export const shiftsApi = createApi({
       providesTags: ['Shift'],
     }),
 
-    // Get single shift
     getShift: builder.query<Shift, string>({
-      query: (id) => `/${id}`,
+      query: id => `/${id}`,
       providesTags: (result, error, id) => [{ type: 'Shift', id }],
     }),
 
-    // Create shift
     createShift: builder.mutation<
       {
         success: boolean
@@ -112,7 +109,7 @@ export const shiftsApi = createApi({
       },
       CreateShiftRequest
     >({
-      query: (shift) => ({
+      query: shift => ({
         url: '',
         method: 'POST',
         body: shift,
@@ -120,7 +117,6 @@ export const shiftsApi = createApi({
       invalidatesTags: ['Shift'],
     }),
 
-    // Update shift
     updateShift: builder.mutation<
       {
         success: boolean
@@ -134,10 +130,12 @@ export const shiftsApi = createApi({
         method: 'PUT',
         body: shift,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Shift', id }, 'Shift'],
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Shift', id },
+        'Shift',
+      ],
     }),
 
-    // Delete shift
     deleteShift: builder.mutation<
       {
         success: boolean
@@ -145,14 +143,13 @@ export const shiftsApi = createApi({
       },
       string
     >({
-      query: (id) => ({
+      query: id => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Shift'],
     }),
 
-    // Set default shift
     setDefaultShift: builder.mutation<
       {
         success: boolean
@@ -160,7 +157,7 @@ export const shiftsApi = createApi({
       },
       string
     >({
-      query: (id) => ({
+      query: id => ({
         url: `/${id}`,
         method: 'PUT',
         body: { isDefault: true },

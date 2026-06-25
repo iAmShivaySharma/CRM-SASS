@@ -46,7 +46,6 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
 
   const workspaceMembers = workspaceMembersData?.members || []
 
-  // Filter out existing participants and search by name/email
   const availableMembers = workspaceMembers.filter(member => {
     const isAlreadyParticipant =
       Array.isArray(chatRoom.participants) &&

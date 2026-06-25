@@ -38,10 +38,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div
           className={cn(
             'min-h-screen transition-all duration-300',
-            // Desktop sidebar spacing
             'lg:ml-64',
             sidebarCollapsed && 'lg:ml-16',
-            // Mobile: no left margin, sidebar is overlay
             'ml-0'
           )}
         >

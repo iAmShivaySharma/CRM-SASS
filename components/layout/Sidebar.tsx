@@ -56,7 +56,6 @@ const navigation = [
     category: 'main',
   },
 
-  // Sales Section
   {
     name: 'Sales',
     href: '/sales',
@@ -100,7 +99,6 @@ const navigation = [
     parent: 'sales',
   },
 
-  // HR Section
   {
     name: 'Human Resources',
     href: '/hr',
@@ -137,15 +135,12 @@ const navigation = [
     parent: 'hr',
   },
 
-  // Engines
   { name: 'Engines', href: '/engines', icon: Settings2, category: 'main' },
 
-  // Communication
   { name: 'Chat', href: '/chat', icon: MessageSquare, category: 'main' },
   { name: 'Calls', href: '/calls', icon: Phone, category: 'main' },
   { name: 'Email', href: '/email', icon: Mail, category: 'main' },
 
-  // Project Management Section
   {
     name: 'Project',
     href: '/projects',
@@ -182,12 +177,10 @@ const navigation = [
     parent: 'projects',
   },
 
-  // Other sections
   { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, category: 'main' },
   { name: 'Roles', href: '/roles', icon: UserCheck, category: 'main' },
   { name: 'Workspace', href: '/workspace', icon: Building, category: 'main' },
-  // { name: 'Plans', href: '/plans', icon: CreditCard }, // Hidden for now
   { name: 'Settings', href: '/settings', icon: Settings, category: 'main' },
 ]
 
@@ -201,7 +194,7 @@ export function Sidebar({
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
-    sales: false, // All sections collapsed by default
+    sales: false,
     projects: false,
     hr: false,
     engines: false,
@@ -221,7 +214,6 @@ export function Sidebar({
     const isExpanded = item.id ? expandedSections[item.id] : false
     const hasSubItems = navigation.some(nav => nav.parent === item.id)
 
-    // Don't render sub-items if their parent section is collapsed
     if (isSubItem && !expandedSections[item.parent]) {
       return null
     }
@@ -305,10 +297,8 @@ export function Sidebar({
     <div
       className={cn(
         'fixed inset-y-0 left-0 z-50 bg-white shadow-xl transition-all duration-300 dark:bg-gray-950',
-        // Desktop behavior
         'hidden flex-col lg:flex',
         collapsed ? 'lg:w-16' : 'lg:w-64',
-        // Mobile behavior - overlay when open
         mobileMenuOpen && 'flex w-64 flex-col',
         !mobileMenuOpen && 'lg:flex'
       )}

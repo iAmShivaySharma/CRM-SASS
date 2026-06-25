@@ -72,7 +72,6 @@ export async function POST(
       reactions: message.reactions,
     })
   } catch (error) {
-    console.error('Add reaction error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -137,7 +136,6 @@ export async function DELETE(
       reactions: message.reactions,
     })
   } catch (error) {
-    console.error('Remove reaction error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

@@ -80,8 +80,8 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
     <div className="space-y-1 p-2">
       {chatRooms.map(chatRoom => {
         const isSelected = selectedChatRoom === chatRoom.id
-        const hasUnreadMessages = false // TODO: Implement unread message count
-        const unreadCount = 0 // TODO: Implement unread message count
+        const hasUnreadMessages = false
+        const unreadCount = 0
 
         return (
           <button

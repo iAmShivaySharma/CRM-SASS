@@ -41,12 +41,24 @@ export interface IUserInput extends Document {
 }
 
 export interface IUserInputStatics {
-  findByUser(userId: string, workspaceId: string, options?: any): Promise<IUserInput[]>
-  findPendingByUser(userId: string, workspaceId: string, options?: any): Promise<IUserInput[]>
+  findByUser(
+    userId: string,
+    workspaceId: string,
+    options?: any
+  ): Promise<IUserInput[]>
+  findPendingByUser(
+    userId: string,
+    workspaceId: string,
+    options?: any
+  ): Promise<IUserInput[]>
   findExpired(): Promise<IUserInput[]>
   findByWebhookUrl(webhookUrl: string): Promise<IUserInput | null>
   findHighPriorityPending(minutes?: number): Promise<IUserInput[]>
-  getInputStats(userId: string, workspaceId: string, days?: number): Promise<any[]>
+  getInputStats(
+    userId: string,
+    workspaceId: string,
+    days?: number
+  ): Promise<any[]>
 }
 
 export interface IUserInputModel extends Model<IUserInput>, IUserInputStatics {}
@@ -57,92 +69,92 @@ const UserInputSchema = new Schema<IUserInput>(
       type: Schema.Types.ObjectId,
       ref: 'WorkflowExecution',
       required: true,
-      index: true
+      index: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true
+      index: true,
     },
     workspaceId: {
       type: Schema.Types.ObjectId,
       ref: 'Workspace',
       required: true,
-      index: true
+      index: true,
     },
     step: {
       type: Number,
       required: true,
-      min: 1
+      min: 1,
     },
     webhookUrl: {
       type: String,
       required: true,
       unique: true,
-      index: true
+      index: true,
     },
     inputSchema: {
       type: Schema.Types.Mixed,
-      required: true
+      required: true,
     },
     status: {
       type: String,
       enum: ['pending', 'received', 'expired', 'cancelled'],
       default: 'pending',
       required: true,
-      index: true
+      index: true,
     },
     inputData: {
-      type: Schema.Types.Mixed
+      type: Schema.Types.Mixed,
     },
     timeoutAt: {
       type: Date,
       required: true,
-      index: true
+      index: true,
     },
     receivedAt: {
-      type: Date
+      type: Date,
     },
     notificationsSent: {
       email: {
         type: Boolean,
-        default: false
+        default: false,
       },
       sms: {
         type: Boolean,
-        default: false
+        default: false,
       },
       realtime: {
         type: Boolean,
-        default: false
-      }
+        default: false,
+      },
     },
     metadata: {
       workflowName: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
       },
       stepDescription: {
         type: String,
-        trim: true
+        trim: true,
       },
       priority: {
         type: String,
         enum: ['low', 'medium', 'high'],
-        default: 'medium'
+        default: 'medium',
       },
       requiresImmediate: {
         type: Boolean,
-        default: false
-      }
-    }
+        default: false,
+      },
+    },
   },
   {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
   }
 )
 
@@ -154,7 +166,7 @@ UserInputSchema.index({ createdAt: -1 })
 UserInputSchema.index({ 'metadata.priority': 1, timeoutAt: 1 })
 
 // Virtual for time remaining
-UserInputSchema.virtual('timeRemaining').get(function() {
+UserInputSchema.virtual('timeRemaining').get(function () {
   if (this.status !== 'pending') return 0
   const now = new Date()
   const remaining = this.timeoutAt.getTime() - now.getTime()
@@ -162,48 +174,52 @@ UserInputSchema.virtual('timeRemaining').get(function() {
 })
 
 // Virtual for time remaining in minutes
-UserInputSchema.virtual('timeRemainingMinutes').get(function() {
+UserInputSchema.virtual('timeRemainingMinutes').get(function () {
   return Math.floor(this.timeRemaining / (1000 * 60))
 })
 
 // Virtual for is expired
-UserInputSchema.virtual('isExpired').get(function() {
+UserInputSchema.virtual('isExpired').get(function () {
   return this.status === 'pending' && new Date() > this.timeoutAt
 })
 
 // Methods
-UserInputSchema.methods.markReceived = function(inputData: any) {
+UserInputSchema.methods.markReceived = function (inputData: any) {
   this.status = 'received'
   this.inputData = inputData
   this.receivedAt = new Date()
   return this.save()
 }
 
-UserInputSchema.methods.markExpired = function() {
+UserInputSchema.methods.markExpired = function () {
   this.status = 'expired'
   return this.save()
 }
 
-UserInputSchema.methods.markCancelled = function() {
+UserInputSchema.methods.markCancelled = function () {
   this.status = 'cancelled'
   return this.save()
 }
 
-UserInputSchema.methods.markNotificationSent = function(type: 'email' | 'sms' | 'realtime') {
+UserInputSchema.methods.markNotificationSent = function (
+  type: 'email' | 'sms' | 'realtime'
+) {
   this.notificationsSent[type] = true
   return this.save()
 }
 
-UserInputSchema.methods.generateInputUrl = function(baseUrl: string) {
+UserInputSchema.methods.generateInputUrl = function (baseUrl: string) {
   return `${baseUrl}/input/${this._id}?token=${this.generateSecureToken()}`
 }
 
-UserInputSchema.methods.generateSecureToken = function() {
+UserInputSchema.methods.generateSecureToken = function () {
   // Generate a secure token for the input URL
-  return Buffer.from(`${this._id}:${this.executionId}:${this.step}:${this.createdAt.getTime()}`).toString('base64')
+  return Buffer.from(
+    `${this._id}:${this.executionId}:${this.step}:${this.createdAt.getTime()}`
+  ).toString('base64')
 }
 
-UserInputSchema.methods.validateToken = function(token: string) {
+UserInputSchema.methods.validateToken = function (token: string) {
   try {
     const decoded = Buffer.from(token, 'base64').toString('utf-8')
     const [id, executionId, step, timestamp] = decoded.split(':')
@@ -220,48 +236,55 @@ UserInputSchema.methods.validateToken = function(token: string) {
 }
 
 // Static methods
-UserInputSchema.statics.findPendingByUser = function(userId: string, workspaceId: string) {
+UserInputSchema.statics.findPendingByUser = function (
+  userId: string,
+  workspaceId: string
+) {
   return this.find({
     userId: new mongoose.Types.ObjectId(userId),
     workspaceId: new mongoose.Types.ObjectId(workspaceId),
     status: 'pending',
-    timeoutAt: { $gt: new Date() }
+    timeoutAt: { $gt: new Date() },
   })
-  .populate('executionId', 'workflowCatalogId status')
-  .sort({ 'metadata.priority': -1, timeoutAt: 1 })
+    .populate('executionId', 'workflowCatalogId status')
+    .sort({ 'metadata.priority': -1, timeoutAt: 1 })
 }
 
-UserInputSchema.statics.findExpired = function() {
+UserInputSchema.statics.findExpired = function () {
   return this.find({
     status: 'pending',
-    timeoutAt: { $lt: new Date() }
+    timeoutAt: { $lt: new Date() },
   })
 }
 
-UserInputSchema.statics.findByWebhookUrl = function(webhookUrl: string) {
+UserInputSchema.statics.findByWebhookUrl = function (webhookUrl: string) {
   return this.findOne({
     webhookUrl,
     status: 'pending',
-    timeoutAt: { $gt: new Date() }
+    timeoutAt: { $gt: new Date() },
   })
 }
 
-UserInputSchema.statics.findHighPriorityPending = function(minutes = 15) {
-  const urgentTime = new Date(Date.now() + (minutes * 60 * 1000))
+UserInputSchema.statics.findHighPriorityPending = function (minutes = 15) {
+  const urgentTime = new Date(Date.now() + minutes * 60 * 1000)
 
   return this.find({
     status: 'pending',
     timeoutAt: { $lt: urgentTime, $gt: new Date() },
     $or: [
       { 'metadata.priority': 'high' },
-      { 'metadata.requiresImmediate': true }
-    ]
+      { 'metadata.requiresImmediate': true },
+    ],
   })
-  .populate('userId', 'name email phone')
-  .populate('workspaceId', 'name')
+    .populate('userId', 'name email phone')
+    .populate('workspaceId', 'name')
 }
 
-UserInputSchema.statics.getInputStats = function(userId: string, workspaceId: string, days = 30) {
+UserInputSchema.statics.getInputStats = function (
+  userId: string,
+  workspaceId: string,
+  days = 30
+) {
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)
 
@@ -270,8 +293,8 @@ UserInputSchema.statics.getInputStats = function(userId: string, workspaceId: st
       $match: {
         userId: new mongoose.Types.ObjectId(userId),
         workspaceId: new mongoose.Types.ObjectId(workspaceId),
-        createdAt: { $gte: startDate }
-      }
+        createdAt: { $gte: startDate },
+      },
     },
     {
       $group: {
@@ -279,36 +302,35 @@ UserInputSchema.statics.getInputStats = function(userId: string, workspaceId: st
         totalRequests: { $sum: 1 },
         received: { $sum: { $cond: [{ $eq: ['$status', 'received'] }, 1, 0] } },
         expired: { $sum: { $cond: [{ $eq: ['$status', 'expired'] }, 1, 0] } },
-        cancelled: { $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] } },
+        cancelled: {
+          $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] },
+        },
         avgResponseTime: {
           $avg: {
             $cond: [
               { $eq: ['$status', 'received'] },
               { $subtract: ['$receivedAt', '$createdAt'] },
-              null
-            ]
-          }
-        }
-      }
+              null,
+            ],
+          },
+        },
+      },
     },
     {
       $addFields: {
         responseRate: {
-          $multiply: [
-            { $divide: ['$received', '$totalRequests'] },
-            100
-          ]
+          $multiply: [{ $divide: ['$received', '$totalRequests'] }, 100],
         },
         avgResponseTimeMinutes: {
-          $divide: ['$avgResponseTime', 60000]
-        }
-      }
-    }
+          $divide: ['$avgResponseTime', 60000],
+        },
+      },
+    },
   ])
 }
 
 // Pre-save hooks
-UserInputSchema.pre('save', function(next) {
+UserInputSchema.pre('save', function (next) {
   // Auto-expire if past timeout
   if (this.status === 'pending' && new Date() > this.timeoutAt) {
     this.status = 'expired'
@@ -317,13 +339,15 @@ UserInputSchema.pre('save', function(next) {
 })
 
 // Post-save hooks for real-time updates
-UserInputSchema.post('save', function(doc) {
+UserInputSchema.post('save', function (doc) {
   // Emit real-time events for status changes
   if (doc.isModified('status')) {
     // This would integrate with your WebSocket/SSE system
-    console.log(`UserInput ${doc._id} status changed to ${doc.status}`)
   }
 })
 
 export default (mongoose.models.UserInput ||
-  mongoose.model<IUserInput, IUserInputModel>('UserInput', UserInputSchema)) as IUserInputModel
+  mongoose.model<IUserInput, IUserInputModel>(
+    'UserInput',
+    UserInputSchema
+  )) as IUserInputModel

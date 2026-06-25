@@ -1,10 +1,3 @@
-/**
- * Generic Webhook Processor
- *
- * A flexible processor that can handle various webhook formats.
- * Uses field mapping configuration to transform data.
- */
-
 import { type NextRequest } from 'next/server'
 import {
   type WebhookProcessor,
@@ -15,9 +8,6 @@ import {
 export class GenericProcessor implements WebhookProcessor {
   name = 'Generic Webhook'
 
-  /**
-   * Generic processor accepts any data structure
-   */
   validate(data: any): boolean {
     // Accept any object with at least one property
     return (
@@ -25,9 +15,6 @@ export class GenericProcessor implements WebhookProcessor {
     )
   }
 
-  /**
-   * Process generic webhook data using flexible field mapping
-   */
   async process(
     data: any,
     request: NextRequest
@@ -35,7 +22,6 @@ export class GenericProcessor implements WebhookProcessor {
     const leads: ProcessedLead[] = []
 
     try {
-      // Handle array of leads
       if (Array.isArray(data)) {
         for (const item of data) {
           const lead = this.processGenericLead(item)
@@ -43,9 +29,7 @@ export class GenericProcessor implements WebhookProcessor {
             leads.push(lead)
           }
         }
-      }
-      // Handle single lead
-      else if (typeof data === 'object') {
+      } else if (typeof data === 'object') {
         const lead = this.processGenericLead(data)
         if (lead) {
           leads.push(lead)
@@ -68,9 +52,6 @@ export class GenericProcessor implements WebhookProcessor {
     }
   }
 
-  /**
-   * Process individual lead with flexible field mapping
-   */
   private processGenericLead(data: any): ProcessedLead | null {
     try {
       const lead: ProcessedLead = {
@@ -80,10 +61,8 @@ export class GenericProcessor implements WebhookProcessor {
         tags: ['webhook'],
       }
 
-      // Common field mappings (case-insensitive)
       const fieldMappings = this.getFieldMappings()
 
-      // Process all fields in the data
       for (const [key, value] of Object.entries(data)) {
         if (value === null || value === undefined || value === '') continue
 
@@ -93,21 +72,16 @@ export class GenericProcessor implements WebhookProcessor {
         if (mappedField) {
           this.setLeadField(lead, mappedField, value)
         } else {
-          // Store unmapped fields in customFields
           lead.customFields![key] = value
         }
       }
 
       return this.finalizeLead(lead)
     } catch (error) {
-      console.error('Error processing generic lead:', error)
       return null
     }
   }
 
-  /**
-   * Get field mappings for common field names
-   */
   private getFieldMappings(): Record<string, string[]> {
     return {
       name: [
@@ -176,9 +150,6 @@ export class GenericProcessor implements WebhookProcessor {
     }
   }
 
-  /**
-   * Find mapped field for a normalized key
-   */
   private findMappedField(
     normalizedKey: string,
     mappings: Record<string, string[]>
@@ -195,9 +166,6 @@ export class GenericProcessor implements WebhookProcessor {
     return null
   }
 
-  /**
-   * Set lead field with proper type conversion
-   */
   private setLeadField(lead: ProcessedLead, field: string, value: any): void {
     switch (field) {
       case 'name':
@@ -237,7 +205,6 @@ export class GenericProcessor implements WebhookProcessor {
 
       case 'source':
         const sourceValue = String(value).toLowerCase()
-        // Map to valid source values
         if (
           [
             'manual',
@@ -259,26 +226,19 @@ export class GenericProcessor implements WebhookProcessor {
     }
   }
 
-  /**
-   * Finalize lead data and set priority
-   */
   private finalizeLead(lead: ProcessedLead): ProcessedLead | null {
-    // Ensure we have at least a name or email
     if (!lead.name && !lead.email) {
       return null
     }
 
-    // If no name but have email, use email as name
     if (!lead.name && lead.email) {
       lead.name = lead.email.split('@')[0]
     }
 
-    // Clean up name (remove extra spaces)
     if (lead.name) {
       lead.name = lead.name.trim().replace(/\s+/g, ' ')
     }
 
-    // Set priority based on available information
     if (lead.value && lead.value > 10000) {
       lead.priority = 'high'
     } else if (lead.company || (lead.value && lead.value > 1000)) {
@@ -287,7 +247,6 @@ export class GenericProcessor implements WebhookProcessor {
       lead.priority = 'low'
     }
 
-    // Add generic tag if no specific tags
     if (!lead.tags || lead.tags.length === 0) {
       lead.tags = ['webhook']
     }

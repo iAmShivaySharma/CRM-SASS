@@ -10,8 +10,9 @@ import {
   logBusinessEvent,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { cached, invalidateCache } from '@/lib/redis/cache'
+import { activityQueue } from '@/lib/queue/queues'
 
-// Validation schema for creating contacts
 const createContactSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   email: z
@@ -68,7 +69,6 @@ const createContactSchema = z.object({
   lastContactDate: z.string().datetime().optional(),
   nextFollowUpDate: z.string().datetime().optional(),
   customData: z.record(z.any()).optional(),
-  // Lead conversion fields
   originalLeadId: z
     .string()
     .regex(/^[a-f\d]{24}$/i, 'Invalid lead ID format')
@@ -76,7 +76,6 @@ const createContactSchema = z.object({
   convertedFromLead: z.boolean().optional(),
 })
 
-// GET /api/contacts - List contacts
 export const GET = withSecurityLogging(
   withLogging(
     async (request: NextRequest) => {
@@ -110,7 +109,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check if user has access to this workspace
         const userMembership = await WorkspaceMember.findOne({
           workspaceId,
           userId: auth.user.id,
@@ -124,16 +122,10 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Build query
         const query: any = { workspaceId }
 
         if (search) {
-          query.$or = [
-            { name: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { company: { $regex: search, $options: 'i' } },
-            { phone: { $regex: search, $options: 'i' } },
-          ]
+          query.$text = { $search: search }
         }
 
         if (status) query.status = status
@@ -143,19 +135,28 @@ export const GET = withSecurityLogging(
 
         const skip = (page - 1) * limit
 
-        // Get contacts with pagination
-        const [contacts, total] = await Promise.all([
-          Contact.find(query)
-            .populate('tagIds', 'name color')
-            .populate('assignedTo', 'fullName email')
-            .populate('accountManager', 'fullName email')
-            .populate('createdBy', 'fullName email')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .lean(),
-          Contact.countDocuments(query),
-        ])
+        const [contacts, total] = await cached(
+          `contacts:${workspaceId}:${page}:${limit}:${status || ''}:${search || ''}:${category || ''}:${assignedTo || ''}:${priority || ''}`,
+          60,
+          async () =>
+            Promise.all([
+              Contact.find(query)
+                .select(
+                  'name email phone company position status priority category assignedTo accountManager tagIds createdBy totalRevenue createdAt'
+                )
+                .populate('tagIds', 'name color')
+                .populate('assignedTo', 'fullName email')
+                .populate('accountManager', 'fullName email')
+                .populate('createdBy', 'fullName email')
+                .sort(
+                  search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
+                )
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+              Contact.countDocuments(query),
+            ])
+        )
 
         logBusinessEvent('contacts_listed', auth.user.id, workspaceId, {
           count: contacts.length,
@@ -188,7 +189,6 @@ export const GET = withSecurityLogging(
   )
 )
 
-// POST /api/contacts - Create a new contact
 export const POST = withSecurityLogging(
   withLogging(
     async (request: NextRequest) => {
@@ -216,7 +216,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Validate request body
         const validationResult = createContactSchema.safeParse(body)
         if (!validationResult.success) {
           return NextResponse.json(
@@ -228,7 +227,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Check if user has access to this workspace
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
           workspaceId,
@@ -242,7 +240,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Handle ObjectId fields - convert empty strings to undefined
         const processedData = { ...validationResult.data }
         if (processedData.assignedTo === '') {
           delete processedData.assignedTo
@@ -269,37 +266,27 @@ export const POST = withSecurityLogging(
             : undefined,
         }
 
-        // Create contact
         const contact = await Contact.create(contactData)
 
-        // Populate the created contact
         const populatedContact = await Contact.findById(contact._id)
           .populate('tagIds', 'name color')
           .populate('assignedTo', 'fullName email')
           .populate('accountManager', 'fullName email')
           .populate('createdBy', 'fullName email')
 
-        // Log activity
-        try {
-          await Activity.create({
-            workspaceId,
-            performedBy: auth.user.id,
-            activityType: 'created',
-            entityType: 'contact',
-            entityId: contact._id,
-            description: `${auth.user.fullName} created new contact "${contactData.name}"`,
-            metadata: {
-              contactName: contactData.name,
-              company: contactData.company,
-              convertedFromLead: contactData.convertedFromLead || false,
-            },
-          })
-        } catch (activityError) {
-          console.error(
-            'Failed to log contact creation activity:',
-            activityError
-          )
-        }
+        await activityQueue.add('contact-created', {
+          workspaceId,
+          performedBy: auth.user.id,
+          activityType: 'created',
+          entityType: 'contact',
+          entityId: contact._id.toString(),
+          description: `${auth.user.fullName} created new contact "${contactData.name}"`,
+          metadata: {
+            contactName: contactData.name,
+            company: contactData.company,
+            convertedFromLead: contactData.convertedFromLead || false,
+          },
+        })
 
         logUserActivity(auth.user.id, 'contact_created', 'contact', {
           contactId: contact._id,
@@ -307,13 +294,7 @@ export const POST = withSecurityLogging(
           workspaceId,
         })
 
-        logBusinessEvent('contact_created', auth.user.id, workspaceId, {
-          contactId: contact._id,
-          contactName: contactData.name,
-          company: contactData.company,
-          convertedFromLead: contactData.convertedFromLead || false,
-          duration: Date.now() - startTime,
-        })
+        await invalidateCache(`contacts:${workspaceId}:*`)
 
         return NextResponse.json(
           {

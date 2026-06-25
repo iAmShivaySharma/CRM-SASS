@@ -190,13 +190,7 @@ export const POST = withSecurityLogging(
               invitation.invitedBy.fullName || invitation.invitedBy.email,
           },
         })
-      } catch (notificationError) {
-        console.error(
-          'Failed to create invitation acceptance notification:',
-          notificationError
-        )
-        // Don't fail the acceptance if notification fails
-      }
+      } catch (notificationError) {}
 
       log.info(
         `Invitation accepted successfully for workspace ${invitation.workspaceId._id}`,

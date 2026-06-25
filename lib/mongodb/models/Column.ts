@@ -62,11 +62,9 @@ const columnSchema = new Schema<IColumn>(
   }
 )
 
-// Compound index for efficient queries
 columnSchema.index({ projectId: 1, order: 1 })
 columnSchema.index({ workspaceId: 1, projectId: 1 })
 
-// Ensure unique slug per project
 columnSchema.index({ projectId: 1, slug: 1 }, { unique: true })
 
 export const Column =

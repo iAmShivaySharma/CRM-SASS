@@ -10,7 +10,6 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 
-// GET /api/webhooks/[id] - Get webhook details
 export const GET = withSecurityLogging(
   withLogging(
     async (
@@ -30,7 +29,6 @@ export const GET = withSecurityLogging(
 
         const { id: webhookId } = await params
 
-        // Find webhook
         const webhook = await Webhook.findById(webhookId)
         if (!webhook) {
           return NextResponse.json(
@@ -39,12 +37,13 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Verify user has access to this workspace
         const membership = await WorkspaceMember.findOne({
           workspaceId: webhook.workspaceId,
           userId: auth.user.id,
           status: 'active',
-        }).populate('roleId')
+        })
+          .populate('roleId')
+          .lean()
 
         if (!membership) {
           return NextResponse.json(
@@ -53,17 +52,16 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Get recent webhook logs
         const recentLogs = await WebhookLog.find({ webhookId })
           .sort({ createdAt: -1 })
           .limit(10)
+          .lean()
 
         logBusinessEvent('webhook_viewed', auth.user.id, webhook.workspaceId, {
           webhookId,
           duration: Date.now() - startTime,
         })
 
-        // Get the base URL from request headers or environment
         const baseUrl =
           process.env.NEXT_PUBLIC_APP_URL ||
           `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`
@@ -91,7 +89,6 @@ export const GET = withSecurityLogging(
   )
 )
 
-// PUT /api/webhooks/[id] - Update webhook
 export const PUT = withSecurityLogging(
   withLogging(
     async (
@@ -112,7 +109,6 @@ export const PUT = withSecurityLogging(
         const { id: webhookId } = await params
         const body = await request.json()
 
-        // Validate request body
         const validationResult = updateWebhookSchema.safeParse(body)
         if (!validationResult.success) {
           return NextResponse.json(
@@ -124,8 +120,7 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Find webhook
-        const webhook = await Webhook.findById(webhookId)
+        const webhook = await Webhook.findById(webhookId).lean()
         if (!webhook) {
           return NextResponse.json(
             { message: 'Webhook not found' },
@@ -133,12 +128,13 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Verify user has access to this workspace and can update webhooks
         const membership = await WorkspaceMember.findOne({
           workspaceId: webhook.workspaceId,
           userId: auth.user.id,
           status: 'active',
-        }).populate('roleId')
+        })
+          .populate('roleId')
+          .lean()
 
         if (!membership) {
           return NextResponse.json(
@@ -147,7 +143,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Check if user has permission to update webhooks (Admin or Owner)
         const roleName = membership.roleId?.name
         if (!['Owner', 'Admin'].includes(roleName)) {
           return NextResponse.json(
@@ -159,7 +154,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Update webhook
         const updatedWebhook = await Webhook.findByIdAndUpdate(
           webhookId,
           {
@@ -169,7 +163,6 @@ export const PUT = withSecurityLogging(
           { new: true }
         )
 
-        // Log activity
         logUserActivity(auth.user.id, 'webhook_updated', 'webhook', {
           webhookId,
           webhookName: updatedWebhook.name,
@@ -183,7 +176,6 @@ export const PUT = withSecurityLogging(
           duration: Date.now() - startTime,
         })
 
-        // Get the base URL from request headers or environment
         const baseUrl =
           process.env.NEXT_PUBLIC_APP_URL ||
           `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`
@@ -211,7 +203,6 @@ export const PUT = withSecurityLogging(
   )
 )
 
-// DELETE /api/webhooks/[id] - Delete webhook
 export const DELETE = withSecurityLogging(
   withLogging(
     async (
@@ -231,8 +222,7 @@ export const DELETE = withSecurityLogging(
 
         const { id: webhookId } = await params
 
-        // Find webhook
-        const webhook = await Webhook.findById(webhookId)
+        const webhook = await Webhook.findById(webhookId).lean()
         if (!webhook) {
           return NextResponse.json(
             { message: 'Webhook not found' },
@@ -240,12 +230,13 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Verify user has access to this workspace and can delete webhooks
         const membership = await WorkspaceMember.findOne({
           workspaceId: webhook.workspaceId,
           userId: auth.user.id,
           status: 'active',
-        }).populate('roleId')
+        })
+          .populate('roleId')
+          .lean()
 
         if (!membership) {
           return NextResponse.json(
@@ -254,7 +245,6 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Check if user has permission to delete webhooks (Admin or Owner)
         const roleName = membership.roleId?.name
         if (!['Owner', 'Admin'].includes(roleName)) {
           return NextResponse.json(
@@ -266,10 +256,8 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Delete webhook
         await Webhook.findByIdAndDelete(webhookId)
 
-        // Log activity
         logUserActivity(auth.user.id, 'webhook_deleted', 'webhook', {
           webhookId,
           webhookName: webhook.name,

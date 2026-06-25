@@ -19,7 +19,7 @@ export interface IMessage extends Omit<Document, '_id'> {
     userId: string
     userName: string
   }[]
-  readBy: {
+  readBy?: {
     userId: string
     readAt: Date
   }[]

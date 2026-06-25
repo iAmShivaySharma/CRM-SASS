@@ -119,6 +119,10 @@ if (typeof window === 'undefined') {
   ProjectSchema.index({ workspaceId: 1, slug: 1 }, { unique: true })
   ProjectSchema.index({ workspaceId: 1, status: 1 })
   ProjectSchema.index({ createdBy: 1 })
+  ProjectSchema.index(
+    { name: 'text', description: 'text' },
+    { weights: { name: 10, description: 1 } }
+  )
 }
 
 export const Project =

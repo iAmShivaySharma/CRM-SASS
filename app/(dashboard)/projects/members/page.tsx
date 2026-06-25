@@ -46,7 +46,6 @@ export default function ProjectMembersPage() {
   const [projectFilter, setProjectFilter] = useState<string>('all')
   const [roleFilter, setRoleFilter] = useState<string>('all')
 
-  // Get available projects
   const { data: projectsData } = useGetProjectsQuery(
     {
       workspaceId: currentWorkspace?.id || '',
@@ -56,7 +55,6 @@ export default function ProjectMembersPage() {
     }
   )
 
-  // Get project members for the selected project
   const {
     data: membersData,
     isLoading: membersLoading,
@@ -143,7 +141,6 @@ export default function ProjectMembersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Project Members</h1>
@@ -165,7 +162,6 @@ export default function ProjectMembersPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -209,7 +205,6 @@ export default function ProjectMembersPage() {
         </Card>
       </div>
 
-      {/* Filters and Search */}
       <div className="flex items-center gap-4">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -248,7 +243,6 @@ export default function ProjectMembersPage() {
         </Select>
       </div>
 
-      {/* Members List */}
       {membersLoading ? (
         <TableSkeleton rows={5} columns={5} />
       ) : membersError ? (

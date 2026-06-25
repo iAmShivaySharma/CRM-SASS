@@ -1,8 +1,3 @@
-/**
- * Workspace-specific formatting utilities
- * Handles currency, date, and time formatting based on workspace settings
- */
-
 import { format, parseISO } from 'date-fns'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
 import { useMemo } from 'react'
@@ -19,9 +14,6 @@ export interface WorkspaceSettings {
   }
 }
 
-/**
- * Hook to get current workspace formatting settings
- */
 export function useWorkspaceFormatting() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
@@ -53,7 +45,6 @@ export function useWorkspaceFormatting() {
 
   return useMemo(
     () => ({
-      // Currency formatting
       formatCurrency: (
         amount: number,
         options?: {
@@ -69,7 +60,6 @@ export function useWorkspaceFormatting() {
 
       getCurrencyCode: () => workspaceSettings.currency,
 
-      // Date formatting
       formatDate: (
         date: Date | string,
         options?: { includeTime?: boolean; relative?: boolean }
@@ -83,7 +73,6 @@ export function useWorkspaceFormatting() {
       formatRelativeTime: (date: Date | string) =>
         formatDate(date, workspaceSettings, { relative: true }),
 
-      // Time ago formatting
       getTimeAgo: (dateString: string) => {
         const now = new Date()
         const date = new Date(dateString)
@@ -109,7 +98,6 @@ export function useWorkspaceFormatting() {
         return formatDate(date, workspaceSettings)
       },
 
-      // Number formatting
       formatNumber: (
         number: number,
         options?: { decimals?: number; compact?: boolean }
@@ -118,7 +106,6 @@ export function useWorkspaceFormatting() {
       formatPercentage: (value: number, decimals: number = 1) =>
         `${formatNumber(value, workspaceSettings, { decimals })}%`,
 
-      // Settings access
       getSettings: () => workspaceSettings,
       getTimezone: () => workspaceSettings.timezone,
       getDateFormat: () => workspaceSettings.settings.dateFormat,
@@ -128,7 +115,6 @@ export function useWorkspaceFormatting() {
   )
 }
 
-// Currency symbols mapping
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$',
   EUR: '€',
@@ -152,16 +138,12 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   KRW: '₩',
 }
 
-// Currency decimal places
 const CURRENCY_DECIMALS: Record<string, number> = {
   JPY: 0,
   KRW: 0,
   default: 2,
 }
 
-/**
- * Format currency based on workspace settings
- */
 export function formatCurrency(
   amount: number,
   workspaceSettings: WorkspaceSettings,
@@ -177,11 +159,9 @@ export function formatCurrency(
   const decimals = CURRENCY_DECIMALS[currency] ?? CURRENCY_DECIMALS.default
   const symbol = CURRENCY_SYMBOLS[currency] || currency
 
-  // Format the number
   let formattedAmount: string
 
   if (compact && Math.abs(amount) >= 1000) {
-    // Compact format for large numbers
     if (Math.abs(amount) >= 1000000) {
       formattedAmount = (amount / 1000000).toFixed(1) + 'M'
     } else if (Math.abs(amount) >= 1000) {
@@ -190,14 +170,12 @@ export function formatCurrency(
       formattedAmount = amount.toFixed(decimals)
     }
   } else {
-    // Standard format
     formattedAmount = new Intl.NumberFormat('en-US', {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }).format(amount)
   }
 
-  // Add currency symbol/code
   if (showSymbol && showCode) {
     return `${symbol}${formattedAmount} ${currency}`
   } else if (showSymbol) {
@@ -209,9 +187,6 @@ export function formatCurrency(
   }
 }
 
-/**
- * Format date based on workspace settings
- */
 export function formatDate(
   date: Date | string,
   workspaceSettings: WorkspaceSettings,
@@ -233,7 +208,6 @@ export function formatDate(
   const zonedDate = toZonedTime(dateObj, timezone)
 
   if (relative) {
-    // Return relative time (e.g., "2 hours ago")
     const now = new Date()
     const diffMs = now.getTime() - dateObj.getTime()
     const diffMinutes = Math.floor(diffMs / (1000 * 60))
@@ -244,10 +218,8 @@ export function formatDate(
     if (diffMinutes < 60) return `${diffMinutes}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
     if (diffDays < 7) return `${diffDays}d ago`
-    // Fall back to formatted date for older dates
   }
 
-  // Convert date format pattern
   let formatPattern: string
   switch (settings.dateFormat) {
     case 'MM/DD/YYYY':
@@ -277,9 +249,6 @@ export function formatDate(
   return format(zonedDate, formatPattern)
 }
 
-/**
- * Format time based on workspace settings
- */
 export function formatTime(
   date: Date | string,
   workspaceSettings: WorkspaceSettings
@@ -299,9 +268,6 @@ export function formatTime(
   return format(zonedDate, timePattern)
 }
 
-/**
- * Convert local time to workspace timezone
- */
 export function toWorkspaceTime(
   date: Date | string,
   workspaceSettings: WorkspaceSettings
@@ -311,9 +277,6 @@ export function toWorkspaceTime(
   return toZonedTime(dateObj, timezone)
 }
 
-/**
- * Convert workspace time to UTC
- */
 export function fromWorkspaceTime(
   date: Date | string,
   workspaceSettings: WorkspaceSettings
@@ -323,9 +286,6 @@ export function fromWorkspaceTime(
   return fromZonedTime(dateObj, timezone)
 }
 
-/**
- * Get workspace-specific number formatting
- */
 export function formatNumber(
   number: number,
   workspaceSettings: WorkspaceSettings,
@@ -350,9 +310,6 @@ export function formatNumber(
   }).format(number)
 }
 
-/**
- * Get supported currencies list
- */
 export function getSupportedCurrencies(): Array<{
   code: string
   name: string
@@ -382,9 +339,6 @@ export function getSupportedCurrencies(): Array<{
   ]
 }
 
-/**
- * Get supported timezones list
- */
 export function getSupportedTimezones(): Array<{
   value: string
   label: string

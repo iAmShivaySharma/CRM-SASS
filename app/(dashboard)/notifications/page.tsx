@@ -69,7 +69,6 @@ export default function NotificationsPage() {
   const [limit, setLimit] = useState(20)
   const [offset, setOffset] = useState(0)
 
-  // RTK Query hooks
   const {
     data: notificationsData,
     isLoading,
@@ -85,7 +84,7 @@ export default function NotificationsPage() {
     },
     {
       skip: !currentWorkspace?.id,
-      pollingInterval: 30000, // Poll every 30 seconds
+      pollingInterval: 30000,
     }
   )
 
@@ -200,7 +199,6 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Notifications</h1>
@@ -234,7 +232,6 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-6">
@@ -277,7 +274,6 @@ export default function NotificationsPage() {
         </Card>
       </div>
 
-      {/* Filters and Tabs */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -425,7 +421,6 @@ export default function NotificationsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                // Navigate to action URL
                                 window.location.href = notification.actionUrl!
                               }}
                             >
@@ -441,7 +436,6 @@ export default function NotificationsPage() {
             </TabsContent>
           </Tabs>
 
-          {/* Load More */}
           {filteredNotifications.length > 0 &&
             filteredNotifications.length < totalCount && (
               <div className="mt-6 text-center">

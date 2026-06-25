@@ -1,6 +1,3 @@
-// Google Cloud Storage provider
-// Uses the same interface as MinIO so it's a drop-in replacement
-
 let gcsClient: any = null
 let gcsBucket: any = null
 
@@ -14,8 +11,6 @@ async function getGCSBucket() {
   if (!gcsBucket) {
     const { Storage } = await import('@google-cloud/storage')
 
-    // Auth is handled automatically via GKE Workload Identity / attached service account.
-    // No key files or credentials needed — the pod inherits permissions from the K8s service account.
     gcsClient = new Storage({ projectId: GCS_PROJECT_ID })
     gcsBucket = gcsClient.bucket(GCS_BUCKET_NAME)
   }
@@ -27,7 +22,6 @@ export async function initializeBucketGCS(): Promise<void> {
   const [exists] = await bucket.exists()
   if (!exists) {
     await bucket.create()
-    console.log(`GCS bucket '${GCS_BUCKET_NAME}' created`)
   }
 }
 
@@ -45,23 +39,19 @@ export async function uploadFileGCS(
       contentType: fileType,
       metadata: {
         cacheControl: 'public, max-age=31536000',
-        metadata, // custom metadata goes under metadata.metadata in GCS
+        metadata,
       },
       resumable: false,
     })
 
-    // Make publicly readable if bucket isn't already public
     try {
       await file.makePublic()
-    } catch {
-      // Bucket may have uniform access — that's fine
-    }
+    } catch {}
 
     const publicFileUrl = `${GCS_PUBLIC_URL}/${filePath}`
 
     return { success: true, url: publicFileUrl }
   } catch (error) {
-    console.error('GCS upload error:', error)
     return {
       success: false,
       error: `GCS upload failed: ${error instanceof Error ? error.message : 'Upload failed'}`,
@@ -77,7 +67,6 @@ export async function deleteFileGCS(
     await bucket.file(filePath).delete()
     return { success: true }
   } catch (error) {
-    console.error('GCS delete error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Delete failed',
@@ -97,7 +86,6 @@ export async function generatePresignedUrlGCS(
     })
     return { success: true, url }
   } catch (error) {
-    console.error('GCS presigned URL error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate URL',

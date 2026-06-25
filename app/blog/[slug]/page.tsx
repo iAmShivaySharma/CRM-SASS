@@ -12,7 +12,7 @@ import ShareButtons from '@/components/blog/ShareButtons'
 import RelatedPosts from '@/components/blog/RelatedPosts'
 import BlogContent from '@/components/blog/BlogContent'
 
-export const revalidate = 600 // ISR: revalidate every 10 minutes
+export const revalidate = 600
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
 
@@ -20,7 +20,6 @@ interface BlogPageProps {
   params: Promise<{ slug: string }>
 }
 
-// Generate static paths for published blogs
 export async function generateStaticParams() {
   try {
     await connectToMongoDB()
@@ -35,7 +34,6 @@ export async function generateStaticParams() {
   }
 }
 
-// Dynamic metadata per blog post — critical for SEO
 export async function generateMetadata({
   params,
 }: BlogPageProps): Promise<Metadata> {
@@ -103,14 +101,12 @@ async function getBlogData(slug: string) {
 
   const b = blog as any
 
-  // Increment views (fire-and-forget)
   Blog.updateOne({ slug }, { $inc: { views: 1 } }).exec()
 
   const category = await BlogCategory.findById(b.categoryId)
     .select('name slug')
     .lean()
 
-  // Related posts
   let relatedPosts: any[] = []
   if (b.relatedSlugs?.length > 0) {
     relatedPosts = await Blog.find({
@@ -163,7 +159,6 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
     day: 'numeric',
   })
 
-  // JSON-LD structured data — Article schema
   const articleJsonLd =
     blog.jsonLd && Object.keys(blog.jsonLd).length > 0
       ? blog.jsonLd
@@ -223,7 +218,6 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
           ]}
         />
 
-        {/* Article Header */}
         <header className="mx-auto mb-10 max-w-3xl text-center">
           {blog.category && (
             <Link
@@ -244,7 +238,6 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
             </p>
           )}
 
-          {/* Meta info */}
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
             {blog.author && (
               <div className="flex items-center gap-2">
@@ -283,7 +276,6 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
           </div>
         </header>
 
-        {/* Featured Image */}
         {blog.featuredImage && (
           <div className="mx-auto mb-12 max-w-4xl overflow-hidden rounded-2xl">
             <Image
@@ -298,13 +290,10 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
           </div>
         )}
 
-        {/* Content Layout */}
         <div className="mx-auto max-w-6xl lg:grid lg:grid-cols-[1fr_280px] lg:gap-12">
-          {/* Main Content */}
           <div className="mx-auto max-w-3xl lg:mx-0">
             <BlogContent content={blog.content} />
 
-            {/* Tags */}
             {blog.tags?.length > 0 && (
               <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-border pt-6">
                 <Tag className="h-4 w-4 text-muted-foreground" />
@@ -320,7 +309,6 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
               </div>
             )}
 
-            {/* Share */}
             <div className="mt-6 flex items-center justify-between border-t border-border pt-6">
               <ShareButtons
                 url={`${APP_URL}/blog/${slug}`}
@@ -329,7 +317,6 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
               />
             </div>
 
-            {/* Author Box */}
             {blog.author?.bio && (
               <div className="mt-10 flex gap-4 rounded-xl border border-border bg-card p-6">
                 {blog.author.avatar ? (
@@ -358,7 +345,6 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
             )}
           </div>
 
-          {/* Sidebar — Table of Contents (sticky) */}
           <aside className="hidden lg:block">
             <div className="sticky top-24">
               <TableOfContents items={blog.tableOfContents || []} />
@@ -366,7 +352,6 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
           </aside>
         </div>
 
-        {/* Related Posts */}
         <div className="mx-auto max-w-5xl">
           <RelatedPosts posts={relatedPosts} />
         </div>

@@ -57,7 +57,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ chatRooms })
   } catch (error) {
-    console.error('Get chat rooms error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -135,7 +134,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ chatRoom: populatedRoom }, { status: 201 })
   } catch (error) {
-    console.error('Create chat room error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

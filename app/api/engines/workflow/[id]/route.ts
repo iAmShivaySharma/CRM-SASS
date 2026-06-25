@@ -40,8 +40,6 @@ export async function GET(
       data: workflow,
     })
   } catch (error) {
-    console.error('Get workflow details error:', error)
-
     return NextResponse.json(
       {
         success: false,

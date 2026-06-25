@@ -1,14 +1,3 @@
-/**
- * Enhanced Workspace Settings Page
- *
- * Features:
- * - Tabbed interface for different settings sections
- * - General workspace settings (name, description, etc.)
- * - Member management with role assignments
- * - Workspace deletion and advanced settings
- * - Real-time updates and validation
- */
-
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -85,7 +74,6 @@ import {
 import { RoleForm } from '@/components/roles/RoleForm'
 import { getPermissionsForAPI } from '@/lib/permissions/constants'
 
-// Types for API responses
 interface WorkspaceMember {
   id: string
   userId: string
@@ -125,7 +113,6 @@ export default function WorkspaceSettingsPage() {
   const [activeTab, setActiveTab] = useState('general')
   const { customTheme } = useTheme()
 
-  // RTK Query hooks
   const { data: workspaceData, isLoading: workspaceLoading } =
     useGetWorkspaceQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
@@ -134,22 +121,18 @@ export default function WorkspaceSettingsPage() {
     useGetWorkspaceRolesQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
-  // Get permissions from constants (no API call needed)
   const permissionsData = getPermissionsForAPI()
   const [inviteToWorkspace, { isLoading: inviteLoading }] =
     useInviteToWorkspaceMutation()
   const [updateWorkspace, { isLoading: updateLoading }] =
     useUpdateWorkspaceMutation()
 
-  // Local state for form inputs
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('')
 
-  // Role and Permission dialogs
   const [createRoleOpen, setCreateRoleOpen] = useState(false)
 
-  // Extract data from RTK Query responses
   const workspaceDetails = workspaceData?.workspace
   const members = workspaceDetails?.members || []
   const roles = useMemo(() => rolesData?.roles || [], [rolesData?.roles])
@@ -157,7 +140,6 @@ export default function WorkspaceSettingsPage() {
   const memberCount = workspaceDetails?.memberCount || 0
   const isOwner = workspaceDetails?.userRole === 'Owner'
 
-  // Group permissions by category for display
   const permissionsByCategory = useMemo(() => {
     const grouped: Record<string, typeof permissions> = {}
     permissions.forEach(permission => {
@@ -169,14 +151,12 @@ export default function WorkspaceSettingsPage() {
     return grouped
   }, [permissions])
 
-  // General settings state
   const [workspaceName, setWorkspaceName] = useState(
     currentWorkspace?.name || ''
   )
   const [workspaceDescription, setWorkspaceDescription] = useState('')
   const [workspaceSlug, setWorkspaceSlug] = useState('')
 
-  // Update form state when workspace data loads
   useEffect(() => {
     if (workspaceDetails) {
       setWorkspaceName(workspaceDetails.name)
@@ -185,7 +165,6 @@ export default function WorkspaceSettingsPage() {
     }
   }, [workspaceDetails])
 
-  // Set default invite role when roles load
   useEffect(() => {
     if (roles && roles.length > 0 && !inviteRole) {
       setInviteRole(roles[0].id)
@@ -212,13 +191,11 @@ export default function WorkspaceSettingsPage() {
       }).unwrap()
 
       if (result.success) {
-        // Update Redux state with new workspace data
         if (currentWorkspace) {
           dispatch(
             setCurrentWorkspace({
               ...currentWorkspace,
               name: workspaceName,
-              // Add other updated fields if needed
             })
           )
         }
@@ -348,7 +325,6 @@ export default function WorkspaceSettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="border-b border-border pb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -382,9 +358,7 @@ export default function WorkspaceSettingsPage() {
         </div>
       </div>
 
-      {/* Settings Navigation */}
       <div className="flex flex-col gap-6 lg:flex-row">
-        {/* Sidebar Navigation */}
         <div className="flex-shrink-0 lg:w-64">
           <nav className="space-y-1">
             <button
@@ -441,9 +415,7 @@ export default function WorkspaceSettingsPage() {
           </nav>
         </div>
 
-        {/* Content Area */}
         <div className="min-w-0 flex-1">
-          {/* General Settings */}
           {activeTab === 'general' && (
             <Card>
               <CardHeader>
@@ -504,7 +476,6 @@ export default function WorkspaceSettingsPage() {
             </Card>
           )}
 
-          {/* Members Management */}
           {activeTab === 'members' && (
             <Card>
               <CardHeader>
@@ -648,7 +619,6 @@ export default function WorkspaceSettingsPage() {
             </Card>
           )}
 
-          {/* Roles & Permissions */}
           {activeTab === 'roles' && (
             <Tabs defaultValue="roles" className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">
@@ -658,7 +628,6 @@ export default function WorkspaceSettingsPage() {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Roles Tab */}
               <TabsContent value="roles" className="space-y-0">
                 <Card>
                   <CardHeader>
@@ -827,7 +796,6 @@ export default function WorkspaceSettingsPage() {
                 </Card>
               </TabsContent>
 
-              {/* Permissions Tab */}
               <TabsContent value="permissions" className="space-y-0">
                 <Card>
                   <CardHeader>
@@ -839,7 +807,6 @@ export default function WorkspaceSettingsPage() {
                           workspace.
                         </CardDescription>
                       </div>
-                      {/* Permission creation disabled - permissions are managed through code deployment */}
                       <div className="rounded border border-dashed bg-muted p-3 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Shield className="h-4 w-4" />
@@ -885,7 +852,6 @@ export default function WorkspaceSettingsPage() {
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        {/* Permission Summary */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                           <Card className="p-4">
                             <div className="flex items-center">
@@ -936,7 +902,6 @@ export default function WorkspaceSettingsPage() {
                           </Card>
                         </div>
 
-                        {/* Permissions by Category */}
                         <Tabs
                           defaultValue={Object.keys(permissionsByCategory)[0]}
                           className="w-full"
@@ -1085,7 +1050,6 @@ export default function WorkspaceSettingsPage() {
             </Tabs>
           )}
 
-          {/* Advanced Settings */}
           {activeTab === 'advanced' && (
             <Card>
               <CardHeader>

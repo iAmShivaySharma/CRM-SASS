@@ -17,6 +17,8 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
+import { cached, invalidateCache } from '@/lib/redis/cache'
+import { activityQueue, notificationQueue } from '@/lib/queue/queues'
 
 const createLeadSchema = z.object({
   name: z.string().min(1).max(100),
@@ -47,23 +49,16 @@ const createLeadSchema = z.object({
   customFields: z.record(z.any()).optional(),
 })
 
-// GET /api/leads - Get leads for a workspace with pagination and filtering
 export const GET = withSecurityLogging(
   withLogging(
     async (request: NextRequest) => {
       const startTime = Date.now()
-      console.log('=== LEADS API DEBUG START ===')
 
       try {
-        console.log('Connecting to MongoDB...')
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
 
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
-        console.log('Auth result:', auth ? 'Success' : 'Failed')
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
@@ -88,7 +83,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check if user has access to workspace
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
           workspaceId,
@@ -102,7 +96,6 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Build query
         const query: any = { workspaceId }
 
         if (status) query.status = status
@@ -111,28 +104,27 @@ export const GET = withSecurityLogging(
         if (tags && tags.length > 0) query.tagIds = { $in: tags }
 
         if (search) {
-          query.$or = [
-            { name: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { company: { $regex: search, $options: 'i' } },
-            { phone: { $regex: search, $options: 'i' } },
-          ]
+          query.$text = { $search: search }
         }
 
-        // Get leads with pagination (debug version without populate)
-        console.log('Fetching leads with query:', query)
-        console.log('Skip:', skip, 'Limit:', limit)
+        const cacheKey = `leads:${workspaceId}:${page}:${limit}:${status || ''}:${assignedTo || ''}:${priority || ''}:${search || ''}:${tags?.join(',') || ''}`
 
-        const [leads, total] = await Promise.all([
-          Lead.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .lean(),
-          Lead.countDocuments(query),
-        ])
-
-        console.log('Found leads:', leads.length, 'Total:', total)
+        const { leads, total } = await cached(cacheKey, 60, async () => {
+          const [leads, total] = await Promise.all([
+            Lead.find(query)
+              .select(
+                'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt'
+              )
+              .sort(
+                search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
+              )
+              .skip(skip)
+              .limit(limit)
+              .lean(),
+            Lead.countDocuments(query),
+          ])
+          return { leads, total }
+        })
 
         logBusinessEvent('leads_listed', auth.user.id, workspaceId, {
           count: leads.length,
@@ -161,12 +153,6 @@ export const GET = withSecurityLogging(
           },
         })
       } catch (error) {
-        console.error('=== LEADS API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Get leads error:', error)
         return NextResponse.json(
           {
@@ -190,7 +176,6 @@ export const GET = withSecurityLogging(
   )
 )
 
-// POST /api/leads - Create a new lead
 export const POST = withSecurityLogging(
   withLogging(
     async (request: NextRequest) => {
@@ -229,7 +214,6 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Check if user has access to workspace
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
           workspaceId,
@@ -243,13 +227,11 @@ export const POST = withSecurityLogging(
           )
         }
 
-        // Determine source from request or use default
         let finalSource = validationResult.data.source || 'manual'
         if (!validationResult.data.source) {
           const origin =
             request.headers.get('origin') || request.headers.get('referer')
           if (origin) {
-            // Map common domains to source types
             const hostname = new URL(origin).hostname.toLowerCase()
             if (hostname.includes('facebook')) {
               finalSource = 'social_media'
@@ -283,79 +265,54 @@ export const POST = withSecurityLogging(
             : undefined,
         }
 
-        // Create lead
         const lead = await Lead.create(leadData)
 
-        // Populate the created lead
         const populatedLead = await Lead.findById(lead._id)
           .populate('tagIds', 'name color')
           .populate('statusId', 'name color')
           .populate('assignedTo', 'fullName email')
           .populate('createdBy', 'fullName email')
 
-        // Log activity in the Activity collection for recent activity display
-        let activity = null
-        try {
-          activity = await Activity.create({
-            workspaceId,
-            performedBy: auth.user.id,
-            activityType: 'created',
-            entityType: 'lead',
-            entityId: lead._id,
-            description: `${auth.user.fullName} created new lead "${leadData.name}"`,
-            metadata: {
-              leadName: leadData.name,
-              source: finalSource,
-              value: leadData.value || 0,
-              company: leadData.company,
-            },
-          })
-        } catch (activityError) {
-          console.error('Failed to log lead creation activity:', activityError)
-          // Don't fail the creation if activity logging fails
-        }
+        await activityQueue.add('lead-created', {
+          workspaceId,
+          performedBy: auth.user.id,
+          activityType: 'created',
+          entityType: 'lead',
+          entityId: lead._id.toString(),
+          description: `${auth.user.fullName} created new lead "${leadData.name}"`,
+          metadata: {
+            leadName: leadData.name,
+            source: finalSource,
+            value: leadData.value || 0,
+            company: leadData.company,
+          },
+        })
 
-        // Log activity
+        await notificationQueue.add('lead-created', {
+          workspaceId,
+          title: 'New Lead Created',
+          message: `${auth.user.fullName || auth.user.email} created a new lead: ${leadData.name}`,
+          type: 'success',
+          entityType: 'lead',
+          entityId: lead._id.toString(),
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+          metadata: {
+            leadName: leadData.name,
+            source: finalSource,
+            value: leadData.value || 0,
+            company: leadData.company,
+          },
+        })
+
         logUserActivity(auth.user.id, 'lead_created', 'lead', {
           leadId: lead._id,
           leadName: leadData.name,
           workspaceId,
         })
 
-        logBusinessEvent('lead_created', auth.user.id, workspaceId, {
-          leadName: leadData.name,
-          source: leadData.source,
-          value: leadData.value,
-          duration: Date.now() - startTime,
-        })
-
-        // Create notification for lead creation
-        try {
-          await NotificationService.createNotification({
-            workspaceId,
-            title: 'New Lead Created',
-            message: `${auth.user.fullName || auth.user.email} created a new lead: ${leadData.name}`,
-            type: 'success',
-            entityType: 'lead',
-            entityId: lead._id.toString(),
-            createdBy: auth.user.id,
-            activityId: activity?._id?.toString(),
-            notificationLevel: 'team',
-            excludeUserIds: [auth.user.id], // Don't notify the creator
-            metadata: {
-              leadName: leadData.name,
-              source: finalSource,
-              value: leadData.value || 0,
-              company: leadData.company,
-            },
-          })
-        } catch (notificationError) {
-          console.error(
-            'Failed to create lead creation notification:',
-            notificationError
-          )
-          // Don't fail the lead creation if notification fails
-        }
+        await invalidateCache(`leads:${workspaceId}:*`)
 
         return NextResponse.json(
           {

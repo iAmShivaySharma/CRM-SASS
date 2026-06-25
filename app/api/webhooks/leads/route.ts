@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
       message: 'Lead created successfully',
     })
   } catch (error) {
-    console.error('Webhook error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

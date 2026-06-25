@@ -1,6 +1,3 @@
-// Dodo Payments Integration
-// Documentation: https://docs.dodopayments.com/
-
 interface DodoConfig {
   apiKey: string
   publicKey: string
@@ -15,7 +12,6 @@ class DodoPayments {
     this.config = config
   }
 
-  // Create customer
   async createCustomer(data: {
     email: string
     name: string
@@ -37,12 +33,10 @@ class DodoPayments {
 
       return await response.json()
     } catch (error) {
-      console.error('Error creating Dodo customer:', error)
       throw error
     }
   }
 
-  // Create subscription
   async createSubscription(data: {
     customer_id: string
     price_id: string
@@ -64,12 +58,10 @@ class DodoPayments {
 
       return await response.json()
     } catch (error) {
-      console.error('Error creating Dodo subscription:', error)
       throw error
     }
   }
 
-  // Get subscription
   async getSubscription(subscriptionId: string) {
     try {
       const response = await fetch(
@@ -87,12 +79,10 @@ class DodoPayments {
 
       return await response.json()
     } catch (error) {
-      console.error('Error fetching Dodo subscription:', error)
       throw error
     }
   }
 
-  // Cancel subscription
   async cancelSubscription(subscriptionId: string) {
     try {
       const response = await fetch(
@@ -111,12 +101,10 @@ class DodoPayments {
 
       return await response.json()
     } catch (error) {
-      console.error('Error canceling Dodo subscription:', error)
       throw error
     }
   }
 
-  // Get prices
   async getPrices() {
     try {
       const response = await fetch(`${this.config.baseUrl}/prices`, {
@@ -131,12 +119,10 @@ class DodoPayments {
 
       return await response.json()
     } catch (error) {
-      console.error('Error fetching Dodo prices:', error)
       throw error
     }
   }
 
-  // Verify webhook signature
   verifyWebhookSignature(payload: string, signature: string): boolean {
     try {
       const crypto = require('crypto')
@@ -150,21 +136,18 @@ class DodoPayments {
         Buffer.from(expectedSignature)
       )
     } catch (error) {
-      console.error('Error verifying webhook signature:', error)
       return false
     }
   }
 }
 
-// Initialize Dodo client
 export const dodoPayments = new DodoPayments({
   apiKey: process.env.DODO_API_KEY!,
   publicKey: process.env.NEXT_PUBLIC_DODO_PUBLIC_KEY!,
   webhookSecret: process.env.DODO_WEBHOOK_SECRET!,
-  baseUrl: 'https://api.dodopayments.com/v1', // Update with actual Dodo API URL
+  baseUrl: 'https://api.dodopayments.com/v1',
 })
 
-// Types for Dodo Payments
 export interface DodoCustomer {
   id: string
   email: string

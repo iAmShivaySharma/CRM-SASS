@@ -1,10 +1,3 @@
-/**
- * Workspaces API Endpoint
- *
- * Handles workspace CRUD operations with comprehensive security,
- * logging, and validation.
- */
-
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAuth } from '@/lib/security/auth-middleware'
@@ -30,7 +23,6 @@ import {
   seedDefaultTags,
 } from '@/lib/mongodb/seedDefaults'
 
-// Supported currencies
 const SUPPORTED_CURRENCIES = [
   'USD',
   'EUR',
@@ -54,7 +46,6 @@ const SUPPORTED_CURRENCIES = [
   'KRW',
 ] as const
 
-// Common timezones
 const SUPPORTED_TIMEZONES = [
   'UTC',
   'America/New_York',
@@ -84,7 +75,6 @@ const SUPPORTED_TIMEZONES = [
   'Pacific/Auckland',
 ] as const
 
-// Validation schemas
 const createWorkspaceSchema = z.object({
   name: z
     .string()
@@ -167,21 +157,11 @@ const updateWorkspaceSchema = z.object({
     .optional(),
 })
 
-/**
- * GET /api/workspaces
- * Get user's workspaces
- */
 export const GET = withSecurityLogging(
   withLogging(async (request: NextRequest) => {
     const startTime = Date.now()
-    console.log('=== GET WORKSPACES API DEBUG START ===')
-
     try {
-      // Ensure database connection
-      console.log('Connecting to MongoDB...')
       await connectToMongoDB()
-      console.log('MongoDB connected successfully')
-      // Rate limiting
       const clientIP = getClientIP(request)
       const rateLimitResult = await rateLimit(clientIP, 'api')
 
@@ -201,20 +181,13 @@ export const GET = withSecurityLogging(
         )
       }
 
-      // Authentication
-      console.log('Authenticating user...')
       const authResult = await requireAuth(request)
-      console.log('Auth result:', authResult.success ? 'Success' : 'Failed')
       if (!authResult.success) {
-        console.log('Authentication failed, returning error')
         return authResult.response
       }
 
       const userId = authResult.user.id
-      console.log('User ID:', userId)
 
-      // Get user's workspace memberships with error handling
-      console.log('Fetching user workspace memberships...')
       let memberships = []
 
       try {
@@ -225,8 +198,6 @@ export const GET = withSecurityLogging(
           .populate('workspaceId')
           .populate('roleId')
       } catch (populateError) {
-        console.error('Error populating workspace memberships:', populateError)
-        // Fallback: get memberships without populate and fetch manually
         const rawMemberships = await WorkspaceMember.find({
           userId,
           status: 'active',
@@ -242,43 +213,25 @@ export const GET = withSecurityLogging(
             if (role) {
               membership.roleId = role
             }
-          } catch (fetchError) {
-            console.error(
-              `Error fetching workspace/role for membership ${membership._id}:`,
-              fetchError
-            )
-          }
+          } catch (fetchError) {}
         }
 
         memberships = rawMemberships
       }
 
-      console.log('Found memberships:', memberships.length)
-
-      // Separate valid and invalid memberships
       const validMemberships = []
       const orphanedMembershipIds = []
 
       for (const membership of memberships) {
-        // Check if workspaceId exists and is populated
         if (
           !membership.workspaceId ||
           typeof membership.workspaceId === 'string'
         ) {
-          console.log(
-            'Found membership with unpopulated workspaceId:',
-            membership._id
-          )
           orphanedMembershipIds.push(membership._id)
           continue
         }
 
-        // Check if workspace has required fields
         if (!membership.workspaceId.name) {
-          console.log(
-            'Found membership with workspace missing name:',
-            membership.workspaceId._id
-          )
           orphanedMembershipIds.push(membership._id)
           continue
         }
@@ -286,22 +239,12 @@ export const GET = withSecurityLogging(
         validMemberships.push(membership)
       }
 
-      // Clean up orphaned memberships (async, non-blocking)
       if (orphanedMembershipIds.length > 0) {
-        console.log(
-          `Cleaning up ${orphanedMembershipIds.length} orphaned memberships in GET`
-        )
         WorkspaceMember.deleteMany({
           _id: { $in: orphanedMembershipIds },
-        }).catch(cleanupError =>
-          console.error(
-            'Error cleaning up orphaned memberships in GET:',
-            cleanupError
-          )
-        )
+        }).catch(() => {})
       }
 
-      // Map valid workspaces
       const workspaces = validMemberships.map(membership => ({
         id: membership.workspaceId._id,
         name: membership.workspaceId.name,
@@ -322,8 +265,6 @@ export const GET = withSecurityLogging(
             : { id: membership.roleId, name: 'Unknown', permissions: [] },
       }))
 
-      console.log('Valid workspaces found:', workspaces.length)
-
       const duration = Date.now() - startTime
       log.performance('Get workspaces', duration, {
         userId,
@@ -339,13 +280,6 @@ export const GET = withSecurityLogging(
         total: workspaces.length,
       })
     } catch (error) {
-      console.error('=== GET WORKSPACES ERROR ===')
-      console.error('Error details:', error)
-      console.error(
-        'Error stack:',
-        error instanceof Error ? error.stack : 'No stack'
-      )
-
       const duration = Date.now() - startTime
       log.error(`Get workspaces failed after ${duration}ms`, {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -369,25 +303,15 @@ export const GET = withSecurityLogging(
   })
 )
 
-/**
- * POST /api/workspaces
- * Create new workspace
- */
 export const POST = withSecurityLogging(
   withLogging(async (request: NextRequest) => {
     const startTime = Date.now()
-    console.log('=== WORKSPACE CREATION API DEBUG START ===')
-
     try {
-      // Ensure database connection
-      console.log('Connecting to MongoDB...')
       await connectToMongoDB()
-      console.log('MongoDB connected successfully')
-      // Rate limiting - stricter for workspace creation
       const clientIP = getClientIP(request)
       const rateLimitResult = await rateLimit(clientIP, 'api', {
-        windowMs: 60 * 1000, // 1 minute
-        maxRequests: 5, // 5 workspace creations per minute
+        windowMs: 60 * 1000,
+        maxRequests: 5,
       })
 
       if (!rateLimitResult.success) {
@@ -406,37 +330,25 @@ export const POST = withSecurityLogging(
         )
       }
 
-      // Authentication
-      console.log('Authenticating user...')
       const authResult = await requireAuth(request)
-      console.log('Auth result:', authResult.success ? 'Success' : 'Failed')
       if (!authResult.success) {
-        console.log('Authentication failed, returning error')
         return authResult.response
       }
 
       const userId = authResult.user.id
-      console.log('User ID:', userId)
 
-      // Parse and validate request body
-      console.log('Parsing request body...')
       let body
       try {
         body = await request.json()
-        console.log('Request body:', body)
       } catch (error) {
-        console.log('JSON parsing error:', error)
         return NextResponse.json(
           { message: 'Invalid JSON in request body' },
           { status: 400 }
         )
       }
 
-      console.log('Validating request body...')
       const validation = createWorkspaceSchema.safeParse(body)
-      console.log('Validation result:', validation.success)
       if (!validation.success) {
-        console.log('Validation errors:', validation.error.errors)
         log.warn('Workspace creation validation failed', {
           userId,
           errors: validation.error.errors,
@@ -454,7 +366,6 @@ export const POST = withSecurityLogging(
       const { name, description, currency, timezone, settings } =
         validation.data
 
-      // Additional validation
       if (!name || name.trim().length === 0) {
         return NextResponse.json(
           { message: 'Workspace name is required' },
@@ -462,16 +373,6 @@ export const POST = withSecurityLogging(
         )
       }
 
-      console.log('Validated workspace data:', {
-        name: name.trim(),
-        description: description || 'No description',
-        currency: currency || 'USD',
-        timezone: timezone || 'UTC',
-        settings: settings || 'Default settings',
-      })
-
-      // Check if user already has a workspace with this name
-      console.log('Checking for existing workspaces with same name...')
       let existingMemberships = []
 
       try {
@@ -480,8 +381,6 @@ export const POST = withSecurityLogging(
           status: 'active',
         }).populate('workspaceId')
       } catch (populateError) {
-        console.error('Error populating workspace memberships:', populateError)
-        // Fallback: get memberships without populate and check manually
         const memberships = await WorkspaceMember.find({
           userId,
           status: 'active',
@@ -493,58 +392,25 @@ export const POST = withSecurityLogging(
             if (workspace) {
               membership.workspaceId = workspace
             }
-          } catch (workspaceError) {
-            console.error(
-              `Error fetching workspace ${membership.workspaceId}:`,
-              workspaceError
-            )
-          }
+          } catch (workspaceError) {}
         }
 
         existingMemberships = memberships
       }
 
-      console.log('Found existing memberships:', existingMemberships.length)
-      console.log(
-        'Memberships details:',
-        existingMemberships.map(m => ({
-          id: m._id,
-          workspaceId: m.workspaceId
-            ? typeof m.workspaceId === 'string'
-              ? m.workspaceId
-              : m.workspaceId._id
-            : 'null',
-          workspaceName:
-            m.workspaceId && typeof m.workspaceId === 'object'
-              ? m.workspaceId.name
-              : 'not populated',
-        }))
-      )
-
-      // Clean up orphaned memberships and check for name conflicts
       const validMemberships = []
       const orphanedMembershipIds = []
 
       for (const membership of existingMemberships) {
-        // Check if workspaceId exists and is populated
         if (
           !membership.workspaceId ||
           typeof membership.workspaceId === 'string'
         ) {
-          console.log(
-            'Found membership with unpopulated workspaceId:',
-            membership._id
-          )
           orphanedMembershipIds.push(membership._id)
           continue
         }
 
-        // Check if the populated workspace has required fields
         if (!membership.workspaceId.name) {
-          console.log(
-            'Found membership with workspace missing name:',
-            membership.workspaceId._id || membership.workspaceId
-          )
           orphanedMembershipIds.push(membership._id)
           continue
         }
@@ -552,25 +418,15 @@ export const POST = withSecurityLogging(
         validMemberships.push(membership)
       }
 
-      // Clean up orphaned memberships (don't await to avoid blocking)
       if (orphanedMembershipIds.length > 0) {
-        console.log(
-          `Cleaning up ${orphanedMembershipIds.length} orphaned memberships`
-        )
         WorkspaceMember.deleteMany({
           _id: { $in: orphanedMembershipIds },
-        }).catch(cleanupError =>
-          console.error('Error cleaning up orphaned memberships:', cleanupError)
-        )
+        }).catch(() => {})
       }
 
-      // Check for name conflicts among valid memberships
       const hasWorkspaceWithName = validMemberships.some(membership => {
         const workspaceName = membership.workspaceId.name.trim().toLowerCase()
         const inputName = name.trim().toLowerCase()
-        console.log(
-          `Comparing workspace name "${workspaceName}" with input "${inputName}"`
-        )
 
         return workspaceName === inputName
       })
@@ -582,16 +438,14 @@ export const POST = withSecurityLogging(
         )
       }
 
-      // Use trimmed name for processing
       const trimmedName = name.trim()
 
-      // Generate unique slug
       const baseSlug = trimmedName
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')
-        .replace(/^-+|-+$/g, '') // Remove leading and trailing dashes
+        .replace(/^-+|-+$/g, '')
 
       let slug = baseSlug
       let counter = 1
@@ -601,11 +455,7 @@ export const POST = withSecurityLogging(
         counter++
       }
 
-      console.log('Generated unique slug:', slug)
-
       try {
-        // Create workspace
-        console.log('Creating workspace...')
         const workspace = new Workspace({
           name: trimmedName,
           slug,
@@ -621,21 +471,17 @@ export const POST = withSecurityLogging(
             }),
             allowInvitations: true,
             requireEmailVerification: true,
-            maxUsers: 5, // Free plan limit
+            maxUsers: 5,
             enableAuditLog: true,
             enableTwoFactor: false,
-            sessionTimeout: 480, // 8 hours
+            sessionTimeout: 480,
           },
-          planId: 'free', // Default to free plan
+          planId: 'free',
           subscriptionStatus: 'active',
           createdBy: userId,
         })
 
         await workspace.save()
-        console.log('Workspace created successfully')
-
-        // Create or find owner role for the workspace
-        console.log('Creating/finding owner role...')
         let ownerRole = await Role.findOne({
           name: 'Owner',
           workspaceId: workspace._id,
@@ -647,45 +493,34 @@ export const POST = withSecurityLogging(
               workspaceId: workspace._id,
               name: 'Owner',
               description: 'Full access to workspace',
-              permissions: ['*:*'], // All permissions
+              permissions: ['*:*'],
               isDefault: true,
             })
             await ownerRole.save()
-            console.log('Owner role created successfully')
           } catch (roleError: any) {
-            // If duplicate key error, try to find existing role
             if (roleError.code === 11000) {
-              console.log('Duplicate key error, finding existing Owner role...')
               ownerRole = await Role.findOne({
                 name: 'Owner',
                 workspaceId: workspace._id,
               })
               if (!ownerRole) {
-                // If still not found, create with a unique name
                 const uniqueName = `Owner_${workspace._id.toString().slice(-6)}`
                 ownerRole = new Role({
                   workspaceId: workspace._id,
                   name: uniqueName,
                   description: 'Full access to workspace',
-                  permissions: ['*:*'], // All permissions
+                  permissions: ['*:*'],
                   isDefault: true,
                 })
                 await ownerRole.save()
-                console.log(
-                  `Created owner role with unique name: ${uniqueName}`
-                )
               } else {
-                console.log('Found existing Owner role after duplicate error')
               }
             } else {
               throw roleError
             }
           }
-        } else {
-          console.log('Owner role already exists, using existing role')
         }
 
-        // Add user as workspace owner
         const membership = new WorkspaceMember({
           workspaceId: workspace._id,
           userId,
@@ -695,13 +530,9 @@ export const POST = withSecurityLogging(
         })
 
         await membership.save()
-        console.log('Workspace membership created successfully')
 
-        // Seed default lead statuses and tags for the new workspace
-        console.log('Seeding default lead statuses and tags...')
         await seedDefaultLeadStatuses(workspace._id.toString(), userId)
         await seedDefaultTags(workspace._id.toString(), userId)
-        console.log('Default data seeded successfully')
 
         const duration = Date.now() - startTime
         log.performance('Create workspace', duration, {
@@ -710,7 +541,6 @@ export const POST = withSecurityLogging(
           workspaceName: name,
         })
 
-        // Log business event
         logBusinessEvent(
           'workspace_created',
           userId,
@@ -721,13 +551,11 @@ export const POST = withSecurityLogging(
           }
         )
 
-        // Log user activity
         logUserActivity(userId, 'create_workspace', 'workspace', {
           workspaceId: workspace._id.toString(),
           workspaceName: name,
         })
 
-        // Log activity in the Activity collection for recent activity display
         try {
           await Activity.create({
             workspaceId: workspace._id,
@@ -744,13 +572,7 @@ export const POST = withSecurityLogging(
               settings,
             },
           })
-        } catch (activityError) {
-          console.error(
-            'Failed to log workspace creation activity:',
-            activityError
-          )
-          // Don't fail the creation if activity logging fails
-        }
+        } catch (activityError) {}
 
         log.info('Workspace created successfully', {
           userId,
@@ -782,17 +604,9 @@ export const POST = withSecurityLogging(
           { status: 201 }
         )
       } catch (error) {
-        console.error('Error during workspace creation:', error)
         throw error
       }
     } catch (error) {
-      console.error('=== WORKSPACE CREATION ERROR ===')
-      console.error('Error details:', error)
-      console.error(
-        'Error stack:',
-        error instanceof Error ? error.stack : 'No stack'
-      )
-
       const duration = Date.now() - startTime
       log.error(`Create workspace failed after ${duration}ms`, {
         error: error instanceof Error ? error.message : 'Unknown error',

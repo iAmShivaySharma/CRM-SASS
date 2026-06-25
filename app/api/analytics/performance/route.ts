@@ -1,7 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { startOfDay, endOfDay, subDays, isWithinInterval } from 'date-fns'
+import { subDays } from 'date-fns'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { MongoDBClient } from '@/lib/mongodb/client'
+import { Lead } from '@/lib/mongodb/client'
+import { connectToMongoDB } from '@/lib/mongodb/connection'
+import { log } from '@/lib/logging/logger'
+import { cached } from '@/lib/redis/cache'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { user } = authResult
+    await connectToMongoDB()
 
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
@@ -24,79 +27,84 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const client = new MongoDBClient()
-
-    // Default date range (last 30 days)
     const endDate = to ? new Date(to) : new Date()
     const startDate = from ? new Date(from) : subDays(endDate, 30)
 
-    // Get leads for the workspace
-    const leads = await client.getLeads(workspaceId)
+    const convertedStatuses = ['converted', 'closed', 'won']
+    const lostStatuses = ['lost', 'cancelled']
 
-    // Filter leads by date range
-    const filteredLeads = leads.filter(lead => {
-      const createdAt = new Date(lead.createdAt)
-      return isWithinInterval(createdAt, { start: startDate, end: endDate })
-    })
+    const cacheKey = `analytics:${workspaceId}:performance:${from || ''}:${to || ''}`
 
-    // Calculate performance metrics
-    const totalLeads = filteredLeads.length
-    const convertedLeads = filteredLeads.filter(
-      lead =>
-        lead.status === 'converted' ||
-        lead.status === 'closed' ||
-        lead.status === 'won'
+    const [stats] = await cached(cacheKey, 300, () =>
+      Lead.aggregate([
+        {
+          $match: {
+            workspaceId,
+            createdAt: { $gte: startDate, $lte: endDate },
+          },
+        },
+        {
+          $facet: {
+            totals: [
+              {
+                $group: {
+                  _id: null,
+                  totalLeads: { $sum: 1 },
+                  totalRevenue: { $sum: { $ifNull: ['$value', 0] } },
+                },
+              },
+            ],
+            converted: [
+              { $match: { status: { $in: convertedStatuses } } },
+              {
+                $group: {
+                  _id: null,
+                  count: { $sum: 1 },
+                  revenue: { $sum: { $ifNull: ['$value', 0] } },
+                  avgCycleDays: {
+                    $avg: {
+                      $divide: [
+                        { $subtract: ['$updatedAt', '$createdAt'] },
+                        86400000,
+                      ],
+                    },
+                  },
+                },
+              },
+            ],
+            lost: [
+              { $match: { status: { $in: lostStatuses } } },
+              { $count: 'count' },
+            ],
+          },
+        },
+      ])
     )
-    const lostLeads = filteredLeads.filter(
-      lead => lead.status === 'lost' || lead.status === 'cancelled'
-    )
 
-    const totalRevenue = filteredLeads.reduce(
-      (sum, lead) => sum + (lead.value || 0),
-      0
-    )
-    const convertedRevenue = convertedLeads.reduce(
-      (sum, lead) => sum + (lead.value || 0),
-      0
-    )
+    const totals = stats.totals[0] || { totalLeads: 0, totalRevenue: 0 }
+    const converted = stats.converted[0] || {
+      count: 0,
+      revenue: 0,
+      avgCycleDays: 0,
+    }
+    const lostCount = stats.lost[0]?.count || 0
 
-    // Win rate calculation
-    const closedLeads = convertedLeads.length + lostLeads.length
-    const winRate =
-      closedLeads > 0 ? (convertedLeads.length / closedLeads) * 100 : 0
-
-    // Average deal size
+    const closedLeads = converted.count + lostCount
+    const winRate = closedLeads > 0 ? (converted.count / closedLeads) * 100 : 0
     const averageDealSize =
-      convertedLeads.length > 0 ? convertedRevenue / convertedLeads.length : 0
+      converted.count > 0 ? converted.revenue / converted.count : 0
+    const conversionRate =
+      totals.totalLeads > 0 ? (converted.count / totals.totalLeads) * 100 : 0
 
-    // Sales cycle length (mock calculation based on average days from creation to conversion)
-    const salesCycleLength = convertedLeads.reduce((total, lead) => {
-      const created = new Date(lead.createdAt)
-      const updated = new Date(lead.updatedAt)
-      const days = Math.ceil(
-        (updated.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)
-      )
-      return total + days
-    }, 0)
-    const averageSalesCycle =
-      convertedLeads.length > 0 ? salesCycleLength / convertedLeads.length : 0
-
-    // Sales target progress (assuming a monthly target)
-    const monthlyTarget = 100000 // $100k monthly target - could be made configurable
+    const monthlyTarget = 100000
     const salesTargetProgress = Math.min(
-      (convertedRevenue / monthlyTarget) * 100,
+      (converted.revenue / monthlyTarget) * 100,
       100
     )
-
-    // Lead quality score (based on conversion rate and average deal size)
-    const conversionRate =
-      totalLeads > 0 ? (convertedLeads.length / totalLeads) * 100 : 0
     const leadQualityScore = Math.min(
       conversionRate * 2 + averageDealSize / 1000,
       100
     )
-
-    // Customer satisfaction (mock value - could be calculated from actual feedback data)
     const customerSatisfaction = 85 + Math.random() * 15
 
     const data = {
@@ -104,7 +112,7 @@ export async function GET(request: NextRequest) {
       leadQualityScore: Math.round(leadQualityScore * 10) / 10,
       customerSatisfaction: Math.round(customerSatisfaction * 10) / 10,
       averageDealSize: Math.round(averageDealSize * 100) / 100,
-      salesCycleLength: Math.round(averageSalesCycle * 10) / 10,
+      salesCycleLength: Math.round((converted.avgCycleDays || 0) * 10) / 10,
       winRate: Math.round(winRate * 10) / 10,
     }
 
@@ -113,7 +121,7 @@ export async function GET(request: NextRequest) {
       data,
     })
   } catch (error) {
-    console.error('Performance analytics error:', error)
+    log.error('Performance analytics error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

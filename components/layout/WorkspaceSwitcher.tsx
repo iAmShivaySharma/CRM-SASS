@@ -1,14 +1,3 @@
-/**
- * Workspace Switcher Component for Sidebar
- *
- * Features:
- * - Workspace selection and switching
- * - Create new workspace functionality
- * - Responsive design for mobile and desktop
- * - Loading states and error handling
- * - Keyboard navigation support
- */
-
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -58,7 +47,6 @@ import {
   useUpdateLastActiveWorkspaceMutation,
 } from '@/lib/api/workspaceApi'
 
-// Workspace creation validation schema
 const workspaceSchema = z.object({
   name: z
     .string()
@@ -102,7 +90,6 @@ export function WorkspaceSwitcher({
   const dispatch = useAppDispatch()
   const router = useRouter()
 
-  // RTK Query hooks
   const {
     data: workspacesData,
     isLoading,
@@ -113,7 +100,6 @@ export function WorkspaceSwitcher({
   const [createWorkspace, { isLoading: isCreatingWorkspace }] =
     useCreateWorkspaceMutation()
 
-  // Last active workspace hooks
   const { data: lastActiveWorkspaceData } = useGetLastActiveWorkspaceQuery(
     undefined,
     {
@@ -134,7 +120,6 @@ export function WorkspaceSwitcher({
     [workspacesData?.workspaces]
   )
 
-  // Form for workspace creation
   const {
     register,
     handleSubmit,
@@ -144,7 +129,6 @@ export function WorkspaceSwitcher({
     resolver: zodResolver(workspaceSchema),
   })
 
-  // Set current workspace from database when data is available
   useEffect(() => {
     if (
       lastActiveWorkspaceData?.lastActiveWorkspaceId &&
@@ -169,7 +153,6 @@ export function WorkspaceSwitcher({
         )
       }
     } else if (workspaces.length > 0 && !currentWorkspace) {
-      // If no last active workspace, set the first available workspace
       const firstWorkspace = workspaces[0]
       dispatch(
         setCurrentWorkspace({
@@ -183,7 +166,6 @@ export function WorkspaceSwitcher({
           createdAt: firstWorkspace.createdAt,
         })
       )
-      // Update the database with this selection
       updateLastActiveWorkspace({ workspaceId: firstWorkspace.id })
     }
   }, [
@@ -194,14 +176,12 @@ export function WorkspaceSwitcher({
     updateLastActiveWorkspace,
   ])
 
-  // Handle workspace switching
   const handleWorkspaceSwitch = async (workspace: ApiWorkspace) => {
     if (workspace.id === currentWorkspace?.id) return
 
     try {
       setIsSwitching(true)
 
-      // Update Redux state
       dispatch(
         setCurrentWorkspace({
           id: workspace.id,
@@ -215,9 +195,7 @@ export function WorkspaceSwitcher({
         })
       )
 
-      // Clear cached data for old workspace to prevent showing stale data
       if (currentWorkspace?.id) {
-        // Invalidate all workspace-specific cached data
         dispatch(
           projectsApi.util.invalidateTags([
             { type: 'Task', id: `WORKSPACE_${currentWorkspace.id}` },
@@ -227,7 +205,6 @@ export function WorkspaceSwitcher({
         )
       }
 
-      // Update the database with the new last active workspace
       await updateLastActiveWorkspace({ workspaceId: workspace.id }).unwrap()
 
       toast.success(`Switched to ${workspace.name}`)
@@ -239,7 +216,6 @@ export function WorkspaceSwitcher({
     }
   }
 
-  // Handle workspace creation
   const onCreateWorkspace = async (data: WorkspaceFormData) => {
     try {
       const result = await createWorkspace({
@@ -247,7 +223,6 @@ export function WorkspaceSwitcher({
         description: data.description?.trim() || '',
       }).unwrap()
 
-      // Switch to new workspace
       dispatch(
         setCurrentWorkspace({
           id: result.workspace.id,
@@ -261,7 +236,6 @@ export function WorkspaceSwitcher({
         })
       )
 
-      // Update the database with the new workspace as last active
       await updateLastActiveWorkspace({
         workspaceId: result.workspace.id,
       }).unwrap()
@@ -284,7 +258,6 @@ export function WorkspaceSwitcher({
   return (
     <>
       <div className={`space-y-2 ${className}`}>
-        {/* Current Workspace Display */}
         <div className={compact ? 'px-1 py-2' : 'px-3 py-2'}>
           {!compact && (
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -305,7 +278,6 @@ export function WorkspaceSwitcher({
                 }
               >
                 {compact ? (
-                  // Compact mode - just icon
                   <div className="flex items-center justify-center">
                     {isSwitching ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -314,7 +286,6 @@ export function WorkspaceSwitcher({
                     )}
                   </div>
                 ) : (
-                  // Full mode - icon, text, and chevron
                   <>
                     <div className="flex min-w-0 items-center space-x-2">
                       <Building className="h-4 w-4 flex-shrink-0" />
@@ -394,23 +365,9 @@ export function WorkspaceSwitcher({
           </DropdownMenu>
         </div>
 
-        {/* Quick Actions */}
-        {!compact && currentWorkspace && (
-          <div className="space-y-1 px-3">
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-xs"
-              onClick={() => window.location.href = '/workspace'}
-            >
-              <Settings className="h-3 w-3 mr-2" />
-              Workspace Settings
-            </Button> */}
-          </div>
-        )}
+        {!compact && currentWorkspace && <div className="space-y-1 px-3"></div>}
       </div>
 
-      {/* Enhanced Workspace Creation Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader className="pb-4 text-center">
@@ -473,7 +430,6 @@ export function WorkspaceSwitcher({
               </div>
             </div>
 
-            {/* Features Preview */}
             <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800/50">
               <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                 Your workspace will include:

@@ -36,8 +36,6 @@ export function ForgotPasswordForm() {
   const onSubmit = async (data: ForgotPasswordFormData) => {
     setLoading(true)
     try {
-      // TODO: Implement password reset functionality with MongoDB
-      // For now, show a message that this feature is coming soon
       toast.info(
         'Password reset functionality will be available soon. Please contact support.'
       )

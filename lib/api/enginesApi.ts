@@ -96,18 +96,20 @@ export const enginesApi = createApi({
     'WorkflowCategory',
     'WorkflowExecution',
     'ApiKey',
-    'SyncStatus'
+    'SyncStatus',
   ],
-  endpoints: (builder) => ({
-    // Workflow Catalog
-    getWorkflowCatalog: builder.query<WorkflowCatalogResponse, {
-      category?: string
-      search?: string
-      requiresApiKey?: boolean
-      limit?: number
-      offset?: number
-    }>({
-      query: (params) => ({
+  endpoints: builder => ({
+    getWorkflowCatalog: builder.query<
+      WorkflowCatalogResponse,
+      {
+        category?: string
+        search?: string
+        requiresApiKey?: boolean
+        limit?: number
+        offset?: number
+      }
+    >({
+      query: params => ({
         url: '/catalog',
         params: Object.fromEntries(
           Object.entries(params).filter(([, value]) => value !== undefined)
@@ -117,13 +119,10 @@ export const enginesApi = createApi({
     }),
 
     getWorkflowDetails: builder.query<{ data: WorkflowCatalogItem }, string>({
-      query: (id) => `/workflow/${id}`,
-      providesTags: (result, error, id) => [
-        { type: 'WorkflowCatalog', id },
-      ],
+      query: id => `/workflow/${id}`,
+      providesTags: (result, error, id) => [{ type: 'WorkflowCatalog', id }],
     }),
 
-    // Workflow Sync
     syncWorkflows: builder.mutation<SyncWorkflowsResponse, void>({
       query: () => ({
         url: '/sync-workflows',
@@ -132,18 +131,23 @@ export const enginesApi = createApi({
       invalidatesTags: ['WorkflowCatalog', 'WorkflowCategory', 'SyncStatus'],
     }),
 
-    testN8nConnection: builder.query<{
-      success: boolean
-      message: string
-      version?: string
-    }, void>({
+    testN8nConnection: builder.query<
+      {
+        success: boolean
+        message: string
+        version?: string
+      },
+      void
+    >({
       query: () => '/sync-workflows',
       providesTags: ['SyncStatus'],
     }),
 
-    // Workflow Execution
-    executeWorkflow: builder.mutation<WorkflowExecutionResponse, WorkflowExecutionRequest>({
-      query: (data) => ({
+    executeWorkflow: builder.mutation<
+      WorkflowExecutionResponse,
+      WorkflowExecutionRequest
+    >({
+      query: data => ({
         url: '/execute',
         method: 'POST',
         body: data,
@@ -151,21 +155,24 @@ export const enginesApi = createApi({
       invalidatesTags: ['WorkflowExecution'],
     }),
 
-    getExecutions: builder.query<{
-      data: WorkflowExecutionResponse[]
-      pagination: {
-        total: number
-        limit: number
-        offset: number
-        hasMore: boolean
+    getExecutions: builder.query<
+      {
+        data: WorkflowExecutionResponse[]
+        pagination: {
+          total: number
+          limit: number
+          offset: number
+          hasMore: boolean
+        }
+      },
+      {
+        workflowId?: string
+        status?: string
+        limit?: number
+        offset?: number
       }
-    }, {
-      workflowId?: string
-      status?: string
-      limit?: number
-      offset?: number
-    }>({
-      query: (params) => ({
+    >({
+      query: params => ({
         url: '/executions',
         params: Object.fromEntries(
           Object.entries(params).filter(([, value]) => value !== undefined)
@@ -174,43 +181,49 @@ export const enginesApi = createApi({
       providesTags: ['WorkflowExecution'],
     }),
 
-    getExecutionDetails: builder.query<{ data: WorkflowExecutionResponse }, string>({
-      query: (id) => `/executions/${id}`,
-      providesTags: (result, error, id) => [
-        { type: 'WorkflowExecution', id },
-      ],
+    getExecutionDetails: builder.query<
+      { data: WorkflowExecutionResponse },
+      string
+    >({
+      query: id => `/executions/${id}`,
+      providesTags: (result, error, id) => [{ type: 'WorkflowExecution', id }],
     }),
 
-    // API Key Management
-    getApiKeys: builder.query<{
-      data: Array<{
-        _id: string
-        keyName: string
-        provider: string
-        isDefault: boolean
-        isActive: boolean
-        keyPreview: string
-        lastUsedAt?: string
-        totalUsage: {
-          executions: number
-          tokensUsed: number
-        }
-        createdAt: string
-      }>
-    }, void>({
+    getApiKeys: builder.query<
+      {
+        data: Array<{
+          _id: string
+          keyName: string
+          provider: string
+          isDefault: boolean
+          isActive: boolean
+          keyPreview: string
+          lastUsedAt?: string
+          totalUsage: {
+            executions: number
+            tokensUsed: number
+          }
+          createdAt: string
+        }>
+      },
+      void
+    >({
       query: () => '/api-keys',
       providesTags: ['ApiKey'],
     }),
 
-    addApiKey: builder.mutation<{
-      success: boolean
-      data: { _id: string }
-    }, {
-      keyName: string
-      apiKey: string
-      setAsDefault?: boolean
-    }>({
-      query: (data) => ({
+    addApiKey: builder.mutation<
+      {
+        success: boolean
+        data: { _id: string }
+      },
+      {
+        keyName: string
+        apiKey: string
+        setAsDefault?: boolean
+      }
+    >({
+      query: data => ({
         url: '/api-keys',
         method: 'POST',
         body: data,
@@ -218,14 +231,17 @@ export const enginesApi = createApi({
       invalidatesTags: ['ApiKey'],
     }),
 
-    updateApiKey: builder.mutation<{
-      success: boolean
-    }, {
-      id: string
-      keyName?: string
-      isDefault?: boolean
-      isActive?: boolean
-    }>({
+    updateApiKey: builder.mutation<
+      {
+        success: boolean
+      },
+      {
+        id: string
+        keyName?: string
+        isDefault?: boolean
+        isActive?: boolean
+      }
+    >({
       query: ({ id, ...data }) => ({
         url: `/api-keys/${id}`,
         method: 'PATCH',
@@ -235,59 +251,67 @@ export const enginesApi = createApi({
     }),
 
     deleteApiKey: builder.mutation<{ success: boolean }, string>({
-      query: (id) => ({
+      query: id => ({
         url: `/api-keys/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['ApiKey'],
     }),
 
-    validateApiKey: builder.mutation<{
-      success: boolean
-      valid: boolean
-      provider?: string
-    }, {
-      apiKey: string
-      provider: string
-    }>({
-      query: (data) => ({
+    validateApiKey: builder.mutation<
+      {
+        success: boolean
+        valid: boolean
+        provider?: string
+      },
+      {
+        apiKey: string
+        provider: string
+      }
+    >({
+      query: data => ({
         url: '/api-keys/validate',
         method: 'POST',
         body: data,
       }),
     }),
 
-    // Usage and Billing
-    getUsageStats: builder.query<{
-      data: {
-        totalExecutions: number
-        totalCost: number
-        totalTokens: number
-        successRate: number
-        thisMonth: {
-          executions: number
-          cost: number
-          tokens: number
+    getUsageStats: builder.query<
+      {
+        data: {
+          totalExecutions: number
+          totalCost: number
+          totalTokens: number
+          successRate: number
+          thisMonth: {
+            executions: number
+            cost: number
+            tokens: number
+          }
+          lastExecution?: string
         }
-        lastExecution?: string
-      }
-    }, { timeframe?: number }>({
-      query: (params) => ({
+      },
+      { timeframe?: number }
+    >({
+      query: params => ({
         url: '/usage',
         params,
       }),
       providesTags: ['WorkflowExecution'],
     }),
 
-    getBillingHistory: builder.query<{
-      data: Array<{
-        month: string
-        totalCost: number
-        totalExecutions: number
-        totalTokens: number
-        status: 'pending' | 'billed' | 'paid'
-      }>
-    }, void>({
+    getBillingHistory: builder.query<
+      {
+        data: Array<{
+          month: string
+          totalCost: number
+          totalExecutions: number
+          totalTokens: number
+          status: 'pending' | 'billed' | 'paid'
+        }>
+      },
+      void
+    >({
       query: () => '/billing',
       providesTags: ['WorkflowExecution'],
     }),
@@ -295,27 +319,22 @@ export const enginesApi = createApi({
 })
 
 export const {
-  // Workflow Catalog
   useGetWorkflowCatalogQuery,
   useGetWorkflowDetailsQuery,
 
-  // Workflow Sync
   useSyncWorkflowsMutation,
   useTestN8nConnectionQuery,
 
-  // Workflow Execution
   useExecuteWorkflowMutation,
   useGetExecutionsQuery,
   useGetExecutionDetailsQuery,
 
-  // API Key Management
   useGetApiKeysQuery,
   useAddApiKeyMutation,
   useUpdateApiKeyMutation,
   useDeleteApiKeyMutation,
   useValidateApiKeyMutation,
 
-  // Usage and Billing
   useGetUsageStatsQuery,
   useGetBillingHistoryQuery,
 } = enginesApi

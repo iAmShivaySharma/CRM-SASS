@@ -1,7 +1,3 @@
-/**
- * HubSpot Webhook Processor
- */
-
 import { type NextRequest } from 'next/server'
 import {
   type WebhookProcessor,
@@ -20,7 +16,6 @@ export class HubSpotProcessor implements WebhookProcessor {
     data: any,
     request: NextRequest
   ): Promise<ProcessedWebhookData> {
-    // HubSpot-specific processing logic would go here
     const lead: ProcessedLead = {
       name: data.properties?.firstname + ' ' + data.properties?.lastname,
       email: data.properties?.email,

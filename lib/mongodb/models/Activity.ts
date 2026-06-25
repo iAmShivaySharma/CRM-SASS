@@ -81,10 +81,15 @@ const ActivitySchema = new Schema<IActivity>(
   }
 )
 
-// Optimized indexes for performance
 if (typeof window === 'undefined') {
   ActivitySchema.index({ workspaceId: 1, createdAt: -1 })
-  ActivitySchema.index({ entityType: 1, entityId: 1 })
+  ActivitySchema.index({ workspaceId: 1, performedBy: 1, createdAt: -1 })
+  ActivitySchema.index({
+    workspaceId: 1,
+    entityType: 1,
+    entityId: 1,
+    createdAt: -1,
+  })
 }
 
 export const Activity =

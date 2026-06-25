@@ -56,8 +56,6 @@ export async function GET(request: NextRequest) {
       data: responseData,
     })
   } catch (error) {
-    console.error('Get API keys error:', error)
-
     return NextResponse.json(
       {
         success: false,
@@ -151,8 +149,6 @@ export async function POST(request: NextRequest) {
 
     await newApiKey.save()
 
-    console.log(`New API key created for user ${auth.user.email}: ${keyName}`)
-
     return NextResponse.json({
       success: true,
       data: {
@@ -160,8 +156,6 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Add API key error:', error)
-
     return NextResponse.json(
       {
         success: false,

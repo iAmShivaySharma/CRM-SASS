@@ -1,8 +1,3 @@
-/**
- * n8n Workflow Sync Service
- * Syncs workflows from n8n instance to MongoDB
- */
-
 import { WorkflowCatalog, WorkflowCategory } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { createN8nClient, type N8nWorkflow } from './client'
@@ -32,21 +27,15 @@ export class WorkflowSyncService {
     try {
       await connectToMongoDB()
 
-      // Test connection first
       const connectionTest = await this.n8nClient.testConnection()
       if (!connectionTest.success) {
         throw new Error('Failed to connect to n8n instance')
       }
 
-      // Get all workflows from n8n
       const { data: n8nWorkflows } = await this.n8nClient.getWorkflows()
 
-      console.log(`Found ${n8nWorkflows.length} workflows in n8n instance`)
-
-      // Ensure default categories exist
       await this.ensureDefaultCategories()
 
-      // Process each workflow
       for (const n8nWorkflow of n8nWorkflows) {
         try {
           const syncResult = await this.syncSingleWorkflow(n8nWorkflow)
@@ -59,7 +48,6 @@ export class WorkflowSyncService {
 
           result.workflows.push(n8nWorkflow.name)
         } catch (error: any) {
-          console.error(`Error syncing workflow ${n8nWorkflow.name}:`, error)
           result.errorCount++
           result.errors.push(
             `${n8nWorkflow.name}: ${error?.message || 'Unknown error'}`
@@ -70,13 +58,8 @@ export class WorkflowSyncService {
       result.success =
         result.errorCount === 0 || result.syncedCount + result.updatedCount > 0
 
-      console.log(
-        `Sync completed: ${result.syncedCount} new, ${result.updatedCount} updated, ${result.errorCount} errors`
-      )
-
       return result
     } catch (error: any) {
-      console.error('Workflow sync failed:', error)
       result.errors.push(error?.message || 'Unknown error')
       return result
     }
@@ -85,26 +68,21 @@ export class WorkflowSyncService {
   async syncSingleWorkflow(
     n8nWorkflow: N8nWorkflow
   ): Promise<{ wasUpdated: boolean }> {
-    // Check if workflow already exists
     let catalogWorkflow = await WorkflowCatalog.findOne({
       n8nWorkflowId: n8nWorkflow.id,
     })
 
-    // Analyze workflow to extract metadata
     const analysis = this.n8nClient.analyzeWorkflow(n8nWorkflow)
 
-    // Get or create category
     const category = await this.getCategoryForWorkflow(analysis.category)
 
     if (catalogWorkflow) {
-      // Update existing workflow
       await catalogWorkflow.syncFromN8n(n8nWorkflow, analysis)
       catalogWorkflow.category = category._id
       await catalogWorkflow.save()
 
       return { wasUpdated: true }
     } else {
-      // Create new workflow
       catalogWorkflow = new WorkflowCatalog({
         n8nWorkflowId: n8nWorkflow.id,
         name: n8nWorkflow.name,
@@ -208,11 +186,9 @@ export class WorkflowSyncService {
     let category = await WorkflowCategory.findOne({ name: categoryName })
 
     if (!category) {
-      // Default to 'General' if category doesn't exist
       category = await WorkflowCategory.findOne({ name: 'General' })
 
       if (!category) {
-        // Create General category if it doesn't exist
         category = new WorkflowCategory({
           name: 'General',
           description: 'General purpose automation workflows',
@@ -265,12 +241,10 @@ export class WorkflowSyncService {
   private extractTags(workflow: N8nWorkflow): string[] {
     const tags: Set<string> = new Set()
 
-    // Add tags from n8n workflow tags
     if (workflow.tags) {
       workflow.tags.forEach(tag => tags.add(tag.name))
     }
 
-    // Add tags based on node types
     const nodeTypes = workflow.nodes?.map(node => node.type) || []
 
     nodeTypes.forEach(nodeType => {
@@ -299,10 +273,9 @@ export class WorkflowSyncService {
       }
     })
 
-    // Add general tags
     tags.add('Automation')
 
-    return Array.from(tags).slice(0, 10) // Limit to 10 tags
+    return Array.from(tags).slice(0, 10)
   }
 
   async getWorkflowDetails(n8nWorkflowId: string) {
@@ -310,10 +283,6 @@ export class WorkflowSyncService {
       const workflow = await this.n8nClient.getWorkflow(n8nWorkflowId)
       return workflow
     } catch (error) {
-      console.error(
-        `Error fetching workflow details for ${n8nWorkflowId}:`,
-        error
-      )
       throw error
     }
   }

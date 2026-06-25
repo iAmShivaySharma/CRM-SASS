@@ -14,17 +14,14 @@ export default function EditBlogPage() {
   useEffect(() => {
     async function fetchBlog() {
       try {
-        // Fetch all statuses for editing (not just published)
         const res = await fetch(`/api/blogs/${params.slug}`)
         if (!res.ok) {
-          // Try fetching directly without status filter
           const allRes = await fetch(
             `/api/blogs?search=${params.slug}&status=draft`
           )
           const allData = await allRes.json()
           const found = allData.blogs?.find((b: any) => b.slug === params.slug)
           if (found) {
-            // Fetch full content
             setBlogData(found)
           } else {
             router.push('/blogs')

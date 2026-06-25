@@ -73,15 +73,12 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
   const dispatch = useAppDispatch()
   const router = useRouter()
 
-  // RTK Query mutations
   const [createWorkspace, { isLoading: isCreatingWorkspace }] =
     useCreateWorkspaceMutation()
   const [logoutUser] = useLogoutMutation()
 
-  // State for workspace creation dialog
   const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false)
 
-  // Form for workspace creation
   const {
     register,
     handleSubmit,
@@ -94,18 +91,15 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
   const handleLogout = async () => {
     try {
       await logoutUser().unwrap()
-      // Clear Redux state and redirect
       dispatch(logout())
       router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
-      // Even if logout API fails, clear local state and redirect
       dispatch(logout())
       router.push('/login')
     }
   }
 
-  // Handle workspace creation
   const onCreateWorkspace = async (data: WorkspaceFormData) => {
     try {
       const result = await createWorkspace({
@@ -113,7 +107,6 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
         description: data.description?.trim() || '',
       }).unwrap()
 
-      // Update current workspace in Redux
       dispatch(
         setCurrentWorkspace({
           id: result.workspace.id,

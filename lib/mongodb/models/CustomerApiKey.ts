@@ -31,74 +31,72 @@ const CustomerApiKeySchema = new Schema<ICustomerApiKey>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true
+      index: true,
     },
     workspaceId: {
       type: Schema.Types.ObjectId,
       ref: 'Workspace',
       required: true,
-      index: true
+      index: true,
     },
     provider: {
       type: String,
       enum: ['openrouter'],
       default: 'openrouter',
       required: true,
-      index: true
+      index: true,
     },
     keyName: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     encryptedApiKey: {
       type: String,
-      required: true
+      required: true,
     },
     isActive: {
       type: Boolean,
       default: true,
-      index: true
+      index: true,
     },
     isDefault: {
       type: Boolean,
       default: false,
-      index: true
+      index: true,
     },
     lastUsedAt: {
-      type: Date
+      type: Date,
     },
     totalUsage: {
       executions: {
         type: Number,
         default: 0,
-        min: 0
+        min: 0,
       },
       tokensUsed: {
         type: Number,
         default: 0,
-        min: 0
+        min: 0,
       },
       lastResetAt: {
         type: Date,
-        default: Date.now
-      }
-    }
+        default: Date.now,
+      },
+    },
   },
   {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
   }
 )
 
-// Compound indexes
 CustomerApiKeySchema.index({ userId: 1, workspaceId: 1, isActive: 1 })
 CustomerApiKeySchema.index({ userId: 1, workspaceId: 1, isDefault: 1 })
 CustomerApiKeySchema.index({ provider: 1, isActive: 1 })
 
-// Virtual for API key preview (showing only first and last few characters)
-CustomerApiKeySchema.virtual('keyPreview').get(function() {
+CustomerApiKeySchema.virtual('keyPreview').get(function () {
   if (!this.encryptedApiKey) return 'sk-***-***'
 
   try {
@@ -113,13 +111,14 @@ CustomerApiKeySchema.virtual('keyPreview').get(function() {
   }
 })
 
-// Methods for encryption/decryption
-CustomerApiKeySchema.methods.encryptApiKey = function(apiKey: string): string {
+CustomerApiKeySchema.methods.encryptApiKey = function (apiKey: string): string {
   const algorithm = 'aes-256-gcm'
   const secretKey = process.env.API_KEY_ENCRYPTION_SECRET
 
   if (!secretKey || secretKey.length !== 64) {
-    throw new Error('API_KEY_ENCRYPTION_SECRET must be a 64-character hex string')
+    throw new Error(
+      'API_KEY_ENCRYPTION_SECRET must be a 64-character hex string'
+    )
   }
 
   const key = Buffer.from(secretKey, 'hex') as any
@@ -134,12 +133,14 @@ CustomerApiKeySchema.methods.encryptApiKey = function(apiKey: string): string {
   return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`
 }
 
-CustomerApiKeySchema.methods.decryptApiKey = function(): string {
+CustomerApiKeySchema.methods.decryptApiKey = function (): string {
   const algorithm = 'aes-256-gcm'
   const secretKey = process.env.API_KEY_ENCRYPTION_SECRET
 
   if (!secretKey || secretKey.length !== 64) {
-    throw new Error('API_KEY_ENCRYPTION_SECRET must be a 64-character hex string')
+    throw new Error(
+      'API_KEY_ENCRYPTION_SECRET must be a 64-character hex string'
+    )
   }
 
   const key = Buffer.from(secretKey, 'hex') as any
@@ -161,82 +162,87 @@ CustomerApiKeySchema.methods.decryptApiKey = function(): string {
   return decrypted
 }
 
-CustomerApiKeySchema.methods.setApiKey = function(apiKey: string) {
+CustomerApiKeySchema.methods.setApiKey = function (apiKey: string) {
   this.encryptedApiKey = this.encryptApiKey(apiKey)
   return this
 }
 
-CustomerApiKeySchema.methods.validateApiKey = async function(): Promise<boolean> {
-  try {
-    const apiKey = this.decryptApiKey()
+CustomerApiKeySchema.methods.validateApiKey =
+  async function (): Promise<boolean> {
+    try {
+      const apiKey = this.decryptApiKey()
 
-    // Basic format validation for OpenRouter keys
-    if (this.provider === 'openrouter') {
-      return apiKey.startsWith('sk-or-v1-') && apiKey.length > 20
+      if (this.provider === 'openrouter') {
+        return apiKey.startsWith('sk-or-v1-') && apiKey.length > 20
+      }
+
+      return false
+    } catch (error) {
+      return false
     }
-
-    return false
-  } catch (error) {
-    console.error('API key validation error:', error)
-    return false
   }
-}
 
-CustomerApiKeySchema.methods.recordUsage = function(tokensUsed: number = 0) {
+CustomerApiKeySchema.methods.recordUsage = function (tokensUsed: number = 0) {
   this.totalUsage.executions += 1
   this.totalUsage.tokensUsed += tokensUsed
   this.lastUsedAt = new Date()
   return this.save()
 }
 
-CustomerApiKeySchema.methods.resetUsageStats = function() {
+CustomerApiKeySchema.methods.resetUsageStats = function () {
   this.totalUsage.executions = 0
   this.totalUsage.tokensUsed = 0
   this.totalUsage.lastResetAt = new Date()
   return this.save()
 }
 
-// Static methods
-CustomerApiKeySchema.statics.findByUser = function(userId: string, workspaceId: string) {
+CustomerApiKeySchema.statics.findByUser = function (
+  userId: string,
+  workspaceId: string
+) {
   return this.find({
     userId,
     workspaceId,
-    isActive: true
+    isActive: true,
   }).sort({ isDefault: -1, createdAt: -1 })
 }
 
-CustomerApiKeySchema.statics.findDefaultKey = function(userId: string, workspaceId: string) {
+CustomerApiKeySchema.statics.findDefaultKey = function (
+  userId: string,
+  workspaceId: string
+) {
   return this.findOne({
     userId,
     workspaceId,
     isActive: true,
-    isDefault: true
+    isDefault: true,
   })
 }
 
-CustomerApiKeySchema.statics.setAsDefault = async function(keyId: string, userId: string, workspaceId: string) {
-  // Remove default flag from all other keys
+CustomerApiKeySchema.statics.setAsDefault = async function (
+  keyId: string,
+  userId: string,
+  workspaceId: string
+) {
   await this.updateMany(
     { userId, workspaceId, _id: { $ne: keyId } },
     { isDefault: false }
   )
 
-  // Set the specified key as default
-  return this.findByIdAndUpdate(
-    keyId,
-    { isDefault: true },
-    { new: true }
-  )
+  return this.findByIdAndUpdate(keyId, { isDefault: true }, { new: true })
 }
 
-CustomerApiKeySchema.statics.getUsageStatsByUser = function(userId: string, workspaceId: string) {
+CustomerApiKeySchema.statics.getUsageStatsByUser = function (
+  userId: string,
+  workspaceId: string
+) {
   return this.aggregate([
     {
       $match: {
         userId: new mongoose.Types.ObjectId(userId),
         workspaceId: new mongoose.Types.ObjectId(workspaceId),
-        isActive: true
-      }
+        isActive: true,
+      },
     },
     {
       $group: {
@@ -244,21 +250,19 @@ CustomerApiKeySchema.statics.getUsageStatsByUser = function(userId: string, work
         totalKeys: { $sum: 1 },
         totalExecutions: { $sum: '$totalUsage.executions' },
         totalTokens: { $sum: '$totalUsage.tokensUsed' },
-        lastUsed: { $max: '$lastUsedAt' }
-      }
-    }
+        lastUsed: { $max: '$lastUsedAt' },
+      },
+    },
   ])
 }
 
-// Pre-save middleware to ensure only one default key per user/workspace
-CustomerApiKeySchema.pre('save', async function(next) {
+CustomerApiKeySchema.pre('save', async function (next) {
   if (this.isModified('isDefault') && this.isDefault) {
-    // Remove default flag from other keys
     await (this.constructor as any).updateMany(
       {
         userId: this.userId,
         workspaceId: this.workspaceId,
-        _id: { $ne: this._id }
+        _id: { $ne: this._id },
       },
       { isDefault: false }
     )

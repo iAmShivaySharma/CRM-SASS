@@ -69,8 +69,6 @@ export async function GET(
       data: responseData,
     })
   } catch (error) {
-    console.error('Get execution details error:', error)
-
     return NextResponse.json(
       {
         success: false,

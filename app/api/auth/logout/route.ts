@@ -38,10 +38,7 @@ export async function POST(request: NextRequest) {
           },
         })
       }
-    } catch (activityError) {
-      console.error('Failed to log sign-out activity:', activityError)
-      // Don't fail the sign-out if activity logging fails
-    }
+    } catch (activityError) {}
 
     // Create response
     const response = NextResponse.json({
@@ -60,7 +57,6 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('Logout error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

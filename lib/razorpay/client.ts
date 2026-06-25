@@ -8,7 +8,6 @@ function safeTimingSafeEqual(a: string, b: string): boolean {
   return crypto.timingSafeEqual(bufA, bufB)
 }
 
-// Razorpay client singleton (lazy-initialized to avoid build-time env var errors)
 let razorpayInstance: Razorpay | null = null
 
 function getRazorpay(): Razorpay {
@@ -22,23 +21,20 @@ function getRazorpay(): Razorpay {
 }
 
 export interface CreateOrderOptions {
-  amount: number // in paise (INR smallest unit)
+  amount: number
   currency?: string
   receipt?: string
   notes?: Record<string, string>
 }
 
 export interface CreateSubscriptionOptions {
-  planId: string // Razorpay plan ID
+  planId: string
   totalCount?: number
   quantity?: number
   customerNotify?: boolean
   notes?: Record<string, string>
 }
 
-/**
- * Create a one-time payment order
- */
 export async function createOrder(options: CreateOrderOptions) {
   const order = await getRazorpay().orders.create({
     amount: options.amount,
@@ -49,9 +45,6 @@ export async function createOrder(options: CreateOrderOptions) {
   return order
 }
 
-/**
- * Create a recurring subscription
- */
 export async function createSubscription(options: CreateSubscriptionOptions) {
   const subscription = await getRazorpay().subscriptions.create({
     plan_id: options.planId,
@@ -63,10 +56,6 @@ export async function createSubscription(options: CreateSubscriptionOptions) {
   return subscription
 }
 
-/**
- * Verify payment signature using HMAC SHA256
- * Used after one-time payment checkout
- */
 export function verifyPaymentSignature(
   orderId: string,
   paymentId: string,
@@ -85,10 +74,6 @@ export function verifyPaymentSignature(
   }
 }
 
-/**
- * Verify subscription payment signature
- * Used after subscription checkout
- */
 export function verifySubscriptionSignature(
   subscriptionId: string,
   paymentId: string,
@@ -107,9 +92,6 @@ export function verifySubscriptionSignature(
   }
 }
 
-/**
- * Verify webhook signature from Razorpay
- */
 export function verifyWebhookSignature(
   body: string,
   signature: string
@@ -126,18 +108,11 @@ export function verifyWebhookSignature(
   }
 }
 
-/**
- * Get subscription details from Razorpay
- */
 export async function getSubscription(subscriptionId: string) {
   const subscription = await getRazorpay().subscriptions.fetch(subscriptionId)
   return subscription
 }
 
-/**
- * Cancel a subscription on Razorpay
- * @param cancelAtEnd - if true, cancels at end of current billing period
- */
 export async function cancelSubscription(
   subscriptionId: string,
   cancelAtEnd: boolean = true
@@ -149,9 +124,6 @@ export async function cancelSubscription(
   return subscription
 }
 
-/**
- * Create a plan on Razorpay for recurring billing
- */
 export async function createPlan(
   name: string,
   period: 'monthly' | 'yearly',
@@ -165,7 +137,7 @@ export async function createPlan(
     interval: interval,
     item: {
       name: name,
-      amount: amount, // in paise
+      amount: amount,
       currency: currency,
       description: description || name,
     },
@@ -173,9 +145,6 @@ export async function createPlan(
   return plan
 }
 
-/**
- * Fetch payment details
- */
 export async function getPayment(paymentId: string) {
   const payment = await getRazorpay().payments.fetch(paymentId)
   return payment

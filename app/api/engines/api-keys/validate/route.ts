@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
 
           isValid = response.ok
         } catch (error) {
-          console.error('OpenRouter API validation error:', error)
           isValid = false
         }
       }
@@ -68,8 +67,6 @@ export async function POST(request: NextRequest) {
       provider: detectedProvider,
     })
   } catch (error) {
-    console.error('Validate API key error:', error)
-
     return NextResponse.json(
       {
         success: false,

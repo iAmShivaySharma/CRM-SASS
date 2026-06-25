@@ -77,7 +77,6 @@ export default function SettingsPage() {
     useGetUserPreferencesQuery()
   const [patchPreferences] = usePatchUserPreferencesMutation()
 
-  // Workspace settings
   const { data: workspaceData, isLoading: workspaceLoading } =
     useGetWorkspaceQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
@@ -94,7 +93,6 @@ export default function SettingsPage() {
     weeklyReports: false,
   })
 
-  // Workspace form state
   const [workspaceForm, setWorkspaceForm] = useState({
     name: '',
     description: '',
@@ -108,15 +106,12 @@ export default function SettingsPage() {
     },
   })
 
-  // Load user preferences on mount (only if not already loaded from localStorage)
   useEffect(() => {
     if (userPreferences?.preferences && !preferencesLoading) {
-      // Only load theme preferences if they differ from current state
       if (userPreferences.preferences.theme) {
         const serverTheme = userPreferences.preferences.theme
         const currentTheme = { mode, primaryColor }
 
-        // Only update if server preferences are different
         if (
           serverTheme.mode !== currentTheme.mode ||
           serverTheme.primaryColor !== currentTheme.primaryColor
@@ -125,7 +120,6 @@ export default function SettingsPage() {
         }
       }
 
-      // Load notification preferences
       if (userPreferences.preferences.notifications) {
         setNotifications(prev => ({
           ...prev,
@@ -135,7 +129,6 @@ export default function SettingsPage() {
     }
   }, [userPreferences, dispatch, preferencesLoading, mode, primaryColor])
 
-  // Load workspace data
   useEffect(() => {
     if (workspaceData?.workspace) {
       setWorkspaceForm({
@@ -183,7 +176,6 @@ export default function SettingsPage() {
       }).unwrap()
 
       if (result.success) {
-        // Update Redux state with new workspace data
         dispatch(
           setCurrentWorkspace({
             ...currentWorkspace,

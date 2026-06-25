@@ -19,18 +19,15 @@ export default function DashboardPage() {
       <StatsCards />
 
       <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-3">
-        {/* Recent Activity - Takes 2 columns on xl screens */}
         <div className="w-full xl:col-span-2">
           <RecentActivity />
         </div>
 
-        {/* Analytics Overview - Takes 1 column on xl screens */}
         <div className="w-full xl:col-span-1">
           <AnalyticsOverview />
         </div>
       </div>
 
-      {/* Additional row for more cards */}
       <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         <PipelineOverview />
 

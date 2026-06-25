@@ -7,7 +7,7 @@ import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 import BlogCard from '@/components/blog/BlogCard'
 import Breadcrumb from '@/components/blog/Breadcrumb'
 
-export const revalidate = 300 // ISR: revalidate every 5 minutes
+export const revalidate = 300
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
 
@@ -71,7 +71,6 @@ async function getBlogs(
   const skip = (page - 1) * limit
   const isFirstPageDefault = page === 1 && !category && !tag && !search
 
-  // Fetch featured posts first on page 1 so we can exclude them from the main listing
   const [categories, featuredBlogs] = await Promise.all([
     BlogCategory.find({ isActive: true }).sort({ order: 1, name: 1 }).lean(),
     isFirstPageDefault
@@ -83,7 +82,6 @@ async function getBlogs(
       : Promise.resolve([]),
   ])
 
-  // Exclude featured posts from main listing on page 1
   const mainQuery = { ...query }
   if (isFirstPageDefault && featuredBlogs.length > 0) {
     mainQuery._id = { $nin: featuredBlogs.map((b: any) => b._id) }
@@ -99,7 +97,6 @@ async function getBlogs(
     Blog.countDocuments(mainQuery),
   ])
 
-  // Map category names
   const categoryMap = new Map(categories.map((c: any) => [String(c._id), c]))
 
   const enrichedBlogs = blogs.map((b: any) => ({
@@ -176,7 +173,6 @@ export default async function BlogListingPage({
       <div className="mx-auto max-w-6xl px-5 py-12">
         <Breadcrumb items={[{ label: 'Blog' }]} />
 
-        {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             CRM Pro Blog
@@ -187,7 +183,6 @@ export default async function BlogListingPage({
           </p>
         </div>
 
-        {/* Categories & Search */}
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
             <Link
@@ -227,7 +222,6 @@ export default async function BlogListingPage({
           </form>
         </div>
 
-        {/* Featured Posts */}
         {featured.length > 0 && (
           <section className="mb-16">
             <h2 className="mb-6 text-2xl font-bold text-foreground">
@@ -252,7 +246,6 @@ export default async function BlogListingPage({
           </section>
         )}
 
-        {/* All Posts */}
         {blogs.length > 0 ? (
           <>
             <section>
@@ -283,7 +276,6 @@ export default async function BlogListingPage({
               </div>
             </section>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <nav
                 aria-label="Blog pagination"

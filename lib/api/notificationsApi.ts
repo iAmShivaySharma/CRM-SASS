@@ -51,7 +51,6 @@ export const notificationsApi = createApi({
   }),
   tagTypes: ['Notification'],
   endpoints: builder => ({
-    // Get notifications for current user
     getNotifications: builder.query<NotificationsResponse, NotificationFilters>(
       {
         query: ({
@@ -78,7 +77,6 @@ export const notificationsApi = createApi({
       }
     ),
 
-    // Mark notification as read or mark all as read
     updateNotification: builder.mutation<
       { success: boolean; result: boolean | number; message: string },
       MarkNotificationRequest

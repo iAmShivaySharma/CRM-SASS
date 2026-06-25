@@ -1,10 +1,3 @@
-/**
- * Facebook Lead Ads Webhook Processor
- *
- * Processes webhook data from Facebook Lead Ads.
- * Facebook sends lead data in a specific format that needs to be transformed.
- */
-
 import { type NextRequest } from 'next/server'
 import {
   type WebhookProcessor,
@@ -15,9 +8,6 @@ import {
 export class FacebookLeadsProcessor implements WebhookProcessor {
   name = 'Facebook Lead Ads'
 
-  /**
-   * Validate Facebook webhook data structure
-   */
   validate(data: any): boolean {
     // Facebook webhook validation
     if (data.object === 'page' && data.entry && Array.isArray(data.entry)) {
@@ -32,9 +22,6 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
     return false
   }
 
-  /**
-   * Process Facebook webhook data
-   */
   async process(
     data: any,
     request: NextRequest
@@ -42,7 +29,6 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
     const leads: ProcessedLead[] = []
 
     try {
-      // Handle Facebook webhook format
       if (data.object === 'page' && data.entry) {
         for (const entry of data.entry) {
           if (entry.changes) {
@@ -56,9 +42,7 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
             }
           }
         }
-      }
-      // Handle direct lead data format
-      else if (data.leadgen_id || data.form_id || data.field_data) {
+      } else if (data.leadgen_id || data.form_id || data.field_data) {
         const lead = this.processFacebookLead(data)
         if (lead) {
           leads.push(lead)
@@ -81,9 +65,6 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
     }
   }
 
-  /**
-   * Process individual Facebook lead
-   */
   private processFacebookLead(leadData: any): ProcessedLead | null {
     try {
       const lead: ProcessedLead = {
@@ -93,7 +74,6 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
         tags: ['facebook-lead'],
       }
 
-      // Process field_data array (Facebook's format)
       if (leadData.field_data && Array.isArray(leadData.field_data)) {
         for (const field of leadData.field_data) {
           const fieldName = field.name?.toLowerCase()
@@ -166,15 +146,11 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
               break
 
             default:
-              // Store unknown fields in customFields
               lead.customFields![fieldName] = fieldValue
               break
           }
         }
-      }
-
-      // Handle direct field format
-      else {
+      } else {
         if (leadData.name) lead.name = leadData.name
         if (leadData.email) lead.email = leadData.email
         if (leadData.phone) lead.phone = leadData.phone
@@ -182,7 +158,6 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
         if (leadData.message) lead.notes = leadData.message
       }
 
-      // Set priority based on available information
       if (lead.value && lead.value > 10000) {
         lead.priority = 'high'
       } else if (lead.company || lead.customFields?.jobTitle) {
@@ -191,7 +166,6 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
         lead.priority = 'low'
       }
 
-      // Add Facebook-specific metadata
       if (leadData.leadgen_id) {
         lead.customFields!.facebookLeadId = leadData.leadgen_id
       }
@@ -205,19 +179,16 @@ export class FacebookLeadsProcessor implements WebhookProcessor {
         lead.customFields!.facebookCampaignId = leadData.campaign_id
       }
 
-      // Ensure we have at least a name or email
       if (!lead.name && !lead.email) {
         return null
       }
 
-      // If no name but have email, use email as name
       if (!lead.name && lead.email) {
         lead.name = lead.email.split('@')[0]
       }
 
       return lead
     } catch (error) {
-      console.error('Error processing Facebook lead:', error)
       return null
     }
   }

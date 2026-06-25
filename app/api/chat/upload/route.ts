@@ -13,8 +13,6 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Starting file upload process...')
-
     // Verify authentication
     await connectToMongoDB()
 
@@ -30,12 +28,6 @@ export async function POST(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
     const chatRoomId = searchParams.get('chatRoomId')
-
-    console.log('Upload params:', {
-      workspaceId,
-      chatRoomId,
-      userId: auth.user._id,
-    })
 
     if (!workspaceId || !chatRoomId) {
       return NextResponse.json(
@@ -66,12 +58,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'No file uploaded' }, { status: 400 })
     }
 
-    console.log('File details:', {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    })
-
     // Security validation
     const validation = validateFile({
       mimetype: file.type,
@@ -80,7 +66,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (!validation.isValid) {
-      console.log('File validation failed:', validation.errors)
       return NextResponse.json(
         {
           message: 'File validation failed',
@@ -91,12 +76,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize MinIO bucket
-    console.log('Initializing MinIO bucket...')
     try {
       await initializeBucket()
-      console.log('MinIO bucket initialized successfully')
     } catch (bucketError) {
-      console.error('MinIO bucket initialization failed:', bucketError)
       return NextResponse.json(
         {
           message: 'MinIO service unavailable',
@@ -109,7 +91,6 @@ export async function POST(request: NextRequest) {
 
     // Convert file to buffer
     const fileBuffer = Buffer.from(await file.arrayBuffer())
-    console.log('File converted to buffer, size:', fileBuffer.length)
 
     // Generate secure file path
     const secureFilePath = generateSecureFilePath(
@@ -119,10 +100,7 @@ export async function POST(request: NextRequest) {
       file.type
     )
 
-    console.log('Generated secure file path:', secureFilePath)
-
     // Upload to MinIO
-    console.log('Uploading to MinIO...')
     const uploadResult = await uploadFile(
       secureFilePath,
       fileBuffer,
@@ -137,8 +115,6 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    console.log('MinIO upload result:', uploadResult)
-
     if (!uploadResult.success) {
       return NextResponse.json(
         {
@@ -149,8 +125,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-
-    console.log('File upload successful:', uploadResult.url)
 
     // Return success response with file information
     return NextResponse.json({
@@ -164,7 +138,6 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('File upload error:', error)
     return NextResponse.json(
       {
         message: 'Internal server error',
@@ -217,7 +190,6 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Get upload config error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

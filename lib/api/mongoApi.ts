@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { RootState } from '../store'
 
-// API Types
 export interface Lead {
   id: string
   name: string
@@ -151,7 +150,7 @@ export const mongoApi = createApi({
   reducerPath: 'mongoApi',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api',
-    credentials: 'include', // Include cookies for authentication
+    credentials: 'include',
     prepareHeaders: headers => {
       headers.set('Content-Type', 'application/json')
       return headers
@@ -169,7 +168,6 @@ export const mongoApi = createApi({
     'LeadActivity',
   ],
   endpoints: builder => ({
-    // Leads
     getLeads: builder.query<
       { leads: Lead[]; pagination: any },
       {
@@ -225,7 +223,6 @@ export const mongoApi = createApi({
       invalidatesTags: ['Lead'],
     }),
 
-    // Lead Activities
     getLeadActivities: builder.query<
       { activities: LeadActivity[] },
       { leadId: string; workspaceId: string; limit?: number }
@@ -262,7 +259,6 @@ export const mongoApi = createApi({
       ],
     }),
 
-    // Roles
     getRoles: builder.query<{ success: boolean; roles: Role[] }, string>({
       query: workspaceId => `roles?workspaceId=${workspaceId}`,
       providesTags: ['Role'],
@@ -290,7 +286,6 @@ export const mongoApi = createApi({
       invalidatesTags: ['Role'],
     }),
 
-    // Workspaces
     getUserWorkspaces: builder.query<
       { success: boolean; workspaces: Workspace[] },
       string
@@ -299,7 +294,6 @@ export const mongoApi = createApi({
       providesTags: ['Workspace'],
     }),
 
-    // Lead Statuses
     getLeadStatuses: builder.query<
       { success: boolean; statuses: LeadStatus[] },
       string
@@ -329,7 +323,6 @@ export const mongoApi = createApi({
       invalidatesTags: ['LeadStatus'],
     }),
 
-    // Tags
     getTags: builder.query<{ success: boolean; tags: Tag[] }, string>({
       query: workspaceId => `tags?workspaceId=${workspaceId}`,
       providesTags: ['Tag'],
@@ -353,7 +346,6 @@ export const mongoApi = createApi({
       invalidatesTags: ['Tag'],
     }),
 
-    // Activities
     getActivities: builder.query<
       { success: boolean; activities: Activity[] },
       { workspaceId: string; limit?: number }
@@ -363,7 +355,6 @@ export const mongoApi = createApi({
       providesTags: ['Activity'],
     }),
 
-    // Workspaces
     getWorkspace: builder.query<{ success: boolean; workspace: any }, string>({
       query: workspaceId => `workspaces/${workspaceId}`,
       providesTags: ['Workspace'],
@@ -390,10 +381,8 @@ export const mongoApi = createApi({
         body: data,
       }),
       invalidatesTags: ['Workspace'],
-      // Redux state is updated in the component after successful update
     }),
 
-    // Workspace Members
     getWorkspaceMembers: builder.query<
       { success: boolean; members: WorkspaceMember[] },
       string
@@ -402,7 +391,6 @@ export const mongoApi = createApi({
       providesTags: ['WorkspaceMember'],
     }),
 
-    // Workspace Roles
     getWorkspaceRoles: builder.query<
       { success: boolean; roles: Role[] },
       string
@@ -411,7 +399,6 @@ export const mongoApi = createApi({
       providesTags: ['Role'],
     }),
 
-    // Workspace Invites
     inviteToWorkspace: builder.mutation<
       { success: boolean; message: string },
       {
@@ -429,7 +416,6 @@ export const mongoApi = createApi({
       invalidatesTags: ['WorkspaceMember'],
     }),
 
-    // Lead Notes
     createLeadNote: builder.mutation<
       { success: boolean; note: any },
       {
@@ -479,5 +465,3 @@ export const {
   useInviteToWorkspaceMutation,
   useCreateLeadNoteMutation,
 } = mongoApi
-
-// Removed old mock permissions - now using real permission system

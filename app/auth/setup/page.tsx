@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-// Profile setup functionality will be implemented with MongoDB
 
 interface SetupFormData {
   fullName: string
@@ -48,7 +47,6 @@ export default function AuthSetupPage() {
   useEffect(() => {
     const checkUserAndSetup = async () => {
       try {
-        // Check if user is authenticated via cookie
         const response = await fetch('/api/auth/verify', {
           method: 'POST',
           credentials: 'include',
@@ -63,8 +61,6 @@ export default function AuthSetupPage() {
           return
         }
 
-        // For now, redirect to dashboard since we're using complete signup flow
-        // In the future, you can implement profile completion here
         router.push('/dashboard')
       } catch (error) {
         console.error('Setup check error:', error)
@@ -86,8 +82,6 @@ export default function AuthSetupPage() {
 
     setLoading(true)
     try {
-      // TODO: Implement profile setup with MongoDB
-      // For now, just redirect to dashboard since signup flow is complete
       toast.success('Profile setup completed successfully!')
       router.push('/dashboard')
     } catch (error: any) {
@@ -126,7 +120,6 @@ export default function AuthSetupPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* User Email Display */}
             <div className="space-y-2">
               <Label className="text-sm text-gray-600">Email</Label>
               <div className="flex items-center space-x-2 rounded-md bg-gray-50 p-2">
@@ -135,7 +128,6 @@ export default function AuthSetupPage() {
               </div>
             </div>
 
-            {/* Full Name */}
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name *</Label>
               <Input
@@ -157,7 +149,6 @@ export default function AuthSetupPage() {
               )}
             </div>
 
-            {/* Pending Invitations Display */}
             {pendingInvitations.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-sm font-medium">
@@ -189,7 +180,6 @@ export default function AuthSetupPage() {
               </div>
             )}
 
-            {/* Create Workspace Option */}
             <div className="flex items-center space-x-2">
               <Checkbox id="createWorkspace" {...register('createWorkspace')} />
               <Label htmlFor="createWorkspace" className="text-sm">
@@ -202,7 +192,6 @@ export default function AuthSetupPage() {
               </Label>
             </div>
 
-            {/* Workspace Name (conditional) */}
             {createWorkspace && (
               <div className="space-y-2">
                 <Label htmlFor="workspaceName">Workspace Name *</Label>

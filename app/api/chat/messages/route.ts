@@ -64,7 +64,6 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Get messages error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -145,7 +144,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: populatedMessage }, { status: 201 })
   } catch (error) {
-    console.error('Create message error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

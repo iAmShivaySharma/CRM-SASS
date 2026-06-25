@@ -10,8 +10,8 @@ import {
   logBusinessEvent,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { invalidateCache } from '@/lib/redis/cache'
 
-// Validation schema for updating contacts
 const updateContactSchema = z.object({
   name: z
     .string()
@@ -88,7 +88,6 @@ const updateContactSchema = z.object({
     .optional(),
 })
 
-// GET /api/contacts/[id] - Get a specific contact
 export const GET = withSecurityLogging(
   withLogging(
     async (
@@ -117,12 +116,11 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Check if user has access to this workspace
         const userMembership = await WorkspaceMember.findOne({
           workspaceId,
           userId: auth.user.id,
           status: 'active',
-        })
+        }).lean()
 
         if (!userMembership) {
           return NextResponse.json(
@@ -131,13 +129,13 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Find the contact
         const contact = await Contact.findOne({ _id: contactId, workspaceId })
           .populate('tagIds', 'name color')
           .populate('assignedTo', 'fullName email')
           .populate('accountManager', 'fullName email')
           .populate('createdBy', 'fullName email')
           .populate('originalLeadId', 'name email company')
+          .lean()
 
         if (!contact) {
           return NextResponse.json(
@@ -161,7 +159,6 @@ export const GET = withSecurityLogging(
   )
 )
 
-// PUT /api/contacts/[id] - Update a contact
 export const PUT = withSecurityLogging(
   withLogging(
     async (
@@ -184,7 +181,6 @@ export const PUT = withSecurityLogging(
         const { id: contactId } = await params
         const body = await request.json()
 
-        // Get workspaceId from query params
         const url = new URL(request.url)
         const workspaceId = url.searchParams.get('workspaceId')
 
@@ -195,7 +191,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Validate request body
         const validationResult = updateContactSchema.safeParse(body)
         if (!validationResult.success) {
           return NextResponse.json(
@@ -209,12 +204,11 @@ export const PUT = withSecurityLogging(
 
         const updateData = validationResult.data
 
-        // Check if user has access to this workspace
         const userMembership = await WorkspaceMember.findOne({
           workspaceId,
           userId: auth.user.id,
           status: 'active',
-        })
+        }).lean()
 
         if (!userMembership) {
           return NextResponse.json(
@@ -223,7 +217,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Find and update the contact
         const contact = await Contact.findOne({ _id: contactId, workspaceId })
         if (!contact) {
           return NextResponse.json(
@@ -232,7 +225,6 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Handle ObjectId fields - convert empty strings to undefined
         const processedUpdateData = { ...updateData }
         if (processedUpdateData.assignedTo === '') {
           delete processedUpdateData.assignedTo
@@ -241,7 +233,6 @@ export const PUT = withSecurityLogging(
           delete processedUpdateData.accountManager
         }
 
-        // Handle date fields - ensure they are ISO strings
         if (processedUpdateData.lastContactDate) {
           processedUpdateData.lastContactDate = new Date(
             processedUpdateData.lastContactDate
@@ -253,7 +244,6 @@ export const PUT = withSecurityLogging(
           ).toISOString()
         }
 
-        // Handle milestones date conversion
         if (processedUpdateData.milestones) {
           processedUpdateData.milestones = processedUpdateData.milestones.map(
             milestone => ({
@@ -263,19 +253,17 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        // Update the contact
         Object.assign(contact, processedUpdateData)
         contact.updatedAt = new Date()
         await contact.save()
 
-        // Populate the updated contact
         const populatedContact = await Contact.findById(contactId)
           .populate('tagIds', 'name color')
           .populate('assignedTo', 'fullName email')
           .populate('accountManager', 'fullName email')
           .populate('createdBy', 'fullName email')
+          .lean()
 
-        // Log activity
         try {
           await Activity.create({
             workspaceId,
@@ -291,9 +279,7 @@ export const PUT = withSecurityLogging(
               newValues: updateData,
             },
           })
-        } catch (activityError) {
-          console.error('Failed to log contact update activity:', activityError)
-        }
+        } catch (activityError) {}
 
         logUserActivity(auth.user.id, 'contact_updated', 'contact', {
           contactId,
@@ -308,6 +294,8 @@ export const PUT = withSecurityLogging(
           updatedFields: Object.keys(updateData),
           duration: Date.now() - startTime,
         })
+
+        await invalidateCache('contacts:' + workspaceId + ':*')
 
         return NextResponse.json({
           success: true,
@@ -332,7 +320,6 @@ export const PUT = withSecurityLogging(
   )
 )
 
-// DELETE /api/contacts/[id] - Delete a contact
 export const DELETE = withSecurityLogging(
   withLogging(
     async (
@@ -363,12 +350,11 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Verify user has access to this workspace
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
           workspaceId,
           status: 'active',
-        })
+        }).lean()
 
         if (!member) {
           return NextResponse.json(
@@ -377,11 +363,10 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Check if contact exists
         const contact = await Contact.findOne({
           _id: contactId,
           workspaceId,
-        })
+        }).lean()
 
         if (!contact) {
           return NextResponse.json(
@@ -390,7 +375,6 @@ export const DELETE = withSecurityLogging(
           )
         }
 
-        // Delete the contact
         await Contact.findByIdAndDelete(contactId)
 
         logUserActivity(auth.user.id, 'contact.delete', 'contact', {
@@ -404,6 +388,8 @@ export const DELETE = withSecurityLogging(
           contactName: contact.name,
           duration: Date.now() - startTime,
         })
+
+        await invalidateCache('contacts:' + workspaceId + ':*')
 
         return NextResponse.json({
           success: true,

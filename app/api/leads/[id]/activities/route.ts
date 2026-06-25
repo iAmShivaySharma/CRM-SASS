@@ -55,9 +55,6 @@ export async function GET(
       activities,
     })
   } catch (error) {
-    console.error('=== LEAD ACTIVITIES API ERROR ===')
-    console.error('Error details:', error)
-
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -142,9 +139,6 @@ export async function POST(
       { status: 201 }
     )
   } catch (error) {
-    console.error('=== CREATE LEAD ACTIVITY API ERROR ===')
-    console.error('Error details:', error)
-
     return NextResponse.json(
       {
         error: 'Internal server error',

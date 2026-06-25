@@ -38,7 +38,6 @@ export interface EmailSyncOptions {
   markAsRead?: boolean
 }
 
-// Base Email Provider Interface
 export abstract class BaseEmailProvider {
   protected account: any
 
@@ -60,7 +59,6 @@ export abstract class BaseEmailProvider {
   }>
 }
 
-// Gmail Provider
 export class GmailProvider extends BaseEmailProvider {
   private gmail: any
   private oauth2Client: any
@@ -153,7 +151,6 @@ export class GmailProvider extends BaseEmailProvider {
 
           for (const message of response.data.messages) {
             try {
-              // Check if message already exists before fetching full content
               const existing = await EmailMessage.findOne({
                 messageId: message.id,
                 emailAccountId: this.account._id,
@@ -350,7 +347,6 @@ export class GmailProvider extends BaseEmailProvider {
       },
     })
 
-    // Extract body content
     const { text, html } = this.extractGmailBody(gmailMessage.payload)
     emailMessage.bodyText = text
     emailMessage.bodyHtml = html
@@ -402,7 +398,6 @@ export class GmailProvider extends BaseEmailProvider {
   }
 
   private determineFolderFromLabels(labelIds: string[]): string {
-    // Priority order: more specific labels first
     if (labelIds.includes('DRAFT')) return 'DRAFT'
     if (labelIds.includes('TRASH')) return 'TRASH'
     if (labelIds.includes('SPAM')) return 'SPAM'
@@ -412,7 +407,6 @@ export class GmailProvider extends BaseEmailProvider {
   }
 }
 
-// SMTP Provider for general email sending
 export class SMTPProvider extends BaseEmailProvider {
   private transporter: any
 
@@ -477,7 +471,6 @@ export class SMTPProvider extends BaseEmailProvider {
     count: number
     error?: string
   }> {
-    // SMTP is send-only, no sync capability
     return { success: true, count: 0 }
   }
 
@@ -499,12 +492,10 @@ export class SMTPProvider extends BaseEmailProvider {
     folders?: any[]
     error?: string
   }> {
-    // SMTP doesn't have folders
     return { success: true, folders: [] }
   }
 }
 
-// Email Provider Factory
 export class EmailProviderFactory {
   static async createProvider(account: any): Promise<BaseEmailProvider> {
     switch (account.provider) {
@@ -513,7 +504,6 @@ export class EmailProviderFactory {
       case 'smtp':
         return new SMTPProvider(account)
       case 'outlook':
-        // TODO: Implement OutlookProvider
         throw new Error('Outlook provider not yet implemented')
       default:
         throw new Error(`Unsupported email provider: ${account.provider}`)
@@ -521,7 +511,6 @@ export class EmailProviderFactory {
   }
 }
 
-// Email Service Manager
 export class EmailService {
   static async sendEmail(
     accountId: string,
@@ -538,9 +527,7 @@ export class EmailService {
       const provider = await EmailProviderFactory.createProvider(account)
       const result = await provider.sendEmail(options)
 
-      // Log the email send activity
       if (result.success) {
-        // TODO: Create activity log
         log.info(`Email sent successfully from ${account.emailAddress}`, {
           accountId,
           messageId: result.messageId,

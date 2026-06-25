@@ -1,17 +1,3 @@
-/**
- * Industry-Standard Rate Limiting Implementation with Winston Logging
- *
- * Features:
- * - Multiple rate limiting strategies (sliding window, token bucket)
- * - Per-endpoint and per-IP rate limiting
- * - Configurable limits for different operations
- * - Redis-ready for production scaling
- * - Comprehensive Winston logging and monitoring
- * - DDoS protection with security event logging
- * - Performance metrics tracking
- * - Automatic cleanup and maintenance
- */
-
 import { log } from '../logging/logger'
 import { logRateLimitEvent } from '../logging/middleware'
 
@@ -30,7 +16,6 @@ interface RateLimitResult {
   retryAfter?: number
 }
 
-// In-memory store (use Redis in production)
 const rateLimitStore = new Map<
   string,
   {
@@ -40,54 +25,44 @@ const rateLimitStore = new Map<
   }
 >()
 
-// Rate limit configurations for different endpoints
 const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
-  // Authentication endpoints - stricter limits
   auth: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5, // 5 attempts per 15 minutes
+    windowMs: 15 * 60 * 1000,
+    maxRequests: 5,
     skipSuccessfulRequests: true,
   },
 
-  // API endpoints - moderate limits
   api: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, // 100 requests per minute
+    windowMs: 60 * 1000,
+    maxRequests: 100,
     skipSuccessfulRequests: false,
   },
 
-  // Lead creation - specific limits
   leads: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20, // 20 leads per minute
+    windowMs: 60 * 1000,
+    maxRequests: 20,
     skipSuccessfulRequests: false,
   },
 
-  // Invitations - strict limits to prevent spam
   invites: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 5, // 5 invitations per minute
+    windowMs: 60 * 1000,
+    maxRequests: 5,
     skipSuccessfulRequests: false,
   },
 
-  // Webhook endpoints - higher limits
   webhooks: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 1000, // 1000 requests per minute
+    windowMs: 60 * 1000,
+    maxRequests: 1000,
     skipSuccessfulRequests: true,
   },
 
-  // Default fallback
   default: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 60, // 60 requests per minute
+    windowMs: 60 * 1000,
+    maxRequests: 60,
     skipSuccessfulRequests: false,
   },
 }
 
-/**
- * Enhanced rate limiting function with comprehensive logging
- */
 export async function rateLimit(
   identifier: string,
   endpoint: string = 'default',
@@ -105,13 +80,11 @@ export async function rateLimit(
   const now = Date.now()
   const windowStart = now - config.windowMs
 
-  // Get or create rate limit data
   let rateLimitData = rateLimitStore.get(key)
   if (!rateLimitData) {
     rateLimitData = { requests: [], blocked: false }
     rateLimitStore.set(key, rateLimitData)
 
-    // Log new rate limit entry
     log.debug(`Created new rate limit entry for ${key}`, {
       endpoint,
       identifier,
@@ -122,7 +95,6 @@ export async function rateLimit(
     })
   }
 
-  // Check if currently blocked
   if (
     rateLimitData.blocked &&
     rateLimitData.blockedUntil &&
@@ -130,7 +102,6 @@ export async function rateLimit(
   ) {
     const retryAfter = Math.ceil((rateLimitData.blockedUntil - now) / 1000)
 
-    // Log blocked attempt
     logRateLimitEvent(identifier, endpoint, true, {
       reason: 'currently_blocked',
       blockedUntil: new Date(rateLimitData.blockedUntil).toISOString(),
@@ -145,7 +116,6 @@ export async function rateLimit(
     }
   }
 
-  // Clean old requests outside the window
   const oldRequestCount = rateLimitData.requests.length
   rateLimitData.requests = rateLimitData.requests.filter(
     timestamp => timestamp > windowStart
@@ -156,14 +126,11 @@ export async function rateLimit(
     log.debug(`Cleaned ${cleanedRequests} old requests for ${key}`)
   }
 
-  // Check if limit exceeded
   if (rateLimitData.requests.length >= config.maxRequests) {
-    // Block for additional time if repeatedly hitting limits
-    const blockDuration = Math.min(config.windowMs * 2, 60 * 60 * 1000) // Max 1 hour
+    const blockDuration = Math.min(config.windowMs * 2, 60 * 60 * 1000)
     rateLimitData.blocked = true
     rateLimitData.blockedUntil = now + blockDuration
 
-    // Log security event for rate limit exceeded
     log.security(
       'Rate limit exceeded - potential DDoS attempt',
       {
@@ -178,7 +145,6 @@ export async function rateLimit(
       'high'
     )
 
-    // Log rate limit event
     logRateLimitEvent(identifier, endpoint, true, {
       reason: 'limit_exceeded',
       requestCount: rateLimitData.requests.length,
@@ -195,7 +161,6 @@ export async function rateLimit(
     }
   }
 
-  // Add current request
   rateLimitData.requests.push(now)
   rateLimitData.blocked = false
   rateLimitData.blockedUntil = undefined
@@ -203,7 +168,6 @@ export async function rateLimit(
   const remaining = config.maxRequests - rateLimitData.requests.length
   const processingTime = Date.now() - startTime
 
-  // Log successful rate limit check
   logRateLimitEvent(identifier, endpoint, false, {
     remaining,
     requestCount: rateLimitData.requests.length,
@@ -211,7 +175,6 @@ export async function rateLimit(
     processingTime,
   })
 
-  // Log performance if rate limiting is slow
   if (processingTime > 10) {
     log.performance(`Rate limiting check for ${endpoint}`, processingTime, {
       identifier,
@@ -227,9 +190,6 @@ export async function rateLimit(
   }
 }
 
-/**
- * Express-style rate limiting middleware
- */
 export function createRateLimiter(
   endpoint: string,
   customConfig?: Partial<RateLimitConfig>
@@ -239,9 +199,6 @@ export function createRateLimiter(
   }
 }
 
-/**
- * Advanced rate limiting with multiple strategies
- */
 export class AdvancedRateLimiter {
   private tokenBuckets = new Map<
     string,
@@ -253,9 +210,6 @@ export class AdvancedRateLimiter {
     }
   >()
 
-  /**
-   * Token bucket algorithm for burst handling
-   */
   async tokenBucket(
     identifier: string,
     capacity: number = 10,
@@ -276,7 +230,6 @@ export class AdvancedRateLimiter {
       this.tokenBuckets.set(key, bucket)
     }
 
-    // Calculate tokens to add based on time elapsed
     const timePassed = (now - bucket.lastRefill) / 1000
     const tokensToAdd = Math.floor(timePassed * refillRate)
 
@@ -285,7 +238,6 @@ export class AdvancedRateLimiter {
       bucket.lastRefill = now
     }
 
-    // Check if enough tokens available
     if (bucket.tokens >= tokensRequired) {
       bucket.tokens -= tokensRequired
       return {
@@ -295,7 +247,6 @@ export class AdvancedRateLimiter {
       }
     }
 
-    // Calculate retry after time
     const tokensNeeded = tokensRequired - bucket.tokens
     const retryAfter = Math.ceil(tokensNeeded / refillRate)
 
@@ -308,40 +259,31 @@ export class AdvancedRateLimiter {
   }
 }
 
-/**
- * IP-based rate limiting with geolocation awareness
- */
 export async function ipRateLimit(
   ip: string,
   endpoint: string,
   userAgent?: string
 ): Promise<RateLimitResult> {
-  // Enhanced identifier including user agent hash for better tracking
   const identifier = userAgent ? `${ip}:${hashString(userAgent)}` : ip
 
-  // Apply stricter limits for suspicious patterns
   let config = RATE_LIMIT_CONFIGS[endpoint] || RATE_LIMIT_CONFIGS.default
 
-  // Detect potential bot traffic
   if (userAgent && isSuspiciousUserAgent(userAgent)) {
     config = {
       ...config,
-      maxRequests: Math.floor(config.maxRequests * 0.1), // 10% of normal limit
+      maxRequests: Math.floor(config.maxRequests * 0.1),
     }
   }
 
   return rateLimit(identifier, endpoint, config)
 }
 
-/**
- * Utility functions
- */
 function hashString(str: string): string {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)
     hash = (hash << 5) - hash + char
-    hash = hash & hash // Convert to 32-bit integer
+    hash = hash & hash
   }
   return Math.abs(hash).toString(36)
 }
@@ -361,12 +303,9 @@ function isSuspiciousUserAgent(userAgent: string): boolean {
   return suspiciousPatterns.some(pattern => pattern.test(userAgent))
 }
 
-/**
- * Cleanup function to remove old entries
- */
 export function cleanupRateLimitStore(): void {
   const now = Date.now()
-  const maxAge = 24 * 60 * 60 * 1000 // 24 hours
+  const maxAge = 24 * 60 * 60 * 1000
 
   // Convert to array for TypeScript compatibility
   const entries = Array.from(rateLimitStore.entries())
@@ -377,13 +316,11 @@ export function cleanupRateLimitStore(): void {
         rateLimitStore.delete(key)
       }
     } else {
-      // Remove empty entries
       rateLimitStore.delete(key)
     }
   }
 }
 
-// Cleanup every hour
 if (typeof window === 'undefined') {
   setInterval(cleanupRateLimitStore, 60 * 60 * 1000)
 }

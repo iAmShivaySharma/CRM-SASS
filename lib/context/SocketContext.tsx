@@ -135,7 +135,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       })
 
       newSocket.on('connect', () => {
-        console.log('Connected to Socket.IO server')
         setIsConnected(true)
 
         const currentAuth = auth
@@ -150,25 +149,19 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
       newSocket.on(
         'user-joined-room',
-        (data: { userId: string; userName: string; timestamp: string }) => {
-          console.log(`${data.userName} joined the room`)
-        }
+        (data: { userId: string; userName: string; timestamp: string }) => {}
       )
 
       newSocket.on(
         'user-left-room',
-        (data: { userId: string; userName: string; timestamp: string }) => {
-          console.log(`${data.userName} left the room`)
-        }
+        (data: { userId: string; userName: string; timestamp: string }) => {}
       )
 
       newSocket.on('disconnect', () => {
-        console.log('Disconnected from Socket.IO server')
         setIsConnected(false)
       })
 
       newSocket.on('connect_error', error => {
-        console.error('Socket connection error:', error)
         setIsConnected(false)
       })
 
@@ -195,9 +188,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       setupEventListeners(newSocket)
 
       setSocket(newSocket)
-    } catch (error) {
-      console.error('Failed to initialize socket:', error)
-    }
+    } catch (error) {}
   }, [])
 
   useEffect(() => {

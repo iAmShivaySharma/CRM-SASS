@@ -154,7 +154,6 @@ const DocumentVersionSchema = new Schema<IDocumentVersion>(
   }
 )
 
-// Pre-save middleware to track versions and last edited
 ProjectDocumentSchema.pre('save', function (this: IProjectDocument, next) {
   if (this.isModified('content') && !this.isNew) {
     this.version += 1
@@ -163,7 +162,6 @@ ProjectDocumentSchema.pre('save', function (this: IProjectDocument, next) {
   next()
 })
 
-// Optimized indexes for performance
 if (typeof window === 'undefined') {
   ProjectDocumentSchema.index({ projectId: 1, status: 1 })
   ProjectDocumentSchema.index({ workspaceId: 1, type: 1 })

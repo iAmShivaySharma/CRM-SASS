@@ -1,22 +1,7 @@
-/**
- * Enterprise-Grade Winston Logger Configuration
- *
- * Features:
- * - Multiple log levels with color coding
- * - Daily rotating file logs
- * - Structured JSON logging
- * - Performance monitoring
- * - Security event logging
- * - Error tracking with stack traces
- * - Request/Response logging
- * - Database query logging
- */
-
 import path from 'path'
 import winston from 'winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
 
-// Custom log levels
 const customLevels = {
   levels: {
     error: 0,
@@ -40,10 +25,8 @@ const customLevels = {
   },
 }
 
-// Add colors to winston
 winston.addColors(customLevels.colors)
 
-// Custom format for console output
 const consoleFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.colorize({ all: true }),
@@ -55,101 +38,60 @@ const consoleFormat = winston.format.combine(
   })
 )
 
-// Custom format for file output
-const fileFormat = winston.format.combine(
+const jsonFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
-  winston.format.json(),
-  winston.format.prettyPrint()
+  winston.format.json()
 )
 
-// Create logs directory if it doesn't exist
-const logsDir = path.join(process.cwd(), 'logs')
+const transports: winston.transport[] = []
 
-// Daily rotating file transport for general logs
-const dailyRotateFileTransport = new DailyRotateFile({
-  filename: path.join(logsDir, 'application-%DATE%.log'),
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '14d',
-  format: fileFormat,
-})
+if (process.env.NODE_ENV === 'production') {
+  transports.push(
+    new winston.transports.Console({
+      format: jsonFormat,
+      level: process.env.LOG_LEVEL || 'info',
+    })
+  )
+} else {
+  const logsDir = path.join(process.cwd(), 'logs')
 
-// Daily rotating file transport for error logs
-const errorRotateFileTransport = new DailyRotateFile({
-  filename: path.join(logsDir, 'error-%DATE%.log'),
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '30d',
-  level: 'error',
-  format: fileFormat,
-})
-
-// Daily rotating file transport for security logs
-const securityRotateFileTransport = new DailyRotateFile({
-  filename: path.join(logsDir, 'security-%DATE%.log'),
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '90d',
-  level: 'security',
-  format: fileFormat,
-})
-
-// Daily rotating file transport for performance logs
-const performanceRotateFileTransport = new DailyRotateFile({
-  filename: path.join(logsDir, 'performance-%DATE%.log'),
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '7d',
-  level: 'performance',
-  format: fileFormat,
-})
-
-// Create the logger
-const logger = winston.createLogger({
-  levels: customLevels.levels,
-  level: process.env.LOG_LEVEL || 'info',
-  format: fileFormat,
-  defaultMeta: {
-    service: 'crm-api',
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0',
-  },
-  transports: [
-    dailyRotateFileTransport,
-    errorRotateFileTransport,
-    securityRotateFileTransport,
-    performanceRotateFileTransport,
-  ],
-  exceptionHandlers: [
-    new winston.transports.File({
-      filename: path.join(logsDir, 'exceptions.log'),
-      format: fileFormat,
-    }),
-  ],
-  rejectionHandlers: [
-    new winston.transports.File({
-      filename: path.join(logsDir, 'rejections.log'),
-      format: fileFormat,
-    }),
-  ],
-})
-
-// Add console transport for development
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
+  transports.push(
     new winston.transports.Console({
       format: consoleFormat,
       level: 'debug',
+    }),
+    new DailyRotateFile({
+      filename: path.join(logsDir, 'application-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '14d',
+      format: jsonFormat,
+    }),
+    new DailyRotateFile({
+      filename: path.join(logsDir, 'error-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '30d',
+      level: 'error',
+      format: jsonFormat,
     })
   )
 }
 
-// Enhanced logging methods
+const logger = winston.createLogger({
+  levels: customLevels.levels,
+  level: process.env.LOG_LEVEL || 'info',
+  format: jsonFormat,
+  defaultMeta: {
+    service: 'crm-api',
+    environment: process.env.NODE_ENV || 'development',
+  },
+  transports,
+})
+
 export class Logger {
   private static instance: Logger
   private winston: winston.Logger
@@ -165,7 +107,6 @@ export class Logger {
     return Logger.instance
   }
 
-  // Standard logging methods
   error(message: string, meta?: any): void {
     this.winston.error(message, meta)
   }
@@ -182,7 +123,6 @@ export class Logger {
     this.winston.debug(message, meta)
   }
 
-  // Specialized logging methods
   security(
     event: string,
     details: any,
@@ -235,7 +175,6 @@ export class Logger {
     })
   }
 
-  // Audit logging for compliance
   audit(action: string, userId: string, resource: string, details?: any): void {
     this.winston.info(`AUDIT: ${action} on ${resource} by ${userId}`, {
       type: 'audit',
@@ -247,7 +186,6 @@ export class Logger {
     })
   }
 
-  // Business logic logging
   business(event: string, details: any): void {
     this.winston.info(`BUSINESS_EVENT: ${event}`, {
       type: 'business',
@@ -258,13 +196,10 @@ export class Logger {
   }
 }
 
-// Export singleton instance
 export const log = Logger.getInstance()
 
-// Export for direct winston access if needed
 export { logger as winstonLogger }
 
-// Helper function for measuring execution time
 export function measureTime<T>(
   operation: string,
   fn: () => Promise<T> | T,

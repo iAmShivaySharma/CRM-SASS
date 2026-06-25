@@ -11,7 +11,13 @@ export interface AttendanceRecord {
   breakEnd?: Date
   totalBreakTime: number
   totalWorkTime?: number
-  status: 'clocked_in' | 'on_break' | 'clocked_out' | 'absent' | 'late' | 'half_day'
+  status:
+    | 'clocked_in'
+    | 'on_break'
+    | 'clocked_out'
+    | 'absent'
+    | 'late'
+    | 'half_day'
   location?: {
     clockInLocation?: {
       latitude: number
@@ -102,10 +108,12 @@ export const attendanceApi = createApi({
     credentials: 'include',
   }),
   tagTypes: ['Attendance', 'TodayAttendance', 'Employees'],
-  endpoints: (builder) => ({
-    // Get today's attendance status
-    getTodayAttendance: builder.query<TodayAttendanceResponse, { workspaceId: string }>({
-      query: (params) => {
+  endpoints: builder => ({
+    getTodayAttendance: builder.query<
+      TodayAttendanceResponse,
+      { workspaceId: string }
+    >({
+      query: params => {
         const searchParams = new URLSearchParams()
         searchParams.append('workspaceId', params.workspaceId)
         return `/today?${searchParams.toString()}`
@@ -113,7 +121,6 @@ export const attendanceApi = createApi({
       providesTags: ['TodayAttendance'],
     }),
 
-    // Get attendance records
     getAttendanceRecords: builder.query<
       {
         attendanceRecords: AttendanceRecord[]
@@ -126,7 +133,7 @@ export const attendanceApi = createApi({
       },
       AttendanceQuery
     >({
-      query: (params) => {
+      query: params => {
         const searchParams = new URLSearchParams()
         Object.entries(params).forEach(([key, value]) => {
           if (value !== undefined) {
@@ -138,7 +145,6 @@ export const attendanceApi = createApi({
       providesTags: ['Attendance'],
     }),
 
-    // Clock in/out actions
     attendanceAction: builder.mutation<
       {
         success: boolean
@@ -147,7 +153,7 @@ export const attendanceApi = createApi({
       },
       AttendanceActionRequest & { workspaceId: string }
     >({
-      query: (action) => ({
+      query: action => ({
         url: '',
         method: 'POST',
         body: action,
@@ -155,7 +161,6 @@ export const attendanceApi = createApi({
       invalidatesTags: ['TodayAttendance', 'Attendance'],
     }),
 
-    // Get attendance summary for date range
     getAttendanceSummary: builder.query<
       {
         summary: {
@@ -179,9 +184,14 @@ export const attendanceApi = createApi({
           end: string
         }
       },
-      { userId?: string; startDate?: string; endDate?: string; workspaceId: string }
+      {
+        userId?: string
+        startDate?: string
+        endDate?: string
+        workspaceId: string
+      }
     >({
-      query: (params) => {
+      query: params => {
         const searchParams = new URLSearchParams()
         Object.entries(params).forEach(([key, value]) => {
           if (value) {
@@ -193,7 +203,6 @@ export const attendanceApi = createApi({
       providesTags: ['Attendance'],
     }),
 
-    // Get employees/users in workspace
     getEmployees: builder.query<
       {
         employees: Array<{
@@ -226,9 +235,15 @@ export const attendanceApi = createApi({
           pages: number
         }
       },
-      { page?: number; limit?: number; search?: string; includeAttendance?: boolean; workspaceId: string }
+      {
+        page?: number
+        limit?: number
+        search?: string
+        includeAttendance?: boolean
+        workspaceId: string
+      }
     >({
-      query: (params) => {
+      query: params => {
         const searchParams = new URLSearchParams()
         Object.entries(params).forEach(([key, value]) => {
           if (value !== undefined) {
@@ -237,7 +252,7 @@ export const attendanceApi = createApi({
         })
         return {
           url: `../employees?${searchParams.toString()}`,
-          method: 'GET'
+          method: 'GET',
         }
       },
       providesTags: ['Employees'],

@@ -72,9 +72,7 @@ export default function EmailPage() {
         const data = await response.json()
         setProviderFolders(data.folders || [])
       }
-    } catch {
-      // Silently fail
-    }
+    } catch {}
   }, [activeAccount, currentWorkspace?.id])
 
   useEffect(() => {

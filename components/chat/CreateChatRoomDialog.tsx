@@ -60,7 +60,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
           .includes(searchQuery.toLowerCase()) ||
         member.user.email.toLowerCase().includes(searchQuery.toLowerCase())
     )
-    .filter(member => member.userId !== auth.user?.id) // Exclude current user
+    .filter(member => member.userId !== auth.user?.id)
 
   const handleMemberToggle = (userId: string) => {
     setSelectedMembers(prev =>
@@ -84,7 +84,6 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
         workspaceId: workspace.currentWorkspace.id,
       }).unwrap()
 
-      // Reset form
       setName('')
       setDescription('')
       setType('general')
