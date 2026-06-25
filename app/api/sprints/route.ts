@@ -21,7 +21,7 @@ const createSprintSchema = z.object({
 })
 
 async function checkProjectAccess(projectId: string, userId: string) {
-  const project = await Project.findById(projectId).lean()
+  const project = (await Project.findById(projectId).lean()) as any
   if (!project) return null
 
   const member = await ProjectMember.findOne({
