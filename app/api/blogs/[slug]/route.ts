@@ -57,7 +57,10 @@ export async function GET(
     await connectToMongoDB()
     const { slug } = await params
 
-    const blog = await Blog.findOne({ slug, status: 'published' }).lean()
+    const blog = (await Blog.findOne({
+      slug,
+      status: 'published',
+    }).lean()) as any
     if (!blog) {
       return NextResponse.json(
         { message: 'Blog post not found' },

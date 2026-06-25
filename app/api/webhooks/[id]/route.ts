@@ -120,7 +120,7 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        const webhook = await Webhook.findById(webhookId).lean()
+        const webhook = (await Webhook.findById(webhookId).lean()) as any
         if (!webhook) {
           return NextResponse.json(
             { message: 'Webhook not found' },
@@ -222,7 +222,7 @@ export const DELETE = withSecurityLogging(
 
         const { id: webhookId } = await params
 
-        const webhook = await Webhook.findById(webhookId).lean()
+        const webhook = (await Webhook.findById(webhookId).lean()) as any
         if (!webhook) {
           return NextResponse.json(
             { message: 'Webhook not found' },
