@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
-// API Types - matching database models
 export interface Project {
   id: string
   name: string
@@ -69,15 +68,16 @@ export interface Task {
   completedBy?: string
   timeTracking?: {
     isActive: boolean
-    totalTracked: number // Total time tracked in seconds
+    totalTracked: number
     sessions: {
       startedAt: string
       endedAt?: string
-      duration?: number // Duration in seconds
+      duration?: number
       userId: string
     }[]
     currentSessionStart?: string
   }
+  sprintId?: string
   order: number
   dependencies?: string[]
   attachments?: {
@@ -152,6 +152,28 @@ export interface ProjectJoinRequest {
   updatedAt: string
 }
 
+export interface Sprint {
+  id: string
+  name: string
+  goal?: string
+  projectId: string
+  workspaceId: string
+  status: 'planning' | 'active' | 'completed' | 'cancelled'
+  startDate: string
+  endDate: string
+  createdBy: {
+    id: string
+    fullName: string
+    email: string
+    avatarUrl?: string
+  }
+  completedAt?: string
+  taskCount: number
+  completedTaskCount: number
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Column {
   id: string
   name: string
@@ -185,9 +207,9 @@ export const projectsApi = createApi({
     'ProjectJoinRequest',
     'Column',
     'Tag',
+    'Sprint',
   ],
   endpoints: builder => ({
-    // Projects
     getProjects: builder.query<
       { projects: Project[]; pagination: any },
       {
@@ -259,7 +281,6 @@ export const projectsApi = createApi({
       invalidatesTags: ['Project'],
     }),
 
-    // Project Members
     getProjectMembers: builder.query<
       { members: ProjectMember[] },
       { projectId: string }
@@ -303,7 +324,6 @@ export const projectsApi = createApi({
       invalidatesTags: ['ProjectMember'],
     }),
 
-    // Tasks
     getTasks: builder.query<
       { tasks: Task[] },
       {
@@ -405,7 +425,6 @@ export const projectsApi = createApi({
       invalidatesTags: ['Task'],
     }),
 
-    // Documents
     getDocuments: builder.query<
       { documents: Document[] },
       {
@@ -433,20 +452,13 @@ export const projectsApi = createApi({
       Partial<Document> & { projectId: string; workspaceId: string }
     >({
       query: data => {
-        // Ensure proper JSON serialization
         const processedData = { ...data }
 
-        // Convert tags to string array only
         if (processedData.tags && Array.isArray(processedData.tags)) {
           processedData.tags = processedData.tags.map((tag: any) =>
             typeof tag === 'string' ? tag : tag.text || String(tag)
           )
         }
-
-        console.log(
-          'RTK Query creating document with data:',
-          JSON.stringify(processedData, null, 2)
-        )
 
         return {
           url: 'documents',
@@ -465,20 +477,13 @@ export const projectsApi = createApi({
       { id: string; data: Partial<Document> }
     >({
       query: ({ id, data }) => {
-        // Ensure proper JSON serialization
         const processedData = { ...data }
 
-        // Convert tags to string array only
         if (processedData.tags && Array.isArray(processedData.tags)) {
           processedData.tags = processedData.tags.map((tag: any) =>
             typeof tag === 'string' ? tag : tag.text || String(tag)
           )
         }
-
-        console.log(
-          'RTK Query sending data:',
-          JSON.stringify(processedData, null, 2)
-        )
 
         return {
           url: `documents/${id}`,
@@ -500,7 +505,6 @@ export const projectsApi = createApi({
       invalidatesTags: ['Document'],
     }),
 
-    // Project Invitations
     inviteToProject: builder.mutation<
       { invitation: ProjectInvitation },
       {
@@ -537,7 +541,6 @@ export const projectsApi = createApi({
       invalidatesTags: ['ProjectInvitation', 'ProjectMember'],
     }),
 
-    // Project Join Requests
     requestToJoinProject: builder.mutation<
       { request: ProjectJoinRequest },
       { projectId: string; message?: string }
@@ -569,7 +572,6 @@ export const projectsApi = createApi({
       invalidatesTags: ['ProjectJoinRequest', 'ProjectMember'],
     }),
 
-    // Columns
     getColumns: builder.query<{ columns: Column[] }, { projectId: string }>({
       query: ({ projectId }) => `columns?projectId=${projectId}`,
       providesTags: ['Column'],
@@ -607,7 +609,6 @@ export const projectsApi = createApi({
       invalidatesTags: ['Column'],
     }),
 
-    // Time Tracking
     startTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
         url: `tasks/${taskId}/time-tracking/start`,
@@ -616,14 +617,7 @@ export const projectsApi = createApi({
       onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled
-          console.log(
-            'Start time tracking - updating cache for task:',
-            data.task.id,
-            'isActive:',
-            data.task.timeTracking?.isActive
-          )
 
-          // Update all possible getTasks query variations
           const queries = [
             { projectId: data.task.projectId },
             { workspaceId: data.task.workspaceId },
@@ -635,19 +629,11 @@ export const projectsApi = createApi({
                 const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
                 if (taskIndex !== -1) {
                   draft.tasks[taskIndex] = data.task
-                  console.log(
-                    'Updated task in cache:',
-                    draft.tasks[taskIndex].id,
-                    'isActive:',
-                    draft.tasks[taskIndex].timeTracking?.isActive
-                  )
                 }
               })
             )
           })
-        } catch (error) {
-          console.error('Error updating cache after start:', error)
-        }
+        } catch (error) {}
       },
       invalidatesTags: (result, error, arg) => [
         { type: 'Task', id: 'LIST' },
@@ -663,7 +649,6 @@ export const projectsApi = createApi({
       onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled
-          // Update the specific task in any getTasks queries
           dispatch(
             projectsApi.util.updateQueryData(
               'getTasks',
@@ -692,7 +677,6 @@ export const projectsApi = createApi({
       onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled
-          // Update the specific task in any getTasks queries
           dispatch(
             projectsApi.util.updateQueryData(
               'getTasks',
@@ -721,7 +705,6 @@ export const projectsApi = createApi({
       onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled
-          // Update the specific task in any getTasks queries
           dispatch(
             projectsApi.util.updateQueryData(
               'getTasks',
@@ -742,7 +725,148 @@ export const projectsApi = createApi({
       ],
     }),
 
-    // Tags endpoints
+    // Sprint endpoints
+    getSprints: builder.query<
+      { sprints: Sprint[] },
+      { projectId: string; status?: string }
+    >({
+      query: ({ projectId, status }) => {
+        const params = new URLSearchParams({ projectId })
+        if (status) params.append('status', status)
+        return `sprints?${params}`
+      },
+      providesTags: (result, error, arg) =>
+        result
+          ? [
+              { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+              ...result.sprints.map(sprint => ({
+                type: 'Sprint' as const,
+                id: sprint.id,
+              })),
+            ]
+          : [{ type: 'Sprint', id: `PROJECT_${arg.projectId}` }],
+    }),
+
+    getSprint: builder.query<{ sprint: Sprint }, { id: string }>({
+      query: ({ id }) => `sprints/${id}`,
+      providesTags: (result, error, arg) => [{ type: 'Sprint', id: arg.id }],
+    }),
+
+    createSprint: builder.mutation<
+      { sprint: Sprint },
+      {
+        name: string
+        goal?: string
+        projectId: string
+        startDate: string
+        endDate: string
+      }
+    >({
+      query: data => ({
+        url: 'sprints',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+      ],
+    }),
+
+    updateSprint: builder.mutation<
+      { sprint: Sprint },
+      { id: string; data: Partial<Sprint> }
+    >({
+      query: ({ id, data }) => ({
+        url: `sprints/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Sprint', id: arg.id },
+        ...(result
+          ? [
+              {
+                type: 'Sprint' as const,
+                id: `PROJECT_${result.sprint.projectId}`,
+              },
+            ]
+          : []),
+      ],
+    }),
+
+    deleteSprint: builder.mutation<
+      { success: boolean },
+      { id: string; projectId: string }
+    >({
+      query: ({ id }) => ({
+        url: `sprints/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Sprint', id: arg.id },
+        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+        { type: 'Task', id: 'LIST' },
+      ],
+    }),
+
+    startSprint: builder.mutation<
+      { sprint: Sprint },
+      { id: string; projectId: string }
+    >({
+      query: ({ id }) => ({
+        url: `sprints/${id}/start`,
+        method: 'POST',
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Sprint', id: arg.id },
+        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+      ],
+    }),
+
+    completeSprint: builder.mutation<
+      {
+        sprint: Sprint
+        summary: {
+          completedTasks: number
+          movedTasks: number
+          moveTarget: string
+        }
+      },
+      { id: string; projectId: string; moveIncompleteTo: string }
+    >({
+      query: ({ id, moveIncompleteTo }) => ({
+        url: `sprints/${id}/complete`,
+        method: 'POST',
+        body: { moveIncompleteTo },
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Sprint', id: arg.id },
+        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+        { type: 'Task', id: 'LIST' },
+      ],
+    }),
+
+    assignTasksToSprint: builder.mutation<
+      { success: boolean; modifiedCount: number },
+      {
+        sprintId: string
+        projectId: string
+        taskIds: string[]
+        action: 'add' | 'remove'
+      }
+    >({
+      query: ({ sprintId, taskIds, action }) => ({
+        url: `sprints/${sprintId}/tasks`,
+        method: 'POST',
+        body: { taskIds, action },
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Sprint', id: arg.sprintId },
+        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+        { type: 'Task', id: 'LIST' },
+      ],
+    }),
+
     getTags: builder.query<
       {
         tags: {
@@ -764,40 +888,34 @@ export const projectsApi = createApi({
 })
 
 export const {
-  // Projects
   useGetProjectsQuery,
   useGetProjectQuery,
   useCreateProjectMutation,
   useUpdateProjectMutation,
   useDeleteProjectMutation,
 
-  // Project Members
   useGetProjectMembersQuery,
   useAddProjectMemberMutation,
   useUpdateProjectMemberMutation,
   useRemoveProjectMemberMutation,
 
-  // Tasks
   useGetTasksQuery,
   useCreateTaskMutation,
   useUpdateTaskMutation,
   useDeleteTaskMutation,
   useReorderTasksMutation,
 
-  // Time Tracking
   useStartTimeTrackingMutation,
   useStopTimeTrackingMutation,
   usePauseTimeTrackingMutation,
   useResumeTimeTrackingMutation,
 
-  // Documents
   useGetDocumentsQuery,
   useGetDocumentQuery,
   useCreateDocumentMutation,
   useUpdateDocumentMutation,
   useDeleteDocumentMutation,
 
-  // Invitations and Requests
   useInviteToProjectMutation,
   useGetProjectInvitationsQuery,
   useRespondToInvitationMutation,
@@ -805,12 +923,19 @@ export const {
   useGetJoinRequestsQuery,
   useRespondToJoinRequestMutation,
 
-  // Columns
   useGetColumnsQuery,
   useCreateColumnMutation,
   useUpdateColumnMutation,
   useDeleteColumnMutation,
 
-  // Tags
+  useGetSprintsQuery,
+  useGetSprintQuery,
+  useCreateSprintMutation,
+  useUpdateSprintMutation,
+  useDeleteSprintMutation,
+  useStartSprintMutation,
+  useCompleteSprintMutation,
+  useAssignTasksToSprintMutation,
+
   useGetTagsQuery,
 } = projectsApi

@@ -9,6 +9,7 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { cached, invalidateCache } from '@/lib/redis/cache'
 
 const createTaskSchema = z.object({
   title: z.string().min(1).max(200),
@@ -20,6 +21,7 @@ const createTaskSchema = z.object({
   tags: z.array(z.string()).optional(),
   dueDate: z.string().optional(),
   estimatedHours: z.number().min(0).optional(),
+  sprintId: z.string().optional(),
   dependencies: z.array(z.string()).optional(),
   customFields: z.record(z.any()).optional(),
   attachments: z
@@ -55,22 +57,14 @@ async function checkProjectTaskAccess(projectId: string, userId: string) {
   return project
 }
 
-// GET /api/tasks - Get tasks for a project
 export const GET = withSecurityLogging(
   withLogging(
     async (request: NextRequest) => {
-      const startTime = Date.now()
-      console.log('=== TASKS API DEBUG START ===')
-
       try {
-        console.log('Connecting to MongoDB...')
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
 
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
@@ -83,36 +77,20 @@ export const GET = withSecurityLogging(
         const status = url.searchParams.get('status')
         const assigneeId = url.searchParams.get('assigneeId')
         const search = url.searchParams.get('search')
-
-        console.log('Request params:', {
-          projectId,
-          workspaceId,
-          status,
-          assigneeId,
-          search,
-        })
+        const sprintId = url.searchParams.get('sprintId')
 
         const query: any = {}
 
         if (projectId) {
-          // Single project query
-          console.log('Checking project access...')
           const project = await checkProjectTaskAccess(projectId, auth.user.id)
           if (!project) {
-            console.log('Project not found or access denied')
             return NextResponse.json(
               { message: 'Project not found or access denied' },
               { status: 404 }
             )
           }
           query.projectId = projectId
-          console.log('Project access confirmed')
         } else if (workspaceId) {
-          // All projects in workspace query
-          console.log('Fetching tasks for all projects in workspace...')
-
-          // Get all projects in workspace that user has access to
-          // First get all projects in this workspace
           const workspaceProjects = await Project.find({
             workspaceId,
           }).select('_id')
@@ -121,7 +99,6 @@ export const GET = withSecurityLogging(
             p._id.toString()
           )
 
-          // Then get user's memberships only for projects in this workspace
           const userProjects = await ProjectMember.find({
             userId: auth.user.id,
             status: 'active',
@@ -143,7 +120,6 @@ export const GET = withSecurityLogging(
           }
 
           query.projectId = { $in: accessibleProjectIds }
-          console.log('Found accessible projects:', accessibleProjectIds.length)
         } else {
           return NextResponse.json(
             { message: 'Either projectId or workspaceId is required' },
@@ -151,24 +127,26 @@ export const GET = withSecurityLogging(
           )
         }
 
-        // Add additional filters
         if (status) query.status = status
         if (assigneeId) query.assigneeId = assigneeId
+        if (sprintId === 'backlog') {
+          query.sprintId = { $exists: false }
+        } else if (sprintId) {
+          query.sprintId = sprintId
+        }
         if (search) {
-          query.$or = [
-            { title: { $regex: search, $options: 'i' } },
-            { description: { $regex: search, $options: 'i' } },
-          ]
+          query.$text = { $search: search }
         }
 
-        console.log('Built query:', JSON.stringify(query))
-
-        const tasks = await Task.find(query)
-          .populate('assigneeId', 'fullName email avatarUrl')
-          .sort({ order: 1, createdAt: -1 })
-          .lean()
-
-        console.log('Retrieved tasks:', tasks.length)
+        const tasks = await cached(
+          `tasks:${projectId || workspaceId}:${status || ''}:${assigneeId || ''}:${search || ''}`,
+          60,
+          async () =>
+            Task.find(query)
+              .populate('assigneeId', 'fullName email avatarUrl')
+              .sort({ order: 1, createdAt: -1 })
+              .lean()
+        )
 
         const formattedTasks = tasks.map(task => ({
           ...task,
@@ -190,17 +168,8 @@ export const GET = withSecurityLogging(
           }
         )
 
-        const endTime = Date.now()
-        console.log(`=== TASKS API SUCCESS (${endTime - startTime}ms) ===`)
-
         return NextResponse.json({ tasks: formattedTasks })
       } catch (error) {
-        console.error('=== TASKS API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Get tasks error:', error)
         return NextResponse.json(
           {
@@ -224,22 +193,16 @@ export const GET = withSecurityLogging(
   )
 )
 
-// POST /api/tasks - Create a new task
 export const POST = withSecurityLogging(
   withLogging(
     async (request: NextRequest) => {
       const startTime = Date.now()
-      console.log('=== CREATE TASK API DEBUG START ===')
 
       try {
-        console.log('Connecting to MongoDB...')
         await connectToMongoDB()
-        console.log('MongoDB connected successfully')
 
-        console.log('Verifying auth token...')
         const auth = await verifyAuthToken(request)
         if (!auth) {
-          console.log('Auth failed, returning 401')
           return NextResponse.json(
             { message: 'Authentication required' },
             { status: 401 }
@@ -247,12 +210,10 @@ export const POST = withSecurityLogging(
         }
 
         const body = await request.json()
-        console.log('Request body received:', JSON.stringify(body, null, 2))
 
         const validationResult = createTaskSchema.safeParse(body)
 
         if (!validationResult.success) {
-          console.log('Validation failed:', validationResult.error.errors)
           return NextResponse.json(
             {
               message: 'Validation failed',
@@ -262,30 +223,23 @@ export const POST = withSecurityLogging(
           )
         }
 
-        console.log('Checking project access...')
         const project = await checkProjectTaskAccess(
           validationResult.data.projectId,
           auth.user.id
         )
         if (!project) {
-          console.log('Project not found or access denied')
           return NextResponse.json(
             { message: 'Project not found or access denied' },
             { status: 404 }
           )
         }
 
-        console.log('Project access confirmed')
-
-        // Get the highest order number for the status
         const lastTask = await Task.findOne({
           projectId: validationResult.data.projectId,
           status: validationResult.data.status,
         }).sort({ order: -1 })
 
         const order = lastTask ? lastTask.order + 1 : 0
-
-        console.log('Creating new task with order:', order)
 
         const task = new Task({
           ...validationResult.data,
@@ -295,9 +249,7 @@ export const POST = withSecurityLogging(
         })
 
         await task.save()
-        console.log('Task created with ID:', task._id)
 
-        // Populate the assignee for response
         await task.populate('assigneeId', 'fullName email avatarUrl')
 
         await logUserActivity(
@@ -311,10 +263,7 @@ export const POST = withSecurityLogging(
           }
         )
 
-        const endTime = Date.now()
-        console.log(
-          `=== CREATE TASK API SUCCESS (${endTime - startTime}ms) ===`
-        )
+        await invalidateCache(`tasks:*`)
 
         return NextResponse.json({
           task: {
@@ -323,12 +272,6 @@ export const POST = withSecurityLogging(
           },
         })
       } catch (error) {
-        console.error('=== CREATE TASK API ERROR ===')
-        console.error('Error details:', error)
-        console.error(
-          'Error stack:',
-          error instanceof Error ? error.stack : 'No stack'
-        )
         log.error('Create task error:', error)
         return NextResponse.json(
           {

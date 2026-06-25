@@ -27,6 +27,7 @@ export interface ITask extends Omit<Document, '_id'> {
     }[]
     currentSessionStart?: Date
   }
+  sprintId?: string
   order: number // For Kanban ordering within status
   dependencies?: string[] // Task IDs that must be completed first
   attachments?: {
@@ -131,6 +132,10 @@ const TaskSchema = new Schema<ITask>(
       ],
       currentSessionStart: Date,
     },
+    sprintId: {
+      type: String,
+      ref: 'Sprint',
+    },
     order: {
       type: Number,
       required: true,
@@ -188,10 +193,16 @@ const TaskSchema = new Schema<ITask>(
 // Optimized indexes for performance
 if (typeof window === 'undefined') {
   TaskSchema.index({ projectId: 1, status: 1, order: 1 })
-  TaskSchema.index({ assigneeId: 1, status: 1 })
+  TaskSchema.index({ workspaceId: 1, assigneeId: 1, status: 1 })
+  TaskSchema.index({ workspaceId: 1, projectId: 1, status: 1, createdAt: -1 })
   TaskSchema.index({ workspaceId: 1, dueDate: 1 })
   TaskSchema.index({ createdBy: 1 })
   TaskSchema.index({ tags: 1 })
+  TaskSchema.index({ sprintId: 1, status: 1, order: 1 })
+  TaskSchema.index(
+    { title: 'text', description: 'text' },
+    { weights: { title: 10, description: 1 } }
+  )
 }
 
 export const Task =

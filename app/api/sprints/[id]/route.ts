@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { Task, Project, ProjectMember } from '@/lib/mongodb/client'
+import { Sprint, Task } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
   withLogging,
@@ -9,55 +9,15 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { invalidateCache } from '@/lib/redis/cache'
 
-const updateTaskSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  description: z.string().max(2000).optional(),
-  status: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
-  assigneeId: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  dueDate: z.string().optional(),
-  estimatedHours: z.number().min(0).optional(),
-  sprintId: z.string().nullable().optional(),
-  order: z.number().optional(),
-  dependencies: z.array(z.string()).optional(),
-  customFields: z.record(z.any()).optional(),
-  attachments: z
-    .array(
-      z.object({
-        name: z.string(),
-        url: z.string(),
-        type: z.string(),
-        size: z.number(),
-      })
-    )
-    .optional(),
+const updateSprintSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  goal: z.string().max(500).optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  status: z.enum(['planning', 'active', 'completed', 'cancelled']).optional(),
 })
-
-async function checkTaskAccess(taskId: string, userId: string) {
-  const task = await Task.findById(taskId)
-  if (!task) return null
-
-  const project = await Project.findById(task.projectId).lean()
-  if (!project) return null
-
-  const projectMember = await ProjectMember.findOne({
-    projectId: task.projectId,
-    userId,
-    status: 'active',
-  }).lean()
-
-  if (
-    !projectMember &&
-    project.visibility !== 'workspace' &&
-    project.visibility !== 'public'
-  ) {
-    return null
-  }
-
-  return { task, project }
-}
 
 export const GET = withSecurityLogging(
   withLogging(
@@ -65,7 +25,6 @@ export const GET = withSecurityLogging(
       request: NextRequest,
       { params }: { params: Promise<{ id: string }> }
     ) => {
-      const startTime = Date.now()
       try {
         await connectToMongoDB()
 
@@ -78,32 +37,33 @@ export const GET = withSecurityLogging(
         }
 
         const { id } = await params
-        const taskData = await checkTaskAccess(id, auth.user.id)
 
-        if (!taskData) {
+        const sprint = await Sprint.findById(id).populate(
+          'createdBy',
+          'fullName email avatarUrl'
+        )
+
+        if (!sprint) {
           return NextResponse.json(
-            { message: 'Task not found' },
+            { message: 'Sprint not found' },
             { status: 404 }
           )
         }
 
-        await taskData.task.populate('assigneeId', 'fullName email avatarUrl')
-
-        await logUserActivity(
-          auth.user.id,
-          'tasks.view',
-          `Viewed task: ${taskData.task.title}`,
-          { entityType: 'Task', taskId: id }
-        )
+        // Get task stats
+        const tasks = await Task.find({ sprintId: id }).lean()
+        const totalTasks = tasks.length
+        const completedTasks = tasks.filter((t: any) => t.completed).length
 
         return NextResponse.json({
-          task: {
-            ...taskData.task.toJSON(),
-            assignee: taskData.task.assigneeId,
+          sprint: {
+            ...sprint.toJSON(),
+            taskCount: totalTasks,
+            completedTaskCount: completedTasks,
           },
         })
       } catch (error) {
-        log.error('Get task error:', error)
+        log.error('Get sprint error:', error)
         return NextResponse.json(
           {
             message: 'Internal server error',
@@ -119,10 +79,7 @@ export const GET = withSecurityLogging(
         )
       }
     },
-    {
-      logBody: false,
-      logHeaders: true,
-    }
+    { logBody: false, logHeaders: true }
   )
 )
 
@@ -132,8 +89,6 @@ export const PUT = withSecurityLogging(
       request: NextRequest,
       { params }: { params: Promise<{ id: string }> }
     ) => {
-      const startTime = Date.now()
-
       try {
         await connectToMongoDB()
 
@@ -146,19 +101,9 @@ export const PUT = withSecurityLogging(
         }
 
         const { id } = await params
-        const taskData = await checkTaskAccess(id, auth.user.id)
-
-        if (!taskData) {
-          return NextResponse.json(
-            { message: 'Task not found or access denied' },
-            { status: 404 }
-          )
-        }
-
         const body = await request.json()
 
-        const validationResult = updateTaskSchema.safeParse(body)
-
+        const validationResult = updateSprintSchema.safeParse(body)
         if (!validationResult.success) {
           return NextResponse.json(
             {
@@ -169,38 +114,34 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        const updateData: any = {
-          ...validationResult.data,
-          updatedAt: new Date(),
+        const sprint = await Sprint.findById(id)
+        if (!sprint) {
+          return NextResponse.json(
+            { message: 'Sprint not found' },
+            { status: 404 }
+          )
         }
 
-        // Handle null sprintId — remove from sprint (backlog)
-        if (updateData.sprintId === null) {
-          delete updateData.sprintId
-          await Task.findByIdAndUpdate(id, { $unset: { sprintId: '' } })
-        }
+        const updates: any = { ...validationResult.data }
+        if (updates.startDate) updates.startDate = new Date(updates.startDate)
+        if (updates.endDate) updates.endDate = new Date(updates.endDate)
 
-        const updatedTask = await Task.findByIdAndUpdate(id, updateData, {
+        const updatedSprint = await Sprint.findByIdAndUpdate(id, updates, {
           new: true,
-        })
-
-        await updatedTask?.populate('assigneeId', 'fullName email avatarUrl')
+        }).populate('createdBy', 'fullName email avatarUrl')
 
         await logUserActivity(
           auth.user.id,
-          'tasks.update',
-          `Updated task: ${updatedTask?.title}`,
-          { entityType: 'Task', taskId: id, changes: validationResult.data }
+          'sprints.update',
+          `Updated sprint: ${updatedSprint?.name}`,
+          { entityType: 'Sprint', sprintId: id }
         )
 
-        return NextResponse.json({
-          task: {
-            ...updatedTask?.toJSON(),
-            assignee: updatedTask?.assigneeId,
-          },
-        })
+        await invalidateCache(`sprints:${sprint.projectId}:*`)
+
+        return NextResponse.json({ sprint: updatedSprint?.toJSON() })
       } catch (error) {
-        log.error('Update task error:', error)
+        log.error('Update sprint error:', error)
         return NextResponse.json(
           {
             message: 'Internal server error',
@@ -216,10 +157,7 @@ export const PUT = withSecurityLogging(
         )
       }
     },
-    {
-      logBody: true,
-      logHeaders: true,
-    }
+    { logBody: true, logHeaders: true }
   )
 )
 
@@ -229,8 +167,6 @@ export const DELETE = withSecurityLogging(
       request: NextRequest,
       { params }: { params: Promise<{ id: string }> }
     ) => {
-      const startTime = Date.now()
-
       try {
         await connectToMongoDB()
 
@@ -243,27 +179,39 @@ export const DELETE = withSecurityLogging(
         }
 
         const { id } = await params
-        const taskData = await checkTaskAccess(id, auth.user.id)
 
-        if (!taskData) {
+        const sprint = await Sprint.findById(id)
+        if (!sprint) {
           return NextResponse.json(
-            { message: 'Task not found or access denied' },
+            { message: 'Sprint not found' },
             { status: 404 }
           )
         }
 
-        await Task.findByIdAndDelete(id)
+        if (sprint.status !== 'planning') {
+          return NextResponse.json(
+            { message: 'Only sprints in planning status can be deleted' },
+            { status: 400 }
+          )
+        }
+
+        // Remove sprintId from any tasks assigned to this sprint
+        await Task.updateMany({ sprintId: id }, { $unset: { sprintId: '' } })
+        await Sprint.findByIdAndDelete(id)
 
         await logUserActivity(
           auth.user.id,
-          'tasks.delete',
-          `Deleted task: ${taskData.task.title}`,
-          { entityType: 'Task', taskId: id }
+          'sprints.delete',
+          `Deleted sprint: ${sprint.name}`,
+          { entityType: 'Sprint', sprintId: id, projectId: sprint.projectId }
         )
+
+        await invalidateCache(`sprints:${sprint.projectId}:*`)
+        await invalidateCache(`tasks:*`)
 
         return NextResponse.json({ success: true })
       } catch (error) {
-        log.error('Delete task error:', error)
+        log.error('Delete sprint error:', error)
         return NextResponse.json(
           {
             message: 'Internal server error',
@@ -279,9 +227,6 @@ export const DELETE = withSecurityLogging(
         )
       }
     },
-    {
-      logBody: false,
-      logHeaders: true,
-    }
+    { logBody: false, logHeaders: true }
   )
 )
