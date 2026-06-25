@@ -220,8 +220,9 @@ export function EmailList({
   const deleteEmails = async (emailIds: string[]) => {
     if (
       !confirm(`Are you sure you want to delete ${emailIds.length} email(s)?`)
-    )
+    ) {
       return
+    }
 
     try {
       await Promise.all(

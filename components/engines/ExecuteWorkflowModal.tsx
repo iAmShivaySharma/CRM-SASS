@@ -240,11 +240,18 @@ export function ExecuteWorkflowModal({
   }
 
   const getExecutionStatus = () => {
-    if (isExecuting) return 'running'
-    if ((executionResult as any)?.data?.status === 'waiting_for_input')
+    if (isExecuting) {
+      return 'running'
+    }
+    if ((executionResult as any)?.data?.status === 'waiting_for_input') {
       return 'waiting_for_input'
-    if ((executionResult as any)?.data) return 'completed'
-    if (executionError) return 'failed'
+    }
+    if ((executionResult as any)?.data) {
+      return 'completed'
+    }
+    if (executionError) {
+      return 'failed'
+    }
     return 'idle'
   }
 

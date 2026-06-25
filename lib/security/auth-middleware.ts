@@ -24,8 +24,9 @@ export function hasPermission(
   if (
     userPermissions.includes(`${resource}.*`) ||
     userPermissions.includes(`${resource}:*`)
-  )
+  ) {
     return true
+  }
 
   return userPermissions.includes(requiredPermission)
 }

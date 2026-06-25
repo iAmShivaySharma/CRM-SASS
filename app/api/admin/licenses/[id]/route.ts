@@ -29,8 +29,9 @@ async function verifyAdmin(request: NextRequest) {
   if (!membership) return null
 
   const role = membership.roleId as any
-  if (!role || !['owner', 'admin'].includes(role.name?.toLowerCase()))
+  if (!role || !['owner', 'admin'].includes(role.name?.toLowerCase())) {
     return null
+  }
 
   return auth
 }

@@ -257,12 +257,21 @@ export default function BlogEditor({
       ...(status ? { status } : {}),
     }
 
-    if (!saveData.title) return toast.error('Title is required')
-    if (!saveData.slug) return toast.error('Slug is required')
-    if (!saveData.content || saveData.content === '<p></p>')
+    if (!saveData.title) {
+      return toast.error('Title is required')
+    }
+    if (!saveData.slug) {
+      return toast.error('Slug is required')
+    }
+    if (!saveData.content || saveData.content === '<p></p>') {
       return toast.error('Content is required')
-    if (!saveData.categoryId) return toast.error('Category is required')
-    if (!saveData.author.name) return toast.error('Author name is required')
+    }
+    if (!saveData.categoryId) {
+      return toast.error('Category is required')
+    }
+    if (!saveData.author.name) {
+      return toast.error('Author name is required')
+    }
 
     setSaving(true)
     try {
@@ -477,8 +486,9 @@ export default function BlogEditor({
                     size="sm"
                     onClick={() => {
                       const url = prompt('Enter link URL:')
-                      if (url)
+                      if (url) {
                         editor.chain().focus().setLink({ href: url }).run()
+                      }
                     }}
                   >
                     <Link2 className="h-4 w-4" />
@@ -507,8 +517,9 @@ export default function BlogEditor({
                       const file = e.target.files?.[0]
                       if (!file || !editor) return
                       const url = await uploadImage(file)
-                      if (url)
+                      if (url) {
                         editor.chain().focus().setImage({ src: url }).run()
+                      }
                       e.target.value = ''
                     }}
                   />
