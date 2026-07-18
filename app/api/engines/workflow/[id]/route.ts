@@ -1,15 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { WorkflowCatalog } from '@/lib/mongodb/models'
-import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { createN8nClient } from '@/lib/n8n/client'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectToMongoDB()
-
     const auth = await verifyAuthToken(request)
     if (!auth) {
       return NextResponse.json(
@@ -19,25 +16,36 @@ export async function GET(
     }
 
     const { id } = await params
-    const workflow = await WorkflowCatalog.findById(id).populate(
-      'category',
-      'name description icon'
-    )
+    const n8nClient = createN8nClient()
 
-    if (!workflow) {
+    let n8nWorkflow
+    try {
+      n8nWorkflow = await n8nClient.getWorkflow(id)
+    } catch {
       return NextResponse.json({ error: 'Workflow not found' }, { status: 404 })
     }
 
-    if (!workflow.isActive) {
-      return NextResponse.json(
-        { error: 'Workflow is not active' },
-        { status: 403 }
-      )
-    }
+    const analysis = n8nClient.analyzeWorkflow(n8nWorkflow)
 
     return NextResponse.json({
       success: true,
-      data: workflow,
+      data: {
+        _id: n8nWorkflow.id,
+        n8nWorkflowId: n8nWorkflow.id,
+        name: n8nWorkflow.name,
+        description: n8nWorkflow.description?.trim() || n8nWorkflow.name,
+        category: analysis.category,
+        categoryName: analysis.category,
+        tags: (n8nWorkflow.tags || []).map(t => t.name),
+        requiresApiKey: analysis.requiresApiKey,
+        estimatedCost: analysis.estimatedCost,
+        inputSchema: analysis.inputSchema,
+        outputSchema: analysis.outputSchema,
+        hasWaitNodes: analysis.hasWaitNodes,
+        isActive: n8nWorkflow.active,
+        createdAt: n8nWorkflow.createdAt,
+        updatedAt: n8nWorkflow.updatedAt,
+      },
     })
   } catch (error) {
     return NextResponse.json(

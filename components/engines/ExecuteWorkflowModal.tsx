@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import {
-  X,
   Play,
   Loader2,
   DollarSign,
@@ -38,49 +39,75 @@ import {
   useGetApiKeysQuery,
 } from '@/lib/api/enginesApi'
 import { ApiKeySelector } from './ApiKeySelector'
+import { ExecutionOutput } from './ExecutionOutput'
+
+interface WorkflowProp {
+  id?: string
+  _id?: string
+  n8nWorkflowId?: string
+  name: string
+  description: string
+  estimatedCost: number
+  avgExecutionTime: number
+  requiresApiKey: boolean
+  inputSchema: Record<string, any>
+}
 
 interface ExecuteWorkflowModalProps {
-  workflow: {
-    id: string
-    name: string
-    description: string
-    estimatedCost: number
-    avgExecutionTime: number
-    requiresApiKey: boolean
-    inputSchema: Record<string, any>
-  }
+  workflow: WorkflowProp
   isOpen: boolean
   onClose: () => void
 }
-
-// Platform keys (managed by the system)
-const platformApiKeys = [
-  {
-    id: 'platform-1',
-    type: 'platform' as const,
-    name: 'Platform OpenRouter',
-    provider: 'OpenRouter',
-    cost: 0.15,
-  },
-]
 
 export function ExecuteWorkflowModal({
   workflow,
   isOpen,
   onClose,
 }: ExecuteWorkflowModalProps) {
+  const router = useRouter()
+  // Resolve workflow ID from any possible field name
+  const workflowId = workflow.id || workflow._id || workflow.n8nWorkflowId || ''
+
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [selectedApiKey, setSelectedApiKey] = useState<string>('')
   const [emailResults, setEmailResults] = useState(false)
+  const [elapsedTime, setElapsedTime] = useState(0)
 
-  // API calls
   const { data: apiKeysData } = useGetApiKeysQuery()
   const [
     executeWorkflow,
-    { isLoading: isExecuting, data: executionResult, error: executionError },
+    {
+      isLoading: isExecuting,
+      data: executionResult,
+      error: executionError,
+      reset: resetExecution,
+    },
   ] = useExecuteWorkflowMutation()
 
-  // Combine customer and platform keys
+  React.useEffect(() => {
+    if (isOpen) {
+      const defaults: Record<string, any> = {}
+      for (const [field, schema] of Object.entries(
+        workflow.inputSchema || {}
+      )) {
+        if (schema.defaultValue !== undefined) {
+          defaults[field] = schema.defaultValue
+        }
+      }
+      setFormData(defaults)
+      setEmailResults(false)
+      setElapsedTime(0)
+      resetExecution()
+    }
+  }, [isOpen, workflowId, resetExecution])
+
+  React.useEffect(() => {
+    if (!isExecuting) return
+    setElapsedTime(0)
+    const interval = setInterval(() => setElapsedTime(t => t + 1), 1000)
+    return () => clearInterval(interval)
+  }, [isExecuting])
+
   const customerKeys = apiKeysData?.data || []
   const allApiKeys = [
     ...customerKeys.map(key => ({
@@ -95,7 +122,13 @@ export function ExecuteWorkflowModal({
         cost: 0,
       },
     })),
-    ...platformApiKeys,
+    {
+      id: 'platform',
+      type: 'platform' as const,
+      name: 'Platform Key',
+      provider: 'OpenRouter',
+      cost: workflow.estimatedCost,
+    },
   ]
 
   // Set default selected key
@@ -118,24 +151,36 @@ export function ExecuteWorkflowModal({
   }
 
   const handleExecute = async () => {
-    if (!selectedApiKey) return
+    if (!selectedApiKey || !workflowId) return
 
     const selectedKey = allApiKeys.find(key => key.id === selectedApiKey)
     if (!selectedKey) return
 
-    try {
-      await executeWorkflow({
-        workflowId: workflow.id,
-        inputData: formData,
-        apiKeyType: selectedKey.type,
-        apiKeyId: selectedKey.type === 'customer' ? selectedKey.id : undefined,
-        emailResults,
-      }).unwrap()
+    const payload = {
+      workflowId,
+      inputData: formData,
+      apiKeyType: selectedKey.type,
+      apiKeyId: selectedKey.type === 'customer' ? selectedKey.id : undefined,
+      emailResults,
+    }
 
-      // Execution successful - the result will be in executionResult
-    } catch (error) {
-      console.error('Workflow execution failed:', error)
-      // Error handling is done through RTK Query error state
+    toast.info('Workflow started', {
+      description: 'You can track progress in Execution History',
+      action: {
+        label: 'View History',
+        onClick: () => router.push('/engines/executions'),
+      },
+    })
+
+    try {
+      await executeWorkflow(payload).unwrap()
+      toast.success('Workflow completed', {
+        description: 'Results are ready below',
+      })
+    } catch (error: any) {
+      toast.error('Execution failed', {
+        description: error?.data?.error || error?.message || 'Unknown error',
+      })
     }
   }
 
@@ -275,13 +320,19 @@ export function ExecuteWorkflowModal({
     const status = getExecutionStatus()
     switch (status) {
       case 'running':
-        return 'Executing workflow...'
+        return `Executing workflow... ${elapsedTime}s`
       case 'waiting_for_input':
         return 'Workflow is waiting for your input'
       case 'completed':
         return 'Execution completed successfully!'
-      case 'failed':
-        return `Execution failed: ${(executionError as any)?.data?.error || 'Unknown error'}`
+      case 'failed': {
+        const errData = (executionError as any)?.data
+        const errMsg = errData?.error || errData?.details || 'Unknown error'
+        const extraInfo = errData?.receivedFields
+          ? ` [fields: ${errData.receivedFields.join(', ')}]`
+          : ''
+        return `Execution failed: ${errMsg}${extraInfo}`
+      }
       default:
         return ''
     }
@@ -314,20 +365,39 @@ export function ExecuteWorkflowModal({
             >
               <div className="flex items-center space-x-2">
                 {getStatusIcon()}
-                <AlertDescription className="font-medium">
+                <AlertDescription className="flex-1 font-medium">
                   {getStatusText()}
                 </AlertDescription>
+                {getExecutionStatus() === 'running' && (
+                  <span className="text-xs text-muted-foreground">
+                    Check{' '}
+                    <button
+                      className="text-blue-600 underline"
+                      onClick={() => router.push('/engines/executions')}
+                    >
+                      history
+                    </button>
+                  </span>
+                )}
               </div>
+              {getExecutionStatus() === 'running' && (
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900/30">
+                  <div
+                    className="h-full rounded-full bg-blue-500 transition-all duration-1000 ease-out"
+                    style={{ width: `${Math.min(95, elapsedTime * 3)}%` }}
+                  />
+                </div>
+              )}
               {(executionResult as any)?.data && (
                 <div className="mt-3 space-y-2 text-sm">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <span className="font-medium">Tokens Used:</span>{' '}
+                      <span className="font-medium">Tokens:</span>{' '}
                       {(executionResult as any).data.apiKeyUsed?.tokensUsed ||
                         0}
                     </div>
                     <div>
-                      <span className="font-medium">Execution Time:</span>{' '}
+                      <span className="font-medium">Time:</span>{' '}
                       {(
                         ((executionResult as any).data.executionTimeMs || 0) /
                         1000
@@ -335,21 +405,31 @@ export function ExecuteWorkflowModal({
                       s
                     </div>
                     <div>
-                      <span className="font-medium">Actual Cost:</span> $
+                      <span className="font-medium">Cost:</span> $
                       {(
                         (executionResult as any).data.apiKeyUsed?.cost || 0
                       ).toFixed(3)}
                     </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Output:</span>
-                    <div className="mt-1 rounded border bg-muted p-2 text-xs">
-                      {JSON.stringify(
-                        (executionResult as any).data.outputData,
-                        null,
-                        2
-                      )}
+                  {(executionResult as any).data.outputData && (
+                    <div>
+                      <span className="font-medium">Result:</span>
+                      <div className="mt-1">
+                        <ExecutionOutput
+                          data={(executionResult as any).data.outputData}
+                          maxHeight="300px"
+                        />
+                      </div>
                     </div>
+                  )}
+                  <div className="flex space-x-2 pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => router.push('/engines/executions')}
+                    >
+                      View All Executions
+                    </Button>
                   </div>
                 </div>
               )}
@@ -405,8 +485,8 @@ export function ExecuteWorkflowModal({
             selectedKeyId={selectedApiKey}
             onKeySelect={setSelectedApiKey}
             onAddNewKey={() => {
-              // Handle add new API key - could open a modal or navigate to API key management
-              console.log('Add new API key')
+              onClose()
+              router.push('/engines/api-keys')
             }}
           />
 
@@ -414,28 +494,35 @@ export function ExecuteWorkflowModal({
 
           {/* Workflow Parameters */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Workflow Parameters</h3>
+            {Object.keys(workflow.inputSchema || {}).length > 0 && (
+              <h3 className="text-lg font-semibold">Workflow Parameters</h3>
+            )}
 
-            {Object.entries(workflow.inputSchema).map(([field, schema]) => (
-              <div key={field} className="space-y-2">
-                <Label htmlFor={field} className="flex items-center space-x-2">
-                  <span className="capitalize">
-                    {field.replace(/([A-Z])/g, ' $1').trim()}
-                  </span>
-                  {schema.required && (
-                    <Badge variant="destructive" className="text-xs">
-                      Required
-                    </Badge>
+            {Object.entries(workflow.inputSchema || {}).map(
+              ([field, schema]) => (
+                <div key={field} className="space-y-2">
+                  <Label
+                    htmlFor={field}
+                    className="flex items-center space-x-2"
+                  >
+                    <span className="capitalize">
+                      {field.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                    {schema.required && (
+                      <Badge variant="destructive" className="text-xs">
+                        Required
+                      </Badge>
+                    )}
+                  </Label>
+                  {renderInputField(field, schema)}
+                  {schema.description && (
+                    <p className="text-sm text-muted-foreground">
+                      {schema.description}
+                    </p>
                   )}
-                </Label>
-                {renderInputField(field, schema)}
-                {schema.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {schema.description}
-                  </p>
-                )}
-              </div>
-            ))}
+                </div>
+              )
+            )}
           </div>
 
           <Separator />
@@ -479,7 +566,7 @@ export function ExecuteWorkflowModal({
             </Button>
             <Button
               onClick={handleExecute}
-              disabled={isExecuting || !selectedApiKey}
+              disabled={isExecuting || !selectedApiKey || !workflowId}
               className="bg-gradient-to-r from-primary to-primary/80"
             >
               {isExecuting ? (

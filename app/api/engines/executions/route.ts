@@ -59,16 +59,19 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean()
 
-    const responseData = executions.map(execution => ({
+    const responseData = executions.map((execution: any) => ({
       _id: execution._id,
       status: execution.status,
+      n8nWorkflowId: execution.n8nWorkflowId,
       n8nExecutionId: execution.n8nExecutionId,
       outputData: execution.outputData,
+      inputData: execution.inputData,
       executionTimeMs: execution.executionTimeMs,
       apiKeyUsed: execution.apiKeyUsed,
       errorMessage: execution.errorMessage,
       createdAt: execution.createdAt,
       completedAt: execution.completedAt,
+      startedAt: execution.startedAt,
       workflow: execution.workflowCatalogId,
     }))
 

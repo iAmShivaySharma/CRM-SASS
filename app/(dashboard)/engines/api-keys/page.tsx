@@ -11,6 +11,7 @@ import {
   Eye,
   EyeOff,
   MoreVertical,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,97 +24,70 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { AddApiKeyModal } from '@/components/engines/AddApiKeyModal'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
-const mockApiKeys = [
-  {
-    id: '1',
-    name: 'My Primary OpenRouter Key',
-    provider: 'OpenRouter',
-    keyPreview: 'sk-or-v1-abc...xyz',
-    isDefault: true,
-    isActive: true,
-    createdAt: new Date('2024-01-15'),
-    lastUsed: new Date('2024-01-20'),
-    usage: {
-      thisMonth: {
-        executions: 45,
-        tokens: 125000,
-        cost: 0,
-      },
-      allTime: {
-        executions: 234,
-        tokens: 650000,
-      },
-    },
-  },
-  {
-    id: '2',
-    name: 'Secondary Key',
-    provider: 'OpenRouter',
-    keyPreview: 'sk-or-v1-def...abc',
-    isDefault: false,
-    isActive: true,
-    createdAt: new Date('2024-01-10'),
-    lastUsed: new Date('2024-01-18'),
-    usage: {
-      thisMonth: {
-        executions: 12,
-        tokens: 34000,
-        cost: 0,
-      },
-      allTime: {
-        executions: 67,
-        tokens: 189000,
-      },
-    },
-  },
-  {
-    id: '3',
-    name: 'Test Key',
-    provider: 'OpenRouter',
-    keyPreview: 'sk-or-v1-ghi...def',
-    isDefault: false,
-    isActive: false,
-    createdAt: new Date('2024-01-05'),
-    lastUsed: new Date('2024-01-12'),
-    usage: {
-      thisMonth: {
-        executions: 3,
-        tokens: 8500,
-        cost: 0,
-      },
-      allTime: {
-        executions: 15,
-        tokens: 42000,
-      },
-    },
-  },
-]
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  useGetApiKeysQuery,
+  useUpdateApiKeyMutation,
+  useDeleteApiKeyMutation,
+} from '@/lib/api/enginesApi'
 
 export default function ApiKeysPage() {
   const [showAddModal, setShowAddModal] = useState(false)
-  const [selectedKey, setSelectedKey] = useState<any>(null)
   const [showKey, setShowKey] = useState<Record<string, boolean>>({})
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+
+  const { data: apiKeysData, isLoading, error } = useGetApiKeysQuery()
+  const [updateApiKey, { isLoading: isUpdating }] = useUpdateApiKeyMutation()
+  const [deleteApiKey, { isLoading: isDeleting }] = useDeleteApiKeyMutation()
+
+  const apiKeys = apiKeysData?.data || []
 
   const toggleKeyVisibility = (keyId: string) => {
     setShowKey(prev => ({ ...prev, [keyId]: !prev[keyId] }))
   }
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
+  const handleSetDefault = async (keyId: string) => {
+    await updateApiKey({ id: keyId, isDefault: true })
+  }
+
+  const handleToggleActive = async (keyId: string, currentActive: boolean) => {
+    await updateApiKey({ id: keyId, isActive: !currentActive })
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    await deleteApiKey(deleteTarget)
+    setDeleteTarget(null)
+  }
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     })
   }
 
-  const formatLastUsed = (date: Date) => {
+  const formatLastUsed = (dateStr?: string) => {
+    if (!dateStr) return 'Never'
+    const date = new Date(dateStr)
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
@@ -121,15 +95,16 @@ export default function ApiKeysPage() {
     if (diffDays === 0) return 'Today'
     if (diffDays === 1) return 'Yesterday'
     if (diffDays < 7) return `${diffDays} days ago`
-    return formatDate(date)
+    return formatDate(dateStr)
   }
 
-  const totalExecutions = mockApiKeys.reduce(
-    (sum, key) => sum + key.usage.thisMonth.executions,
+  const activeKeys = apiKeys.filter(k => k.isActive)
+  const totalExecutions = apiKeys.reduce(
+    (sum, key) => sum + (key.totalUsage?.executions || 0),
     0
   )
-  const totalTokens = mockApiKeys.reduce(
-    (sum, key) => sum + key.usage.thisMonth.tokens,
+  const totalTokens = apiKeys.reduce(
+    (sum, key) => sum + (key.totalUsage?.tokensUsed || 0),
     0
   )
 
@@ -153,30 +128,41 @@ export default function ApiKeysPage() {
         </Button>
       </div>
 
+      {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Active Keys</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {mockApiKeys.filter(k => k.isActive).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {mockApiKeys.length} total keys
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-8 w-12" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{activeKeys.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {apiKeys.length} total keys
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Executions
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalExecutions}</div>
-            <p className="text-xs text-muted-foreground">
-              Executions completed
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{totalExecutions}</div>
+                <p className="text-xs text-muted-foreground">All time</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -185,12 +171,20 @@ export default function ApiKeysPage() {
             <CardTitle className="text-sm font-medium">Tokens Used</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {(totalTokens / 1000).toFixed(0)}K
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total tokens consumed
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {totalTokens > 0
+                    ? `${(totalTokens / 1000).toFixed(0)}K`
+                    : '0'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Total tokens consumed
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -212,10 +206,27 @@ export default function ApiKeysPage() {
         </AlertDescription>
       </Alert>
 
+      {/* API Keys List */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Your API Keys</h2>
 
-        {mockApiKeys.length === 0 ? (
+        {isLoading && (
+          <div className="space-y-4">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full" />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <Alert className="border-red-200">
+            <AlertDescription>
+              Failed to load API keys. Please try again.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!isLoading && apiKeys.length === 0 && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Key className="mb-4 h-12 w-12 text-muted-foreground" />
@@ -230,15 +241,19 @@ export default function ApiKeysPage() {
               </Button>
             </CardContent>
           </Card>
-        ) : (
+        )}
+
+        {!isLoading && apiKeys.length > 0 && (
           <div className="grid gap-4">
-            {mockApiKeys.map(apiKey => (
-              <Card key={apiKey.id} className="relative">
+            {apiKeys.map(apiKey => (
+              <Card key={apiKey._id} className="relative">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <CardTitle className="text-lg">{apiKey.name}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {apiKey.keyName}
+                        </CardTitle>
                         {apiKey.isDefault && (
                           <Badge variant="secondary">Default</Badge>
                         )}
@@ -267,24 +282,34 @@ export default function ApiKeysPage() {
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0"
+                          disabled={isUpdating}
                         >
-                          <MoreVertical className="h-4 w-4" />
+                          {isUpdating ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MoreVertical className="h-4 w-4" />
+                          )}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Name
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          {apiKey.isDefault
-                            ? 'Remove as Default'
-                            : 'Set as Default'}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        {!apiKey.isDefault && (
+                          <DropdownMenuItem
+                            onClick={() => handleSetDefault(apiKey._id)}
+                          >
+                            Set as Default
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleToggleActive(apiKey._id, apiKey.isActive)
+                          }
+                        >
                           {apiKey.isActive ? 'Deactivate' : 'Activate'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() => setDeleteTarget(apiKey._id)}
+                        >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -298,17 +323,15 @@ export default function ApiKeysPage() {
                     <Label className="text-sm font-medium">API Key</Label>
                     <div className="flex items-center space-x-2 rounded-lg bg-muted/50 p-3">
                       <code className="flex-1 font-mono text-sm">
-                        {showKey[apiKey.id]
-                          ? 'sk-or-v1-abcdef123456789...'
-                          : apiKey.keyPreview}
+                        {apiKey.keyPreview}
                       </code>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleKeyVisibility(apiKey.id)}
+                        onClick={() => toggleKeyVisibility(apiKey._id)}
                         className="h-8 w-8 p-0"
                       >
-                        {showKey[apiKey.id] ? (
+                        {showKey[apiKey._id] ? (
                           <EyeOff className="h-4 w-4" />
                         ) : (
                           <Eye className="h-4 w-4" />
@@ -317,48 +340,44 @@ export default function ApiKeysPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-3">
                     <div>
-                      <div className="font-medium">This Month</div>
+                      <div className="font-medium">Total Executions</div>
                       <div className="text-2xl font-bold">
-                        {apiKey.usage.thisMonth.executions}
+                        {apiKey.totalUsage?.executions || 0}
                       </div>
-                      <div className="text-muted-foreground">executions</div>
+                      <div className="text-muted-foreground">all time</div>
                     </div>
                     <div>
                       <div className="font-medium">Tokens Used</div>
                       <div className="text-2xl font-bold">
-                        {(apiKey.usage.thisMonth.tokens / 1000).toFixed(0)}K
-                      </div>
-                      <div className="text-muted-foreground">this month</div>
-                    </div>
-                    <div>
-                      <div className="font-medium">Total Usage</div>
-                      <div className="text-2xl font-bold">
-                        {apiKey.usage.allTime.executions}
+                        {(apiKey.totalUsage?.tokensUsed || 0) > 0
+                          ? `${((apiKey.totalUsage?.tokensUsed || 0) / 1000).toFixed(0)}K`
+                          : '0'}
                       </div>
                       <div className="text-muted-foreground">all time</div>
                     </div>
                     <div>
                       <div className="font-medium">Last Used</div>
-                      <div className="text-2xl text-sm font-bold">
-                        {formatLastUsed(apiKey.lastUsed)}
+                      <div className="text-lg font-bold">
+                        {formatLastUsed(apiKey.lastUsedAt)}
                       </div>
                       <div className="text-muted-foreground">activity</div>
                     </div>
                   </div>
 
-                  <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950/20">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-green-800 dark:text-green-300">
-                        💰 Money saved using your API key
-                      </span>
-                      <span className="font-bold text-green-600">
-                        ${(apiKey.usage.thisMonth.executions * 0.12).toFixed(2)}{' '}
-                        this month
-                      </span>
+                  {(apiKey.totalUsage?.executions || 0) > 0 && (
+                    <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950/20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-green-800 dark:text-green-300">
+                          Executions using your own key
+                        </span>
+                        <span className="font-bold text-green-600">
+                          {apiKey.totalUsage.executions} free executions
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -370,17 +389,40 @@ export default function ApiKeysPage() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
       />
-    </div>
-  )
-}
 
-function Label({ className, children, ...props }: any) {
-  return (
-    <label
-      className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${className}`}
-      {...props}
-    >
-      {children}
-    </label>
+      {/* Delete Confirmation */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={() => setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete API Key</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this API key? This action cannot
+              be undone. Any workflows using this key will fall back to the
+              platform key.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }

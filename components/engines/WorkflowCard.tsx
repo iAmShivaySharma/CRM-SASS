@@ -36,9 +36,14 @@ interface WorkflowCardProps {
     inputSchema: Record<string, any>
   }
   onExecute: () => void
+  onDetails?: () => void
 }
 
-export function WorkflowCard({ workflow, onExecute }: WorkflowCardProps) {
+export function WorkflowCard({
+  workflow,
+  onExecute,
+  onDetails,
+}: WorkflowCardProps) {
   const {
     name,
     description,
@@ -185,9 +190,7 @@ export function WorkflowCard({ workflow, onExecute }: WorkflowCardProps) {
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => {
-              // Show workflow details/info modal
-            }}
+            onClick={onDetails || onExecute}
           >
             <Info className="mr-2 h-4 w-4" />
             Details

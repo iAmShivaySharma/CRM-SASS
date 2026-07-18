@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Plus,
   Search,
@@ -10,16 +11,23 @@ import {
   Clock,
   Users,
   RefreshCw,
+  Bell,
 } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { WorkflowCard } from '@/components/engines/WorkflowCard'
 import { WorkflowFilters } from '@/components/engines/WorkflowFilters'
 import { ExecuteWorkflowModal } from '@/components/engines/ExecuteWorkflowModal'
 import { ApiKeyManagementButton } from '@/components/engines/ApiKeyManagementButton'
 import {
+  PendingInputsModal,
+  type PendingInput,
+} from '@/components/engines/PendingInputsModal'
+import {
   useGetWorkflowCatalogQuery,
-  useSyncWorkflowsMutation,
+  useGetPendingInputsQuery,
 } from '@/lib/api/enginesApi'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -30,6 +38,17 @@ export default function EnginesPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null)
   const [showExecuteModal, setShowExecuteModal] = useState(false)
+  const [showPendingInputs, setShowPendingInputs] = useState(false)
+  const router = useRouter()
+
+  const { data: pendingInputsData, isLoading: isPendingLoading } =
+    useGetPendingInputsQuery({ limit: 20 }, { pollingInterval: 30000 })
+
+  const pendingInputs = (pendingInputsData?.data?.inputs ||
+    []) as PendingInput[]
+  const pendingCount = pendingInputsData?.data?.summary?.totalPending || 0
+  const highPriorityCount =
+    pendingInputsData?.data?.summary?.highPriorityCount || 0
 
   const {
     data: catalogData,
@@ -43,8 +62,6 @@ export default function EnginesPage() {
     limit: 50,
   })
 
-  const [syncWorkflows, { isLoading: isSyncing }] = useSyncWorkflowsMutation()
-
   const workflows = catalogData?.data?.workflows || []
   const categories = [
     'All Categories',
@@ -52,7 +69,24 @@ export default function EnginesPage() {
   ]
 
   const handleExecuteWorkflow = (workflow: any) => {
-    setSelectedWorkflow(workflow)
+    const resolvedId = workflow._id || workflow.n8nWorkflowId || workflow.id
+    console.log(
+      '[Engines] Execute workflow - raw keys:',
+      Object.keys(workflow),
+      'resolved ID:',
+      resolvedId
+    )
+    setSelectedWorkflow({
+      id: resolvedId,
+      _id: workflow._id,
+      n8nWorkflowId: workflow.n8nWorkflowId,
+      name: workflow.name,
+      description: workflow.description,
+      estimatedCost: workflow.estimatedCost,
+      avgExecutionTime: workflow.usage?.avgExecutionTime || 0,
+      requiresApiKey: workflow.requiresApiKey,
+      inputSchema: workflow.inputSchema || {},
+    })
     setShowExecuteModal(true)
   }
 
@@ -78,24 +112,43 @@ export default function EnginesPage() {
             platform keys
           </p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex items-center space-x-3">
+          {pendingCount > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setShowPendingInputs(true)}
+              className="relative"
+            >
+              <Bell className="mr-2 h-4 w-4" />
+              Pending Inputs
+              <Badge
+                variant="destructive"
+                className="min-w-5 ml-2 h-5 rounded-full px-1.5 text-xs"
+              >
+                {pendingCount}
+              </Badge>
+              {highPriorityCount > 0 && (
+                <span className="absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full bg-red-500" />
+              )}
+            </Button>
+          )}
           <ApiKeyManagementButton />
           <Button
             variant="outline"
-            onClick={() => syncWorkflows()}
-            disabled={isSyncing}
+            onClick={() => router.push('/engines/executions')}
           >
-            {isSyncing ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Syncing...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Sync Workflows
-              </>
-            )}
+            <Clock className="mr-2 h-4 w-4" />
+            History
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+            />
+            Refresh
           </Button>
           <Button className="bg-gradient-to-r from-primary to-primary/80">
             <Plus className="mr-2 h-4 w-4" />
@@ -130,7 +183,21 @@ export default function EnginesPage() {
             <Clock className="h-5 w-5 text-blue-600" />
             <h3 className="font-semibold">Avg. Time</h3>
           </div>
-          <p className="mt-2 text-2xl font-bold">45s</p>
+          <p className="mt-2 text-2xl font-bold">
+            {(() => {
+              const withTime = workflows.filter(
+                w => w.usage.avgExecutionTime > 0
+              )
+              if (withTime.length === 0) return '—'
+              const avg = Math.round(
+                withTime.reduce((sum, w) => sum + w.usage.avgExecutionTime, 0) /
+                  withTime.length
+              )
+              return avg < 60
+                ? `${avg}s`
+                : `${Math.floor(avg / 60)}m ${avg % 60}s`
+            })()}
+          </p>
           <p className="text-sm text-muted-foreground">Execution time</p>
         </div>
 
@@ -239,25 +306,8 @@ export default function EnginesPage() {
           <p className="mb-4 text-muted-foreground">
             {searchTerm || selectedCategory !== 'All Categories'
               ? 'Try adjusting your search terms or filters.'
-              : 'Sync workflows from your n8n instance to get started.'}
+              : 'Create workflows in your n8n instance to get started.'}
           </p>
-          <Button
-            onClick={() => syncWorkflows()}
-            disabled={isSyncing}
-            className="bg-gradient-to-r from-primary to-primary/80"
-          >
-            {isSyncing ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Syncing...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Sync Workflows from n8n
-              </>
-            )}
-          </Button>
         </div>
       )}
 
@@ -271,6 +321,17 @@ export default function EnginesPage() {
           }}
         />
       )}
+
+      <PendingInputsModal
+        pendingInputs={pendingInputs}
+        isOpen={showPendingInputs}
+        onClose={() => setShowPendingInputs(false)}
+        onInputSelected={input => {
+          setShowPendingInputs(false)
+          router.push(`/engines/executions/${input.execution._id}/input`)
+        }}
+        isLoading={isPendingLoading}
+      />
     </div>
   )
 }

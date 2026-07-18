@@ -5,6 +5,7 @@ export interface N8nWorkflow {
   createdAt: string
   updatedAt: string
   versionId?: string
+  description?: string
   nodes: N8nNode[]
   connections: Record<string, any>
   settings?: Record<string, any>
@@ -135,6 +136,78 @@ export class N8nApiClient {
     return this.request<{ data: N8nTag[] }>('/tags')
   }
 
+  private getTriggerInfo(workflow: N8nWorkflow): {
+    node: N8nNode | null
+    type: 'webhook' | 'form' | 'manual' | 'schedule' | 'other'
+    webhookPath: string | null
+  } {
+    for (const node of workflow.nodes) {
+      const t = node.type.toLowerCase()
+
+      if (t.includes('respond') || t.includes('wait')) continue
+
+      if (t === 'n8n-nodes-base.webhook' || t.includes('webhooktrigger')) {
+        return {
+          node,
+          type: 'webhook',
+          webhookPath: node.parameters?.path || null,
+        }
+      }
+      if (t.includes('formtrigger')) {
+        return {
+          node,
+          type: 'form',
+          webhookPath: node.parameters?.path || (node as any).webhookId || null,
+        }
+      }
+      if (t.includes('manualtrigger')) {
+        return { node, type: 'manual', webhookPath: null }
+      }
+      if (t.includes('scheduletrigger') || t.includes('cron')) {
+        return { node, type: 'schedule', webhookPath: null }
+      }
+    }
+
+    const anyTrigger = workflow.nodes.find(n =>
+      n.type.toLowerCase().includes('trigger')
+    )
+    if (anyTrigger) {
+      return {
+        node: anyTrigger,
+        type: 'other',
+        webhookPath: anyTrigger.parameters?.path || null,
+      }
+    }
+
+    return { node: null, type: 'other', webhookPath: null }
+  }
+
+  async updateWorkflow(
+    workflowId: string,
+    data: Partial<N8nWorkflow>
+  ): Promise<N8nWorkflow> {
+    if (!data.name) {
+      const existing = await this.getWorkflow(workflowId)
+      data.name = existing.name
+    }
+    return this.request<N8nWorkflow>(`/workflows/${workflowId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async activateWorkflow(workflowId: string): Promise<N8nWorkflow> {
+    return this.request<N8nWorkflow>(`/workflows/${workflowId}/activate`, {
+      method: 'POST',
+    })
+  }
+
+  async deactivateWorkflow(workflowId: string): Promise<N8nWorkflow> {
+    return this.request<N8nWorkflow>(`/workflows/${workflowId}/deactivate`, {
+      method: 'POST',
+    })
+  }
+
   async executeWorkflow(
     workflowId: string,
     options: {
@@ -145,21 +218,7 @@ export class N8nApiClient {
       destinationNode?: string
     } = {}
   ): Promise<N8nExecuteWorkflowResponse> {
-    const body: any = {}
-
-    if (options.data) body.data = options.data
-    if (options.runData) body.runData = options.runData
-    if (options.pinData) body.pinData = options.pinData
-    if (options.startNodes) body.startNodes = options.startNodes
-    if (options.destinationNode) body.destinationNode = options.destinationNode
-
-    return this.request<N8nExecuteWorkflowResponse>(
-      `/workflows/${workflowId}/execute`,
-      {
-        method: 'POST',
-        body: JSON.stringify(body),
-      }
-    )
+    return this.executeWorkflowAuto(workflowId, options.data || {})
   }
 
   async executeWorkflowWithCredentials(
@@ -167,12 +226,8 @@ export class N8nApiClient {
     options: {
       data?: Record<string, any>
       credentials?: {
-        openrouter?: {
-          apiKey: string
-        }
-        openai?: {
-          apiKey: string
-        }
+        openrouter?: { apiKey: string }
+        openai?: { apiKey: string }
         [key: string]: any
       }
       runData?: Record<string, any>
@@ -181,50 +236,263 @@ export class N8nApiClient {
       destinationNode?: string
     } = {}
   ): Promise<N8nExecuteWorkflowResponse> {
-    const body: any = {}
+    const payload: Record<string, any> = { ...(options.data || {}) }
 
-    if (options.data) body.data = options.data
-
-    if (options.credentials) {
-      if (!body.data) body.data = {}
-
-      if (options.credentials.openrouter?.apiKey) {
-        body.data.openrouter_api_key = options.credentials.openrouter.apiKey
-        body.data.apiKey = options.credentials.openrouter.apiKey
-      }
-
-      if (options.credentials.openai?.apiKey) {
-        body.data.openai_api_key = options.credentials.openai.apiKey
-      }
-
-      body.credentialOverrides = {}
-
-      Object.entries(options.credentials).forEach(([provider, creds]) => {
-        if (provider === 'openrouter' && creds.apiKey) {
-          body.credentialOverrides.openrouter = {
-            apiKey: creds.apiKey,
-          }
-        }
-        if (provider === 'openai' && creds.apiKey) {
-          body.credentialOverrides.openai = {
-            apiKey: creds.apiKey,
-          }
-        }
-      })
+    if (options.credentials?.openrouter?.apiKey) {
+      payload.openrouter_api_key = options.credentials.openrouter.apiKey
+      payload.apiKey = options.credentials.openrouter.apiKey
+    }
+    if (options.credentials?.openai?.apiKey) {
+      payload.openai_api_key = options.credentials.openai.apiKey
     }
 
-    if (options.runData) body.runData = options.runData
-    if (options.pinData) body.pinData = options.pinData
-    if (options.startNodes) body.startNodes = options.startNodes
-    if (options.destinationNode) body.destinationNode = options.destinationNode
+    return this.executeWorkflowAuto(workflowId, payload)
+  }
 
-    return this.request<N8nExecuteWorkflowResponse>(
-      `/workflows/${workflowId}/execute`,
-      {
-        method: 'POST',
-        body: JSON.stringify(body),
-      }
+  private async executeWorkflowAuto(
+    workflowId: string,
+    data: Record<string, any>
+  ): Promise<N8nExecuteWorkflowResponse> {
+    const workflow = await this.getWorkflow(workflowId)
+    const trigger = this.getTriggerInfo(workflow)
+
+    console.log(
+      `[n8n] executeWorkflowAuto: "${workflow.name}" (id: ${workflowId}, active: ${workflow.active}, trigger: ${trigger.type}, path: ${trigger.webhookPath})`
     )
+
+    const existingCrmWebhook = workflow.nodes.find(
+      n => n.name === 'CRM API Trigger'
+    )
+    if (existingCrmWebhook?.parameters?.path) {
+      if (!workflow.active) {
+        try {
+          await this.activateWorkflow(workflowId)
+        } catch {}
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+      const result = await this.callWebhook(
+        existingCrmWebhook.parameters.path,
+        'webhook',
+        data
+      )
+      if (result) return result
+      console.log(`[n8n] Existing CRM webhook failed, will re-add...`)
+    }
+
+    if (trigger.webhookPath && trigger.type === 'webhook') {
+      if (!workflow.active) {
+        try {
+          await this.activateWorkflow(workflowId)
+        } catch {}
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+      const result = await this.callWebhook(
+        trigger.webhookPath,
+        'webhook',
+        data
+      )
+      if (result) return result
+    }
+
+    console.log(
+      `[n8n] Workflow "${workflow.name}" — adding CRM API Trigger webhook...`
+    )
+    return this.addWebhookAndExecute(workflow, trigger, data)
+  }
+
+  private findSetNodeAfterTrigger(
+    workflow: N8nWorkflow,
+    triggerNodeName: string
+  ): { setNode: N8nNode | null; nextNodeName: string | null } {
+    const triggerConns = workflow.connections[triggerNodeName]
+    if (!triggerConns?.main?.[0]?.[0])
+      return { setNode: null, nextNodeName: null }
+
+    const firstDownstream = triggerConns.main[0][0].node
+    const firstNode = workflow.nodes.find(n => n.name === firstDownstream)
+
+    if (firstNode && firstNode.type.toLowerCase().includes('set')) {
+      const setConns = workflow.connections[firstNode.name]
+      const afterSet = setConns?.main?.[0]?.[0]?.node || null
+      return { setNode: firstNode, nextNodeName: afterSet }
+    }
+
+    return { setNode: null, nextNodeName: null }
+  }
+
+  private extractSetNodeDefaults(setNode: N8nNode): Record<string, any> {
+    const defaults: Record<string, any> = {}
+    const assignments = setNode.parameters?.assignments?.assignments
+    if (Array.isArray(assignments)) {
+      for (const a of assignments) {
+        if (a.name && a.value !== undefined) {
+          defaults[a.name] = a.value
+        }
+      }
+    }
+    return defaults
+  }
+
+  private async addWebhookAndExecute(
+    workflow: N8nWorkflow,
+    trigger: { node: N8nNode | null; type: string; webhookPath: string | null },
+    data: Record<string, any>
+  ): Promise<N8nExecuteWorkflowResponse> {
+    const webhookPath = `crm-execute-${workflow.id}`
+    const triggerNodeName = trigger.node?.name || 'Manual Trigger'
+
+    console.log(
+      `[n8n] Adding CRM API Trigger to "${workflow.name}" (trigger: "${triggerNodeName}")`
+    )
+
+    const { setNode } = this.findSetNodeAfterTrigger(workflow, triggerNodeName)
+
+    const triggerPos = trigger.node?.position || [250, 300]
+    const webhookNode: N8nNode = {
+      id: `crm-webhook-${Date.now()}`,
+      name: 'CRM API Trigger',
+      type: 'n8n-nodes-base.webhook',
+      typeVersion: 2,
+      position: [triggerPos[0], triggerPos[1] - 160] as [number, number],
+      parameters: {
+        path: webhookPath,
+        httpMethod: 'POST',
+        responseMode: 'lastNode',
+        options: {},
+      },
+    }
+
+    const existingCrmIdx = workflow.nodes.findIndex(
+      n => n.name === 'CRM API Trigger'
+    )
+    const baseNodes =
+      existingCrmIdx >= 0
+        ? workflow.nodes.filter((_, i) => i !== existingCrmIdx)
+        : workflow.nodes
+
+    const updatedNodes = [...baseNodes, webhookNode]
+
+    const triggerConnections = workflow.connections[triggerNodeName]
+    const webhookTargetNode = triggerConnections?.main?.[0]?.[0]?.node || ''
+
+    const updatedConnections = {
+      ...workflow.connections,
+      'CRM API Trigger': webhookTargetNode
+        ? { main: [[{ node: webhookTargetNode, type: 'main', index: 0 }]] }
+        : { main: [[]] },
+    }
+
+    if (setNode) {
+      const setIdx = updatedNodes.findIndex(n => n.name === setNode.name)
+      if (setIdx >= 0) {
+        const assignments =
+          updatedNodes[setIdx].parameters?.assignments?.assignments
+        if (Array.isArray(assignments)) {
+          const updatedAssignments = assignments.map((a: any) => ({
+            ...a,
+            value: `={{ $json.body["${a.name}"] || $json["${a.name}"] || ${JSON.stringify(a.value || '')} }}`,
+            type: 'string',
+          }))
+          updatedNodes[setIdx] = {
+            ...updatedNodes[setIdx],
+            parameters: {
+              ...updatedNodes[setIdx].parameters,
+              assignments: { assignments: updatedAssignments },
+            },
+          }
+          console.log(
+            `[n8n] Modified Set node "${setNode.name}" to accept webhook input with defaults`
+          )
+        }
+      }
+    }
+
+    await this.updateWorkflow(workflow.id, {
+      name: workflow.name,
+      nodes: updatedNodes,
+      connections: updatedConnections,
+      settings: workflow.settings || {},
+    })
+
+    try {
+      await this.activateWorkflow(workflow.id)
+      console.log(`[n8n] Workflow "${workflow.name}" activated`)
+    } catch (err) {
+      console.warn(
+        `[n8n] Activation warning for "${workflow.name}":`,
+        err instanceof Error ? err.message : err
+      )
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    const result = await this.callWebhook(webhookPath, 'webhook', data)
+    if (result) return result
+
+    throw new Error(
+      `Added webhook trigger to workflow "${workflow.name}" but could not reach it. ` +
+        `Check that the workflow is active in n8n. Webhook path: /webhook/${webhookPath}`
+    )
+  }
+
+  private async callWebhook(
+    path: string,
+    type: string,
+    data: Record<string, any>
+  ): Promise<N8nExecuteWorkflowResponse | null> {
+    const prefix = type === 'form' ? 'form' : 'webhook'
+    const urls = [
+      `${this.baseUrl}/${prefix}/${path}`,
+      `${this.baseUrl}/webhook/${path}`,
+    ]
+    const uniqueUrls = [...new Set(urls)]
+
+    for (const url of uniqueUrls) {
+      try {
+        console.log(`[n8n] Calling webhook: ${url}`)
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
+        if (response.ok) {
+          const text = await response.text()
+          const result = text ? JSON.parse(text) : {}
+          console.log(`[n8n] Webhook responded OK from: ${url}`)
+          return this.normalizeWebhookResponse(result)
+        }
+        const errBody = await response.text().catch(() => '')
+        console.log(
+          `[n8n] Webhook ${url} returned ${response.status}: ${errBody}`
+        )
+      } catch (err) {
+        console.error(
+          `[n8n] Webhook ${url} fetch error:`,
+          err instanceof Error ? err.message : err
+        )
+      }
+    }
+    return null
+  }
+
+  private normalizeWebhookResponse(result: any): N8nExecuteWorkflowResponse {
+    if (result?.data?.resultData) {
+      return result as N8nExecuteWorkflowResponse
+    }
+
+    return {
+      data: {
+        resultData: {
+          runData: {
+            webhookResponse: [{ data: { main: [[{ json: result }]] } }],
+          },
+        },
+      },
+      finished: true,
+      mode: 'webhook',
+      startedAt: new Date().toISOString(),
+      stoppedAt: new Date().toISOString(),
+    }
   }
 
   async getExecutions(
@@ -260,9 +528,9 @@ export class N8nApiClient {
 
   async testConnection(): Promise<{ success: boolean; version?: string }> {
     try {
-      const result = await this.getWorkflows({ limit: 1 })
+      await this.getWorkflows({ limit: 1 })
       return { success: true, version: 'v1' }
-    } catch (error) {
+    } catch {
       return { success: false }
     }
   }
@@ -340,8 +608,6 @@ export class N8nApiClient {
     webhookUrl: string,
     inputData: Record<string, any>
   ): Promise<N8nExecuteWorkflowResponse> {
-    const webhookSuffix = this.extractWebhookSuffix(webhookUrl)
-
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -363,9 +629,8 @@ export class N8nApiClient {
     workflowId: string,
     step: number = 1
   ): string {
-    const baseUrl = this.baseUrl.replace('/api/v1', '')
-    const webhookSuffix = `${workflowId}-step-${step}-${Date.now()}`
-    return `${baseUrl}/webhook/${webhookSuffix}`
+    const webhookSuffix = `${workflowId}-${crypto.randomUUID()}`
+    return `${this.baseUrl}/webhook/${webhookSuffix}`
   }
 
   private extractWebhookSuffix(webhookUrl: string): string {
@@ -379,7 +644,7 @@ export class N8nApiClient {
       webhookUrl: string,
       step: number
     ) => Promise<void>,
-    maxWaitTime: number = 3600000 // 1 hour default
+    maxWaitTime: number = 3600000
   ): Promise<N8nExecution> {
     const startTime = Date.now()
     const pollInterval = 5000
@@ -401,7 +666,7 @@ export class N8nApiClient {
         }
 
         await new Promise(resolve => setTimeout(resolve, pollInterval))
-      } catch (error) {
+      } catch {
         await new Promise(resolve => setTimeout(resolve, pollInterval))
       }
     }
@@ -412,7 +677,7 @@ export class N8nApiClient {
   private isExecutionWaitingForInput(execution: N8nExecution): boolean {
     const runData = execution.data?.resultData?.runData || {}
 
-    for (const [nodeId, nodeData] of Object.entries(runData)) {
+    for (const [, nodeData] of Object.entries(runData)) {
       if (Array.isArray(nodeData)) {
         for (const run of nodeData) {
           if (run?.data?.main?.[0]?.[0]?.json?.waitingForWebhook) {
@@ -428,7 +693,7 @@ export class N8nApiClient {
   private extractInputSchemaFromExecution(execution: N8nExecution): any {
     const runData = execution.data?.resultData?.runData || {}
 
-    for (const [nodeId, nodeData] of Object.entries(runData)) {
+    for (const [, nodeData] of Object.entries(runData)) {
       if (Array.isArray(nodeData)) {
         for (const run of nodeData) {
           const waitData = run?.data?.main?.[0]?.[0]?.json
@@ -451,7 +716,7 @@ export class N8nApiClient {
   private extractWebhookUrlFromExecution(execution: N8nExecution): string {
     const runData = execution.data?.resultData?.runData || {}
 
-    for (const [nodeId, nodeData] of Object.entries(runData)) {
+    for (const [, nodeData] of Object.entries(runData)) {
       if (Array.isArray(nodeData)) {
         for (const run of nodeData) {
           const waitData = run?.data?.main?.[0]?.[0]?.json
@@ -469,7 +734,7 @@ export class N8nApiClient {
     const runData = execution.data?.resultData?.runData || {}
     let stepCount = 0
 
-    for (const [nodeId, nodeData] of Object.entries(runData)) {
+    for (const [, nodeData] of Object.entries(runData)) {
       if (Array.isArray(nodeData) && nodeData.length > 0) {
         stepCount++
       }
@@ -501,7 +766,7 @@ export class N8nApiClient {
           description: 'Please provide your input to continue the workflow',
         },
       }
-    } catch (error) {
+    } catch {
       return {
         userInput: {
           type: 'string',
@@ -518,12 +783,13 @@ export class N8nApiClient {
     category: string
     inputSchema: Record<string, any>
     outputSchema: Record<string, any>
+    hasWaitNodes: boolean
   } {
     const nodes = workflow.nodes || []
 
     const hasAiNodes = nodes.some(node => {
       const nodeType = node.type.toLowerCase()
-      const hasAI =
+      return (
         nodeType.includes('openrouter') ||
         nodeType.includes('ai') ||
         nodeType.includes('openai') ||
@@ -533,8 +799,7 @@ export class N8nApiClient {
         nodeType.includes('llm') ||
         nodeType.includes('@n8n/n8n-nodes-langchain') ||
         nodeType.includes('chatgpt')
-
-      return hasAI
+      )
     })
 
     let category = 'General'
@@ -621,8 +886,14 @@ export class N8nApiClient {
     }
 
     const inputSchema = this.extractInputSchema(nodes)
-
     const outputSchema = this.extractOutputSchema(nodes)
+
+    const hasWaitNodes = nodes.some(node => {
+      const t = node.type.toLowerCase()
+      if (t === 'n8n-nodes-base.wait') return true
+      if (t.includes('form') && !t.includes('trigger')) return true
+      return false
+    })
 
     return {
       requiresApiKey: hasAiNodes,
@@ -630,100 +901,148 @@ export class N8nApiClient {
       category,
       inputSchema,
       outputSchema,
+      hasWaitNodes,
     }
   }
 
   private extractInputSchema(nodes: N8nNode[]): Record<string, any> {
-    const triggerNodes = nodes.filter(node => {
-      const nodeType = node.type.toLowerCase()
-      return (
-        nodeType.includes('webhook') ||
-        nodeType.includes('manualtrigger') ||
-        nodeType.includes('formtrigger') ||
-        nodeType.includes('trigger') ||
-        nodeType.includes('schedule')
-      )
-    })
-
-    const webhookNode = triggerNodes.find(node =>
-      node.type.toLowerCase().includes('webhook')
+    const formTrigger = nodes.find(n =>
+      n.type.toLowerCase().includes('formtrigger')
     )
-
-    if (webhookNode && webhookNode.parameters) {
-      const params = webhookNode.parameters
-      if (params.httpMethod && params.path) {
-        return {
-          method: {
-            type: 'string',
-            required: false,
-            description: `HTTP method: ${params.httpMethod}`,
-          },
-          path: {
-            type: 'string',
-            required: false,
-            description: `Webhook path: ${params.path}`,
-          },
-          body: {
-            type: 'object',
-            required: false,
-            description: 'Request body data',
-          },
+    if (formTrigger?.parameters?.formFields?.values) {
+      const schema: Record<string, any> = {}
+      for (const field of formTrigger.parameters.formFields.values) {
+        const name = field.fieldLabel || field.fieldName
+        if (!name) continue
+        schema[name] = {
+          type:
+            field.fieldType === 'dropdown'
+              ? 'select'
+              : field.fieldType || 'string',
+          required: field.requiredField !== false,
+          description: name,
+          ...(field.fieldOptions?.values && {
+            options: field.fieldOptions.values.map((o: any) => o.option || o),
+          }),
         }
       }
+      if (Object.keys(schema).length > 0) return schema
     }
 
-    const manualTrigger = triggerNodes.find(node =>
-      node.type.toLowerCase().includes('manualtrigger')
-    )
-
-    if (manualTrigger && manualTrigger.parameters) {
-      const params = manualTrigger.parameters
-      if (params.jsonSchema) {
+    for (const node of nodes) {
+      const t = node.type.toLowerCase()
+      if (
+        (t.includes('webhook') || t.includes('manualtrigger')) &&
+        node.parameters?.jsonSchema
+      ) {
         try {
-          return JSON.parse(params.jsonSchema)
-        } catch (e) {}
+          return JSON.parse(node.parameters.jsonSchema)
+        } catch {}
       }
     }
 
-    if (triggerNodes.length > 0) {
-      const triggerType = triggerNodes[0].type
+    const setNode = nodes.find(n => n.type.toLowerCase().includes('set'))
+    if (setNode?.parameters?.assignments?.assignments) {
+      const schema: Record<string, any> = {}
+      for (const a of setNode.parameters.assignments.assignments) {
+        if (!a.name) continue
+        const fieldType = a.type || 'string'
 
-      if (triggerType.includes('webhook')) {
-        return {
-          body: {
-            type: 'object',
-            required: false,
-            description: 'Webhook payload data',
-          },
-          headers: {
-            type: 'object',
-            required: false,
-            description: 'HTTP headers',
-          },
-          query: {
-            type: 'object',
-            required: false,
-            description: 'Query parameters',
-          },
+        let defaultVal = a.value || ''
+        if (typeof defaultVal === 'string' && defaultVal.startsWith('={{')) {
+          const lastFallback =
+            defaultVal.match(/\|\|\s*"([^"]*)"[^|]*}}$/) ||
+            defaultVal.match(/\|\|\s*'([^']*)'[^|]*}}$/)
+          defaultVal = lastFallback ? lastFallback[1] : ''
         }
-      } else if (triggerType.includes('manual')) {
-        return {
-          inputData: {
-            type: 'object',
-            required: false,
-            description: 'Manual execution input data',
-          },
+
+        const isLongText =
+          a.name.toLowerCase().includes('message') ||
+          a.name.toLowerCase().includes('content') ||
+          a.name.toLowerCase().includes('description') ||
+          (typeof defaultVal === 'string' && defaultVal.length > 80)
+        schema[a.name] = {
+          type: isLongText ? 'string' : fieldType,
+          required: true,
+          description: a.name
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, (s: string) => s.toUpperCase())
+            .trim(),
+          defaultValue: defaultVal,
         }
+      }
+      if (Object.keys(schema).length > 0) return schema
+    }
+
+    const triggerNames = new Set(
+      nodes
+        .filter(n => {
+          const t = n.type.toLowerCase()
+          return (
+            t.includes('trigger') ||
+            (t.includes('webhook') && !t.includes('respond'))
+          )
+        })
+        .map(n => n.name)
+    )
+
+    const skip = new Set([
+      'output',
+      'id',
+      'error',
+      'success',
+      'results',
+      'result',
+      'item',
+      'items',
+      'response',
+      'status',
+      'json',
+      'binary',
+      'executionId',
+      'index',
+      'pairedItem',
+      'node',
+      'runIndex',
+    ])
+
+    const inferredFields = new Map<string, string>()
+
+    for (const node of nodes) {
+      if (triggerNames.has(node.name)) continue
+      const paramStr = JSON.stringify(node.parameters || {})
+
+      for (const m of paramStr.matchAll(/\$json[\?.]?\.(\w+)/g)) {
+        if (!skip.has(m[1])) inferredFields.set(m[1], 'string')
+      }
+
+      for (const m of paramStr.matchAll(
+        /\$\(['"](?:Webhook|Trigger|Manual Trigger|Form Trigger|CRM API Trigger)['"]\)\.item\.json[\?.]?\.(\w+)/g
+      )) {
+        if (!skip.has(m[1])) inferredFields.set(m[1], 'string')
+      }
+
+      for (const m of paramStr.matchAll(/\$input\.item\.json[\?.]?\.(\w+)/g)) {
+        if (!skip.has(m[1])) inferredFields.set(m[1], 'string')
       }
     }
 
-    return {
-      data: {
-        type: 'object',
-        required: false,
-        description: 'Input data for the workflow',
-      },
+    if (inferredFields.size > 0) {
+      const schema: Record<string, any> = {}
+      for (const [field, type] of inferredFields) {
+        schema[field] = {
+          type,
+          required: true,
+          description: field
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, s => s.toUpperCase())
+            .trim(),
+        }
+      }
+      return schema
     }
+
+    return {}
   }
 
   private extractOutputSchema(nodes: N8nNode[]): Record<string, any> {

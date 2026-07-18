@@ -1,9 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import mongoose from 'mongoose'
+import crypto from 'crypto'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import {
-  WorkflowCatalog,
   WorkflowExecution,
   CustomerApiKey,
   WorkspaceMember,
@@ -22,12 +21,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { workflowId, inputData, apiKeyType, apiKeyId, emailResults } =
-      await request.json()
+    const body = await request.json()
+    const { workflowId, inputData, apiKeyType, apiKeyId, emailResults } = body
 
     if (!workflowId) {
+      console.error(
+        '[Execute] Missing workflowId. Received body:',
+        JSON.stringify(body)
+      )
       return NextResponse.json(
-        { error: 'Workflow ID is required' },
+        { error: 'Workflow ID is required', receivedFields: Object.keys(body) },
         { status: 400 }
       )
     }
@@ -44,23 +47,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const workflow =
-      await WorkflowCatalog.findById(workflowId).populate('category')
-    if (!workflow) {
-      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 })
+    // Fetch workflow directly from n8n
+    const n8nClient = createN8nClient()
+    let n8nWorkflow
+    try {
+      n8nWorkflow = await n8nClient.getWorkflow(workflowId)
+    } catch {
+      return NextResponse.json(
+        { error: 'Workflow not found in n8n' },
+        { status: 404 }
+      )
     }
 
-    const execution = new WorkflowExecution({
-      workflowCatalogId: workflow._id,
-      userId: auth.user.id,
-      workspaceId: workspaceMember.workspaceId,
-      inputData: inputData || {},
-      apiKeyType,
-      apiKeyId,
-      emailResults: emailResults || false,
-      status: 'pending',
-    })
+    const analysis = n8nClient.analyzeWorkflow(n8nWorkflow)
 
+    // Resolve API key
     let customerApiKey = null
     let actualApiKey = null
     let estimatedCost = 0
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
       try {
         actualApiKey = customerApiKey.decryptApiKey()
         estimatedCost = 0
-      } catch (error) {
+      } catch {
         return NextResponse.json(
           { error: 'Failed to decrypt customer API key' },
           { status: 500 }
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       actualApiKey = process.env.PLATFORM_OPENROUTER_API_KEY
-      estimatedCost = workflow.estimatedCost
+      estimatedCost = analysis.estimatedCost
 
       if (!actualApiKey) {
         return NextResponse.json(
@@ -111,34 +112,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Create execution record with a temporary unique ID (replaced after n8n responds)
+    const execution = new WorkflowExecution({
+      n8nWorkflowId: workflowId,
+      n8nExecutionId: `pending-${crypto.randomUUID()}`,
+      userId: auth.user.id,
+      workspaceId: workspaceMember.workspaceId,
+      inputData: inputData || {},
+      apiKeyUsed: {
+        type: apiKeyType,
+        provider: customerApiKey?.provider || 'openrouter',
+        keyId: apiKeyType === 'customer' ? apiKeyId : undefined,
+        cost: 0,
+        tokensUsed: 0,
+      },
+      emailSent: false,
+      status: 'running',
+      startedAt: new Date(),
+    })
+
     await execution.save()
 
     try {
-      const n8nClient = createN8nClient()
-
-      execution.status = 'running'
-      execution.startedAt = new Date()
-      await execution.save()
-
       let n8nResult
       let inputsRequired: any[] = []
 
-      const hasWaitNodes = workflow.n8nData?.nodes?.some(
-        (node: any) =>
-          node.type.toLowerCase().includes('wait') ||
-          node.type.toLowerCase().includes('webhook')
-      )
-
-      if (hasWaitNodes) {
+      if (analysis.hasWaitNodes) {
         const dynamicResult = await n8nClient.executeWorkflowWithDynamicInput(
-          workflow.n8nWorkflowId,
+          workflowId,
           {
             data: inputData || {},
             credentials:
-              workflow.requiresApiKey && actualApiKey
-                ? {
-                    openrouter: { apiKey: actualApiKey },
-                  }
+              analysis.requiresApiKey && actualApiKey
+                ? { openrouter: { apiKey: actualApiKey } }
                 : undefined,
             inputCallback: async (inputSchema, webhookUrl) => {
               const UserInput = (await import('@/lib/mongodb/models')).UserInput
@@ -152,7 +158,7 @@ export async function POST(request: NextRequest) {
                 inputSchema,
                 timeoutAt: new Date(Date.now() + 60 * 60 * 1000),
                 metadata: {
-                  workflowName: workflow.name,
+                  workflowName: n8nWorkflow.name,
                   stepDescription: `Step ${execution.dynamicInput.currentStep + 1} - User input required`,
                   priority: 'medium',
                   requiresImmediate: false,
@@ -160,7 +166,6 @@ export async function POST(request: NextRequest) {
               })
 
               await userInputRecord.save()
-
               await execution.markWaitingForInput(webhookUrl, inputSchema, 60)
             },
             timeoutMinutes: 60,
@@ -170,20 +175,18 @@ export async function POST(request: NextRequest) {
         n8nResult = dynamicResult.execution
         inputsRequired = dynamicResult.inputsRequired
       } else {
-        if (workflow.requiresApiKey && actualApiKey) {
+        if (analysis.requiresApiKey && actualApiKey) {
           n8nResult = await n8nClient.executeWorkflowWithCredentials(
-            workflow.n8nWorkflowId,
+            workflowId,
             {
               data: inputData || {},
               credentials: {
-                openrouter: {
-                  apiKey: actualApiKey,
-                },
+                openrouter: { apiKey: actualApiKey },
               },
             }
           )
         } else {
-          n8nResult = await n8nClient.executeWorkflow(workflow.n8nWorkflowId, {
+          n8nResult = await n8nClient.executeWorkflow(workflowId, {
             data: inputData || {},
           })
         }
@@ -198,8 +201,36 @@ export async function POST(request: NextRequest) {
         execution.status = 'running'
       }
 
-      execution.n8nExecutionId = n8nResult.startedAt
-      execution.outputData = n8nResult.data?.resultData || {}
+      execution.n8nExecutionId =
+        (n8nResult as any).id || n8nResult.startedAt || execution.n8nExecutionId
+
+      const resultData = n8nResult.data?.resultData || {}
+      const runData = resultData.runData || {}
+      let extractedOutput: any = resultData
+
+      const nodeOutputs = Object.values(runData)
+      if (nodeOutputs.length > 0) {
+        const items: any[] = []
+        for (const nodeData of nodeOutputs) {
+          if (Array.isArray(nodeData)) {
+            for (const exec of nodeData) {
+              const mainOutputs = exec?.data?.main?.[0]
+              if (Array.isArray(mainOutputs)) {
+                for (const item of mainOutputs) {
+                  if (item?.json) items.push(item.json)
+                }
+              }
+            }
+          }
+        }
+        if (items.length === 1) {
+          extractedOutput = items[0]
+        } else if (items.length > 1) {
+          extractedOutput = items
+        }
+      }
+
+      execution.outputData = extractedOutput
 
       if (execution.completedAt) {
         execution.executionTimeMs =
@@ -207,15 +238,14 @@ export async function POST(request: NextRequest) {
       }
 
       let tokensUsed = 0
-      const actualCost = estimatedCost
 
       if (n8nResult.data?.resultData?.runData) {
         const runData = n8nResult.data.resultData.runData
         Object.values(runData).forEach((nodeData: any) => {
           if (Array.isArray(nodeData)) {
-            nodeData.forEach((execution: any) => {
-              if (execution?.data?.main?.[0]?.[0]?.json?.usage?.total_tokens) {
-                tokensUsed += execution.data.main[0][0].json.usage.total_tokens
+            nodeData.forEach((exec: any) => {
+              if (exec?.data?.main?.[0]?.[0]?.json?.usage?.total_tokens) {
+                tokensUsed += exec.data.main[0][0].json.usage.total_tokens
               }
             })
           }
@@ -225,13 +255,11 @@ export async function POST(request: NextRequest) {
       execution.apiKeyUsed = {
         type: apiKeyType,
         provider: customerApiKey?.provider || 'openrouter',
-        cost: actualCost,
+        cost: estimatedCost,
         tokensUsed,
       }
 
       await execution.save()
-
-      await workflow.updateUsageStats(execution.executionTimeMs, true)
 
       if (customerApiKey) {
         await customerApiKey.recordUsage(tokensUsed)
@@ -249,8 +277,8 @@ export async function POST(request: NextRequest) {
           createdAt: execution.createdAt,
           completedAt: execution.completedAt,
           dynamicInput: {
-            isWaitingForInput: execution.dynamicInput.isWaitingForInput,
-            currentStep: execution.dynamicInput.currentStep,
+            isWaitingForInput: execution.dynamicInput?.isWaitingForInput,
+            currentStep: execution.dynamicInput?.currentStep,
             inputsRequired:
               inputsRequired.length > 0 ? inputsRequired : undefined,
           },
@@ -266,8 +294,6 @@ export async function POST(request: NextRequest) {
         (execution.startedAt?.getTime() || execution.createdAt.getTime())
 
       await execution.save()
-
-      await workflow.updateUsageStats(execution.executionTimeMs, false)
 
       return NextResponse.json(
         {

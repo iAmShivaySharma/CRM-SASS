@@ -6,6 +6,7 @@ export interface SyncResult {
   success: boolean
   syncedCount: number
   updatedCount: number
+  removedCount: number
   errorCount: number
   errors: string[]
   workflows: string[]
@@ -19,6 +20,7 @@ export class WorkflowSyncService {
       success: false,
       syncedCount: 0,
       updatedCount: 0,
+      removedCount: 0,
       errorCount: 0,
       errors: [],
       workflows: [],
@@ -35,6 +37,8 @@ export class WorkflowSyncService {
       const { data: n8nWorkflows } = await this.n8nClient.getWorkflows()
 
       await this.ensureDefaultCategories()
+
+      const n8nWorkflowIds = new Set(n8nWorkflows.map(w => w.id))
 
       for (const n8nWorkflow of n8nWorkflows) {
         try {
@@ -54,6 +58,12 @@ export class WorkflowSyncService {
           )
         }
       }
+
+      // Remove workflows that no longer exist in n8n
+      const { deletedCount } = await WorkflowCatalog.deleteMany({
+        n8nWorkflowId: { $nin: Array.from(n8nWorkflowIds) },
+      })
+      result.removedCount = deletedCount || 0
 
       result.success =
         result.errorCount === 0 || result.syncedCount + result.updatedCount > 0
@@ -77,7 +87,14 @@ export class WorkflowSyncService {
     const category = await this.getCategoryForWorkflow(analysis.category)
 
     if (catalogWorkflow) {
-      await catalogWorkflow.syncFromN8n(n8nWorkflow, analysis)
+      const description = this.generateDescription(n8nWorkflow)
+      const tags = this.extractTags(n8nWorkflow)
+      await catalogWorkflow.syncFromN8n(
+        n8nWorkflow,
+        analysis,
+        description,
+        tags
+      )
       catalogWorkflow.category = category._id
       await catalogWorkflow.save()
 
@@ -94,11 +111,9 @@ export class WorkflowSyncService {
         requiresApiKey: analysis.requiresApiKey,
         estimatedCost: analysis.estimatedCost,
         apiKeyProvider: analysis.requiresApiKey ? 'openrouter' : 'platform',
+        hasWaitNodes: analysis.hasWaitNodes || false,
         n8nData: {
           versionId: n8nWorkflow.versionId,
-          nodes: n8nWorkflow.nodes,
-          connections: n8nWorkflow.connections,
-          settings: n8nWorkflow.settings,
           active: n8nWorkflow.active,
           lastSyncAt: new Date(),
         },
@@ -203,39 +218,54 @@ export class WorkflowSyncService {
   }
 
   private generateDescription(workflow: N8nWorkflow): string {
+    if (workflow.description?.trim()) {
+      return workflow.description.trim()
+    }
+
     const nodeTypes = workflow.nodes?.map(node => node.type) || []
-    const hasAI = nodeTypes.some(
-      type =>
-        type.toLowerCase().includes('openrouter') ||
-        type.toLowerCase().includes('ai') ||
-        type.toLowerCase().includes('openai')
-    )
+    const capabilities: string[] = []
 
-    const hasWebhook = nodeTypes.some(type => type.includes('Webhook'))
-    const hasHttp = nodeTypes.some(type => type.includes('Http'))
-    const hasEmail = nodeTypes.some(
-      type => type.includes('Gmail') || type.includes('Email')
-    )
-
-    let description = `Automated workflow: ${workflow.name}`
-
-    if (hasAI) {
-      description += ' with AI-powered processing'
+    if (
+      nodeTypes.some(
+        t =>
+          t.toLowerCase().includes('openrouter') ||
+          t.toLowerCase().includes('ai') ||
+          t.toLowerCase().includes('openai')
+      )
+    ) {
+      capabilities.push('AI processing')
+    }
+    if (nodeTypes.some(t => t.includes('Webhook'))) {
+      capabilities.push('webhook triggers')
+    }
+    if (nodeTypes.some(t => t.includes('Http'))) {
+      capabilities.push('API integrations')
+    }
+    if (nodeTypes.some(t => t.includes('Gmail') || t.includes('Email'))) {
+      capabilities.push('email')
+    }
+    if (nodeTypes.some(t => t.includes('Spreadsheet') || t.includes('CSV'))) {
+      capabilities.push('data processing')
+    }
+    if (
+      nodeTypes.some(t => t.includes('Notion') || t.includes('Google Docs'))
+    ) {
+      capabilities.push('document management')
+    }
+    if (
+      nodeTypes.some(
+        t =>
+          t.includes('Telegram') || t.includes('Slack') || t.includes('Discord')
+      )
+    ) {
+      capabilities.push('messaging')
     }
 
-    if (hasWebhook) {
-      description += ' triggered by webhooks'
+    if (capabilities.length === 0) {
+      return workflow.name
     }
 
-    if (hasHttp) {
-      description += ' with API integrations'
-    }
-
-    if (hasEmail) {
-      description += ' including email functionality'
-    }
-
-    return description
+    return `${workflow.name} — ${capabilities.join(', ')}`
   }
 
   private extractTags(workflow: N8nWorkflow): string[] {

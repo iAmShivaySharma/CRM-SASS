@@ -70,8 +70,16 @@ export interface WorkflowExecutionRequest {
 
 export interface WorkflowExecutionResponse {
   _id: string
-  status: 'pending' | 'running' | 'completed' | 'failed'
+  status:
+    | 'pending'
+    | 'running'
+    | 'waiting_for_input'
+    | 'completed'
+    | 'failed'
+    | 'timeout'
+  n8nWorkflowId?: string
   n8nExecutionId: string
+  inputData?: Record<string, any>
   outputData?: Record<string, any>
   executionTimeMs: number
   apiKeyUsed: {
@@ -80,9 +88,84 @@ export interface WorkflowExecutionResponse {
     cost: number
     tokensUsed?: number
   }
+  dynamicInput?: {
+    isWaitingForInput: boolean
+    currentStep: number
+    webhookUrl?: string
+    inputSchema?: Record<string, any>
+    timeoutAt?: string
+  }
   errorMessage?: string
   createdAt: string
+  startedAt?: string
   completedAt?: string
+}
+
+export interface ExecutionInputRequirement {
+  isWaitingForInput: boolean
+  execution: {
+    _id: string
+    status: string
+    workflowName: string
+    createdAt: string
+  }
+  inputRequirement?: {
+    step: number
+    inputSchema: Record<string, any>
+    timeoutAt: string
+    timeRemaining: number
+    isExpired: boolean
+  }
+  userInput?: {
+    _id: string
+    step: number
+    metadata: {
+      workflowName: string
+      stepDescription?: string
+      priority: 'low' | 'medium' | 'high'
+      requiresImmediate: boolean
+    }
+    createdAt: string
+  } | null
+  message?: string
+}
+
+export interface PendingInputItem {
+  _id: string
+  execution: {
+    _id: string
+    workflowName: string
+    status: string
+    startedAt: string
+  }
+  step: number
+  inputSchema: Record<string, any>
+  timeoutAt: string
+  timeRemaining: number
+  timeRemainingMinutes: number
+  isExpired: boolean
+  metadata: {
+    workflowName: string
+    stepDescription?: string
+    priority: 'low' | 'medium' | 'high'
+    requiresImmediate: boolean
+  }
+  webhookUrl: string
+  createdAt: string
+  inputUrl: string
+}
+
+export interface PendingInputsResponse {
+  success: boolean
+  data: {
+    inputs: PendingInputItem[]
+    pagination: { total: number; limit: number; hasMore: boolean }
+    summary: {
+      totalPending: number
+      highPriorityCount: number
+      expiringCount: number
+    }
+  }
 }
 
 export const enginesApi = createApi({
@@ -97,6 +180,7 @@ export const enginesApi = createApi({
     'WorkflowExecution',
     'ApiKey',
     'SyncStatus',
+    'PendingInput',
   ],
   endpoints: builder => ({
     getWorkflowCatalog: builder.query<
@@ -315,6 +399,58 @@ export const enginesApi = createApi({
       query: () => '/billing',
       providesTags: ['WorkflowExecution'],
     }),
+
+    getExecutionInput: builder.query<
+      { success: boolean; data: ExecutionInputRequirement },
+      string
+    >({
+      query: executionId => `/executions/${executionId}/input`,
+      providesTags: (result, error, id) => [{ type: 'WorkflowExecution', id }],
+    }),
+
+    submitExecutionInput: builder.mutation<
+      {
+        success: boolean
+        message: string
+        data: {
+          execution: { _id: string; status: string; currentStep: number }
+          userInput: { _id: string; status: string; receivedAt: string }
+          workflowStatus: {
+            finished: boolean
+            isWaitingForMoreInput: boolean
+          }
+        }
+      },
+      {
+        executionId: string
+        inputData: Record<string, any>
+        validateOnly?: boolean
+      }
+    >({
+      query: ({ executionId, ...body }) => ({
+        url: `/executions/${executionId}/input`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (result, error, { executionId }) => [
+        { type: 'WorkflowExecution', id: executionId },
+        'WorkflowExecution',
+        'PendingInput',
+      ],
+    }),
+
+    getPendingInputs: builder.query<
+      PendingInputsResponse,
+      { limit?: number; priority?: string; workflowId?: string }
+    >({
+      query: params => ({
+        url: '/input/pending',
+        params: Object.fromEntries(
+          Object.entries(params).filter(([, value]) => value !== undefined)
+        ),
+      }),
+      providesTags: ['PendingInput'],
+    }),
   }),
 })
 
@@ -337,4 +473,8 @@ export const {
 
   useGetUsageStatsQuery,
   useGetBillingHistoryQuery,
+
+  useGetExecutionInputQuery,
+  useSubmitExecutionInputMutation,
+  useGetPendingInputsQuery,
 } = enginesApi

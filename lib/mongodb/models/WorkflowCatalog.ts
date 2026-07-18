@@ -13,11 +13,9 @@ export interface IWorkflowCatalog extends Document {
   estimatedCost: number
   apiKeyProvider: 'openrouter' | 'platform'
   emailTemplateId?: mongoose.Types.ObjectId
+  hasWaitNodes: boolean
   n8nData: {
     versionId: string
-    nodes: any[]
-    connections: Record<string, any>
-    settings?: Record<string, any>
     active: boolean
     lastSyncAt: Date
   }
@@ -37,109 +35,104 @@ const WorkflowCatalogSchema = new Schema<IWorkflowCatalog>(
       type: String,
       required: true,
       unique: true,
-      index: true
+      index: true,
     },
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     description: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     category: {
       type: Schema.Types.ObjectId,
       ref: 'WorkflowCategory',
       required: true,
-      index: true
+      index: true,
     },
-    tags: [{
-      type: String,
-      trim: true
-    }],
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     inputSchema: {
       type: Schema.Types.Mixed,
-      default: {}
+      default: {},
     },
     outputSchema: {
       type: Schema.Types.Mixed,
-      default: {}
+      default: {},
     },
     isActive: {
       type: Boolean,
       default: true,
-      index: true
+      index: true,
     },
     requiresApiKey: {
       type: Boolean,
       default: true,
-      index: true
+      index: true,
     },
     estimatedCost: {
       type: Number,
       default: 0,
-      min: 0
+      min: 0,
     },
     apiKeyProvider: {
       type: String,
       enum: ['openrouter', 'platform'],
-      default: 'openrouter'
+      default: 'openrouter',
     },
     emailTemplateId: {
       type: Schema.Types.ObjectId,
-      ref: 'ExecutionEmailTemplate'
+      ref: 'ExecutionEmailTemplate',
+    },
+    hasWaitNodes: {
+      type: Boolean,
+      default: false,
     },
     n8nData: {
       versionId: {
         type: String,
-        required: true
-      },
-      nodes: [{
-        type: Schema.Types.Mixed
-      }],
-      connections: {
-        type: Schema.Types.Mixed,
-        default: {}
-      },
-      settings: {
-        type: Schema.Types.Mixed,
-        default: {}
+        required: true,
       },
       active: {
         type: Boolean,
-        default: true
+        default: true,
       },
       lastSyncAt: {
         type: Date,
-        default: Date.now
-      }
+        default: Date.now,
+      },
     },
     usage: {
       totalExecutions: {
         type: Number,
-        default: 0
+        default: 0,
       },
       lastExecutedAt: {
-        type: Date
+        type: Date,
       },
       avgExecutionTime: {
         type: Number,
-        default: 0
+        default: 0,
       },
       successRate: {
         type: Number,
         default: 100,
         min: 0,
-        max: 100
-      }
-    }
+        max: 100,
+      },
+    },
   },
   {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
   }
 )
 
@@ -151,12 +144,15 @@ WorkflowCatalogSchema.index({ 'usage.totalExecutions': -1 })
 WorkflowCatalogSchema.index({ updatedAt: -1 })
 
 // Virtual for popularity
-WorkflowCatalogSchema.virtual('popularity').get(function() {
+WorkflowCatalogSchema.virtual('popularity').get(function () {
   return this.usage.totalExecutions || 0
 })
 
 // Methods
-WorkflowCatalogSchema.methods.updateUsageStats = function(executionTime: number, success: boolean) {
+WorkflowCatalogSchema.methods.updateUsageStats = function (
+  executionTime: number,
+  success: boolean
+) {
   this.usage.totalExecutions += 1
   this.usage.lastExecutedAt = new Date()
 
@@ -164,27 +160,42 @@ WorkflowCatalogSchema.methods.updateUsageStats = function(executionTime: number,
   if (this.usage.avgExecutionTime === 0) {
     this.usage.avgExecutionTime = executionTime
   } else {
-    this.usage.avgExecutionTime = (this.usage.avgExecutionTime + executionTime) / 2
+    this.usage.avgExecutionTime =
+      (this.usage.avgExecutionTime + executionTime) / 2
   }
 
   // Update success rate
-  const currentSuccessCount = Math.floor((this.usage.successRate / 100) * (this.usage.totalExecutions - 1))
-  const newSuccessCount = success ? currentSuccessCount + 1 : currentSuccessCount
+  const currentSuccessCount = Math.floor(
+    (this.usage.successRate / 100) * (this.usage.totalExecutions - 1)
+  )
+  const newSuccessCount = success
+    ? currentSuccessCount + 1
+    : currentSuccessCount
   this.usage.successRate = (newSuccessCount / this.usage.totalExecutions) * 100
 
   return this.save()
 }
 
-WorkflowCatalogSchema.methods.syncFromN8n = function(n8nWorkflow: any, analysis: any) {
+WorkflowCatalogSchema.methods.syncFromN8n = function (
+  n8nWorkflow: any,
+  analysis: any,
+  description?: string,
+  tags?: string[]
+) {
   this.name = n8nWorkflow.name
   this.n8nData.versionId = n8nWorkflow.versionId
-  this.n8nData.nodes = n8nWorkflow.nodes
-  this.n8nData.connections = n8nWorkflow.connections
-  this.n8nData.settings = n8nWorkflow.settings
   this.n8nData.active = n8nWorkflow.active
   this.n8nData.lastSyncAt = new Date()
 
-  // Update analysis data
+  this.hasWaitNodes = analysis.hasWaitNodes || false
+
+  if (description) {
+    this.description = description
+  }
+  if (tags && tags.length > 0) {
+    this.tags = tags
+  }
+
   this.requiresApiKey = analysis.requiresApiKey
   this.estimatedCost = analysis.estimatedCost
   this.inputSchema = analysis.inputSchema
@@ -194,22 +205,24 @@ WorkflowCatalogSchema.methods.syncFromN8n = function(n8nWorkflow: any, analysis:
 }
 
 // Static methods
-WorkflowCatalogSchema.statics.findActiveWorkflows = function() {
+WorkflowCatalogSchema.statics.findActiveWorkflows = function () {
   return this.find({ isActive: true }).populate('category')
 }
 
-WorkflowCatalogSchema.statics.findByCategory = function(categoryId: string) {
-  return this.find({ category: categoryId, isActive: true }).populate('category')
+WorkflowCatalogSchema.statics.findByCategory = function (categoryId: string) {
+  return this.find({ category: categoryId, isActive: true }).populate(
+    'category'
+  )
 }
 
-WorkflowCatalogSchema.statics.searchWorkflows = function(query: string) {
+WorkflowCatalogSchema.statics.searchWorkflows = function (query: string) {
   return this.find({
     $text: { $search: query },
-    isActive: true
+    isActive: true,
   }).populate('category')
 }
 
-WorkflowCatalogSchema.statics.getPopularWorkflows = function(limit = 10) {
+WorkflowCatalogSchema.statics.getPopularWorkflows = function (limit = 10) {
   return this.find({ isActive: true })
     .sort({ 'usage.totalExecutions': -1 })
     .limit(limit)

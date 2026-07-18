@@ -1,12 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { WorkflowCatalog, WorkflowCategory } from '@/lib/mongodb/models'
-import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { createN8nClient } from '@/lib/n8n/client'
 
 export async function GET(request: NextRequest) {
   try {
-    await connectToMongoDB()
-
     const auth = await verifyAuthToken(request)
     if (!auth) {
       return NextResponse.json(
@@ -16,95 +13,70 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const category = searchParams.get('category')
-    const search = searchParams.get('search')
-    const requiresApiKey = searchParams.get('requiresApiKey')
+    const search = searchParams.get('search')?.toLowerCase()
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Build query
-    const query: any = { isActive: true }
+    const n8nClient = createN8nClient()
+    const { data: n8nWorkflows } = await n8nClient.getWorkflows()
 
-    if (category && category !== 'All Categories') {
-      const categoryDoc = await WorkflowCategory.findOne({ name: category })
-      if (categoryDoc) {
-        query.category = categoryDoc._id
+    const workflows = n8nWorkflows.map(workflow => {
+      const analysis = n8nClient.analyzeWorkflow(workflow)
+
+      return {
+        _id: workflow.id,
+        n8nWorkflowId: workflow.id,
+        name: workflow.name,
+        description: workflow.description?.trim() || workflow.name,
+        category: analysis.category,
+        categoryName: analysis.category,
+        categoryIcon: 'Zap',
+        tags: (workflow.tags || []).map(t => t.name),
+        requiresApiKey: analysis.requiresApiKey,
+        estimatedCost: analysis.estimatedCost,
+        apiKeyProvider: analysis.requiresApiKey ? 'openrouter' : 'platform',
+        inputSchema: analysis.inputSchema,
+        outputSchema: analysis.outputSchema,
+        hasWaitNodes: analysis.hasWaitNodes,
+        isActive: workflow.active,
+        usage: {
+          totalExecutions: 0,
+          avgExecutionTime: 0,
+          successRate: 100,
+        },
+        createdAt: workflow.createdAt,
+        updatedAt: workflow.updatedAt,
       }
-    }
-
-    if (requiresApiKey !== null) {
-      query.requiresApiKey = requiresApiKey === 'true'
-    }
-
-    // Build aggregation pipeline
-    const pipeline: any[] = [{ $match: query }]
-
-    // Add text search if provided
-    if (search) {
-      pipeline.unshift({
-        $match: {
-          $text: { $search: search },
-        },
-      })
-    }
-
-    // Add lookup for category
-    pipeline.push(
-      {
-        $lookup: {
-          from: 'workflowcategories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'categoryDoc',
-        },
-      },
-      {
-        $unwind: '$categoryDoc',
-      },
-      {
-        $addFields: {
-          categoryName: '$categoryDoc.name',
-          categoryIcon: '$categoryDoc.icon',
-        },
-      },
-      {
-        $project: {
-          categoryDoc: 0,
-          n8nData: 0, // Exclude large n8n data from list view
-        },
-      }
-    )
-
-    // Add sorting
-    pipeline.push({
-      $sort: search
-        ? { score: { $meta: 'textScore' }, 'usage.totalExecutions': -1 }
-        : { 'usage.totalExecutions': -1, updatedAt: -1 },
     })
 
-    // Get total count
-    const countPipeline = [...pipeline]
-    countPipeline.push({ $count: 'total' })
+    // Filter by search
+    const filtered = search
+      ? workflows.filter(
+          w =>
+            w.name.toLowerCase().includes(search) ||
+            w.description.toLowerCase().includes(search) ||
+            w.tags.some(t => t.toLowerCase().includes(search))
+        )
+      : workflows
 
-    // Add pagination
-    pipeline.push({ $skip: offset }, { $limit: limit })
+    // Paginate
+    const total = filtered.length
+    const paginated = filtered.slice(offset, offset + limit)
 
-    const [workflows, countResult] = await Promise.all([
-      WorkflowCatalog.aggregate(pipeline),
-      WorkflowCatalog.aggregate(countPipeline),
-    ])
-
-    const total = countResult[0]?.total || 0
-
-    // Get categories for filtering
-    const categories = await WorkflowCategory.find({ isActive: true }).sort({
-      name: 1,
-    })
+    // Extract unique categories
+    const categorySet = new Set(workflows.map(w => w.categoryName))
+    const categories = Array.from(categorySet).map((name, i) => ({
+      _id: name,
+      name,
+      description: '',
+      icon: 'Zap',
+      sortOrder: i,
+    }))
 
     return NextResponse.json({
       success: true,
       data: {
-        workflows,
+        workflows: paginated,
         categories,
         pagination: {
           total,
@@ -118,7 +90,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch workflow catalog',
+        error: 'Failed to fetch workflows from n8n',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }

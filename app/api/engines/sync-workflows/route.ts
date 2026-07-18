@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
         data: {
           syncedCount: syncResult.syncedCount,
           updatedCount: syncResult.updatedCount,
+          removedCount: syncResult.removedCount,
           totalProcessed: syncResult.syncedCount + syncResult.updatedCount,
           errorCount: syncResult.errorCount,
           workflows: syncResult.workflows,
