@@ -22,6 +22,7 @@ ENV MONGODB_URI="mongodb://placeholder:27017/placeholder" \
     N8N_API_KEY="placeholder" \
     DODO_API_KEY="placeholder" \
     DODO_WEBHOOK_SECRET="placeholder" \
+    REDIS_URL="" \
     NEXT_PUBLIC_APP_URL="http://localhost:3000" \
     NEXT_TELEMETRY_DISABLED=1
 
