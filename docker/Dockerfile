@@ -23,7 +23,7 @@ ENV MONGODB_URI="mongodb://placeholder:27017/placeholder" \
     DODO_API_KEY="placeholder" \
     DODO_WEBHOOK_SECRET="placeholder" \
     REDIS_URL="" \
-    NEXT_PUBLIC_APP_URL="http://localhost:3000" \
+    NEXT_PUBLIC_APP_URL="" \
     NEXT_TELEMETRY_DISABLED=1
 
 RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build:unix
