@@ -28,8 +28,13 @@ export function getRedisClient(): Redis | null {
   return redis
 }
 
-const noopRedis = new Proxy({} as Redis, {
+const lazyRedis = new Proxy({} as Redis, {
   get(_, prop) {
+    const client = getRedisClient()
+    if (client) {
+      const value = (client as any)[prop]
+      return typeof value === 'function' ? value.bind(client) : value
+    }
     if (typeof prop === 'string') {
       return (..._args: any[]) => Promise.resolve(null)
     }
@@ -37,4 +42,4 @@ const noopRedis = new Proxy({} as Redis, {
   },
 })
 
-export default getRedisClient() || noopRedis
+export default lazyRedis
