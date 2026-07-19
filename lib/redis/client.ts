@@ -2,11 +2,13 @@ import Redis from 'ioredis'
 
 let redis: Redis | null = null
 
-export function getRedisClient(): Redis {
-  if (!redis) {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379'
+export function getRedisClient(): Redis | null {
+  if (!process.env.REDIS_URL) {
+    return null
+  }
 
-    redis = new Redis(redisUrl, {
+  if (!redis) {
+    redis = new Redis(process.env.REDIS_URL, {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
         const delay = Math.min(times * 50, 2000)
@@ -26,4 +28,13 @@ export function getRedisClient(): Redis {
   return redis
 }
 
-export default getRedisClient()
+const noopRedis = new Proxy({} as Redis, {
+  get(_, prop) {
+    if (typeof prop === 'string') {
+      return (..._args: any[]) => Promise.resolve(null)
+    }
+    return undefined
+  },
+})
+
+export default getRedisClient() || noopRedis
