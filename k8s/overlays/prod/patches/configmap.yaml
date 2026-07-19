@@ -9,4 +9,4 @@ data:
   STORAGE_PROVIDER: "gcs"
   GCS_PROJECT_ID: "project-9d6eea74-2241-463d-879"
   GCS_BUCKET_NAME: "crm-saas-prod-assets"
-  N8N_BASE_URL: "https://n8n-1080351104036.asia-south1.run.app"
+  N8N_BASE_URL: "http://34.14.202.248"
