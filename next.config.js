@@ -7,7 +7,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ['mongoose'],
+  serverExternalPackages: [
+    'mongoose',
+    'imap',
+    'nodemailer',
+    'googleapis',
+    '@microsoft/microsoft-graph-client',
+    'mailparser',
+  ],
   async headers() {
     return [
       {

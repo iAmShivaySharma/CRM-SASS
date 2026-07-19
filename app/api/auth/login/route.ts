@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { type NextRequest, NextResponse } from 'next/server'
 import { signIn } from '@/lib/mongodb/auth'
 import { WorkspaceMember } from '@/lib/mongodb/models/WorkspaceMember'
