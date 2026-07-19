@@ -21,17 +21,7 @@ interface BlogPageProps {
 }
 
 export async function generateStaticParams() {
-  try {
-    await connectToMongoDB()
-    const blogs = await Blog.find({ status: 'published' })
-      .select('slug')
-      .sort({ publishedAt: -1 })
-      .limit(100)
-      .lean()
-    return blogs.map((b: any) => ({ slug: b.slug }))
-  } catch {
-    return []
-  }
+  return []
 }
 
 export async function generateMetadata({
