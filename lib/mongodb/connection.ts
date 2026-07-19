@@ -22,7 +22,7 @@ async function connectToMongoDB(): Promise<void> {
     maxPoolSize: 25,
     minPoolSize: 5,
     maxIdleTimeMS: 30000,
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 30000,
     socketTimeoutMS: 45000,
     retryWrites: true,
     retryReads: true,
