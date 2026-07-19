@@ -33,6 +33,7 @@ async function connectToMongoDB(): Promise<void> {
       socketTimeoutMS: 45000,
       connectTimeoutMS: 30000,
       family: 4,
+      directConnection: true,
       retryWrites: true,
       retryReads: true,
     })
