@@ -19,11 +19,13 @@ async function connectToMongoDB(): Promise<void> {
 
   await mongoose.connect(mongoUri, {
     bufferCommands: false,
-    maxPoolSize: 25,
-    minPoolSize: 5,
+    maxPoolSize: 10,
+    minPoolSize: 2,
     maxIdleTimeMS: 30000,
     serverSelectionTimeoutMS: 30000,
     socketTimeoutMS: 45000,
+    connectTimeoutMS: 30000,
+    family: 4,
     retryWrites: true,
     retryReads: true,
   })
