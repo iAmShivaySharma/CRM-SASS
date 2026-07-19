@@ -1,0 +1,73 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: crm-app-alerts
+  namespace: monitoring
+  labels:
+    app: crm-app
+spec:
+  groups:
+    - name: crm-app.rules
+      rules:
+        - alert: PodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total{namespace=~"crm-saas-.*"}[5m]) > 0.1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.pod }} is crash looping"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been restarting frequently."
+
+        - alert: PodNotReady
+          expr: kube_pod_status_ready{namespace=~"crm-saas-.*", condition="true"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.pod }} is not ready"
+            description: "Pod {{ $labels.pod }} has been not ready for more than 5 minutes."
+
+        - alert: HighMemoryUsage
+          expr: container_memory_working_set_bytes{namespace=~"crm-saas-.*", container="crm-app"} / container_spec_memory_limit_bytes > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory usage on {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} memory usage is above 85%."
+
+        - alert: HighCPUUsage
+          expr: rate(container_cpu_usage_seconds_total{namespace=~"crm-saas-.*", container="crm-app"}[5m]) / container_spec_cpu_quota * 100000 > 80
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High CPU usage on {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} CPU usage is above 80% for 10 minutes."
+
+        - alert: HighErrorRate
+          expr: sum(rate(http_requests_total{namespace=~"crm-saas-.*", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace=~"crm-saas-.*"}[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "High 5xx error rate in CRM app"
+            description: "More than 5% of requests are returning 5xx errors."
+
+        - alert: HighResponseTime
+          expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{namespace=~"crm-saas-.*"}[5m])) > 5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High API response time"
+            description: "95th percentile response time is above 5 seconds."
+
+        - alert: MongoDBConnectionFailed
+          expr: mongodb_connection_errors_total{namespace=~"crm-saas-.*"} > 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "MongoDB connection errors detected"
+            description: "The app is experiencing MongoDB connection failures."

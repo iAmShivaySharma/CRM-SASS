@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: crm-app-monitor
+  namespace: monitoring
+  labels:
+    app: crm-app
+spec:
+  namespaceSelector:
+    matchNames:
+      - crm-saas-prod
+      - crm-saas-dev
+      - crm-saas-qa
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: crm-app
+  endpoints:
+    - port: http
+      path: /api/metrics
+      interval: 30s
