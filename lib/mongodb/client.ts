@@ -60,17 +60,17 @@ export class MongoDBClient {
 
   async getUserById(id: string): Promise<IUser | null> {
     await this.ensureConnection()
-    return await User.findById(id).lean()
+    return await User.findById(id).lean<IUser>()
   }
 
   async findUserById(id: string): Promise<IUser | null> {
     await this.ensureConnection()
-    return await User.findById(id).lean()
+    return await User.findById(id).lean<IUser>()
   }
 
   async getUserByEmail(email: string): Promise<IUser | null> {
     await this.ensureConnection()
-    return await User.findOne({ email }).lean()
+    return await User.findOne({ email }).lean<IUser>()
   }
 
   async updateUser(id: string, updates: Partial<IUser>): Promise<IUser | null> {
@@ -88,17 +88,17 @@ export class MongoDBClient {
 
   async getWorkspaceById(id: string): Promise<IWorkspace | null> {
     await this.ensureConnection()
-    return await Workspace.findById(id).lean()
+    return await Workspace.findById(id).lean<IWorkspace>()
   }
 
   async findWorkspaceById(id: string): Promise<IWorkspace | null> {
     await this.ensureConnection()
-    return await Workspace.findById(id).lean()
+    return await Workspace.findById(id).lean<IWorkspace>()
   }
 
   async getWorkspaceBySlug(slug: string): Promise<IWorkspace | null> {
     await this.ensureConnection()
-    return await Workspace.findOne({ slug }).lean()
+    return await Workspace.findOne({ slug }).lean<IWorkspace>()
   }
 
   async findWorkspaceMember(
@@ -110,7 +110,7 @@ export class MongoDBClient {
       workspaceId,
       userId,
       status: 'active',
-    }).lean()
+    }).lean<IWorkspaceMember>()
   }
 
   async getUserWorkspaces(userId: string): Promise<IWorkspace[]> {
@@ -131,7 +131,7 @@ export class MongoDBClient {
     if (filters?.status) {
       query.status = filters.status
     }
-    return await Lead.find(query).sort({ createdAt: -1 }).lean()
+    return await Lead.find(query).sort({ createdAt: -1 }).lean<ILead[]>()
   }
 
   async createLead(leadData: Partial<ILead>): Promise<ILead> {
@@ -153,7 +153,7 @@ export class MongoDBClient {
 
   async getRolesByWorkspace(workspaceId: string): Promise<IRole[]> {
     await this.ensureConnection()
-    return await Role.find({ workspaceId }).lean()
+    return await Role.find({ workspaceId }).lean<IRole[]>()
   }
 
   async createRole(roleData: Partial<IRole>): Promise<IRole> {
@@ -181,7 +181,9 @@ export class MongoDBClient {
 
   async getWebhooks(workspaceId: string): Promise<IWebhook[]> {
     await this.ensureConnection()
-    return await Webhook.find({ workspaceId }).sort({ createdAt: -1 }).lean()
+    return await Webhook.find({ workspaceId })
+      .sort({ createdAt: -1 })
+      .lean<IWebhook[]>()
   }
 
   async createWebhook(webhookData: Partial<IWebhook>): Promise<IWebhook> {
@@ -206,7 +208,7 @@ export class MongoDBClient {
 
   async getWebhookByUrl(url: string): Promise<IWebhook | null> {
     await this.ensureConnection()
-    return await Webhook.findOne({ url, isActive: true }).lean()
+    return await Webhook.findOne({ url, isActive: true }).lean<IWebhook>()
   }
 
   async createWebhookLog(logData: Partial<IWebhookLog>): Promise<IWebhookLog> {
@@ -223,7 +225,7 @@ export class MongoDBClient {
     return await WebhookLog.find({ webhookId })
       .sort({ createdAt: -1 })
       .limit(limit)
-      .lean()
+      .lean<IWebhookLog[]>()
   }
 
   async createLeadActivity(
@@ -243,7 +245,7 @@ export class MongoDBClient {
       .sort({ createdAt: -1 })
       .limit(limit)
       .populate('performedBy', 'fullName email avatar')
-      .lean()
+      .lean<ILeadActivity[]>()
   }
 
   async createChatRoom(chatRoomData: Partial<IChatRoom>): Promise<IChatRoom> {

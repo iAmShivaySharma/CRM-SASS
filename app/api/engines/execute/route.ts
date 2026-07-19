@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
 
       execution.outputData = extractedOutput
 
-      if (execution.completedAt) {
+      if (execution.completedAt && execution.startedAt) {
         execution.executionTimeMs =
           execution.completedAt.getTime() - execution.startedAt.getTime()
       }

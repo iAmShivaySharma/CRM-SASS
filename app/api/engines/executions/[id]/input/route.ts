@@ -226,7 +226,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       const n8nClient = createN8nClient()
 
       const n8nResult = await n8nClient.resumeWorkflowWithInput(
-        execution.n8nExecutionId,
+        execution.n8nExecutionId!,
         execution.dynamicInput.webhookUrl!,
         validationResult.sanitizedData
       )

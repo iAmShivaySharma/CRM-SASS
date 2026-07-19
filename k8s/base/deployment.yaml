@@ -28,10 +28,10 @@ spec:
         fsGroup: 1001
       containers:
         - name: crm-app
-          image: ghcr.io/OWNER/crm-saas:latest  # overridden per environment
+          image: asia-south1-docker.pkg.dev/project-9d6eea74-2241-463d-879/crm-saas-prod/crm-saas-app:latest
           ports:
             - name: http
-              containerPort: 3000
+              containerPort: 8080
               protocol: TCP
           envFrom:
             - configMapRef:

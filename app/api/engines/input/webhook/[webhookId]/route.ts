@@ -77,7 +77,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
       // Resume workflow with input (this actually sends the data to n8n)
       const n8nResult = await n8nClient.resumeWorkflowWithInput(
-        execution.n8nExecutionId,
+        execution.n8nExecutionId!,
         webhookUrl,
         inputData
       )
