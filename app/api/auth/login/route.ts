@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Set secure HTTP-only cookie with JWT token
     response.cookies.set('auth_token', result.token!, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.COOKIE_SECURE === 'true',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',

@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
     // Set auth cookie
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.COOKIE_SECURE === 'true',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',
@@ -200,7 +200,7 @@ export async function GET(request: NextRequest) {
 
     response.cookies.set('oauth_user_data', userData, {
       httpOnly: false, // readable by client JS
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.COOKIE_SECURE === 'true',
       sameSite: 'lax',
       maxAge: 60, // 1 minute - just for the redirect
       path: '/',

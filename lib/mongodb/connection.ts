@@ -1,5 +1,7 @@
 import mongoose from 'mongoose'
 
+let connectionPromise: Promise<void> | null = null
+
 async function connectToMongoDB(): Promise<void> {
   if (
     process.env.NODE_ENV === 'production' &&
@@ -12,32 +14,37 @@ async function connectToMongoDB(): Promise<void> {
     return
   }
 
+  if (connectionPromise) {
+    return connectionPromise
+  }
+
   const mongoUri = process.env.MONGODB_URI
   if (!mongoUri) {
     throw new Error('MONGODB_URI environment variable is not defined')
   }
 
-  await mongoose.connect(mongoUri, {
-    bufferCommands: false,
-    maxPoolSize: 10,
-    minPoolSize: 2,
-    maxIdleTimeMS: 30000,
-    serverSelectionTimeoutMS: 30000,
-    socketTimeoutMS: 45000,
-    connectTimeoutMS: 30000,
-    family: 4,
-    retryWrites: true,
-    retryReads: true,
-  })
+  connectionPromise = mongoose
+    .connect(mongoUri, {
+      bufferCommands: false,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      maxIdleTimeMS: 30000,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      family: 4,
+      retryWrites: true,
+      retryReads: true,
+    })
+    .then(() => {
+      connectionPromise = null
+    })
+    .catch(err => {
+      connectionPromise = null
+      throw err
+    })
 
-  await new Promise((resolve, reject) => {
-    if (mongoose.connection.readyState === 1) {
-      resolve(true)
-    } else {
-      mongoose.connection.once('connected', resolve)
-      mongoose.connection.once('error', reject)
-    }
-  })
+  return connectionPromise
 }
 
 async function disconnectFromMongoDB(): Promise<void> {
