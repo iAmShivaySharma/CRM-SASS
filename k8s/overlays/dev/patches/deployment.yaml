@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
         - name: crm-app
-          image: ghcr.io/OWNER/crm-saas:dev
+          image: asia-south1-docker.pkg.dev/project-9d6eea74-2241-463d-879/crm-saas-prod/crm-saas-app:latest
           resources:
             requests:
               cpu: 100m

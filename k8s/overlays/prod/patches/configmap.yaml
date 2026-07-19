@@ -4,5 +4,9 @@ metadata:
   name: crm-app-config
 data:
   NODE_ENV: "production"
-  CORS_ORIGINS: "https://crm.example.com"
-  NEXT_PUBLIC_APP_URL: "https://crm.example.com"
+  CORS_ORIGINS: "*"
+  NEXT_PUBLIC_APP_URL: "http://34.14.218.5"
+  STORAGE_PROVIDER: "gcs"
+  GCS_PROJECT_ID: "project-9d6eea74-2241-463d-879"
+  GCS_BUCKET_NAME: "crm-saas-prod-assets"
+  N8N_BASE_URL: "https://n8n-1080351104036.asia-south1.run.app"
