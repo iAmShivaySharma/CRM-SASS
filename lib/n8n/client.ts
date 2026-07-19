@@ -305,8 +305,9 @@ export class N8nApiClient {
     triggerNodeName: string
   ): { setNode: N8nNode | null; nextNodeName: string | null } {
     const triggerConns = workflow.connections[triggerNodeName]
-    if (!triggerConns?.main?.[0]?.[0])
+    if (!triggerConns?.main?.[0]?.[0]) {
       return { setNode: null, nextNodeName: null }
+    }
 
     const firstDownstream = triggerConns.main[0][0].node
     const firstNode = workflow.nodes.find(n => n.name === firstDownstream)

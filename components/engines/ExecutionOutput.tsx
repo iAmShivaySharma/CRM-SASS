@@ -237,8 +237,9 @@ export function ExecutionOutput({
   data,
   maxHeight = '400px',
 }: ExecutionOutputProps) {
-  if (!data)
+  if (!data) {
     return <span className="text-sm text-muted-foreground">No output</span>
+  }
 
   if (typeof data === 'string') {
     return (
