@@ -192,11 +192,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    const socketEnabled = process.env.NEXT_PUBLIC_SOCKET_URL
-    if (!socketEnabled) {
-      return
-    }
-
     if (auth.isAuthenticated && auth.user && workspace.currentWorkspace?.id) {
       initializeSocket()
     } else {

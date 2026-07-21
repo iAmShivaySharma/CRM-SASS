@@ -14,6 +14,8 @@ const nextConfig = {
     'googleapis',
     '@microsoft/microsoft-graph-client',
     'mailparser',
+    'socket.io',
+    'socket.io-client',
   ],
   async headers() {
     return [

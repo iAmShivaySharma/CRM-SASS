@@ -23,7 +23,6 @@ import {
   TrendingUp,
   UserPlus,
   Settings2,
-  Phone,
   Mail,
   MessageSquare,
   FolderKanban,
@@ -153,7 +152,6 @@ const navigation = [
     category: 'main',
     permission: Permission.CHAT_VIEW,
   },
-  { name: 'Calls', href: '/calls', icon: Phone, category: 'main' },
   { name: 'Email', href: '/email', icon: Mail, category: 'main' },
 
   {

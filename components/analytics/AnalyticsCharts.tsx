@@ -10,39 +10,23 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CardSkeleton } from '@/components/ui/skeleton'
+import { useAppSelector } from '@/lib/hooks'
+import {
+  useGetTimeSeriesAnalyticsQuery,
+  useGetLeadSourceAnalyticsQuery,
+  useGetPerformanceMetricsQuery,
+} from '@/lib/api/analyticsApi'
 
-const leadConversionData = [
-  { month: 'Jan', leads: 120, converted: 28 },
-  { month: 'Feb', leads: 150, converted: 35 },
-  { month: 'Mar', leads: 180, converted: 42 },
-  { month: 'Apr', leads: 160, converted: 38 },
-  { month: 'May', leads: 200, converted: 48 },
-  { month: 'Jun', leads: 220, converted: 55 },
-]
-
-const revenueData = [
-  { month: 'Jan', revenue: 12000 },
-  { month: 'Feb', revenue: 15000 },
-  { month: 'Mar', revenue: 18000 },
-  { month: 'Apr', revenue: 16000 },
-  { month: 'May', revenue: 22000 },
-  { month: 'Jun', revenue: 25000 },
-]
-
-const leadSourceData = [
-  { name: 'Website', value: 35, color: '#3b82f6' },
-  { name: 'Social Media', value: 25, color: '#10b981' },
-  { name: 'Email Campaign', value: 20, color: '#f59e0b' },
-  { name: 'Referral', value: 15, color: '#ef4444' },
-  { name: 'Other', value: 5, color: '#8b5cf6' },
-]
-
-const teamPerformanceData = [
-  { name: 'John Doe', leads: 45, converted: 12, revenue: 15000 },
-  { name: 'Jane Smith', leads: 38, converted: 15, revenue: 18000 },
-  { name: 'Mike Johnson', leads: 52, converted: 10, revenue: 12000 },
-  { name: 'Sarah Wilson', leads: 41, converted: 18, revenue: 22000 },
-]
+const SOURCE_COLORS: Record<string, string> = {
+  website: '#3b82f6',
+  social: '#10b981',
+  social_media: '#10b981',
+  email: '#f59e0b',
+  referral: '#ef4444',
+  phone: '#8b5cf6',
+  manual: '#6366f1',
+  other: '#94a3b8',
+}
 
 type RechartsModule = typeof import('recharts')
 
@@ -56,8 +40,22 @@ function useRecharts() {
 
 export function AnalyticsCharts() {
   const recharts = useRecharts()
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const workspaceId = currentWorkspace?.id || ''
 
-  if (!recharts) {
+  const { data: timeSeriesData, isLoading: tsLoading } =
+    useGetTimeSeriesAnalyticsQuery(
+      { workspaceId, granularity: 'month' },
+      { skip: !workspaceId }
+    )
+
+  const { data: leadSourceData, isLoading: lsLoading } =
+    useGetLeadSourceAnalyticsQuery({ workspaceId }, { skip: !workspaceId })
+
+  const { data: performanceData, isLoading: perfLoading } =
+    useGetPerformanceMetricsQuery({ workspaceId }, { skip: !workspaceId })
+
+  if (!recharts || tsLoading || lsLoading || perfLoading) {
     return (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -82,13 +80,37 @@ export function AnalyticsCharts() {
     Cell,
   } = recharts
 
+  const timeSeries = timeSeriesData?.data || []
+  const leadSources = leadSourceData?.data || []
+  const performance = performanceData?.data
+
+  const chartData = timeSeries.map(d => ({
+    month: new Date(d.date).toLocaleDateString('en', { month: 'short' }),
+    leads: d.leads,
+    converted: d.conversions,
+    revenue: d.revenue,
+  }))
+
+  const pieData = leadSources.map(s => ({
+    name:
+      s.source.charAt(0).toUpperCase() + s.source.slice(1).replace('_', ' '),
+    value: s.count,
+    color: SOURCE_COLORS[s.source] || SOURCE_COLORS.other,
+  }))
+
+  const emptyState = (msg: string) => (
+    <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
+      {msg}
+    </div>
+  )
+
   return (
     <Tabs defaultValue="overview" className="space-y-4">
       <TabsList>
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="leads">Lead Analytics</TabsTrigger>
         <TabsTrigger value="revenue">Revenue</TabsTrigger>
-        <TabsTrigger value="team">Team Performance</TabsTrigger>
+        <TabsTrigger value="team">Performance</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">
@@ -101,16 +123,20 @@ export function AnalyticsCharts() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={leadConversionData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="leads" fill="#3b82f6" name="Total Leads" />
-                  <Bar dataKey="converted" fill="#10b981" name="Converted" />
-                </BarChart>
-              </ResponsiveContainer>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="leads" fill="#3b82f6" name="Total Leads" />
+                    <Bar dataKey="converted" fill="#10b981" name="Converted" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                emptyState('No lead data available yet')
+              )}
             </CardContent>
           </Card>
 
@@ -120,28 +146,73 @@ export function AnalyticsCharts() {
               <CardDescription>Distribution of lead sources</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={leadSourceData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, value }: { name: string; value: number }) =>
-                      `${name}: ${value}%`
-                    }
-                  >
-                    {leadSourceData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              {pieData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({
+                        name,
+                        value,
+                      }: {
+                        name: string
+                        value: number
+                      }) => `${name}: ${value}`}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                emptyState('No lead source data available yet')
+              )}
             </CardContent>
           </Card>
         </div>
+      </TabsContent>
+
+      <TabsContent value="leads" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Lead Trend</CardTitle>
+            <CardDescription>Monthly leads over time</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="leads"
+                    stroke="#8b5cf6"
+                    strokeWidth={3}
+                    dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="converted"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              emptyState('No lead data available yet')
+            )}
+          </CardContent>
+        </Card>
       </TabsContent>
 
       <TabsContent value="revenue" className="space-y-4">
@@ -151,26 +222,30 @@ export function AnalyticsCharts() {
             <CardDescription>Monthly revenue growth</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number) => [
-                    `$${value.toLocaleString()}`,
-                    'Revenue',
-                  ]}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `$${value.toLocaleString()}`,
+                      'Revenue',
+                    ]}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              emptyState('No revenue data available yet')
+            )}
           </CardContent>
         </Card>
       </TabsContent>
@@ -178,44 +253,52 @@ export function AnalyticsCharts() {
       <TabsContent value="team" className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Team Performance</CardTitle>
-            <CardDescription>Individual team member metrics</CardDescription>
+            <CardTitle>Performance Metrics</CardTitle>
+            <CardDescription>Key performance indicators</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {teamPerformanceData.map((member, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                      <span className="font-semibold text-blue-600">
-                        {member.name
-                          .split(' ')
-                          .map(n => n[0])
-                          .join('')}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">{member.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {member.leads} leads managed
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">
-                      ${member.revenue.toLocaleString()}
+            {performance ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  {
+                    label: 'Win Rate',
+                    value: `${performance.winRate.toFixed(1)}%`,
+                  },
+                  {
+                    label: 'Avg Deal Size',
+                    value: `$${performance.averageDealSize.toLocaleString()}`,
+                  },
+                  {
+                    label: 'Sales Cycle',
+                    value: `${performance.salesCycleLength} days`,
+                  },
+                  {
+                    label: 'Lead Quality',
+                    value: `${performance.leadQualityScore.toFixed(1)}%`,
+                  },
+                  {
+                    label: 'Sales Target',
+                    value: `${performance.salesTargetProgress.toFixed(1)}%`,
+                  },
+                  {
+                    label: 'Satisfaction',
+                    value: `${performance.customerSatisfaction.toFixed(1)}%`,
+                  },
+                ].map(metric => (
+                  <div
+                    key={metric.label}
+                    className="rounded-lg border p-4 text-center"
+                  >
+                    <p className="text-sm text-muted-foreground">
+                      {metric.label}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {member.converted}/{member.leads} converted (
-                      {Math.round((member.converted / member.leads) * 100)}%)
-                    </p>
+                    <p className="mt-1 text-2xl font-bold">{metric.value}</p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              emptyState('No performance data available yet')
+            )}
           </CardContent>
         </Card>
       </TabsContent>

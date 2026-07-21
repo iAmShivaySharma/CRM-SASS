@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       success: connectionTest.success,
       message: connectionTest.success
         ? 'n8n connection is healthy'
-        : 'n8n connection failed',
+        : `n8n connection failed: ${connectionTest.error || 'Unknown error'}`,
       version: connectionTest.version,
     })
   } catch (error) {

@@ -351,10 +351,41 @@ export const PUT = withSecurityLogging(
 
         await invalidateCache('leads:' + workspaceId + ':*')
 
+        const leadDoc = populatedLead as any
+        const transformedLead = leadDoc
+          ? {
+              ...leadDoc,
+              id: leadDoc._id,
+              tagIds: (leadDoc.tagIds || []).map((tag: any) =>
+                typeof tag === 'object'
+                  ? { ...tag, id: tag._id?.toString() || tag._id }
+                  : tag
+              ),
+              statusId:
+                typeof leadDoc.statusId === 'object' && leadDoc.statusId
+                  ? {
+                      ...leadDoc.statusId,
+                      id:
+                        leadDoc.statusId._id?.toString() ||
+                        leadDoc.statusId._id,
+                    }
+                  : leadDoc.statusId,
+              assignedTo:
+                typeof leadDoc.assignedTo === 'object' && leadDoc.assignedTo
+                  ? {
+                      ...leadDoc.assignedTo,
+                      id:
+                        leadDoc.assignedTo._id?.toString() ||
+                        leadDoc.assignedTo._id,
+                    }
+                  : leadDoc.assignedTo,
+            }
+          : null
+
         return NextResponse.json({
           success: true,
           message: 'Lead updated successfully',
-          lead: populatedLead,
+          lead: transformedLead,
         })
       } catch (error) {
         log.error('Update lead error:', error)

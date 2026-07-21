@@ -1,6 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useState as useStateHook,
+} from 'react'
 import {
   Clock,
   Calendar,
@@ -13,6 +18,7 @@ import {
   Plus,
   Download,
   PieChart,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -35,15 +41,33 @@ import { useAppSelector } from '@/lib/hooks'
 export default function AttendancePage() {
   const [activeTab, setActiveTab] = useState('overview')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const [hrStats, setHrStats] = useStateHook<any>(null)
+  const [statsLoading, setStatsLoading] = useStateHook(true)
+
+  const fetchStats = useCallback(async () => {
+    if (!currentWorkspace?.id) return
+    try {
+      const res = await fetch(
+        `/api/hr/stats?workspaceId=${currentWorkspace.id}`,
+        { credentials: 'include' }
+      )
+      if (res.ok) setHrStats(await res.json())
+    } catch {}
+    setStatsLoading(false)
+  }, [currentWorkspace?.id])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   const stats = {
-    totalEmployees: 45,
-    presentToday: 38,
-    absentToday: 7,
-    lateToday: 3,
-    avgWorkHours: 7.8,
-    totalWorkHours: 1564,
-    attendanceRate: 84.4,
+    totalEmployees: hrStats?.totalEmployees || 0,
+    presentToday: hrStats?.todayAttendance?.present || 0,
+    absentToday: hrStats?.todayAttendance?.absent || 0,
+    lateToday: hrStats?.todayAttendance?.late || 0,
+    avgWorkHours: 0,
+    totalWorkHours: 0,
+    attendanceRate: hrStats?.attendanceRate || 0,
     workspaceId: currentWorkspace?.id,
   }
 

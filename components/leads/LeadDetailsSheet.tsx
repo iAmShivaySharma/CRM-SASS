@@ -143,15 +143,21 @@ export function LeadDetailsSheet({
     if (lead) {
       // Extract IDs from populated objects
       const tagIds = Array.isArray(lead.tagIds)
-        ? lead.tagIds.map((tag: any) =>
-            typeof tag === 'string' ? tag : tag.id || tag._id
-          )
+        ? lead.tagIds.map((tag: any) => {
+            if (typeof tag === 'string') return tag
+            const id = tag.id || tag._id
+            return id?.toString ? id.toString() : id
+          })
         : []
 
       const statusId =
         typeof lead.statusId === 'string'
           ? lead.statusId
-          : (lead.statusId as any)?.id || (lead.statusId as any)?._id || ''
+          : (
+              (lead.statusId as any)?.id ||
+              (lead.statusId as any)?._id ||
+              ''
+            ).toString()
 
       const assignedUserId =
         typeof lead.assignedTo === 'string'
@@ -209,7 +215,8 @@ export function LeadDetailsSheet({
         value: editValue ? Number(editValue) : undefined,
         source: editSource,
         notes: editNotes || undefined,
-        statusId: selectedStatus || undefined,
+        statusId:
+          selectedStatus && selectedStatus.trim() ? selectedStatus : undefined,
         tagIds: selectedTags,
         assignedTo: assignedUser === 'unassigned' ? undefined : assignedUser,
         customFields: customFields,

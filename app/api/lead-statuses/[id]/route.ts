@@ -9,6 +9,7 @@ import {
   logBusinessEvent,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { invalidateCache } from '@/lib/redis/cache'
 
 // DELETE /api/lead-statuses/[id] - Delete a lead status
 export const DELETE = withSecurityLogging(
@@ -88,6 +89,8 @@ export const DELETE = withSecurityLogging(
           statusId,
           statusName: status.name,
         })
+
+        await invalidateCache(`leads:${workspaceId}:*`)
 
         return NextResponse.json({
           success: true,
