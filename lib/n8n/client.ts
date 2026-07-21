@@ -189,11 +189,12 @@ export class N8nApiClient {
     if (!data.name) {
       const existing = await this.getWorkflow(workflowId)
       data.name = existing.name
+      if (!data.settings) data.settings = existing.settings || {}
     }
-    const { settings: _settings, ...safeData } = data
+    if (!data.settings) data.settings = {}
     return this.request<N8nWorkflow>(`/workflows/${workflowId}`, {
       method: 'PUT',
-      body: JSON.stringify(safeData),
+      body: JSON.stringify(data),
     })
   }
 
