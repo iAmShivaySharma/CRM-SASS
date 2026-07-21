@@ -70,7 +70,7 @@ function getPlanIcon(planType: string) {
     case 'premium':
       return <Star className="h-4 w-4 text-yellow-500" />
     default:
-      return <User className="h-4 w-4 text-gray-500" />
+      return null
   }
 }
 
@@ -204,17 +204,12 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
             className="h-auto w-full justify-between p-3 hover:bg-accent"
           >
             <div className="flex min-w-0 items-center space-x-3">
-              <div className="relative">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={currentUser?.avatar || undefined} />
-                  <AvatarFallback className="text-sm font-medium">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1">
-                  {getPlanIcon(currentUser?.plan.type)}
-                </div>
-              </div>
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={currentUser?.avatar || undefined} />
+                <AvatarFallback className="text-sm font-medium">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
               <div className="min-w-0 flex-1 text-left">
                 <p className="truncate text-sm font-medium">
                   {currentUser.name}

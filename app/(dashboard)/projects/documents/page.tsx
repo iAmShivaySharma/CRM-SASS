@@ -197,22 +197,21 @@ export default function ProjectDocumentsPage() {
     }
   }
 
-  const handleShareDocument = async (doc: any) => {
+  const copyToClipboard = (text: string) => {
+    const textarea = window.document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    window.document.body.appendChild(textarea)
+    textarea.select()
+    window.document.execCommand('copy')
+    window.document.body.removeChild(textarea)
+  }
+
+  const handleShareDocument = (doc: any) => {
     const shareUrl = `${window.location.origin}/shared/document/${doc.id}`
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-      toast.success('Share link copied to clipboard!')
-    } catch {
-      const textarea = document.createElement('textarea')
-      textarea.value = shareUrl
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-      toast.success('Share link copied to clipboard!')
-    }
+    copyToClipboard(shareUrl)
+    toast.success('Share link copied to clipboard!')
   }
 
   const filteredDocuments = documents.filter(doc => {

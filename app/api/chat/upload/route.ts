@@ -9,11 +9,10 @@ import {
   initializeBucket,
   ALL_ALLOWED_TYPES,
   MAX_FILE_SIZE,
-} from '@/lib/storage/minio'
+} from '@/lib/storage'
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify authentication
     await connectToMongoDB()
 
     const auth = await verifyAuthToken(request)
@@ -24,7 +23,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get workspace ID and chat room ID from query params
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
     const chatRoomId = searchParams.get('chatRoomId')
@@ -36,7 +34,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user is member of workspace
     const member = await WorkspaceMember.findOne({
       userId: auth.user._id,
       workspaceId,
@@ -50,7 +47,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse form data from request
     const formData = await request.formData()
     const file = formData.get('file') as File
 
@@ -58,7 +54,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'No file uploaded' }, { status: 400 })
     }
 
-    // Security validation
     const validation = validateFile({
       mimetype: file.type,
       size: file.size,
@@ -75,24 +70,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Initialize MinIO bucket
     try {
       await initializeBucket()
     } catch (bucketError) {
       return NextResponse.json(
         {
-          message: 'MinIO service unavailable',
+          message: 'Storage service unavailable',
           error: `Bucket initialization failed: ${bucketError instanceof Error ? bucketError.message : 'Unknown bucket error'}`,
-          details: 'Please check MinIO server is running and accessible',
+          details: 'Please check storage service is running and accessible',
         },
         { status: 503 }
       )
     }
 
-    // Convert file to buffer
     const fileBuffer = Buffer.from(await file.arrayBuffer())
 
-    // Generate secure file path
     const secureFilePath = generateSecureFilePath(
       workspaceId,
       auth.user._id,
@@ -100,7 +92,6 @@ export async function POST(request: NextRequest) {
       file.type
     )
 
-    // Upload to MinIO
     const uploadResult = await uploadFile(
       secureFilePath,
       fileBuffer,
@@ -118,15 +109,14 @@ export async function POST(request: NextRequest) {
     if (!uploadResult.success) {
       return NextResponse.json(
         {
-          message: 'File upload to MinIO failed',
+          message: 'File upload failed',
           error: uploadResult.error,
-          details: 'MinIO server connection or upload error',
+          details: 'Storage service connection or upload error',
         },
         { status: 500 }
       )
     }
 
-    // Return success response with file information
     return NextResponse.json({
       success: true,
       file: {
@@ -154,7 +144,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET endpoint to retrieve upload configuration
 export async function GET(request: NextRequest) {
   try {
     await connectToMongoDB()
