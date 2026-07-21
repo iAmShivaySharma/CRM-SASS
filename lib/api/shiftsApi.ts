@@ -114,7 +114,10 @@ export const shiftsApi = createApi({
         method: 'POST',
         body: shift,
       }),
-      invalidatesTags: ['Shift'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(shiftsApi.util.invalidateTags(['Shift']))
+      },
     }),
 
     updateShift: builder.mutation<
@@ -130,10 +133,12 @@ export const shiftsApi = createApi({
         method: 'PUT',
         body: shift,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Shift', id },
-        'Shift',
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          shiftsApi.util.invalidateTags([{ type: 'Shift', id }, 'Shift'])
+        )
+      },
     }),
 
     deleteShift: builder.mutation<
@@ -147,7 +152,10 @@ export const shiftsApi = createApi({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Shift'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(shiftsApi.util.invalidateTags(['Shift']))
+      },
     }),
 
     setDefaultShift: builder.mutation<
@@ -162,7 +170,10 @@ export const shiftsApi = createApi({
         method: 'PUT',
         body: { isDefault: true },
       }),
-      invalidatesTags: ['Shift'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(shiftsApi.util.invalidateTags(['Shift']))
+      },
     }),
   }),
 })

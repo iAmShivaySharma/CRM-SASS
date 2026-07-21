@@ -56,11 +56,227 @@ const nextConfig = {
         ],
       },
       {
+        source: '/api/webhooks/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/projects/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/tasks/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/chat/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/email/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/attendance/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/shifts/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/leaves/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/assets/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/comments/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/roles/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/user/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/notifications/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/engines/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
         source: '/api/engines/catalog',
         headers: [
           {
             key: 'Cache-Control',
             value: 's-maxage=3600, stale-while-revalidate=7200',
+          },
+        ],
+      },
+      {
+        source: '/api/users/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/auth/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/workspaces/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/lead-statuses/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/tags/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/activities/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/documents/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/columns/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/sprints/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/employees/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
           },
         ],
       },

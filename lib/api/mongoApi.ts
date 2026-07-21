@@ -308,10 +308,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: (result, error, { leadId }) => [
-        { type: 'LeadActivity', id: leadId },
-        'LeadActivity',
-      ],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['LeadActivity']))
+      },
     }),
 
     getRoles: builder.query<{ success: boolean; roles: Role[] }, string>({
@@ -328,7 +328,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body: role,
       }),
-      invalidatesTags: ['Role'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Role']))
+      },
     }),
     deleteRole: builder.mutation<
       { success: boolean },
@@ -338,7 +341,10 @@ export const mongoApi = createApi({
         url: `roles/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Role'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Role']))
+      },
     }),
 
     getUserWorkspaces: builder.query<
@@ -365,7 +371,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body: status,
       }),
-      invalidatesTags: ['LeadStatus'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['LeadStatus']))
+      },
     }),
     deleteLeadStatus: builder.mutation<
       { success: boolean },
@@ -375,7 +384,10 @@ export const mongoApi = createApi({
         url: `lead-statuses/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['LeadStatus'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['LeadStatus']))
+      },
     }),
 
     getTags: builder.query<{ success: boolean; tags: Tag[] }, string>({
@@ -388,7 +400,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body: tag,
       }),
-      invalidatesTags: ['Tag'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Tag']))
+      },
     }),
     deleteTag: builder.mutation<
       { success: boolean },
@@ -398,7 +413,10 @@ export const mongoApi = createApi({
         url: `tags/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Tag'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Tag']))
+      },
     }),
 
     getActivities: builder.query<
@@ -424,7 +442,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body: workspace,
       }),
-      invalidatesTags: ['Workspace'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Workspace']))
+      },
     }),
     updateWorkspace: builder.mutation<
       { success: boolean; workspace: any },
@@ -435,7 +456,10 @@ export const mongoApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['Workspace'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Workspace']))
+      },
     }),
 
     getWorkspaceMembers: builder.query<
@@ -468,7 +492,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['WorkspaceMember'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+      },
     }),
 
     createLeadNote: builder.mutation<
@@ -486,10 +513,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: (result, error, { leadId }) => [
-        { type: 'Lead', id: leadId },
-        'LeadActivity',
-      ],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Lead', 'LeadActivity']))
+      },
     }),
   }),
 })

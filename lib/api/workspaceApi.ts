@@ -44,7 +44,10 @@ export const workspaceApi = createApi({
         method: 'POST',
         body: { workspaceId },
       }),
-      invalidatesTags: ['LastActiveWorkspace'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(workspaceApi.util.invalidateTags(['LastActiveWorkspace']))
+      },
     }),
   }),
 })

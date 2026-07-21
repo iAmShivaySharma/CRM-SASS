@@ -113,7 +113,10 @@ export const tasksApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['Task'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(tasksApi.util.invalidateTags(['Task']))
+      },
     }),
     updateTask: builder.mutation<{ task: Task }, UpdateTaskRequest>({
       query: ({ id, ...body }) => ({
@@ -121,28 +124,34 @@ export const tasksApi = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Task', id },
-        'Task',
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(tasksApi.util.invalidateTags([{ type: 'Task', id }, 'Task']))
+      },
     }),
     deleteTask: builder.mutation<{ success: boolean }, string>({
       query: id => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'Task', id }, 'Task'],
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(tasksApi.util.invalidateTags([{ type: 'Task', id }, 'Task']))
+      },
     }),
-    toggleTaskCompletion: builder.mutation<{ task: Task }, { id: string; completed: boolean }>({
+    toggleTaskCompletion: builder.mutation<
+      { task: Task },
+      { id: string; completed: boolean }
+    >({
       query: ({ id, completed }) => ({
         url: `/${id}/toggle-completion`,
         method: 'PATCH',
         body: { completed },
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Task', id },
-        'Task',
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(tasksApi.util.invalidateTags([{ type: 'Task', id }, 'Task']))
+      },
     }),
   }),
 })

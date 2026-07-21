@@ -198,14 +198,20 @@ export default function ProjectDocumentsPage() {
   }
 
   const handleShareDocument = async (doc: any) => {
+    const shareUrl = `${window.location.origin}/shared/document/${doc.id}`
     try {
-      const shareUrl = `${window.location.origin}/shared/document/${doc.id}`
-
       await navigator.clipboard.writeText(shareUrl)
       toast.success('Share link copied to clipboard!')
-    } catch (error) {
-      console.error('Failed to copy share link:', error)
-      toast.error('Failed to copy share link')
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = shareUrl
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      toast.success('Share link copied to clipboard!')
     }
   }
 

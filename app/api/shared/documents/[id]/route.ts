@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 import { ProjectDocument, Project } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 
@@ -9,16 +10,12 @@ export async function GET(
   try {
     const { id } = await params
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Document ID is required' },
-        { status: 400 }
-      )
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
     await connectToMongoDB()
 
-    // Get the document without requiring authentication
     const document = await ProjectDocument.findById(id)
 
     if (!document) {

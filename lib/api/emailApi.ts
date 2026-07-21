@@ -188,14 +188,18 @@ export const emailApi = createApi({
     credentials: 'include',
   }),
   tagTypes: ['EmailAccount', 'EmailMessage'],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getEmailAccounts: builder.query<{ accounts: EmailAccount[] }, string>({
-      query: (workspaceId) => `/accounts?workspaceId=${workspaceId}`,
+      query: workspaceId => `/accounts?workspaceId=${workspaceId}`,
       providesTags: ['EmailAccount'],
     }),
 
-    getEmailAccount: builder.query<{ account: EmailAccount }, { id: string; workspaceId: string }>({
-      query: ({ id, workspaceId }) => `/accounts/${id}?workspaceId=${workspaceId}`,
+    getEmailAccount: builder.query<
+      { account: EmailAccount },
+      { id: string; workspaceId: string }
+    >({
+      query: ({ id, workspaceId }) =>
+        `/accounts/${id}?workspaceId=${workspaceId}`,
       providesTags: (result, error, { id }) => [{ type: 'EmailAccount', id }],
     }),
 
@@ -208,7 +212,10 @@ export const emailApi = createApi({
         method: 'POST',
         body: account,
       }),
-      invalidatesTags: ['EmailAccount'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(emailApi.util.invalidateTags(['EmailAccount']))
+      },
     }),
 
     updateEmailAccount: builder.mutation<
@@ -220,7 +227,10 @@ export const emailApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'EmailAccount', id }],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(emailApi.util.invalidateTags([{ type: 'EmailAccount', id }]))
+      },
     }),
 
     deleteEmailAccount: builder.mutation<
@@ -231,7 +241,10 @@ export const emailApi = createApi({
         url: `/accounts/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['EmailAccount'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(emailApi.util.invalidateTags(['EmailAccount']))
+      },
     }),
 
     setDefaultEmailAccount: builder.mutation<
@@ -242,7 +255,10 @@ export const emailApi = createApi({
         url: `/accounts/${id}/set-default?workspaceId=${workspaceId}`,
         method: 'POST',
       }),
-      invalidatesTags: ['EmailAccount'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(emailApi.util.invalidateTags(['EmailAccount']))
+      },
     }),
 
     syncEmailAccount: builder.mutation<
@@ -253,7 +269,10 @@ export const emailApi = createApi({
         url: `/accounts/${id}/sync?workspaceId=${workspaceId}`,
         method: 'POST',
       }),
-      invalidatesTags: ['EmailMessage', 'EmailAccount'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(emailApi.util.invalidateTags(['EmailMessage', 'EmailAccount']))
+      },
     }),
 
     testEmailAccountConnection: builder.mutation<
@@ -291,8 +310,12 @@ export const emailApi = createApi({
       providesTags: ['EmailMessage'],
     }),
 
-    getEmailMessage: builder.query<{ message: EmailMessage }, { id: string; workspaceId: string }>({
-      query: ({ id, workspaceId }) => `/messages/${id}?workspaceId=${workspaceId}`,
+    getEmailMessage: builder.query<
+      { message: EmailMessage },
+      { id: string; workspaceId: string }
+    >({
+      query: ({ id, workspaceId }) =>
+        `/messages/${id}?workspaceId=${workspaceId}`,
       providesTags: (result, error, { id }) => [{ type: 'EmailMessage', id }],
     }),
 
@@ -305,10 +328,15 @@ export const emailApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'EmailMessage', id },
-        'EmailMessage',
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          emailApi.util.invalidateTags([
+            { type: 'EmailMessage', id },
+            'EmailMessage',
+          ])
+        )
+      },
     }),
 
     deleteEmailMessage: builder.mutation<
@@ -319,7 +347,10 @@ export const emailApi = createApi({
         url: `/messages/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['EmailMessage'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(emailApi.util.invalidateTags(['EmailMessage']))
+      },
     }),
 
     sendEmail: builder.mutation<
@@ -331,7 +362,10 @@ export const emailApi = createApi({
         method: 'POST',
         body: email,
       }),
-      invalidatesTags: ['EmailMessage'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(emailApi.util.invalidateTags(['EmailMessage']))
+      },
     }),
   }),
 })

@@ -86,9 +86,14 @@ export const commentsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Comment', id: `${arg.entityType}_${arg.entityId}` },
-      ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          commentsApi.util.invalidateTags([
+            { type: 'Comment', id: `${arg.entityType}_${arg.entityId}` },
+          ])
+        )
+      },
     }),
 
     updateComment: builder.mutation<
@@ -100,16 +105,22 @@ export const commentsApi = createApi({
         method: 'PUT',
         body: { content },
       }),
-      invalidatesTags: result =>
-        result
-          ? [
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const { data: result } = await queryFulfilled
+        if (result) {
+          dispatch(
+            commentsApi.util.invalidateTags([
               {
                 type: 'Comment',
                 id: `${result.comment.entityType}_${result.comment.entityId}`,
               },
               { type: 'Comment', id: result.comment.id },
-            ]
-          : ['Comment'],
+            ])
+          )
+        } else {
+          dispatch(commentsApi.util.invalidateTags(['Comment']))
+        }
+      },
     }),
 
     deleteComment: builder.mutation<
@@ -120,9 +131,14 @@ export const commentsApi = createApi({
         url: `comments/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Comment', id: `${arg.entityType}_${arg.entityId}` },
-      ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          commentsApi.util.invalidateTags([
+            { type: 'Comment', id: `${arg.entityType}_${arg.entityId}` },
+          ])
+        )
+      },
     }),
 
     getCommentHistory: builder.query<

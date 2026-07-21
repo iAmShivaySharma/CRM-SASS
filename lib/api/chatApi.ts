@@ -116,7 +116,10 @@ export const chatApi = createApi({
         method: 'POST',
         body: roomData,
       }),
-      invalidatesTags: ['ChatRoom'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(chatApi.util.invalidateTags(['ChatRoom']))
+      },
     }),
 
     updateChatRoom: builder.mutation<
@@ -128,7 +131,10 @@ export const chatApi = createApi({
         method: 'PUT',
         body: updates,
       }),
-      invalidatesTags: ['ChatRoom'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(chatApi.util.invalidateTags(['ChatRoom']))
+      },
     }),
 
     deleteChatRoom: builder.mutation<void, { id: string; workspaceId: string }>(
@@ -137,7 +143,10 @@ export const chatApi = createApi({
           url: `rooms/${id}?workspaceId=${workspaceId}`,
           method: 'DELETE',
         }),
-        invalidatesTags: ['ChatRoom'],
+        async onQueryStarted(_, { dispatch, queryFulfilled }) {
+          await queryFulfilled
+          dispatch(chatApi.util.invalidateTags(['ChatRoom']))
+        },
       }
     ),
 
@@ -193,10 +202,15 @@ export const chatApi = createApi({
         method: 'POST',
         body: messageData,
       }),
-      invalidatesTags: (result, error, { chatRoomId }) => [
-        { type: 'Message', id: chatRoomId },
-        'ChatRoom',
-      ],
+      async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          chatApi.util.invalidateTags([
+            { type: 'Message', id: chatRoomId },
+            'ChatRoom',
+          ])
+        )
+      },
     }),
 
     deleteMessage: builder.mutation<
@@ -207,9 +221,12 @@ export const chatApi = createApi({
         url: `messages/${messageId}?chatRoomId=${chatRoomId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, { chatRoomId }) => [
-        { type: 'Message', id: chatRoomId },
-      ],
+      async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          chatApi.util.invalidateTags([{ type: 'Message', id: chatRoomId }])
+        )
+      },
     }),
 
     markMessagesAsRead: builder.mutation<
@@ -221,9 +238,12 @@ export const chatApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: (result, error, { chatRoomId }) => [
-        { type: 'Message', id: chatRoomId },
-      ],
+      async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          chatApi.util.invalidateTags([{ type: 'Message', id: chatRoomId }])
+        )
+      },
     }),
 
     addReaction: builder.mutation<

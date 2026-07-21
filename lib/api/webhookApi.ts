@@ -135,7 +135,10 @@ export const webhookApi = createApi({
         method: 'POST',
         body: webhook,
       }),
-      invalidatesTags: ['Webhook'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(webhookApi.util.invalidateTags(['Webhook']))
+      },
     }),
     updateWebhook: builder.mutation<WebhookResponse, UpdateWebhookRequest>({
       query: ({ id, ...patch }) => ({
@@ -143,14 +146,20 @@ export const webhookApi = createApi({
         method: 'PUT',
         body: patch,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Webhook', id }],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(webhookApi.util.invalidateTags([{ type: 'Webhook', id }]))
+      },
     }),
     deleteWebhook: builder.mutation<WebhookResponse, string>({
       query: id => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Webhook'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(webhookApi.util.invalidateTags(['Webhook']))
+      },
     }),
     toggleWebhook: builder.mutation<
       WebhookResponse,
@@ -161,7 +170,10 @@ export const webhookApi = createApi({
         method: 'PUT',
         body: { isActive },
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Webhook', id }],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(webhookApi.util.invalidateTags([{ type: 'Webhook', id }]))
+      },
     }),
   }),
 })

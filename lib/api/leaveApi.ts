@@ -149,7 +149,10 @@ export const leaveApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['Leave', 'LeaveStats'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(leaveApi.util.invalidateTags(['Leave', 'LeaveStats']))
+      },
     }),
 
     updateLeaveRequest: builder.mutation<
@@ -161,11 +164,16 @@ export const leaveApi = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Leave', id },
-        'Leave',
-        'LeaveStats',
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          leaveApi.util.invalidateTags([
+            { type: 'Leave', id },
+            'Leave',
+            'LeaveStats',
+          ])
+        )
+      },
     }),
 
     deleteLeaveRequest: builder.mutation<
@@ -176,7 +184,10 @@ export const leaveApi = createApi({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Leave', 'LeaveStats'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(leaveApi.util.invalidateTags(['Leave', 'LeaveStats']))
+      },
     }),
 
     getLeaveStats: builder.query<LeaveStats, { workspaceId?: string }>({

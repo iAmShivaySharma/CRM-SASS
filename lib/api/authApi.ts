@@ -43,7 +43,10 @@ export const authApi = createApi({
         method: 'POST',
         body: credentials,
       }),
-      invalidatesTags: ['Auth'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(authApi.util.invalidateTags(['Auth']))
+      },
     }),
     signup: builder.mutation<AuthResponse, SignupRequest>({
       query: userData => ({
@@ -51,14 +54,20 @@ export const authApi = createApi({
         method: 'POST',
         body: userData,
       }),
-      invalidatesTags: ['Auth'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(authApi.util.invalidateTags(['Auth']))
+      },
     }),
     logout: builder.mutation<AuthResponse, void>({
       query: () => ({
         url: 'logout',
         method: 'POST',
       }),
-      invalidatesTags: ['Auth'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(authApi.util.invalidateTags(['Auth']))
+      },
     }),
     verify: builder.query<VerifyResponse, void>({
       query: () => ({

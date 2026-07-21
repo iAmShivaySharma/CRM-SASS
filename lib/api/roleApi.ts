@@ -62,7 +62,10 @@ export const roleApi = createApi({
         method: 'POST',
         body: role,
       }),
-      invalidatesTags: ['Role'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(roleApi.util.invalidateTags(['Role']))
+      },
     }),
     updateRole: builder.mutation<Role, UpdateRoleRequest>({
       query: ({ id, ...patch }) => ({
@@ -70,14 +73,20 @@ export const roleApi = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Role', id }],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(roleApi.util.invalidateTags([{ type: 'Role', id }]))
+      },
     }),
     deleteRole: builder.mutation<void, string>({
       query: id => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Role'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(roleApi.util.invalidateTags(['Role']))
+      },
     }),
   }),
 })

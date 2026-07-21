@@ -256,9 +256,12 @@ export const projectsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Project', id: 'LIST' },
-      ],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([{ type: 'Project', id: 'LIST' }])
+        )
+      },
     }),
 
     updateProject: builder.mutation<
@@ -270,7 +273,10 @@ export const projectsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['Project'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Project']))
+      },
     }),
 
     deleteProject: builder.mutation<{ success: boolean }, { id: string }>({
@@ -278,7 +284,10 @@ export const projectsApi = createApi({
         url: `projects/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Project'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Project']))
+      },
     }),
 
     getProjectMembers: builder.query<
@@ -298,7 +307,10 @@ export const projectsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['ProjectMember'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['ProjectMember']))
+      },
     }),
 
     updateProjectMember: builder.mutation<
@@ -310,7 +322,10 @@ export const projectsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['ProjectMember'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['ProjectMember']))
+      },
     }),
 
     removeProjectMember: builder.mutation<
@@ -321,7 +336,10 @@ export const projectsApi = createApi({
         url: `projects/${projectId}/members/${memberId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['ProjectMember'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['ProjectMember']))
+      },
     }),
 
     getTasks: builder.query<
@@ -377,11 +395,16 @@ export const projectsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Task', id: 'LIST' },
-        { type: 'Task', id: `PROJECT_${arg.projectId}` },
-        { type: 'Task', id: `WORKSPACE_${arg.workspaceId}` },
-      ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Task', id: 'LIST' },
+            { type: 'Task', id: `PROJECT_${arg.projectId}` },
+            { type: 'Task', id: `WORKSPACE_${arg.workspaceId}` },
+          ])
+        )
+      },
     }),
 
     updateTask: builder.mutation<
@@ -393,10 +416,15 @@ export const projectsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Task', id: 'LIST' },
-        { type: 'Task', id: arg.id },
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Task', id: 'LIST' },
+            { type: 'Task', id },
+          ])
+        )
+      },
     }),
 
     deleteTask: builder.mutation<{ success: boolean }, { id: string }>({
@@ -404,10 +432,15 @@ export const projectsApi = createApi({
         url: `tasks/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Task', id: 'LIST' },
-        { type: 'Task', id: arg.id },
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Task', id: 'LIST' },
+            { type: 'Task', id },
+          ])
+        )
+      },
     }),
 
     reorderTasks: builder.mutation<
@@ -422,7 +455,10 @@ export const projectsApi = createApi({
         method: 'PUT',
         body: { tasks },
       }),
-      invalidatesTags: ['Task'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Task']))
+      },
     }),
 
     getDocuments: builder.query<
@@ -469,7 +505,10 @@ export const projectsApi = createApi({
           },
         }
       },
-      invalidatesTags: ['Document'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Document']))
+      },
     }),
 
     updateDocument: builder.mutation<
@@ -494,7 +533,10 @@ export const projectsApi = createApi({
           },
         }
       },
-      invalidatesTags: ['Document'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Document']))
+      },
     }),
 
     deleteDocument: builder.mutation<{ success: boolean }, { id: string }>({
@@ -502,7 +544,10 @@ export const projectsApi = createApi({
         url: `documents/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Document'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Document']))
+      },
     }),
 
     inviteToProject: builder.mutation<
@@ -519,7 +564,10 @@ export const projectsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['ProjectInvitation'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['ProjectInvitation']))
+      },
     }),
 
     getProjectInvitations: builder.query<
@@ -538,7 +586,15 @@ export const projectsApi = createApi({
         url: `projects/invitations/${token}/${action}`,
         method: 'POST',
       }),
-      invalidatesTags: ['ProjectInvitation', 'ProjectMember'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            'ProjectInvitation',
+            'ProjectMember',
+          ])
+        )
+      },
     }),
 
     requestToJoinProject: builder.mutation<
@@ -550,7 +606,10 @@ export const projectsApi = createApi({
         method: 'POST',
         body: { message },
       }),
-      invalidatesTags: ['ProjectJoinRequest'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['ProjectJoinRequest']))
+      },
     }),
 
     getJoinRequests: builder.query<
@@ -569,7 +628,15 @@ export const projectsApi = createApi({
         url: `projects/join-requests/${requestId}/${action}`,
         method: 'POST',
       }),
-      invalidatesTags: ['ProjectJoinRequest', 'ProjectMember'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            'ProjectJoinRequest',
+            'ProjectMember',
+          ])
+        )
+      },
     }),
 
     getColumns: builder.query<{ columns: Column[] }, { projectId: string }>({
@@ -586,7 +653,10 @@ export const projectsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['Column'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Column']))
+      },
     }),
 
     updateColumn: builder.mutation<
@@ -598,7 +668,10 @@ export const projectsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['Column'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Column']))
+      },
     }),
 
     deleteColumn: builder.mutation<{ success: boolean }, { id: string }>({
@@ -606,7 +679,10 @@ export const projectsApi = createApi({
         url: `columns/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Column'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(projectsApi.util.invalidateTags(['Column']))
+      },
     }),
 
     startTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
@@ -614,7 +690,7 @@ export const projectsApi = createApi({
         url: `tasks/${taskId}/time-tracking/start`,
         method: 'POST',
       }),
-      onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
+      async onQueryStarted({ taskId }, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled
 
@@ -633,12 +709,15 @@ export const projectsApi = createApi({
               })
             )
           })
-        } catch (error) {}
+
+          dispatch(
+            projectsApi.util.invalidateTags([
+              { type: 'Task', id: 'LIST' },
+              { type: 'Task', id: taskId },
+            ])
+          )
+        } catch {}
       },
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Task', id: 'LIST' },
-        { type: 'Task', id: arg.taskId },
-      ],
     }),
 
     stopTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
@@ -646,7 +725,7 @@ export const projectsApi = createApi({
         url: `tasks/${taskId}/time-tracking/stop`,
         method: 'POST',
       }),
-      onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
+      async onQueryStarted({ taskId }, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled
           dispatch(
@@ -661,12 +740,15 @@ export const projectsApi = createApi({
               }
             )
           )
+
+          dispatch(
+            projectsApi.util.invalidateTags([
+              { type: 'Task', id: 'LIST' },
+              { type: 'Task', id: taskId },
+            ])
+          )
         } catch {}
       },
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Task', id: 'LIST' },
-        { type: 'Task', id: arg.taskId },
-      ],
     }),
 
     pauseTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
@@ -674,7 +756,7 @@ export const projectsApi = createApi({
         url: `tasks/${taskId}/time-tracking/pause`,
         method: 'POST',
       }),
-      onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
+      async onQueryStarted({ taskId }, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled
           dispatch(
@@ -689,12 +771,15 @@ export const projectsApi = createApi({
               }
             )
           )
+
+          dispatch(
+            projectsApi.util.invalidateTags([
+              { type: 'Task', id: 'LIST' },
+              { type: 'Task', id: taskId },
+            ])
+          )
         } catch {}
       },
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Task', id: 'LIST' },
-        { type: 'Task', id: arg.taskId },
-      ],
     }),
 
     resumeTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
@@ -702,7 +787,7 @@ export const projectsApi = createApi({
         url: `tasks/${taskId}/time-tracking/resume`,
         method: 'POST',
       }),
-      onQueryStarted: async ({ taskId }, { dispatch, queryFulfilled }) => {
+      async onQueryStarted({ taskId }, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled
           dispatch(
@@ -717,12 +802,15 @@ export const projectsApi = createApi({
               }
             )
           )
+
+          dispatch(
+            projectsApi.util.invalidateTags([
+              { type: 'Task', id: 'LIST' },
+              { type: 'Task', id: taskId },
+            ])
+          )
         } catch {}
       },
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Task', id: 'LIST' },
-        { type: 'Task', id: arg.taskId },
-      ],
     }),
 
     // Sprint endpoints
@@ -767,9 +855,14 @@ export const projectsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
-      ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+          ])
+        )
+      },
     }),
 
     updateSprint: builder.mutation<
@@ -781,17 +874,22 @@ export const projectsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Sprint', id: arg.id },
-        ...(result
-          ? [
-              {
-                type: 'Sprint' as const,
-                id: `PROJECT_${result.sprint.projectId}`,
-              },
-            ]
-          : []),
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        const { data: result } = await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Sprint', id },
+            ...(result
+              ? [
+                  {
+                    type: 'Sprint' as const,
+                    id: `PROJECT_${result.sprint.projectId}`,
+                  },
+                ]
+              : []),
+          ])
+        )
+      },
     }),
 
     deleteSprint: builder.mutation<
@@ -802,11 +900,16 @@ export const projectsApi = createApi({
         url: `sprints/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Sprint', id: arg.id },
-        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
-        { type: 'Task', id: 'LIST' },
-      ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Sprint', id: arg.id },
+            { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+            { type: 'Task', id: 'LIST' },
+          ])
+        )
+      },
     }),
 
     startSprint: builder.mutation<
@@ -817,10 +920,15 @@ export const projectsApi = createApi({
         url: `sprints/${id}/start`,
         method: 'POST',
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Sprint', id: arg.id },
-        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
-      ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Sprint', id: arg.id },
+            { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+          ])
+        )
+      },
     }),
 
     completeSprint: builder.mutation<
@@ -839,11 +947,16 @@ export const projectsApi = createApi({
         method: 'POST',
         body: { moveIncompleteTo },
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Sprint', id: arg.id },
-        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
-        { type: 'Task', id: 'LIST' },
-      ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Sprint', id: arg.id },
+            { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+            { type: 'Task', id: 'LIST' },
+          ])
+        )
+      },
     }),
 
     assignTasksToSprint: builder.mutation<
@@ -860,11 +973,16 @@ export const projectsApi = createApi({
         method: 'POST',
         body: { taskIds, action },
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: 'Sprint', id: arg.sprintId },
-        { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
-        { type: 'Task', id: 'LIST' },
-      ],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          projectsApi.util.invalidateTags([
+            { type: 'Sprint', id: arg.sprintId },
+            { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
+            { type: 'Task', id: 'LIST' },
+          ])
+        )
+      },
     }),
 
     getTags: builder.query<

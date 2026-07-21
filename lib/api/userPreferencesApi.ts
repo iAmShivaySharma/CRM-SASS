@@ -76,7 +76,10 @@ export const userPreferencesApi = createApi({
         method: 'PUT',
         body: preferences,
       }),
-      invalidatesTags: ['UserPreferences'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(userPreferencesApi.util.invalidateTags(['UserPreferences']))
+      },
     }),
     patchUserPreferences: builder.mutation<
       PreferencesResponse,
@@ -87,7 +90,10 @@ export const userPreferencesApi = createApi({
         method: 'PATCH',
         body: preferences,
       }),
-      invalidatesTags: ['UserPreferences'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(userPreferencesApi.util.invalidateTags(['UserPreferences']))
+      },
     }),
   }),
 })

@@ -212,7 +212,16 @@ export const enginesApi = createApi({
         url: '/sync-workflows',
         method: 'POST',
       }),
-      invalidatesTags: ['WorkflowCatalog', 'WorkflowCategory', 'SyncStatus'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          enginesApi.util.invalidateTags([
+            'WorkflowCatalog',
+            'WorkflowCategory',
+            'SyncStatus',
+          ])
+        )
+      },
     }),
 
     testN8nConnection: builder.query<
@@ -236,7 +245,10 @@ export const enginesApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['WorkflowExecution'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(enginesApi.util.invalidateTags(['WorkflowExecution']))
+      },
     }),
 
     getExecutions: builder.query<
@@ -312,7 +324,10 @@ export const enginesApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['ApiKey'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(enginesApi.util.invalidateTags(['ApiKey']))
+      },
     }),
 
     updateApiKey: builder.mutation<
@@ -331,7 +346,10 @@ export const enginesApi = createApi({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: ['ApiKey'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(enginesApi.util.invalidateTags(['ApiKey']))
+      },
     }),
 
     deleteApiKey: builder.mutation<{ success: boolean }, string>({
@@ -339,7 +357,10 @@ export const enginesApi = createApi({
         url: `/api-keys/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['ApiKey'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(enginesApi.util.invalidateTags(['ApiKey']))
+      },
     }),
 
     validateApiKey: builder.mutation<
@@ -432,11 +453,16 @@ export const enginesApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: (result, error, { executionId }) => [
-        { type: 'WorkflowExecution', id: executionId },
-        'WorkflowExecution',
-        'PendingInput',
-      ],
+      async onQueryStarted({ executionId }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          enginesApi.util.invalidateTags([
+            { type: 'WorkflowExecution', id: executionId },
+            'WorkflowExecution',
+            'PendingInput',
+          ])
+        )
+      },
     }),
 
     getPendingInputs: builder.query<

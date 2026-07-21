@@ -86,7 +86,10 @@ export const notificationsApi = createApi({
         method: 'PATCH',
         body: { notificationId, action, workspaceId },
       }),
-      invalidatesTags: ['Notification'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(notificationsApi.util.invalidateTags(['Notification']))
+      },
     }),
   }),
 })

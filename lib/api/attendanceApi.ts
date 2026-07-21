@@ -158,7 +158,12 @@ export const attendanceApi = createApi({
         method: 'POST',
         body: action,
       }),
-      invalidatesTags: ['TodayAttendance', 'Attendance'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          attendanceApi.util.invalidateTags(['TodayAttendance', 'Attendance'])
+        )
+      },
     }),
 
     getAttendanceSummary: builder.query<

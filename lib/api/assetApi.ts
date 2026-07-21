@@ -170,7 +170,10 @@ export const assetApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['Asset', 'AssetStats'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(assetApi.util.invalidateTags(['Asset', 'AssetStats']))
+      },
     }),
 
     updateAsset: builder.mutation<
@@ -182,11 +185,16 @@ export const assetApi = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Asset', id },
-        'Asset',
-        'AssetStats',
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          assetApi.util.invalidateTags([
+            { type: 'Asset', id },
+            'Asset',
+            'AssetStats',
+          ])
+        )
+      },
     }),
 
     deleteAsset: builder.mutation<
@@ -197,7 +205,10 @@ export const assetApi = createApi({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Asset', 'AssetStats'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(assetApi.util.invalidateTags(['Asset', 'AssetStats']))
+      },
     }),
 
     getAssetStats: builder.query<AssetStats, { workspaceId?: string }>({

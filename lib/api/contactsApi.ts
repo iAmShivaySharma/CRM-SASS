@@ -209,7 +209,14 @@ export const contactsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: [{ type: 'ContactsList', id: 'LIST' }],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          contactsApi.util.invalidateTags([
+            { type: 'ContactsList', id: 'LIST' },
+          ])
+        )
+      },
     }),
 
     updateContact: builder.mutation<
@@ -221,10 +228,15 @@ export const contactsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Contact', id },
-        { type: 'ContactsList', id: 'LIST' },
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          contactsApi.util.invalidateTags([
+            { type: 'Contact', id },
+            { type: 'ContactsList', id: 'LIST' },
+          ])
+        )
+      },
     }),
 
     deleteContact: builder.mutation<
@@ -235,10 +247,15 @@ export const contactsApi = createApi({
         url: `/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Contact', id },
-        { type: 'ContactsList', id: 'LIST' },
-      ],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          contactsApi.util.invalidateTags([
+            { type: 'Contact', id },
+            { type: 'ContactsList', id: 'LIST' },
+          ])
+        )
+      },
     }),
 
     convertLeadToContact: builder.mutation<
@@ -258,10 +275,15 @@ export const contactsApi = createApi({
           return { error: { status: 'FETCH_ERROR', error: String(error) } }
         }
       },
-      invalidatesTags: [
-        { type: 'ContactsList', id: 'LIST' },
-        { type: 'Contact', id: 'NEW' },
-      ],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          contactsApi.util.invalidateTags([
+            { type: 'ContactsList', id: 'LIST' },
+            { type: 'Contact', id: 'NEW' },
+          ])
+        )
+      },
     }),
   }),
 })
