@@ -245,10 +245,19 @@ export const contactsApi = createApi({
       ConvertLeadToContactResponse,
       { leadId: string; workspaceId: string }
     >({
-      query: ({ leadId, workspaceId }) => ({
-        url: `/api/leads/${leadId}/convert-to-contact?workspaceId=${workspaceId}`,
-        method: 'POST',
-      }),
+      async queryFn({ leadId, workspaceId }) {
+        try {
+          const res = await fetch(
+            `/api/leads/${leadId}/convert-to-contact?workspaceId=${workspaceId}`,
+            { method: 'POST', credentials: 'include' }
+          )
+          const data = await res.json()
+          if (!res.ok) return { error: { status: res.status, data } }
+          return { data }
+        } catch (error) {
+          return { error: { status: 'FETCH_ERROR', error: String(error) } }
+        }
+      },
       invalidatesTags: [
         { type: 'ContactsList', id: 'LIST' },
         { type: 'Contact', id: 'NEW' },
