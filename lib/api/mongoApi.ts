@@ -188,13 +188,7 @@ export const mongoApi = createApi({
         if (search) params.append('search', search)
         return `leads?${params}`
       },
-      providesTags: result =>
-        result
-          ? [
-              ...result.leads.map(({ id }) => ({ type: 'Lead' as const, id })),
-              { type: 'Lead', id: 'LIST' },
-            ]
-          : [{ type: 'Lead', id: 'LIST' }],
+      providesTags: ['Lead'],
     }),
 
     createLead: builder.mutation<
@@ -206,7 +200,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body: leadData,
       }),
-      invalidatesTags: ['Lead'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Lead']))
+      },
     }),
 
     updateLead: builder.mutation<
@@ -218,7 +215,10 @@ export const mongoApi = createApi({
         method: 'PUT',
         body: updates,
       }),
-      invalidatesTags: ['Lead'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Lead']))
+      },
     }),
 
     deleteLead: builder.mutation<void, { id: string; workspaceId: string }>({
@@ -226,7 +226,10 @@ export const mongoApi = createApi({
         url: `leads/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Lead'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Lead']))
+      },
     }),
 
     bulkDeleteLeads: builder.mutation<
@@ -238,7 +241,10 @@ export const mongoApi = createApi({
         method: 'POST',
         body: { ids, workspaceId },
       }),
-      invalidatesTags: ['Lead'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Lead']))
+      },
     }),
 
     importLeads: builder.mutation<
@@ -266,7 +272,10 @@ export const mongoApi = createApi({
           return { error: { status: 'FETCH_ERROR', error: String(error) } }
         }
       },
-      invalidatesTags: ['Lead'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['Lead']))
+      },
     }),
 
     getLeadActivities: builder.query<
