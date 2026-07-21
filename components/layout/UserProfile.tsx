@@ -232,7 +232,7 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
             <ChevronUp className="h-4 w-4 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="top" align="start" className="mb-2 w-72">
+        <DropdownMenuContent side="top" align="start" className="mb-2 w-80">
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-2">
               <div className="flex items-center space-x-3">
@@ -243,10 +243,10 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium leading-none">
+                  <p className="truncate text-sm font-medium leading-none">
                     {currentUser.name}
                   </p>
-                  <p className="mt-1 text-xs leading-none text-muted-foreground">
+                  <p className="mt-1 break-all text-xs leading-tight text-muted-foreground">
                     {currentUser.email}
                   </p>
                 </div>
