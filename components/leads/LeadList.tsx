@@ -13,6 +13,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -250,6 +251,57 @@ export function LeadList() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  const handleDownloadTemplate = () => {
+    const headers = [
+      'Name',
+      'Email',
+      'Phone',
+      'Company',
+      'Source',
+      'Priority',
+      'Value',
+      'Status',
+      'Notes',
+    ]
+    const sampleRows = [
+      [
+        'John Doe',
+        'john@example.com',
+        '+1234567890',
+        'Acme Inc',
+        'website',
+        'high',
+        '5000',
+        'Arrived',
+        'Interested in premium plan',
+      ],
+      [
+        'Jane Smith',
+        'jane@company.com',
+        '+0987654321',
+        'Tech Corp',
+        'referral',
+        'medium',
+        '3000',
+        '',
+        'Follow up next week',
+      ],
+    ]
+    const csvContent = [headers, ...sampleRows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'leads-import-template.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.success('Template downloaded')
+  }
+
   const allSelected = leads.length > 0 && selectedIds.size === leads.length
 
   if (isLoading) {
@@ -300,19 +352,28 @@ export function LeadList() {
             className="hidden"
             onChange={handleImport}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isImporting}
-          >
-            {isImporting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="mr-2 h-4 w-4" />
-            )}
-            Import
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={isImporting}>
+                {isImporting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                Import
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" />
+                Import Leads
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadTemplate}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Download Template
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" disabled={isExporting}>

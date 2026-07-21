@@ -230,11 +230,7 @@ export function LeadDetailsSheet({
 
       toast.success('Lead updated successfully')
       setIsEditing(false)
-
-      // Trigger a refetch of the lead data to ensure UI is updated
-      if (onUpdate) {
-        onUpdate(updatedLead)
-      }
+      onClose()
     } catch (error: any) {
       console.error('Error updating lead:', error)
       const errorMessage =
@@ -312,7 +308,6 @@ export function LeadDetailsSheet({
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
     }
   }
-  console.log(lead)
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-6xl lg:max-w-7xl">
