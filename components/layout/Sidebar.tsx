@@ -395,7 +395,7 @@ export function Sidebar({
             className="hidden h-9 w-9 rounded-lg p-0 transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 lg:flex"
           >
             {collapsed ? (
-              <Menu className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-300" />
             ) : (
               <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-300" />
             )}
@@ -435,7 +435,12 @@ export function Sidebar({
         </nav>
 
         {/* User Profile - Bottom of sidebar */}
-        <div className="mt-auto bg-gradient-to-t from-gray-50/80 to-transparent p-3 dark:from-gray-900/50">
+        <div
+          className={cn(
+            'mt-auto bg-gradient-to-t from-gray-50/80 to-transparent dark:from-gray-900/50',
+            collapsed ? 'flex justify-center px-1 py-3' : 'p-3'
+          )}
+        >
           <UserProfile compact={collapsed} />
         </div>
       </div>
