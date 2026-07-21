@@ -5,8 +5,10 @@ namespace: crm-saas-dev
 
 namePrefix: dev-
 
-commonLabels:
-  app.kubernetes.io/environment: dev
+labels:
+  - pairs:
+      app.kubernetes.io/environment: dev
+    includeSelectors: false
 
 resources:
   - ../../base

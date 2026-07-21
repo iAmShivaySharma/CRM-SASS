@@ -93,7 +93,7 @@ export const GET = withSecurityLogging(
 
         const query: any = { workspaceId }
 
-        if (status) query.status = status
+        if (status) query.statusId = status
         if (assignedTo) query.assignedTo = assignedTo
         if (priority) query.priority = priority
         if (tags && tags.length > 0) query.tagIds = { $in: tags }
@@ -110,6 +110,9 @@ export const GET = withSecurityLogging(
               .select(
                 'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt'
               )
+              .populate('statusId', 'name color')
+              .populate('tagIds', 'name color')
+              .populate('assignedTo', 'fullName email')
               .sort(
                 search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
               )
@@ -130,12 +133,28 @@ export const GET = withSecurityLogging(
 
         return NextResponse.json({
           success: true,
-          leads: leads.map(lead => ({
+          leads: leads.map((lead: any) => ({
             ...lead,
             id: lead._id,
-            tagIds: lead.tagIds || [],
-            statusId: lead.statusId || null,
-            assignedTo: lead.assignedTo || null,
+            tagIds: (lead.tagIds || []).map((tag: any) =>
+              typeof tag === 'object'
+                ? { ...tag, id: tag._id?.toString() || tag._id }
+                : tag
+            ),
+            statusId:
+              typeof lead.statusId === 'object' && lead.statusId
+                ? {
+                    ...lead.statusId,
+                    id: lead.statusId._id?.toString() || lead.statusId._id,
+                  }
+                : lead.statusId || null,
+            assignedTo:
+              typeof lead.assignedTo === 'object' && lead.assignedTo
+                ? {
+                    ...lead.assignedTo,
+                    id: lead.assignedTo._id?.toString() || lead.assignedTo._id,
+                  }
+                : lead.assignedTo || null,
             createdBy: lead.createdBy || null,
           })),
           pagination: {
