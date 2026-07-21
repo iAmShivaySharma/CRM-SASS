@@ -100,9 +100,21 @@ export function WebhookList({
     }
   }
 
-  const copyWebhookUrl = (url: string) => {
-    navigator.clipboard.writeText(url)
-    toast.success('Webhook URL copied to clipboard')
+  const copyWebhookUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Webhook URL copied to clipboard')
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = url
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      toast.success('Webhook URL copied to clipboard')
+    }
   }
 
   const getWebhookTypeConfig = (type: string) => {

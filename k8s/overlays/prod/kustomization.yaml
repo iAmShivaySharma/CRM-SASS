@@ -5,8 +5,10 @@ namespace: crm-saas-prod
 
 namePrefix: prod-
 
-commonLabels:
-  app.kubernetes.io/environment: prod
+labels:
+  - pairs:
+      app.kubernetes.io/environment: prod
+    includeSelectors: false
 
 resources:
   - ../../base

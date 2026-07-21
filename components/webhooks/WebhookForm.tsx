@@ -145,6 +145,7 @@ export function WebhookForm({ open, onClose, webhook }: WebhookFormProps) {
         if (result.webhook?.webhookUrl) {
           setGeneratedUrl(result.webhook.webhookUrl)
         }
+        onClose()
       } else {
         const result = await createWebhook({
           ...data,
@@ -156,14 +157,12 @@ export function WebhookForm({ open, onClose, webhook }: WebhookFormProps) {
           setGeneratedUrl(result.webhook.webhookUrl)
         }
         if (result.webhook?.secret) {
-          // Show the secret to the user (only shown once)
           toast.info(`Webhook secret: ${result.webhook.secret}`, {
             duration: 10000,
             description: 'Save this secret - it will not be shown again!',
           })
         }
       }
-      onClose()
     } catch (error) {
       toast.error(`Failed to ${isEditing ? 'update' : 'create'} webhook`)
     }
@@ -190,9 +189,20 @@ export function WebhookForm({ open, onClose, webhook }: WebhookFormProps) {
     }
   }
 
-  const copyUrl = () => {
-    if (generatedUrl) {
-      navigator.clipboard.writeText(generatedUrl)
+  const copyUrl = async () => {
+    if (!generatedUrl) return
+    try {
+      await navigator.clipboard.writeText(generatedUrl)
+      toast.success('Webhook URL copied to clipboard')
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = generatedUrl
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
       toast.success('Webhook URL copied to clipboard')
     }
   }
@@ -389,15 +399,17 @@ export function WebhookForm({ open, onClose, webhook }: WebhookFormProps) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {generatedUrl && !isEditing ? 'Done' : 'Cancel'}
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading
-                ? 'Saving...'
-                : isEditing
-                  ? 'Update Webhook'
-                  : 'Create Webhook'}
-            </Button>
+            {(!generatedUrl || isEditing) && (
+              <Button type="submit" disabled={isLoading}>
+                {isLoading
+                  ? 'Saving...'
+                  : isEditing
+                    ? 'Update Webhook'
+                    : 'Create Webhook'}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

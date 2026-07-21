@@ -107,7 +107,7 @@ jobs:
         run: |
           ENV=${{ needs.resolve.outputs.environment }}
           kubectl apply -k k8s/overlays/${ENV}
-          kubectl -n crm-saas-${ENV} rollout status deployment/${ENV}-crm-app --timeout=300s
+          kubectl -n crm-saas-${ENV} rollout status deployment/${ENV}-crm-app --timeout=600s
 
       - name: Verify deployment
         run: |
