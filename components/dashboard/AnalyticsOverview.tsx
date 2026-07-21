@@ -21,55 +21,6 @@ import {
   useGetPerformanceMetricsQuery,
 } from '@/lib/api/analyticsApi'
 
-// Mock analytics data
-const analyticsData = {
-  revenue: {
-    current: 45280,
-    previous: 38950,
-    change: 16.3,
-    trend: 'up',
-  },
-  leads: {
-    current: 1247,
-    previous: 1089,
-    change: 14.5,
-    trend: 'up',
-  },
-  conversion: {
-    current: 23.8,
-    previous: 21.2,
-    change: 12.3,
-    trend: 'up',
-  },
-  customers: {
-    current: 892,
-    previous: 945,
-    change: -5.6,
-    trend: 'down',
-  },
-}
-
-const quickStats = [
-  {
-    label: 'Active Deals',
-    value: '47',
-    icon: Target,
-    color: 'text-blue-600',
-  },
-  {
-    label: 'This Month',
-    value: '$12.4k',
-    icon: DollarSign,
-    color: 'text-green-600',
-  },
-  {
-    label: 'New Leads',
-    value: '156',
-    icon: Users,
-    color: 'text-purple-600',
-  },
-]
-
 export function AnalyticsOverview() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const { formatCurrency, formatNumber, formatPercentage } =

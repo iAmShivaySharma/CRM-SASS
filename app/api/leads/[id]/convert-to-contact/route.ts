@@ -9,6 +9,7 @@ import {
   logBusinessEvent,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { invalidateCache } from '@/lib/redis/cache'
 
 // POST /api/leads/[id]/convert-to-contact - Convert a lead to a contact
 export const POST = withSecurityLogging(
@@ -197,6 +198,8 @@ export const POST = withSecurityLogging(
             processingDuration: Date.now() - startTime,
           }
         )
+
+        await invalidateCache(`leads:${workspaceId}:*`)
 
         return NextResponse.json(
           {

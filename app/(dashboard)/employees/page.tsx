@@ -16,24 +16,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { EmployeeList } from '@/components/hr/EmployeeList'
 import { useAppSelector } from '@/lib/hooks'
+import {
+  useGetWorkspaceMembersQuery,
+  useGetRolesQuery,
+} from '@/lib/api/mongoApi'
 
 export default function EmployeesPage() {
   const [activeTab, setActiveTab] = useState('list')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
-  const stats = {
-    totalEmployees: 45,
-    activeEmployees: 42,
-    newThisMonth: 3,
-    departments: [
-      { name: 'Engineering', count: 15, growth: '+2' },
-      { name: 'Sales', count: 12, growth: '+1' },
-      { name: 'Marketing', count: 8, growth: '0' },
-      { name: 'HR', count: 5, growth: '0' },
-      { name: 'Product', count: 7, growth: '0' },
-    ],
-    workspaceId: currentWorkspace?.id,
-  }
+  const { data: membersData } = useGetWorkspaceMembersQuery(
+    currentWorkspace?.id || '',
+    { skip: !currentWorkspace?.id }
+  )
+
+  const { data: rolesData } = useGetRolesQuery(currentWorkspace?.id || '', {
+    skip: !currentWorkspace?.id,
+  })
+
+  const members = membersData?.members || []
+  const roles = rolesData?.roles || []
+  const totalEmployees = members.length
+  const activeEmployees = members.filter(
+    (m: any) => m.status === 'active'
+  ).length
 
   if (!currentWorkspace) {
     return (
@@ -64,84 +70,54 @@ export default function EmployeesPage() {
       </div>
 
       <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {[
-          {
-            name: 'Administrator',
-            description: 'Full access to all features and settings',
-            employees: 2,
-            permissions: ['Full Access', 'User Management', 'Settings'],
-            color: 'bg-red-100 text-red-800',
-          },
-          {
-            name: 'HR Manager',
-            description: 'Manage employee data and HR processes',
-            employees: 3,
-            permissions: [
-              'Employee Management',
-              'Attendance',
-              'Leave Management',
-            ],
-            color: 'bg-blue-100 text-blue-800',
-          },
-          {
-            name: 'Team Lead',
-            description: 'Lead team members and manage projects',
-            employees: 8,
-            permissions: ['Team Management', 'Project Access', 'Reports'],
-            color: 'bg-green-100 text-green-800',
-          },
-          {
-            name: 'Employee',
-            description: 'Standard employee access',
-            employees: 32,
-            permissions: ['Self Service', 'Time Tracking', 'Basic Access'],
-            color: 'bg-gray-100 text-gray-800',
-          },
-        ].map(role => (
-          <Card key={role.name} className="transition-shadow hover:shadow-md">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center space-x-2 text-base">
-                  <Shield className="h-4 w-4" />
-                  <span>{role.name}</span>
-                </CardTitle>
-                <span
-                  className={`rounded-full px-2 py-1 text-xs ${role.color}`}
-                >
-                  {role.employees} users
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                {role.description}
-              </p>
-
-              <div>
-                <h4 className="mb-2 text-sm font-medium">Permissions:</h4>
-                <div className="flex flex-wrap gap-1">
-                  {role.permissions.map(permission => (
-                    <span
-                      key={permission}
-                      className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700"
-                    >
-                      {permission}
-                    </span>
-                  ))}
+        {roles.length > 0 ? (
+          roles.map((role: any) => (
+            <Card key={role.id} className="transition-shadow hover:shadow-md">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2 text-base">
+                    <Shield className="h-4 w-4" />
+                    <span>{role.name}</span>
+                  </CardTitle>
                 </div>
-              </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  {role.description || 'No description'}
+                </p>
 
-              <div className="flex items-center justify-between border-t pt-2">
-                <Button variant="outline" size="sm">
-                  Edit Role
-                </Button>
-                <Button variant="ghost" size="sm">
-                  View Users
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div>
+                  <h4 className="mb-2 text-sm font-medium">Permissions:</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {(role.permissions || []).slice(0, 5).map((p: string) => (
+                      <span
+                        key={p}
+                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700"
+                      >
+                        {p}
+                      </span>
+                    ))}
+                    {role.permissions?.length > 5 && (
+                      <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                        +{role.permissions.length - 5} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between border-t pt-2">
+                  <Button variant="outline" size="sm">
+                    Edit Role
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p className="col-span-full text-sm text-muted-foreground">
+            No roles configured yet.
+          </p>
+        )}
       </div>
     </div>
   )
@@ -178,83 +154,55 @@ export default function EmployeesPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEmployees}</div>
+            <div className="text-2xl font-bold">{totalEmployees}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.activeEmployees} active
+              {activeEmployees} active
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              New This Month
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {stats.newThisMonth}
+              {activeEmployees}
             </div>
             <p className="text-xs text-muted-foreground">
-              +{Math.round((stats.newThisMonth / stats.totalEmployees) * 100)}%
-              growth
+              {totalEmployees > 0
+                ? Math.round((activeEmployees / totalEmployees) * 100)
+                : 0}
+              % of total
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Departments</CardTitle>
+            <CardTitle className="text-sm font-medium">Roles</CardTitle>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{roles.length}</div>
+            <p className="text-xs text-muted-foreground">Configured</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Workspace</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.departments.length}</div>
-            <p className="text-xs text-muted-foreground">Across organization</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Largest Department
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.departments[0].count}
+            <div className="truncate text-2xl font-bold">
+              {currentWorkspace.name}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.departments[0].name}
-            </p>
+            <p className="text-xs text-muted-foreground">Current workspace</p>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Department Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-5">
-            {stats.departments.map(dept => (
-              <div
-                key={dept.name}
-                className="rounded-lg bg-gray-50 p-4 text-center"
-              >
-                <div className="text-2xl font-bold">{dept.count}</div>
-                <div className="text-sm font-medium">{dept.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {dept.growth !== '0'
-                    ? `${dept.growth} this month`
-                    : 'No change'}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       <Tabs
         value={activeTab}

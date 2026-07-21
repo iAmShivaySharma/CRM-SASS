@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import {
   TrendingUp,
@@ -11,6 +10,7 @@ import {
   Calendar,
   Download,
   Filter,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -26,6 +26,9 @@ import {
   CardSkeleton,
   PageHeaderSkeleton,
 } from '@/components/ui/skeleton'
+import { useAppSelector } from '@/lib/hooks'
+import { useGetDashboardAnalyticsQuery } from '@/lib/api/analyticsApi'
+import { useWorkspaceFormatting } from '@/lib/utils/workspace-formatting'
 
 const AnalyticsCharts = dynamic(
   () =>
@@ -45,22 +48,30 @@ const AnalyticsCharts = dynamic(
 )
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState('6months')
-  const [isLoading, setIsLoading] = useState(true)
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const { formatCurrency, formatPercentage } = useWorkspaceFormatting()
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 2000)
+  const { data: analyticsData, isLoading } = useGetDashboardAnalyticsQuery(
+    { workspaceId: currentWorkspace?.id || '' },
+    { skip: !currentWorkspace?.id }
+  )
 
-    return () => clearTimeout(timer)
-  }, [])
+  const data = analyticsData?.data
+
+  const formatChange = (current: number, previous: number) => {
+    if (previous === 0) return { value: '-', trend: 'up' as const }
+    const change = ((current - previous) / previous) * 100
+    return {
+      value: `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`,
+      trend: change >= 0 ? ('up' as const) : ('down' as const),
+    }
+  }
 
   if (isLoading) {
     return (
-      <div className="w-full space-y-6">
+      <div className="flex flex-col space-y-6 p-4 sm:p-6">
         <PageHeaderSkeleton />
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <StatsCardSkeleton key={i} />
           ))}
@@ -74,29 +85,62 @@ export default function AnalyticsPage() {
     )
   }
 
+  const revenueChange = data
+    ? formatChange(data.totalRevenue, data.totalRevenuePrevious)
+    : { value: '-', trend: 'up' as const }
+  const leadsChange = data
+    ? formatChange(data.totalLeads, data.totalLeadsPrevious)
+    : { value: '-', trend: 'up' as const }
+  const conversionChange = data
+    ? formatChange(data.conversionRate, data.conversionRatePrevious)
+    : { value: '-', trend: 'up' as const }
+
+  const stats = [
+    {
+      title: 'Total Revenue',
+      value: data ? formatCurrency(data.totalRevenue) : '-',
+      change: revenueChange,
+      icon: DollarSign,
+      iconColor: 'text-green-600',
+    },
+    {
+      title: 'Conversion Rate',
+      value: data ? `${data.conversionRate.toFixed(1)}%` : '-',
+      change: conversionChange,
+      icon: Target,
+      iconColor: 'text-blue-600',
+    },
+    {
+      title: 'Total Leads',
+      value: data ? data.totalLeads.toLocaleString() : '-',
+      change: leadsChange,
+      icon: Users,
+      iconColor: 'text-purple-600',
+    },
+    {
+      title: 'Avg Deal Size',
+      value:
+        data && data.totalLeads > 0
+          ? formatCurrency(data.totalRevenue / data.totalLeads)
+          : '-',
+      change: { value: '-', trend: 'up' as const },
+      icon: Calendar,
+      iconColor: 'text-orange-600',
+    },
+  ]
+
   return (
-    <div className="w-full space-y-6">
-      <div className="flex w-full flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="flex flex-col space-y-6 p-4 sm:p-6">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
             Analytics
           </h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
-            Track your sales performance and team metrics
+          <p className="text-muted-foreground">
+            Track your business performance and insights
           </p>
         </div>
-        <div className="flex flex-col items-start space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1month">Last Month</SelectItem>
-              <SelectItem value="3months">Last 3 Months</SelectItem>
-              <SelectItem value="6months">Last 6 Months</SelectItem>
-              <SelectItem value="1year">Last Year</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex items-center space-x-3">
           <Button variant="outline" size="sm">
             <Filter className="mr-2 h-4 w-4" />
             Filter
@@ -109,75 +153,33 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$108,000</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="flex items-center text-green-600">
-                <TrendingUp className="mr-1 h-3 w-3" />
-                +12.5%
-              </span>
-              from last period
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Conversion Rate
-            </CardTitle>
-            <Target className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24.8%</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="flex items-center text-green-600">
-                <TrendingUp className="mr-1 h-3 w-3" />
-                +2.1%
-              </span>
-              from last period
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Users className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,030</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="flex items-center text-green-600">
-                <TrendingUp className="mr-1 h-3 w-3" />
-                +8.2%
-              </span>
-              from last period
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Deal Size</CardTitle>
-            <Calendar className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$4,320</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="flex items-center text-red-600">
-                <TrendingDown className="mr-1 h-3 w-3" />
-                -1.2%
-              </span>
-              from last period
-            </p>
-          </CardContent>
-        </Card>
+        {stats.map(stat => (
+          <Card key={stat.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className="text-xs text-muted-foreground">
+                <span
+                  className={`flex items-center ${stat.change.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}
+                >
+                  {stat.change.value !== '-' &&
+                    (stat.change.trend === 'up' ? (
+                      <TrendingUp className="mr-1 h-3 w-3" />
+                    ) : (
+                      <TrendingDown className="mr-1 h-3 w-3" />
+                    ))}
+                  {stat.change.value}
+                </span>
+                from last period
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <AnalyticsCharts />

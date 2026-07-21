@@ -23,9 +23,16 @@ import { useAppSelector } from '@/lib/hooks'
 
 interface AssetStats {
   totalAssets: number
-  byStatus: Array<{ _id: string; count: number }>
-  totalValue: number
-  byCategory: Array<{ _id: string; count: number; totalValue: number }>
+  byStatus: {
+    available: number
+    allocated: number
+    maintenance: number
+    retired: number
+    lost: number
+    damaged: number
+  }
+  totalPortfolioValue: number
+  categoryBreakdown: Array<{ _id: string; count: number; totalValue: number }>
   upcomingMaintenance: number
   overdueReturns: number
 }
@@ -58,16 +65,12 @@ export default function AssetsPage() {
     fetchStats()
   }, [fetchStats])
 
-  const getStatusCount = (status: string) => {
-    return stats?.byStatus?.find(s => s._id === status)?.count || 0
-  }
-
-  const availableAssets = getStatusCount('available')
-  const allocatedAssets = getStatusCount('allocated')
-  const maintenanceAssets = getStatusCount('maintenance')
-  const retiredAssets = getStatusCount('retired')
+  const availableAssets = stats?.byStatus?.available || 0
+  const allocatedAssets = stats?.byStatus?.allocated || 0
+  const maintenanceAssets = stats?.byStatus?.maintenance || 0
+  const retiredAssets = stats?.byStatus?.retired || 0
   const totalAssets = stats?.totalAssets || 0
-  const totalValue = stats?.totalValue || 0
+  const totalValue = stats?.totalPortfolioValue || 0
 
   if (!currentWorkspace) {
     return (
@@ -253,7 +256,7 @@ export default function AssetsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {(stats?.byCategory || []).map(category => (
+              {(stats?.categoryBreakdown || []).map(category => (
                 <div key={category._id} className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium capitalize">
@@ -276,7 +279,8 @@ export default function AssetsPage() {
                   </div>
                 </div>
               ))}
-              {(!stats?.byCategory || stats.byCategory.length === 0) &&
+              {(!stats?.categoryBreakdown ||
+                stats.categoryBreakdown.length === 0) &&
                 !loading && (
                   <p className="text-sm text-muted-foreground">
                     No assets registered yet.

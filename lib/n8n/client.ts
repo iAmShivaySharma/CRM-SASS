@@ -190,9 +190,10 @@ export class N8nApiClient {
       const existing = await this.getWorkflow(workflowId)
       data.name = existing.name
     }
+    const { settings: _settings, ...safeData } = data
     return this.request<N8nWorkflow>(`/workflows/${workflowId}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(safeData),
     })
   }
 
@@ -412,7 +413,6 @@ export class N8nApiClient {
       name: workflow.name,
       nodes: updatedNodes,
       connections: updatedConnections,
-      settings: workflow.settings || {},
     })
 
     try {
@@ -527,12 +527,19 @@ export class N8nApiClient {
     })
   }
 
-  async testConnection(): Promise<{ success: boolean; version?: string }> {
+  async testConnection(): Promise<{
+    success: boolean
+    version?: string
+    error?: string
+  }> {
     try {
       await this.getWorkflows({ limit: 1 })
       return { success: true, version: 'v1' }
-    } catch {
-      return { success: false }
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      }
     }
   }
 

@@ -50,22 +50,14 @@ interface UserProfileProps {
   className?: string
 }
 
-// Mock user data - replace with real data from Redux store
-const mockUser = {
-  id: '1',
-  name: 'John Doe',
-  email: 'john@example.com',
-  avatar: null,
-  role: 'Owner',
-  plan: {
-    name: 'Professional',
-    type: 'pro',
-    features: ['Unlimited Leads', 'Advanced Analytics', 'Team Collaboration'],
-    usage: {
-      leads: { current: 1250, limit: 5000 },
-      storage: { current: 2.1, limit: 10 },
-      users: { current: 5, limit: 25 },
-    },
+const defaultPlan = {
+  name: 'Free',
+  type: 'free',
+  features: [] as string[],
+  usage: {
+    leads: { current: 0, limit: 0 },
+    storage: { current: 0, limit: 0 },
+    users: { current: 0, limit: 0 },
   },
 }
 
@@ -100,13 +92,13 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [logoutUser] = useLogoutMutation()
 
-  const currentUser = user
-    ? {
-        ...user,
-        avatar: null,
-        plan: mockUser.plan,
-      }
-    : mockUser
+  const currentUser = {
+    name: user?.fullName || user?.email || 'User',
+    email: user?.email || '',
+    avatar: null,
+    role: (user as any)?.role || 'Member',
+    plan: (user as any)?.plan || defaultPlan,
+  }
 
   const userName = currentUser?.name || currentUser?.email || 'User'
   const userInitials = userName

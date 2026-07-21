@@ -13,7 +13,14 @@ export interface SyncResult {
 }
 
 export class WorkflowSyncService {
-  private n8nClient = createN8nClient()
+  private _n8nClient: ReturnType<typeof createN8nClient> | null = null
+
+  private get n8nClient() {
+    if (!this._n8nClient) {
+      this._n8nClient = createN8nClient()
+    }
+    return this._n8nClient
+  }
 
   async syncAllWorkflows(): Promise<SyncResult> {
     const result: SyncResult = {

@@ -223,6 +223,46 @@ export const mongoApi = createApi({
       invalidatesTags: ['Lead'],
     }),
 
+    bulkDeleteLeads: builder.mutation<
+      { success: boolean; deletedCount: number; message: string },
+      { ids: string[]; workspaceId: string }
+    >({
+      query: ({ ids, workspaceId }) => ({
+        url: 'leads/bulk-delete',
+        method: 'POST',
+        body: { ids, workspaceId },
+      }),
+      invalidatesTags: ['Lead'],
+    }),
+
+    importLeads: builder.mutation<
+      {
+        success: boolean
+        imported: number
+        errors?: string[]
+        totalRows: number
+        skipped: number
+        message: string
+      },
+      FormData
+    >({
+      queryFn: async formData => {
+        try {
+          const res = await fetch('/api/leads/import', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+          })
+          const data = await res.json()
+          if (!res.ok) return { error: { status: res.status, data } }
+          return { data }
+        } catch (error) {
+          return { error: { status: 'FETCH_ERROR', error: String(error) } }
+        }
+      },
+      invalidatesTags: ['Lead'],
+    }),
+
     getLeadActivities: builder.query<
       { activities: LeadActivity[] },
       { leadId: string; workspaceId: string; limit?: number }
@@ -444,6 +484,8 @@ export const {
   useCreateLeadMutation,
   useUpdateLeadMutation,
   useDeleteLeadMutation,
+  useBulkDeleteLeadsMutation,
+  useImportLeadsMutation,
   useGetLeadActivitiesQuery,
   useCreateLeadActivityMutation,
   useGetRolesQuery,
