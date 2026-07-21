@@ -188,7 +188,13 @@ export const mongoApi = createApi({
         if (search) params.append('search', search)
         return `leads?${params}`
       },
-      providesTags: ['Lead'],
+      providesTags: result =>
+        result
+          ? [
+              ...result.leads.map(({ id }) => ({ type: 'Lead' as const, id })),
+              { type: 'Lead', id: 'LIST' },
+            ]
+          : [{ type: 'Lead', id: 'LIST' }],
     }),
 
     createLead: builder.mutation<

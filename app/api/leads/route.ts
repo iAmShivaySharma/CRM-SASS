@@ -17,7 +17,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
-import { cached, invalidateCache } from '@/lib/redis/cache'
+import { invalidateCache } from '@/lib/redis/cache'
 import { activityQueue, notificationQueue } from '@/lib/queue/queues'
 import { checkPermission } from '@/lib/security/check-permission'
 
@@ -102,27 +102,22 @@ export const GET = withSecurityLogging(
           query.$text = { $search: search }
         }
 
-        const cacheKey = `leads:${workspaceId}:${page}:${limit}:${status || ''}:${assignedTo || ''}:${priority || ''}:${search || ''}:${tags?.join(',') || ''}`
-
-        const { leads, total } = await cached(cacheKey, 60, async () => {
-          const [leads, total] = await Promise.all([
-            Lead.find(query)
-              .select(
-                'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt'
-              )
-              .populate('statusId', 'name color')
-              .populate('tagIds', 'name color')
-              .populate('assignedTo', 'fullName email')
-              .sort(
-                search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
-              )
-              .skip(skip)
-              .limit(limit)
-              .lean(),
-            Lead.countDocuments(query),
-          ])
-          return { leads, total }
-        })
+        const [leads, total] = await Promise.all([
+          Lead.find(query)
+            .select(
+              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt'
+            )
+            .populate('statusId', 'name color')
+            .populate('tagIds', 'name color')
+            .populate('assignedTo', 'fullName email')
+            .sort(
+              search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
+            )
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+          Lead.countDocuments(query),
+        ])
 
         logBusinessEvent('leads_listed', auth.user.id, workspaceId, {
           count: leads.length,

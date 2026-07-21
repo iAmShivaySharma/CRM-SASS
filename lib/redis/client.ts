@@ -49,6 +49,7 @@ export function getRedisClient(): Redis | null {
 }
 
 export function isRedisReady(): boolean {
+  if (!redis) getRedisClient()
   return redisReady
 }
 
