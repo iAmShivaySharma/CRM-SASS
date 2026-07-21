@@ -246,9 +246,8 @@ export const contactsApi = createApi({
       { leadId: string; workspaceId: string }
     >({
       query: ({ leadId, workspaceId }) => ({
-        url: `http://localhost:3000/api/leads/${leadId}/convert-to-contact?workspaceId=${workspaceId}`,
+        url: `/api/leads/${leadId}/convert-to-contact?workspaceId=${workspaceId}`,
         method: 'POST',
-        credentials: 'include',
       }),
       invalidatesTags: [
         { type: 'ContactsList', id: 'LIST' },

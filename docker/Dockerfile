@@ -28,6 +28,14 @@ ENV MONGODB_URI="mongodb://placeholder:27017/placeholder" \
 
 RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build:unix
 
+FROM node:18-alpine AS proddeps
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+
 FROM node:18-alpine AS runner
 
 WORKDIR /app
@@ -44,8 +52,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/server/socket-server.js ./server.js
-
-RUN npm install --no-save socket.io @socket.io/redis-adapter redis
+COPY --from=proddeps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
