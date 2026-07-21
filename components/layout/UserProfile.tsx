@@ -131,25 +131,20 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
 
   if (compact) {
     return (
-      <div className={cn('border-t border-border pt-4', className)}>
+      <div className={cn('border-t border-border pt-3', className)}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="h-auto w-full justify-center p-2 hover:bg-accent"
+              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full p-0 hover:bg-accent"
               title={`${currentUser.name} - ${currentUser?.plan.name} Plan`}
             >
-              <div className="relative">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={currentUser?.avatar || undefined} />
-                  <AvatarFallback className="text-xs font-medium">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1">
-                  {getPlanIcon(currentUser?.plan.type)}
-                </div>
-              </div>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={currentUser?.avatar || undefined} />
+                <AvatarFallback className="text-xs font-medium">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="end" className="w-64">

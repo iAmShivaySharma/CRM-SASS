@@ -369,33 +369,35 @@ export function Sidebar({
       )}
     >
       <div className="flex h-full flex-col">
-        <div className="flex h-16 shrink-0 items-center justify-between bg-gradient-to-r from-primary/10 to-primary/5 px-4 dark:from-primary/20 dark:to-primary/10">
+        <div
+          className={cn(
+            'flex shrink-0 items-center bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10',
+            collapsed
+              ? 'h-16 flex-col justify-center gap-1 px-2 py-2'
+              : 'h-16 justify-between px-4'
+          )}
+        >
           {!collapsed && (
             <div className="flex items-center space-x-3">
               <div className="rounded-lg bg-primary p-1.5 shadow-lg">
                 <Briefcase className="h-6 w-6 text-white" />
               </div>
-              <div>
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-xl font-bold text-transparent">
-                  CRM Pro
-                </span>
-              </div>
+              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-xl font-bold text-transparent">
+                CRM Pro
+              </span>
             </div>
           )}
-          {collapsed && (
-            <div className="mx-auto rounded-lg bg-primary p-1.5 shadow-lg">
-              <Briefcase className="h-6 w-6 text-white" />
-            </div>
-          )}
-          {/* Only show toggle on desktop */}
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className="hidden h-9 w-9 rounded-lg p-0 transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 lg:flex"
+            className={cn(
+              'hidden rounded-lg p-0 transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 lg:flex',
+              collapsed ? 'h-8 w-8' : 'h-9 w-9'
+            )}
           >
             {collapsed ? (
-              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              <Briefcase className="h-5 w-5 text-primary" />
             ) : (
               <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-300" />
             )}
