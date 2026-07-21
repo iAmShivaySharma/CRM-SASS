@@ -273,11 +273,28 @@ export const POST = withSecurityLogging(
           }
         }
 
+        const defaultStatus = await LeadStatus.findOne({
+          workspaceId,
+          isDefault: true,
+        }).lean()
+
+        const defaultTag = await Tag.findOne({
+          workspaceId,
+          name: 'Cold Lead',
+        }).lean()
+
         const leadData = {
           ...validationResult.data,
           workspaceId,
-          status: 'Arrived',
-          statusId: validationResult.data.status,
+          status: (defaultStatus as any)?.name || 'New',
+          statusId:
+            validationResult.data.statusId ||
+            (defaultStatus as any)?._id?.toString(),
+          tagIds: validationResult.data.tagIds?.length
+            ? validationResult.data.tagIds
+            : defaultTag
+              ? [(defaultTag as any)._id.toString()]
+              : [],
           source: finalSource,
           priority: validationResult.data.priority || 'medium',
           createdBy: auth.user.id,

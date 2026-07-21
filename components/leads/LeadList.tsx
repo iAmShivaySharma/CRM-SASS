@@ -272,7 +272,7 @@ export function LeadList() {
         'website',
         'high',
         '5000',
-        'Arrived',
+        'New',
         'Interested in premium plan',
       ],
       [

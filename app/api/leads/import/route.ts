@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { Lead, LeadStatus } from '@/lib/mongodb/client'
+import { Lead, LeadStatus, Tag } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
 import { invalidateCache } from '@/lib/redis/cache'
@@ -78,6 +78,11 @@ export async function POST(request: NextRequest) {
     )
     const defaultStatus = statuses.find((s: any) => s.isDefault)
 
+    const defaultTag = await Tag.findOne({
+      workspaceId,
+      name: 'Cold Lead',
+    }).lean()
+
     const errors: string[] = []
     const leadsToCreate: any[] = []
 
@@ -116,8 +121,11 @@ export async function POST(request: NextRequest) {
         priority: VALID_PRIORITIES.includes(priority) ? priority : 'medium',
         value: parseFloat(row.Value || row.value) || undefined,
         notes: row.Notes || row.notes || undefined,
-        statusId: statusId || undefined,
-        status: statusName || 'Arrived',
+        statusId: statusId || (defaultStatus as any)?._id?.toString(),
+        status: statusName || (defaultStatus as any)?.name || 'New',
+        tagIds: (defaultTag as any)?._id
+          ? [(defaultTag as any)._id.toString()]
+          : [],
         workspaceId,
         createdBy: auth.user.id,
       })

@@ -128,13 +128,24 @@ export async function POST(
       )
     }
 
-    // Process all leads from the webhook
+    const { LeadStatus: WebhookLeadStatus } = await import(
+      '@/lib/mongodb/client'
+    )
+    const defaultStatus = await WebhookLeadStatus.findOne({
+      workspaceId: webhook.workspaceId,
+      isDefault: true,
+    }).lean()
+
+    const defaultTag = await Tag.findOne({
+      workspaceId: webhook.workspaceId,
+      name: 'Cold Lead',
+    }).lean()
+
     const createdLeads = []
     const errors = []
 
     for (const leadData of processedData.leads) {
       try {
-        // Validate each lead
         const validationResult = webhookLeadSchema.safeParse({
           name: leadData.name,
           email: leadData.email,
@@ -153,7 +164,6 @@ export async function POST(
           continue
         }
 
-        // Create the lead
         const lead = await Lead.create({
           workspaceId: webhook.workspaceId,
           name: validationResult.data.name,
@@ -162,7 +172,11 @@ export async function POST(
           company: validationResult.data.company,
           source: validationResult.data.source || processedData.source,
           value: validationResult.data.value || 0,
-          status: 'new',
+          status: (defaultStatus as any)?.name || 'New',
+          statusId: (defaultStatus as any)?._id?.toString(),
+          tagIds: (defaultTag as any)?._id
+            ? [(defaultTag as any)._id.toString()]
+            : [],
           priority: leadData.priority || 'medium',
           customData: validationResult.data.custom_fields || {},
           createdBy: webhook.createdBy,
@@ -183,7 +197,7 @@ export async function POST(
             if (!tag) {
               tag = await Tag.create({
                 name: tagName,
-                color: '#3b82f6',
+                color: '#6b7280',
                 workspaceId: webhook.workspaceId,
                 createdBy: webhook.createdBy,
               })
