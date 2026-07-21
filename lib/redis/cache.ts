@@ -1,39 +1,41 @@
-import redis from './client'
+import redis, { getRedisClient } from './client'
 
 export async function cached<T>(
   key: string,
   ttlSeconds: number,
   fetcher: () => Promise<T>
 ): Promise<T> {
-  try {
-    const hit = await redis.get(key)
-    if (hit) {
-      return JSON.parse(hit) as T
-    }
-  } catch {}
+  if (getRedisClient()) {
+    try {
+      const hit = await redis.get(key)
+      if (hit) {
+        return JSON.parse(hit) as T
+      }
+    } catch {}
+  }
 
   const data = await fetcher()
 
-  try {
-    await redis.setex(key, ttlSeconds, JSON.stringify(data))
-  } catch {}
+  if (getRedisClient()) {
+    try {
+      await redis.setex(key, ttlSeconds, JSON.stringify(data))
+    } catch {}
+  }
 
   return data
 }
 
 export async function invalidateCache(pattern: string): Promise<void> {
+  if (!getRedisClient()) return
+
   try {
     let cursor = '0'
     do {
-      const [nextCursor, keys] = await redis.scan(
-        cursor,
-        'MATCH',
-        pattern,
-        'COUNT',
-        100
-      )
-      cursor = nextCursor
-      if (keys.length > 0) {
+      const result = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100)
+      if (!result) break
+      cursor = result[0]
+      const keys = result[1]
+      if (keys && keys.length > 0) {
         await redis.del(...keys)
       }
     } while (cursor !== '0')
@@ -41,6 +43,8 @@ export async function invalidateCache(pattern: string): Promise<void> {
 }
 
 export async function invalidateKeys(...keys: string[]): Promise<void> {
+  if (!getRedisClient()) return
+
   try {
     if (keys.length > 0) {
       await redis.del(...keys)
