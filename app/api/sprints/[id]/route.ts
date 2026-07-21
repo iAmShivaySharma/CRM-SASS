@@ -9,7 +9,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { invalidateCache } from '@/lib/redis/cache'
 
 const updateSprintSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -137,8 +136,6 @@ export const PUT = withSecurityLogging(
           { entityType: 'Sprint', sprintId: id }
         )
 
-        await invalidateCache(`sprints:${sprint.projectId}:*`)
-
         return NextResponse.json({ sprint: updatedSprint?.toJSON() })
       } catch (error) {
         log.error('Update sprint error:', error)
@@ -205,9 +202,6 @@ export const DELETE = withSecurityLogging(
           `Deleted sprint: ${sprint.name}`,
           { entityType: 'Sprint', sprintId: id, projectId: sprint.projectId }
         )
-
-        await invalidateCache(`sprints:${sprint.projectId}:*`)
-        await invalidateCache(`tasks:*`)
 
         return NextResponse.json({ success: true })
       } catch (error) {

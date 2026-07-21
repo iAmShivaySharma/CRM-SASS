@@ -2,7 +2,6 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { NotificationService } from '@/lib/services/notificationService'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { cached, invalidateCache } from '@/lib/redis/cache'
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,20 +26,15 @@ export async function GET(request: NextRequest) {
 
     await connectToMongoDB()
 
-    const result = await cached(
-      `notif:${workspaceId}:${authResult.user.id}:${limit}:${offset}:${unreadOnly}:${entityType || ''}`,
-      30,
-      async () =>
-        NotificationService.getUserNotifications(
-          workspaceId,
-          authResult.user.id,
-          {
-            limit,
-            offset,
-            unreadOnly,
-            entityType: entityType || undefined,
-          }
-        )
+    const result = await NotificationService.getUserNotifications(
+      workspaceId,
+      authResult.user.id,
+      {
+        limit,
+        offset,
+        unreadOnly,
+        entityType: entityType || undefined,
+      }
     )
 
     const notifications = result.notifications.map(notification => ({
@@ -120,8 +114,6 @@ export async function PATCH(request: NextRequest) {
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
-
-    await invalidateCache(`notif:${workspaceId}:*`)
 
     return NextResponse.json({
       success: true,

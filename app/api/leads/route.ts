@@ -17,7 +17,6 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
-import { invalidateCache } from '@/lib/redis/cache'
 import { activityQueue, notificationQueue } from '@/lib/queue/queues'
 import { checkPermission } from '@/lib/security/check-permission'
 
@@ -344,8 +343,6 @@ export const POST = withSecurityLogging(
           leadName: leadData.name,
           workspaceId,
         })
-
-        await invalidateCache(`leads:${workspaceId}:*`)
 
         return NextResponse.json(
           {

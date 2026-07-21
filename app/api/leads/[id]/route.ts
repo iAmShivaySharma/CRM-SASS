@@ -11,7 +11,6 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
-import { invalidateCache } from '@/lib/redis/cache'
 import { checkPermission } from '@/lib/security/check-permission'
 
 const updateLeadSchema = z.object({
@@ -349,8 +348,6 @@ export const PUT = withSecurityLogging(
           duration: Date.now() - startTime,
         })
 
-        await invalidateCache('leads:' + workspaceId + ':*')
-
         const leadDoc = populatedLead as any
         const transformedLead = leadDoc
           ? {
@@ -483,8 +480,6 @@ export const DELETE = withSecurityLogging(
           leadId,
           leadName: lead.name,
         })
-
-        await invalidateCache('leads:' + workspaceId + ':*')
 
         return NextResponse.json({
           success: true,

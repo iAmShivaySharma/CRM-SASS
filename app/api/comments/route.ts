@@ -15,7 +15,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { cached, invalidateCache } from '@/lib/redis/cache'
 
 const createCommentSchema = z.object({
   content: z.string().min(1).max(10000),
@@ -127,20 +126,15 @@ export const GET = withSecurityLogging(
           )
         }
 
-        const comments = await cached(
-          `comments:${entityType}:${entityId}`,
-          30,
-          async () =>
-            Comment.find({
-              entityType,
-              entityId,
-              isDeleted: false,
-            })
-              .populate('createdBy', 'fullName email avatarUrl')
-              .populate('editHistory.editedBy', 'fullName email avatarUrl')
-              .sort({ createdAt: 1 })
-              .lean()
-        )
+        const comments = await Comment.find({
+          entityType,
+          entityId,
+          isDeleted: false,
+        })
+          .populate('createdBy', 'fullName email avatarUrl')
+          .populate('editHistory.editedBy', 'fullName email avatarUrl')
+          .sort({ createdAt: 1 })
+          .lean()
 
         const formattedComments = comments.map((comment: any) => ({
           ...comment,
@@ -244,8 +238,6 @@ export const POST = withSecurityLogging(
             parentEntityId: entityId,
           }
         )
-
-        await invalidateCache(`comments:${entityType}:${entityId}`)
 
         return NextResponse.json({
           comment: comment.toJSON(),

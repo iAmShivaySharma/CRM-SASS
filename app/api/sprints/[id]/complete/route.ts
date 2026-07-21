@@ -9,7 +9,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { invalidateCache } from '@/lib/redis/cache'
 
 const completeSprintSchema = z.object({
   moveIncompleteTo: z.union([z.literal('backlog'), z.string()]),
@@ -116,9 +115,6 @@ export const POST = withSecurityLogging(
             moveTarget: moveIncompleteTo,
           }
         )
-
-        await invalidateCache(`sprints:${sprint.projectId}:*`)
-        await invalidateCache(`tasks:*`)
 
         return NextResponse.json({
           sprint: sprint.toJSON(),

@@ -9,7 +9,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { invalidateCache } from '@/lib/redis/cache'
 
 const assignTasksSchema = z.object({
   taskIds: z.array(z.string()).min(1),
@@ -81,9 +80,6 @@ export const POST = withSecurityLogging(
             action,
           }
         )
-
-        await invalidateCache(`sprints:${sprint.projectId}:*`)
-        await invalidateCache(`tasks:*`)
 
         return NextResponse.json({
           success: true,

@@ -9,7 +9,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { invalidateCache } from '@/lib/redis/cache'
 
 const updateCommentSchema = z.object({
   content: z.string().min(1).max(10000),
@@ -151,10 +150,6 @@ export const PUT = withSecurityLogging(
           }
         )
 
-        await invalidateCache(
-          `comments:${comment.entityType}:${comment.entityId}`
-        )
-
         return NextResponse.json({ comment: comment.toJSON() })
       } catch (error) {
         log.error('Update comment error:', error)
@@ -227,10 +222,6 @@ export const DELETE = withSecurityLogging(
             parentEntityType: comment.entityType,
             parentEntityId: comment.entityId,
           }
-        )
-
-        await invalidateCache(
-          `comments:${comment.entityType}:${comment.entityId}`
         )
 
         return NextResponse.json({ success: true })

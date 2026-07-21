@@ -3,7 +3,6 @@ import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Lead, LeadStatus, Tag } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
-import { invalidateCache } from '@/lib/redis/cache'
 import { checkPermission } from '@/lib/security/check-permission'
 import * as XLSX from 'xlsx'
 
@@ -135,7 +134,6 @@ export async function POST(request: NextRequest) {
     if (leadsToCreate.length > 0) {
       const result = await Lead.insertMany(leadsToCreate, { ordered: false })
       insertedCount = result.length
-      await invalidateCache(`leads:${workspaceId}:*`)
     }
 
     return NextResponse.json({

@@ -9,7 +9,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { cached, invalidateCache } from '@/lib/redis/cache'
 import { checkPermission } from '@/lib/security/check-permission'
 
 const createSprintSchema = z.object({
@@ -84,47 +83,37 @@ export const GET = withSecurityLogging(
         const query: any = { projectId }
         if (status) query.status = status
 
-        const sprints = await cached(
-          `sprints:${projectId}:${status || 'all'}`,
-          60,
-          async () => {
-            const sprintDocs = await Sprint.find(query)
-              .populate('createdBy', 'fullName email avatarUrl')
-              .sort({ startDate: -1 })
-              .lean()
+        const sprintDocs = await Sprint.find(query)
+          .populate('createdBy', 'fullName email avatarUrl')
+          .sort({ startDate: -1 })
+          .lean()
 
-            // Get task counts for each sprint
-            const sprintIds = sprintDocs.map((s: any) => s._id.toString())
-            const taskCounts = await Task.aggregate([
-              { $match: { sprintId: { $in: sprintIds } } },
-              {
-                $group: {
-                  _id: '$sprintId',
-                  total: { $sum: 1 },
-                  completed: {
-                    $sum: { $cond: [{ $eq: ['$completed', true] }, 1, 0] },
-                  },
-                },
+        const sprintIds = sprintDocs.map((s: any) => s._id.toString())
+        const taskCounts = await Task.aggregate([
+          { $match: { sprintId: { $in: sprintIds } } },
+          {
+            $group: {
+              _id: '$sprintId',
+              total: { $sum: 1 },
+              completed: {
+                $sum: { $cond: [{ $eq: ['$completed', true] }, 1, 0] },
               },
-            ])
+            },
+          },
+        ])
 
-            const countMap: Record<
-              string,
-              { total: number; completed: number }
-            > = {}
-            taskCounts.forEach((tc: any) => {
-              countMap[tc._id] = { total: tc.total, completed: tc.completed }
-            })
+        const countMap: Record<string, { total: number; completed: number }> =
+          {}
+        taskCounts.forEach((tc: any) => {
+          countMap[tc._id] = { total: tc.total, completed: tc.completed }
+        })
 
-            return sprintDocs.map((sprint: any) => ({
-              ...sprint,
-              id: sprint._id,
-              taskCount: countMap[sprint._id.toString()]?.total || 0,
-              completedTaskCount:
-                countMap[sprint._id.toString()]?.completed || 0,
-            }))
-          }
-        )
+        const sprints = sprintDocs.map((sprint: any) => ({
+          ...sprint,
+          id: sprint._id,
+          taskCount: countMap[sprint._id.toString()]?.total || 0,
+          completedTaskCount: countMap[sprint._id.toString()]?.completed || 0,
+        }))
 
         return NextResponse.json({ sprints })
       } catch (error) {
@@ -226,8 +215,6 @@ export const POST = withSecurityLogging(
             projectId,
           }
         )
-
-        await invalidateCache(`sprints:${projectId}:*`)
 
         return NextResponse.json({
           sprint: {

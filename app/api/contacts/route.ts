@@ -10,7 +10,6 @@ import {
   logBusinessEvent,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { cached, invalidateCache } from '@/lib/redis/cache'
 import { activityQueue } from '@/lib/queue/queues'
 import { checkPermission } from '@/lib/security/check-permission'
 
@@ -130,28 +129,23 @@ export const GET = withSecurityLogging(
 
         const skip = (page - 1) * limit
 
-        const [contacts, total] = await cached(
-          `contacts:${workspaceId}:${page}:${limit}:${status || ''}:${search || ''}:${category || ''}:${assignedTo || ''}:${priority || ''}`,
-          60,
-          async () =>
-            Promise.all([
-              Contact.find(query)
-                .select(
-                  'name email phone company position status priority category assignedTo accountManager tagIds createdBy totalRevenue createdAt'
-                )
-                .populate('tagIds', 'name color')
-                .populate('assignedTo', 'fullName email')
-                .populate('accountManager', 'fullName email')
-                .populate('createdBy', 'fullName email')
-                .sort(
-                  search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
-                )
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-              Contact.countDocuments(query),
-            ])
-        )
+        const [contacts, total] = await Promise.all([
+          Contact.find(query)
+            .select(
+              'name email phone company position status priority category assignedTo accountManager tagIds createdBy totalRevenue createdAt'
+            )
+            .populate('tagIds', 'name color')
+            .populate('assignedTo', 'fullName email')
+            .populate('accountManager', 'fullName email')
+            .populate('createdBy', 'fullName email')
+            .sort(
+              search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
+            )
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+          Contact.countDocuments(query),
+        ])
 
         logBusinessEvent('contacts_listed', auth.user.id, workspaceId, {
           count: contacts.length,
@@ -282,8 +276,6 @@ export const POST = withSecurityLogging(
           contactName: contactData.name,
           workspaceId,
         })
-
-        await invalidateCache(`contacts:${workspaceId}:*`)
 
         return NextResponse.json(
           {

@@ -9,7 +9,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { cached, invalidateCache } from '@/lib/redis/cache'
 import { checkPermission } from '@/lib/security/check-permission'
 
 const createTaskSchema = z.object({
@@ -151,15 +150,10 @@ export const GET = withSecurityLogging(
           query.$text = { $search: search }
         }
 
-        const tasks = await cached(
-          `tasks:${projectId || workspaceId}:${status || ''}:${assigneeId || ''}:${search || ''}`,
-          60,
-          async () =>
-            Task.find(query)
-              .populate('assigneeId', 'fullName email avatarUrl')
-              .sort({ order: 1, createdAt: -1 })
-              .lean()
-        )
+        const tasks = await Task.find(query)
+          .populate('assigneeId', 'fullName email avatarUrl')
+          .sort({ order: 1, createdAt: -1 })
+          .lean()
 
         const formattedTasks = tasks.map(task => ({
           ...task,
@@ -282,8 +276,6 @@ export const POST = withSecurityLogging(
             projectId: validationResult.data.projectId,
           }
         )
-
-        await invalidateCache(`tasks:*`)
 
         return NextResponse.json({
           task: {

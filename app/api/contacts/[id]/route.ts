@@ -10,7 +10,6 @@ import {
   logBusinessEvent,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { invalidateCache } from '@/lib/redis/cache'
 import { checkPermission } from '@/lib/security/check-permission'
 
 const updateContactSchema = z.object({
@@ -287,8 +286,6 @@ export const PUT = withSecurityLogging(
           duration: Date.now() - startTime,
         })
 
-        await invalidateCache('contacts:' + workspaceId + ':*')
-
         return NextResponse.json({
           success: true,
           message: 'Contact updated successfully',
@@ -374,8 +371,6 @@ export const DELETE = withSecurityLogging(
           contactName: contact.name,
           duration: Date.now() - startTime,
         })
-
-        await invalidateCache('contacts:' + workspaceId + ':*')
 
         return NextResponse.json({
           success: true,

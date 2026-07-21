@@ -3,7 +3,6 @@ import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Lead, WorkspaceMember } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
-import { invalidateCache } from '@/lib/redis/cache'
 import { checkPermission } from '@/lib/security/check-permission'
 
 export async function POST(request: NextRequest) {
@@ -46,8 +45,6 @@ export async function POST(request: NextRequest) {
       _id: { $in: ids },
       workspaceId,
     })
-
-    await invalidateCache(`leads:${workspaceId}:*`)
 
     return NextResponse.json({
       success: true,

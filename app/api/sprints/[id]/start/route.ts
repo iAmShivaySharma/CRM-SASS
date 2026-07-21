@@ -8,7 +8,6 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
-import { invalidateCache } from '@/lib/redis/cache'
 
 export const POST = withSecurityLogging(
   withLogging(
@@ -69,8 +68,6 @@ export const POST = withSecurityLogging(
           `Started sprint: ${sprint.name}`,
           { entityType: 'Sprint', sprintId: id, projectId: sprint.projectId }
         )
-
-        await invalidateCache(`sprints:${sprint.projectId}:*`)
 
         return NextResponse.json({ sprint: sprint.toJSON() })
       } catch (error) {
