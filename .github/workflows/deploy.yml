@@ -103,6 +103,17 @@ jobs:
           ENV=${{ needs.resolve.outputs.environment }}
           kubectl create namespace crm-saas-${ENV} --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Recreate deployment if selector labels changed
+        run: |
+          ENV=${{ needs.resolve.outputs.environment }}
+          SELECTOR=$(kubectl -n crm-saas-${ENV} get deployment ${ENV}-crm-app -o jsonpath='{.spec.selector.matchLabels}' 2>/dev/null || echo "")
+          if echo "$SELECTOR" | grep -q "app.kubernetes.io/managed-by"; then
+            echo "Old commonLabels detected in selector, deleting deployment for migration..."
+            kubectl -n crm-saas-${ENV} delete deployment ${ENV}-crm-app
+          else
+            echo "Selector is clean, skipping"
+          fi
+
       - name: Deploy to GKE
         run: |
           ENV=${{ needs.resolve.outputs.environment }}
