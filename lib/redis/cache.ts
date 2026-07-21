@@ -1,11 +1,11 @@
-import redis, { getRedisClient } from './client'
+import redis, { isRedisReady } from './client'
 
 export async function cached<T>(
   key: string,
   ttlSeconds: number,
   fetcher: () => Promise<T>
 ): Promise<T> {
-  if (getRedisClient()) {
+  if (isRedisReady()) {
     try {
       const hit = await redis.get(key)
       if (hit) {
@@ -16,7 +16,7 @@ export async function cached<T>(
 
   const data = await fetcher()
 
-  if (getRedisClient()) {
+  if (isRedisReady()) {
     try {
       await redis.setex(key, ttlSeconds, JSON.stringify(data))
     } catch {}
@@ -26,7 +26,7 @@ export async function cached<T>(
 }
 
 export async function invalidateCache(pattern: string): Promise<void> {
-  if (!getRedisClient()) return
+  if (!isRedisReady()) return
 
   try {
     let cursor = '0'
@@ -43,7 +43,7 @@ export async function invalidateCache(pattern: string): Promise<void> {
 }
 
 export async function invalidateKeys(...keys: string[]): Promise<void> {
-  if (!getRedisClient()) return
+  if (!isRedisReady()) return
 
   try {
     if (keys.length > 0) {

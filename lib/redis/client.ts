@@ -2,7 +2,7 @@ import Redis from 'ioredis'
 import { log } from '@/lib/logging/logger'
 
 let redis: Redis | null = null
-let connectionAttempted = false
+let redisReady = false
 
 export function getRedisClient(): Redis | null {
   if (!process.env.REDIS_URL) {
@@ -11,12 +11,13 @@ export function getRedisClient(): Redis | null {
 
   if (!redis) {
     redis = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      connectTimeout: 10000,
-      commandTimeout: 5000,
+      maxRetriesPerRequest: 1,
+      connectTimeout: 5000,
+      commandTimeout: 3000,
+      lazyConnect: true,
       retryStrategy(times) {
-        if (times > 10) return null
-        return Math.min(times * 200, 3000)
+        if (times > 5) return null
+        return Math.min(times * 500, 3000)
       },
       enableReadyCheck: true,
       reconnectOnError(err) {
@@ -26,19 +27,29 @@ export function getRedisClient(): Redis | null {
     })
 
     redis.on('error', err => {
-      if (!connectionAttempted) {
-        log.error('Redis connection error:', err)
-        connectionAttempted = true
-      }
+      redisReady = false
+      log.error('Redis error:', { message: err.message })
     })
 
-    redis.on('connect', () => {
+    redis.on('ready', () => {
+      redisReady = true
       log.info('Redis connected successfully')
-      connectionAttempted = true
+    })
+
+    redis.on('close', () => {
+      redisReady = false
+    })
+
+    redis.connect().catch(err => {
+      log.error('Redis initial connection failed:', { message: err.message })
     })
   }
 
   return redis
+}
+
+export function isRedisReady(): boolean {
+  return redisReady
 }
 
 const lazyRedis = new Proxy({} as Redis, {
