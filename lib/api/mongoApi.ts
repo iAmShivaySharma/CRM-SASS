@@ -174,17 +174,17 @@ export const mongoApi = createApi({
         workspaceId: string
         page?: number
         limit?: number
-        status?: string
+        statusId?: string
         search?: string
       }
     >({
-      query: ({ workspaceId, page = 1, limit = 20, status, search }) => {
+      query: ({ workspaceId, page = 1, limit = 20, statusId, search }) => {
         const params = new URLSearchParams({
           workspaceId,
           page: page.toString(),
           limit: limit.toString(),
         })
-        if (status) params.append('status', status)
+        if (statusId) params.append('status', statusId)
         if (search) params.append('search', search)
         return `leads?${params}`
       },

@@ -11,6 +11,8 @@ import {
   Download,
   Upload,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -73,6 +75,7 @@ import { LeadForm } from './LeadForm'
 export function LeadList() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState<any>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
@@ -80,19 +83,23 @@ export function LeadList() {
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const pageSize = 20
 
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
   const {
     data: leadsData,
     isLoading,
+    isFetching,
     error,
     refetch,
   } = useGetLeadsQuery(
     {
       workspaceId: currentWorkspace?.id || '',
-      search: searchTerm,
-      status: statusFilter !== 'all' ? statusFilter : undefined,
+      page: currentPage,
+      limit: pageSize,
+      search: searchTerm || undefined,
+      statusId: statusFilter !== 'all' ? statusFilter : undefined,
     },
     { skip: !currentWorkspace?.id }
   )
@@ -107,6 +114,7 @@ export function LeadList() {
   const [convertLeadToContact] = useConvertLeadToContactMutation()
 
   const leads = leadsData?.leads || []
+  const pagination = leadsData?.pagination
   const leadStatuses = statusesData?.statuses || []
 
   const handleDelete = async (id: string) => {
@@ -153,7 +161,7 @@ export function LeadList() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(filteredLeads.map(l => l.id)))
+      setSelectedIds(new Set(leads.map(l => l.id)))
     } else {
       setSelectedIds(new Set())
     }
@@ -242,19 +250,7 @@ export function LeadList() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  const filteredLeads = leads.filter(lead => {
-    if (!searchTerm) return true
-    return (
-      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lead.email &&
-        lead.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (lead.company &&
-        lead.company.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-  })
-
-  const allSelected =
-    filteredLeads.length > 0 && selectedIds.size === filteredLeads.length
+  const allSelected = leads.length > 0 && selectedIds.size === leads.length
 
   if (isLoading) {
     return (
@@ -388,18 +384,29 @@ export function LeadList() {
       <Card className="w-full">
         <CardHeader>
           <div className="flex w-full flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <CardTitle>All Leads ({filteredLeads.length})</CardTitle>
+            <CardTitle>
+              All Leads ({pagination?.total ?? leads.length})
+            </CardTitle>
             <div className="flex flex-col items-start space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Search leads..."
                   value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
+                  onChange={e => {
+                    setSearchTerm(e.target.value)
+                    setCurrentPage(1)
+                  }}
                   className="w-full pl-10"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select
+                value={statusFilter}
+                onValueChange={val => {
+                  setStatusFilter(val)
+                  setCurrentPage(1)
+                }}
+              >
                 <SelectTrigger className="w-full sm:w-48">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -432,7 +439,7 @@ export function LeadList() {
           </div>
         </CardHeader>
         <CardContent>
-          {filteredLeads.length === 0 ? (
+          {leads.length === 0 ? (
             <div className="py-8 text-center">
               <p className="text-gray-500">
                 No leads found. Create your first lead to get started.
@@ -460,7 +467,7 @@ export function LeadList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLeads.map(lead => (
+                {leads.map(lead => (
                   <TableRow
                     key={lead.id}
                     className={
@@ -583,6 +590,39 @@ export function LeadList() {
                 ))}
               </TableBody>
             </Table>
+          )}
+
+          {pagination && pagination.pages > 1 && (
+            <div className="flex items-center justify-between border-t pt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * pageSize + 1}-
+                {Math.min(currentPage * pageSize, pagination.total)} of{' '}
+                {pagination.total} leads
+              </p>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  disabled={!pagination.hasPrev || isFetching}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <span className="text-sm">
+                  Page {pagination.page} of {pagination.pages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  disabled={!pagination.hasNext || isFetching}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
