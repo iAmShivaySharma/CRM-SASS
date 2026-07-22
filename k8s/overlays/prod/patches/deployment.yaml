@@ -3,12 +3,12 @@ kind: Deployment
 metadata:
   name: crm-app
 spec:
-  replicas: 3
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 1
+      maxUnavailable: 0
   template:
     spec:
       containers:
@@ -16,8 +16,8 @@ spec:
           image: asia-south1-docker.pkg.dev/project-9d6eea74-2241-463d-879/crm-saas-prod/crm-saas-app:latest
           resources:
             requests:
-              cpu: 500m
-              memory: 1Gi
+              cpu: 250m
+              memory: 512Mi
             limits:
-              cpu: "2"
-              memory: 2Gi
+              cpu: "1"
+              memory: 1Gi
