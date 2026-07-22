@@ -18,11 +18,7 @@ async function getGCSBucket() {
 }
 
 export async function initializeBucketGCS(): Promise<void> {
-  const bucket = await getGCSBucket()
-  const [exists] = await bucket.exists()
-  if (!exists) {
-    await bucket.create()
-  }
+  await getGCSBucket()
 }
 
 export async function uploadFileGCS(

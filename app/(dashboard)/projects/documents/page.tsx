@@ -210,8 +210,23 @@ export default function ProjectDocumentsPage() {
 
   const handleShareDocument = (doc: any) => {
     const shareUrl = `${window.location.origin}/shared/document/${doc.id}`
-    copyToClipboard(shareUrl)
-    toast.success('Share link copied to clipboard!')
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(shareUrl).then(
+          () => toast.success('Share link copied to clipboard!'),
+          () => {
+            copyToClipboard(shareUrl)
+            toast.success('Share link copied to clipboard!')
+          }
+        )
+      } else {
+        copyToClipboard(shareUrl)
+        toast.success('Share link copied to clipboard!')
+      }
+    } catch {
+      copyToClipboard(shareUrl)
+      toast.success('Share link copied to clipboard!')
+    }
   }
 
   const filteredDocuments = documents.filter(doc => {

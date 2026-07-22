@@ -1,20 +1,20 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppDispatch } from '@/lib/hooks'
 import { loginSuccess, logout } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 
 export function AuthInitializer({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch()
+  const [isVerified, setIsVerified] = useState(false)
 
   useEffect(() => {
-    // Initialize authentication state from server
     const initializeAuth = async () => {
       try {
         const response = await fetch('/api/auth/verify', {
           method: 'POST',
-          credentials: 'include', // Include cookies
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -24,7 +24,6 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
           const data = await response.json()
 
           if (data.valid && data.user) {
-            // Restore user session in Redux (token is in HTTP-only cookie)
             dispatch(
               loginSuccess({
                 user: {
@@ -40,7 +39,6 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
               })
             )
 
-            // Restore workspace if available
             if (data.workspace) {
               dispatch(
                 setCurrentWorkspace({
@@ -62,23 +60,53 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
             }
           } else {
             dispatch(logout())
+            const pathname = window.location.pathname
+            const isPublicPage =
+              pathname === '/login' ||
+              pathname === '/signup' ||
+              pathname.startsWith('/shared') ||
+              pathname.startsWith('/blog') ||
+              pathname === '/'
+            if (!isPublicPage) {
+              window.location.href = `/login?redirect=${encodeURIComponent(pathname)}`
+              return
+            }
           }
         } else {
           dispatch(logout())
+          const pathname = window.location.pathname
+          const isPublicPage =
+            pathname === '/login' ||
+            pathname === '/signup' ||
+            pathname.startsWith('/shared') ||
+            pathname.startsWith('/blog') ||
+            pathname === '/'
+          if (!isPublicPage) {
+            window.location.href = `/login?redirect=${encodeURIComponent(pathname)}`
+            return
+          }
         }
       } catch (error) {
-        console.error('[AUTH] Error initializing auth:', error)
         dispatch(logout())
       }
+
+      setIsVerified(true)
     }
 
     initializeAuth()
 
-    // Clean up OAuth temp cookie if present
     if (document.cookie.includes('oauth_user_data')) {
       document.cookie = 'oauth_user_data=; path=/; max-age=0'
     }
   }, [dispatch])
+
+  if (!isVerified) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    )
+  }
 
   return <>{children}</>
 }

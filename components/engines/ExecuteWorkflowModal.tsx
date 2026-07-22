@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import {
   Play,
   Loader2,
-  DollarSign,
   Clock,
   AlertCircle,
   CheckCircle,
@@ -34,11 +33,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  useExecuteWorkflowMutation,
-  useGetApiKeysQuery,
-} from '@/lib/api/enginesApi'
-import { ApiKeySelector } from './ApiKeySelector'
+import { useExecuteWorkflowMutation } from '@/lib/api/enginesApi'
 import { ExecutionOutput } from './ExecutionOutput'
 
 interface WorkflowProp {
@@ -69,11 +64,8 @@ export function ExecuteWorkflowModal({
   const workflowId = workflow.id || workflow._id || workflow.n8nWorkflowId || ''
 
   const [formData, setFormData] = useState<Record<string, any>>({})
-  const [selectedApiKey, setSelectedApiKey] = useState<string>('')
   const [emailResults, setEmailResults] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
-
-  const { data: apiKeysData } = useGetApiKeysQuery()
   const [
     executeWorkflow,
     {
@@ -108,59 +100,17 @@ export function ExecuteWorkflowModal({
     return () => clearInterval(interval)
   }, [isExecuting])
 
-  const customerKeys = apiKeysData?.data || []
-  const allApiKeys = [
-    ...customerKeys.map(key => ({
-      id: key._id,
-      type: 'customer' as const,
-      name: key.keyName,
-      provider: key.provider,
-      isDefault: key.isDefault,
-      lastUsed: key.lastUsedAt ? new Date(key.lastUsedAt) : undefined,
-      usageThisMonth: {
-        executions: key.totalUsage.executions,
-        cost: 0,
-      },
-    })),
-    {
-      id: 'platform',
-      type: 'platform' as const,
-      name: 'Platform Key',
-      provider: 'OpenRouter',
-      cost: workflow.estimatedCost,
-    },
-  ]
-
-  // Set default selected key
-  React.useEffect(() => {
-    if (allApiKeys.length > 0 && !selectedApiKey) {
-      const defaultKey =
-        allApiKeys.find(key => 'isDefault' in key && key.isDefault) ||
-        allApiKeys[0]
-      setSelectedApiKey(defaultKey.id)
-    }
-  }, [allApiKeys, selectedApiKey])
-
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const getExecutionCost = () => {
-    const selectedKey = allApiKeys.find(key => key.id === selectedApiKey)
-    return selectedKey?.type === 'customer' ? 0 : workflow.estimatedCost
-  }
-
   const handleExecute = async () => {
-    if (!selectedApiKey || !workflowId) return
-
-    const selectedKey = allApiKeys.find(key => key.id === selectedApiKey)
-    if (!selectedKey) return
+    if (!workflowId) return
 
     const payload = {
       workflowId,
       inputData: formData,
-      apiKeyType: selectedKey.type,
-      apiKeyId: selectedKey.type === 'customer' ? selectedKey.id : undefined,
+      apiKeyType: 'platform' as const,
       emailResults,
     }
 
@@ -478,20 +428,6 @@ export function ExecuteWorkflowModal({
             </Alert>
           )}
 
-          {/* API Key Selection */}
-          <ApiKeySelector
-            workflowCost={workflow.estimatedCost}
-            availableKeys={allApiKeys}
-            selectedKeyId={selectedApiKey}
-            onKeySelect={setSelectedApiKey}
-            onAddNewKey={() => {
-              onClose()
-              router.push('/engines/api-keys')
-            }}
-          />
-
-          <Separator />
-
           {/* Workflow Parameters */}
           <div className="space-y-4">
             {Object.keys(workflow.inputSchema || {}).length > 0 && (
@@ -544,18 +480,9 @@ export function ExecuteWorkflowModal({
             <h4 className="font-medium">Execution Summary</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="flex items-center space-x-2">
-                <DollarSign className="h-4 w-4 text-green-600" />
-                <span>Cost: ${getExecutionCost().toFixed(3)}</span>
-              </div>
-              <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4 text-blue-600" />
                 <span>Est. Time: {workflow.avgExecutionTime}s</span>
               </div>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {getExecutionCost() === 0
-                ? 'Execution is free using your API key'
-                : 'You will be charged for this execution'}
             </div>
           </div>
 
@@ -566,7 +493,7 @@ export function ExecuteWorkflowModal({
             </Button>
             <Button
               onClick={handleExecute}
-              disabled={isExecuting || !selectedApiKey || !workflowId}
+              disabled={isExecuting || !workflowId}
               className="bg-gradient-to-r from-primary to-primary/80"
             >
               {isExecuting ? (

@@ -12,6 +12,19 @@ const PROTECTED_ROUTES = [
   '/analytics',
   '/webhooks',
   '/blogs',
+  '/projects',
+  '/contacts',
+  '/engines',
+  '/profile',
+  '/chat',
+  '/email',
+  '/attendance',
+  '/assets',
+  '/employees',
+  '/hr',
+  '/leaves',
+  '/notifications',
+  '/plans',
 ]
 
 const PUBLIC_ROUTES = [

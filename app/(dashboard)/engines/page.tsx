@@ -20,7 +20,6 @@ import { Badge } from '@/components/ui/badge'
 import { WorkflowCard } from '@/components/engines/WorkflowCard'
 import { WorkflowFilters } from '@/components/engines/WorkflowFilters'
 import { ExecuteWorkflowModal } from '@/components/engines/ExecuteWorkflowModal'
-import { ApiKeyManagementButton } from '@/components/engines/ApiKeyManagementButton'
 import {
   PendingInputsModal,
   type PendingInput,
@@ -132,7 +131,6 @@ export default function EnginesPage() {
               )}
             </Button>
           )}
-          <ApiKeyManagementButton />
           <Button
             variant="outline"
             onClick={() => router.push('/engines/executions')}
