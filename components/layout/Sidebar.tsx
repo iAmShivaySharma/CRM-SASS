@@ -196,13 +196,13 @@ const navigation = [
   },
 
   { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
-  {
-    name: 'Analytics',
-    href: '/analytics',
-    icon: BarChart3,
-    category: 'main',
-    permission: Permission.ANALYTICS_VIEW,
-  },
+  // {
+  //   name: 'Analytics',
+  //   href: '/analytics',
+  //   icon: BarChart3,
+  //   category: 'main',
+  //   permission: Permission.ANALYTICS_VIEW,
+  // },
   {
     name: 'Roles',
     href: '/roles',

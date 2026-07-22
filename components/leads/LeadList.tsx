@@ -7,6 +7,9 @@ import {
   MoreHorizontal,
   Trash2,
   Eye,
+  Mail,
+  MessageCircle,
+  Phone,
   UserPlus,
   Download,
   Upload,
@@ -612,35 +615,84 @@ export function LeadList() {
                       {new Date(lead.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
+                      <div className="flex items-center justify-end space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          title="View"
+                          onClick={() => handleViewDetails(lead)}
+                        >
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                        {lead.email && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            title={`Email ${lead.email}`}
+                            onClick={() =>
+                              window.open(`mailto:${lead.email}`, '_blank')
+                            }
+                          >
+                            <Mail className="h-4 w-4 text-muted-foreground" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleViewDetails(lead)}
+                        )}
+                        {lead.phone && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            title={`Call ${lead.phone}`}
+                            onClick={() =>
+                              window.open(`tel:${lead.phone}`, '_blank')
+                            }
                           >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View & Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleConvertToContact(lead)}
-                            className="text-green-600"
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        )}
+                        {/* {lead.phone && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            title={`WhatsApp ${lead.phone}`}
+                            onClick={() => {
+                              const num = lead.phone.replace(/[^0-9]/g, '')
+                              window.open(`https://wa.me/${num}`, '_blank')
+                            }}
                           >
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Convert to Contact
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => handleDelete(lead.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        )} */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleConvertToContact(lead)}
+                              className="text-green-600"
+                            >
+                              <UserPlus className="mr-2 h-4 w-4" />
+                              Convert to Contact
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDelete(lead.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
