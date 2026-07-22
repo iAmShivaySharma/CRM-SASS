@@ -8,6 +8,7 @@ import {
   Phone,
   Building,
   MapPin,
+  Loader2,
   Calendar,
   DollarSign,
   User,
@@ -76,7 +77,10 @@ export function ContactList({
     setViewingContact(contact)
   }
 
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const handleDelete = async (contact: Contact) => {
+    setIsDeleting(true)
     try {
       await deleteContact({ id: contact._id, workspaceId }).unwrap()
       toast.success('Contact deleted successfully')
@@ -84,6 +88,8 @@ export function ContactList({
     } catch (error) {
       console.error('Failed to delete contact:', error)
       toast.error('Failed to delete contact')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -391,8 +397,10 @@ export function ContactList({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deletingContact && handleDelete(deletingContact)}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

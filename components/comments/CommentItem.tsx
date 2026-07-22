@@ -1,7 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Trash2, History, MoreHorizontal, Reply } from 'lucide-react'
+import {
+  Pencil,
+  Trash2,
+  History,
+  MoreHorizontal,
+  Reply,
+  Loader2,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -59,7 +66,10 @@ export function CommentItem({
     }
   }
 
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const handleDelete = async () => {
+    setIsDeleting(true)
     try {
       await deleteComment({
         id: comment.id,
@@ -69,6 +79,8 @@ export function CommentItem({
       toast.success('Comment deleted')
     } catch {
       toast.error('Failed to delete comment')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -207,8 +219,10 @@ export function CommentItem({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -8,6 +8,7 @@ import {
   Edit,
   Trash2,
   Copy,
+  Loader2,
   ExternalLink,
   Activity,
   Clock,
@@ -73,9 +74,11 @@ export function WebhookList({
 
   const webhooks = webhooksData?.webhooks || []
 
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const handleDeleteWebhook = async () => {
     if (!webhookToDelete) return
-
+    setIsDeleting(true)
     try {
       await deleteWebhook(webhookToDelete.id).unwrap()
       toast.success('Webhook deleted successfully')
@@ -83,6 +86,8 @@ export function WebhookList({
       setWebhookToDelete(null)
     } catch (error) {
       toast.error('Failed to delete webhook')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -327,8 +332,10 @@ export function WebhookList({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteWebhook}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

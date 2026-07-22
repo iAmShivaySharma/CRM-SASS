@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Tag } from 'lucide-react'
+import { Plus, Edit, Trash2, Tag, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -84,15 +84,19 @@ export function TagManager() {
     setIsCreateOpen(true)
   }
 
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
   const handleDelete = async (id: string) => {
     if (!currentWorkspace?.id) return
-
+    setDeletingId(id)
     try {
       await deleteTag({ id, workspaceId: currentWorkspace.id }).unwrap()
       toast.success('Tag deleted successfully')
     } catch (error) {
       console.error('Error deleting tag:', error)
       toast.error('Failed to delete tag')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -222,9 +226,14 @@ export function TagManager() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(tag.id)}
+                    disabled={deletingId === tag.id}
                     className="text-red-600 hover:text-red-700"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    {deletingId === tag.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>

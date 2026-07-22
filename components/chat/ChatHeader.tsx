@@ -8,6 +8,7 @@ import {
   Lock,
   Users,
   MoreVertical,
+  Loader2,
   UserPlus,
   Settings,
   Archive,
@@ -108,9 +109,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     }
   }
 
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const handleDelete = async () => {
     if (!workspace.currentWorkspace?.id) return
-
+    setIsDeleting(true)
     try {
       await deleteChatRoom({
         id: chatRoom.id,
@@ -119,6 +122,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       setDeleteDialogOpen(false)
     } catch (error) {
       console.error('Failed to delete chat room:', error)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -335,8 +340,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

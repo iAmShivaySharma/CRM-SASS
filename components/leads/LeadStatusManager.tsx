@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Circle } from 'lucide-react'
+import { Plus, Edit, Trash2, Circle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -98,15 +98,19 @@ export function LeadStatusManager() {
     setIsCreateOpen(true)
   }
 
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
   const handleDelete = async (id: string) => {
     if (!currentWorkspace?.id) return
-
+    setDeletingId(id)
     try {
       await deleteLeadStatus({ id, workspaceId: currentWorkspace.id }).unwrap()
       toast.success('Lead status deleted successfully')
     } catch (error) {
       console.error('Error deleting lead status:', error)
       toast.error('Failed to delete lead status')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -239,9 +243,14 @@ export function LeadStatusManager() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(status.id)}
+                      disabled={deletingId === status.id}
                       className="text-red-600 hover:text-red-700"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {deletingId === status.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   )}
                 </div>
