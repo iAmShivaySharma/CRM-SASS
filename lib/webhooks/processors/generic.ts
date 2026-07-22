@@ -137,11 +137,6 @@ export class GenericProcessor implements WebhookProcessor {
         'details',
         'additional_info',
         'remarks',
-        'scorereasons',
-        'score_reasons',
-        'niche',
-        'requirement',
-        'interest',
       ],
       value: [
         'value',
@@ -160,7 +155,6 @@ export class GenericProcessor implements WebhookProcessor {
         'channel',
         'medium',
         'campaign',
-        'industry',
       ],
     }
   }
