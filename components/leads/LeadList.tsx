@@ -625,7 +625,7 @@ export function LeadList() {
                         >
                           <Eye className="h-4 w-4 text-muted-foreground" />
                         </Button>
-                        {lead.email && (
+                        {/* {lead.email && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -651,7 +651,7 @@ export function LeadList() {
                             <Phone className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         )}
-                        {/* {lead.phone && (
+                        {lead.phone && (
                           <Button
                             variant="ghost"
                             size="sm"

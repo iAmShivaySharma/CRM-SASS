@@ -91,13 +91,11 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
   const handleLogout = async () => {
     try {
       await logoutUser().unwrap()
-      dispatch(logout())
-      router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
-      dispatch(logout())
-      router.push('/login')
     }
+    dispatch(logout())
+    window.location.href = '/login'
   }
 
   const onCreateWorkspace = async (data: WorkspaceFormData) => {
