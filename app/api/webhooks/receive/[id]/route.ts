@@ -40,8 +40,15 @@ export async function POST(
     let rawBody: string = ''
 
     try {
+      const contentType =
+        request.headers.get('content-type')?.toLowerCase() || ''
       rawBody = await request.text()
-      body = rawBody ? JSON.parse(rawBody) : {}
+
+      if (contentType.includes('application/x-www-form-urlencoded')) {
+        body = Object.fromEntries(new URLSearchParams(rawBody))
+      } else {
+        body = rawBody ? JSON.parse(rawBody) : {}
+      }
     } catch (error) {
       // Log the failed request
       await WebhookLog.create({
