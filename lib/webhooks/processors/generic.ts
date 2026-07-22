@@ -94,6 +94,9 @@ export class GenericProcessor implements WebhookProcessor {
         'last_name',
         'contact_name',
         'lead_name',
+        'contactname',
+        'person',
+        'personname',
       ],
       email: [
         'email',
@@ -102,6 +105,8 @@ export class GenericProcessor implements WebhookProcessor {
         'mail',
         'e_mail',
         'contact_email',
+        'workemail',
+        'personalemail',
       ],
       phone: [
         'phone',
@@ -111,6 +116,8 @@ export class GenericProcessor implements WebhookProcessor {
         'telephone',
         'tel',
         'contact_phone',
+        'cell',
+        'whatsapp',
       ],
       company: [
         'company',
@@ -120,6 +127,7 @@ export class GenericProcessor implements WebhookProcessor {
         'org',
         'business',
         'employer',
+        'firm',
       ],
       notes: [
         'notes',
@@ -129,6 +137,11 @@ export class GenericProcessor implements WebhookProcessor {
         'details',
         'additional_info',
         'remarks',
+        'scorereasons',
+        'score_reasons',
+        'niche',
+        'requirement',
+        'interest',
       ],
       value: [
         'value',
@@ -138,6 +151,7 @@ export class GenericProcessor implements WebhookProcessor {
         'cost',
         'deal_value',
         'estimated_value',
+        'revenue',
       ],
       source: [
         'source',
@@ -146,6 +160,7 @@ export class GenericProcessor implements WebhookProcessor {
         'channel',
         'medium',
         'campaign',
+        'industry',
       ],
     }
   }
@@ -227,12 +242,25 @@ export class GenericProcessor implements WebhookProcessor {
   }
 
   private finalizeLead(lead: ProcessedLead): ProcessedLead | null {
-    if (!lead.name && !lead.email) {
-      return null
-    }
-
     if (!lead.name && lead.email) {
       lead.name = lead.email.split('@')[0]
+    }
+
+    if (!lead.name && lead.company) {
+      lead.name = lead.company
+    }
+
+    if (!lead.name && lead.customFields) {
+      const fallback = Object.values(lead.customFields).find(
+        v => typeof v === 'string' && v.trim().length > 0
+      )
+      if (fallback) {
+        lead.name = String(fallback)
+      }
+    }
+
+    if (!lead.name) {
+      lead.name = 'Unnamed Lead'
     }
 
     if (lead.name) {

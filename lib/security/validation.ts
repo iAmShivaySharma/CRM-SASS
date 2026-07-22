@@ -59,12 +59,12 @@ export const createRoleSchema = z.object({
     .min(1),
 })
 export const webhookLeadSchema = z.object({
-  name: z.string().min(1).max(100),
-  email: emailSchema.optional(),
-  phone: phoneSchema.optional(),
-  company: z.string().max(100).optional(),
-  source: z.string().max(50),
-  value: z.number().min(0).max(1000000).optional(),
+  name: z.string().max(200).default('Unnamed Lead'),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().max(30).optional().or(z.literal('')),
+  company: z.string().max(200).optional(),
+  source: z.string().max(100).default('other'),
+  value: z.number().min(0).optional(),
   custom_fields: z.record(z.any()).optional(),
 })
 

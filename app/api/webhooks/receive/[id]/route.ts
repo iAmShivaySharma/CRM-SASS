@@ -146,14 +146,19 @@ export async function POST(
 
     for (const leadData of processedData.leads) {
       try {
+        const mergedCustomFields = {
+          ...(leadData.customFields || {}),
+          _originalPayload: body,
+        }
+
         const validationResult = webhookLeadSchema.safeParse({
-          name: leadData.name,
-          email: leadData.email,
-          phone: leadData.phone,
+          name: leadData.name || 'Unnamed Lead',
+          email: leadData.email || undefined,
+          phone: leadData.phone || undefined,
           company: leadData.company,
-          source: leadData.source,
+          source: leadData.source || 'other',
           value: leadData.value,
-          custom_fields: leadData.customFields,
+          custom_fields: mergedCustomFields,
         })
 
         if (!validationResult.success) {
