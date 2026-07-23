@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
@@ -26,6 +27,7 @@ import {
 import {
   type Message,
   useAddReactionMutation,
+  useEditMessageMutation,
   useDeleteMessageMutation,
 } from '@/lib/api/chatApi'
 import { useSocket } from '@/lib/context/SocketContext'
@@ -56,8 +58,11 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   onReply,
 }) => {
   const [showFullTimestamp, setShowFullTimestamp] = useState(false)
+  const [isEditingMessage, setIsEditingMessage] = useState(false)
+  const [editContent, setEditContent] = useState('')
   const { addReaction: addReactionSocket } = useSocket()
   const [addReactionApi] = useAddReactionMutation()
+  const [editMessageApi] = useEditMessageMutation()
   const [deleteMessageApi] = useDeleteMessageMutation()
 
   const formatTimestamp = (timestamp: string) => {
@@ -85,6 +90,28 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
   const handleCopyMessage = () => {
     navigator.clipboard.writeText(message.content)
+  }
+
+  const handleEditMessage = () => {
+    setEditContent(message.content)
+    setIsEditingMessage(true)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editContent.trim()) return
+    try {
+      await editMessageApi({
+        messageId: message.id,
+        chatRoomId,
+        content: editContent.trim(),
+      }).unwrap()
+      setIsEditingMessage(false)
+    } catch {}
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditingMessage(false)
+    setEditContent('')
   }
 
   const handleDeleteMessage = async () => {
@@ -281,7 +308,31 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         )}
 
         {/* Message content */}
-        <div className="mb-2">{renderMessageContent()}</div>
+        <div className="mb-2">
+          {isEditingMessage && message.type === 'text' ? (
+            <div className="space-y-2">
+              <Input
+                value={editContent}
+                onChange={e => setEditContent(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleSaveEdit()
+                  if (e.key === 'Escape') handleCancelEdit()
+                }}
+                ref={el => el?.focus()}
+              />
+              <div className="flex gap-2">
+                <Button size="sm" variant="default" onClick={handleSaveEdit}>
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            renderMessageContent()
+          )}
+        </div>
 
         {/* Reactions */}
         {message.reactions && message.reactions.length > 0 && (
@@ -382,7 +433,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                 Copy message
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEditMessage}>
                 <Edit3 className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
