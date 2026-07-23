@@ -666,8 +666,9 @@ export function LeadDetailsSheet({
                 )
                 const fmtVal = (v: any): string => {
                   if (v === null || v === undefined) return ''
-                  if (typeof v === 'object')
+                  if (typeof v === 'object') {
                     return Array.isArray(v) ? v.join(', ') : JSON.stringify(v)
+                  }
                   return String(v)
                 }
                 const isUrl = (v: any) =>
