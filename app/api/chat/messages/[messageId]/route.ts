@@ -55,9 +55,9 @@ export async function DELETE(
 
     await Message.findByIdAndDelete(messageId)
 
-    const lastMsg = await Message.findOne({ chatRoomId })
+    const lastMsg = (await Message.findOne({ chatRoomId })
       .sort({ createdAt: -1 })
-      .lean()
+      .lean()) as any
 
     if (lastMsg) {
       await ChatRoom.findByIdAndUpdate(chatRoomId, {
