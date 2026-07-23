@@ -44,7 +44,6 @@ import { logout } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import { useCreateWorkspaceMutation } from '@/lib/api/mongoApi'
 import { useLogoutMutation } from '@/lib/api/authApi'
-import { TimeTrackingCard } from './TimeTrackingCard'
 
 // Workspace creation validation schema
 const workspaceSchema = z.object({
@@ -196,12 +195,6 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                   </p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-
-              {/* Time Tracking Card */}
-              <div className="p-2">
-                <TimeTrackingCard />
-              </div>
               <DropdownMenuSeparator />
 
               <DropdownMenuItem onClick={() => router.push('/settings')}>

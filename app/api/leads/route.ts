@@ -104,7 +104,7 @@ export const GET = withSecurityLogging(
         const [leads, total] = await Promise.all([
           Lead.find(query)
             .select(
-              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt'
+              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt notes customData'
             )
             .populate('statusId', 'name color')
             .populate('tagIds', 'name color')

@@ -312,7 +312,7 @@ export function LeadDetailsSheet({
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-6xl lg:max-w-7xl">
         <SheetHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pr-8">
             <div>
               <SheetTitle className="text-xl font-bold">{lead.name}</SheetTitle>
               <SheetDescription>Lead details and information</SheetDescription>
@@ -626,8 +626,12 @@ export function LeadDetailsSheet({
                       return tag ? (
                         <Badge
                           key={tagId}
-                          variant="secondary"
+                          variant="outline"
                           className="flex items-center space-x-1"
+                          style={{
+                            borderColor: tag.color,
+                            color: tag.color,
+                          }}
                         >
                           <div
                             className="h-2 w-2 rounded-full"
@@ -656,83 +660,118 @@ export function LeadDetailsSheet({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {isEditing ? (
-                <>
-                  {Object.entries(customFields).map(([key, value]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <Badge
-                        variant="outline"
-                        className="min-w-0 flex-shrink-0"
-                      >
-                        {key}
-                      </Badge>
-                      <span className="flex-1 truncate">{String(value)}</span>
+              {(() => {
+                const displayEntries = Object.entries(customFields).filter(
+                  ([k]) => k !== '_originalPayload'
+                )
+                const fmtVal = (v: any): string => {
+                  if (v === null || v === undefined) return ''
+                  if (typeof v === 'object')
+                    return Array.isArray(v) ? v.join(', ') : JSON.stringify(v)
+                  return String(v)
+                }
+                const isUrl = (v: any) =>
+                  typeof v === 'string' && /^https?:\/\//.test(v)
+                const fmtKey = (k: string) =>
+                  k
+                    .replace(/^_/, '')
+                    .replace(/_/g, ' ')
+                    .replace(/([a-z])([A-Z])/g, '$1 $2')
+
+                return isEditing ? (
+                  <>
+                    {displayEntries.map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <Badge
+                          variant="outline"
+                          className="min-w-0 flex-shrink-0"
+                        >
+                          {fmtKey(key)}
+                        </Badge>
+                        <span className="flex-1 truncate">{fmtVal(value)}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveCustomField(key)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        placeholder="Field name"
+                        value={newCustomField.key}
+                        onChange={e =>
+                          setNewCustomField(prev => ({
+                            ...prev,
+                            key: e.target.value,
+                          }))
+                        }
+                      />
+                      <Input
+                        placeholder="Field value"
+                        value={newCustomField.value}
+                        onChange={e =>
+                          setNewCustomField(prev => ({
+                            ...prev,
+                            value: e.target.value,
+                          }))
+                        }
+                      />
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        onClick={() => handleRemoveCustomField(key)}
+                        onClick={handleAddCustomField}
+                        disabled={!newCustomField.key || !newCustomField.value}
                       >
-                        <X className="h-4 w-4" />
+                        <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                  ))}
-
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      placeholder="Field name"
-                      value={newCustomField.key}
-                      onChange={e =>
-                        setNewCustomField(prev => ({
-                          ...prev,
-                          key: e.target.value,
-                        }))
-                      }
-                    />
-                    <Input
-                      placeholder="Field value"
-                      value={newCustomField.value}
-                      onChange={e =>
-                        setNewCustomField(prev => ({
-                          ...prev,
-                          value: e.target.value,
-                        }))
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddCustomField}
-                      disabled={!newCustomField.key || !newCustomField.value}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    {displayEntries.length > 0 ? (
+                      displayEntries.map(([key, value]) => (
+                        <div
+                          key={key}
+                          className="flex items-center justify-between gap-4"
+                        >
+                          <span className="whitespace-nowrap text-sm font-medium capitalize">
+                            {fmtKey(key)}
+                          </span>
+                          {isUrl(value) ? (
+                            <a
+                              href={String(value)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex max-w-[60%] items-center gap-1 truncate text-sm text-blue-600 hover:underline dark:text-blue-400"
+                            >
+                              {String(value)
+                                .replace(/^https?:\/\/(www\.)?/, '')
+                                .slice(0, 50)}
+                              <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                            </a>
+                          ) : (
+                            <span
+                              className="max-w-[60%] truncate text-sm text-muted-foreground"
+                              title={fmtVal(value)}
+                            >
+                              {fmtVal(value)}
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        No custom fields added
+                      </span>
+                    )}
                   </div>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  {Object.keys(customFields).length > 0 ? (
-                    Object.entries(customFields).map(([key, value]) => (
-                      <div
-                        key={key}
-                        className="flex items-center justify-between"
-                      >
-                        <span className="text-sm font-medium capitalize">
-                          {key}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {String(value)}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-sm text-muted-foreground">
-                      No custom fields added
-                    </span>
-                  )}
-                </div>
-              )}
+                )
+              })()}
             </CardContent>
           </Card>
 
