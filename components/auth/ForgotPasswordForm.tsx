@@ -16,8 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-// Password reset functionality will be implemented later
-
 interface ForgotPasswordFormData {
   email: string
 }
@@ -36,9 +34,20 @@ export function ForgotPasswordForm() {
   const onSubmit = async (data: ForgotPasswordFormData) => {
     setLoading(true)
     try {
-      toast.info(
-        'Password reset functionality will be available soon. Please contact support.'
-      )
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.email }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        toast.error(result.message || 'Failed to send reset email')
+        return
+      }
+
+      toast.success('Reset link sent! Check your email.')
       setEmailSent(true)
     } catch (error: any) {
       toast.error('Failed to send reset email')

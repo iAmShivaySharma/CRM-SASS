@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Briefcase, Eye, EyeOff, CheckCircle } from 'lucide-react'
@@ -15,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-// Password reset functionality will be implemented later
 
 interface ResetPasswordFormData {
   password: string
@@ -24,6 +23,9 @@ interface ResetPasswordFormData {
 
 export function ResetPasswordForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+  const email = searchParams.get('email')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -42,12 +44,32 @@ export function ResetPasswordForm() {
       return
     }
 
+    if (!token || !email) {
+      toast.error('Invalid reset link. Please request a new one.')
+      return
+    }
+
     setLoading(true)
     try {
-      toast.info(
-        'Password reset functionality will be available soon. Please contact support.'
-      )
-      router.push('/login')
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          email,
+          password: data.password,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        toast.error(result.message || 'Failed to reset password')
+        return
+      }
+
+      toast.success('Password reset successfully! Redirecting to login...')
+      setTimeout(() => router.push('/login'), 2000)
     } catch (error: any) {
       toast.error('Failed to reset password')
     } finally {
