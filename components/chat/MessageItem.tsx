@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import Image from 'next/image'
 import { formatDistanceToNow, format } from 'date-fns'
 import {
   MoreHorizontal,
@@ -24,7 +23,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { type Message, useAddReactionMutation } from '@/lib/api/chatApi'
+import {
+  type Message,
+  useAddReactionMutation,
+  useDeleteMessageMutation,
+} from '@/lib/api/chatApi'
 import { useSocket } from '@/lib/context/SocketContext'
 import {
   DropdownMenu,
@@ -53,8 +56,9 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   onReply,
 }) => {
   const [showFullTimestamp, setShowFullTimestamp] = useState(false)
-  const { addReaction: addReactionSocket, deleteMessage } = useSocket()
+  const { addReaction: addReactionSocket } = useSocket()
   const [addReactionApi] = useAddReactionMutation()
+  const [deleteMessageApi] = useDeleteMessageMutation()
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -83,8 +87,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     navigator.clipboard.writeText(message.content)
   }
 
-  const handleDeleteMessage = () => {
-    deleteMessage({ messageId: message.id, chatRoomId })
+  const handleDeleteMessage = async () => {
+    try {
+      await deleteMessageApi({ messageId: message.id, chatRoomId }).unwrap()
+    } catch {}
   }
 
   const handleReply = () => {
@@ -146,14 +152,11 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         return (
           <div className="max-w-sm">
             {message.fileUrl ? (
-              <div className="group relative overflow-hidden rounded-xl border border-border">
-                <Image
+              <div className="group relative inline-block overflow-hidden rounded-xl border border-border">
+                <img
                   src={message.fileUrl}
                   alt={message.fileName || 'Image'}
-                  width={300}
-                  height={200}
-                  className="h-auto max-w-full transition-transform group-hover:scale-105"
-                  style={{ objectFit: 'contain' }}
+                  className="block max-h-[300px] max-w-full rounded-xl object-contain transition-transform group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
               </div>
