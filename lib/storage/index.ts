@@ -16,7 +16,9 @@ import {
   initializeBucketGCS,
 } from './gcs'
 
-const provider = process.env.STORAGE_PROVIDER || 'minio'
+function getProvider() {
+  return process.env.STORAGE_PROVIDER || 'minio'
+}
 
 export async function uploadFile(
   filePath: string,
@@ -24,7 +26,7 @@ export async function uploadFile(
   fileType: string,
   metadata: Record<string, string> = {}
 ): Promise<{ success: boolean; url?: string; error?: string }> {
-  if (provider === 'gcs') {
+  if (getProvider() === 'gcs') {
     return uploadFileGCS(filePath, fileBuffer, fileType, metadata)
   }
   return uploadFileMinio(filePath, fileBuffer, fileType, metadata)
@@ -33,7 +35,7 @@ export async function uploadFile(
 export async function deleteFile(
   filePath: string
 ): Promise<{ success: boolean; error?: string }> {
-  if (provider === 'gcs') {
+  if (getProvider() === 'gcs') {
     return deleteFileGCS(filePath)
   }
   return deleteFileMinio(filePath)
@@ -43,14 +45,14 @@ export async function generatePresignedUrl(
   filePath: string,
   expiryInSeconds: number = 3600
 ): Promise<{ success: boolean; url?: string; error?: string }> {
-  if (provider === 'gcs') {
+  if (getProvider() === 'gcs') {
     return generatePresignedUrlGCS(filePath, expiryInSeconds)
   }
   return generatePresignedUrlMinio(filePath, expiryInSeconds)
 }
 
 export async function initializeBucket(): Promise<void> {
-  if (provider === 'gcs') {
+  if (getProvider() === 'gcs') {
     return initializeBucketGCS()
   }
   return initializeBucketMinio()
