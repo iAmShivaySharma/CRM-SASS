@@ -299,11 +299,14 @@ export const POST = withSecurityLogging(
         }
 
         const scoreResult = calculateLeadScore(leadData as any)
-        leadData.leadScore = scoreResult.score
-        leadData.leadScoreFactors = scoreResult.factors
-        leadData.priority = scoreResult.priority
+        const scoredLeadData = {
+          ...leadData,
+          leadScore: scoreResult.score,
+          leadScoreFactors: scoreResult.factors,
+          priority: scoreResult.priority,
+        }
 
-        const lead = await Lead.create(leadData)
+        const lead = await Lead.create(scoredLeadData)
 
         const populatedLead = await Lead.findById(lead._id)
           .populate('tagIds', 'name color')
