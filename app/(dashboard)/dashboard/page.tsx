@@ -8,6 +8,7 @@ import { AnalyticsOverview } from '@/components/dashboard/AnalyticsOverview'
 import { PipelineOverview } from '@/components/dashboard/PipelineOverview'
 import { LeadTrendChart } from '@/components/dashboard/LeadTrendChart'
 import { PipelineChart } from '@/components/dashboard/PipelineChart'
+import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function DashboardPage() {
@@ -23,6 +24,8 @@ export default function DashboardPage() {
           Welcome back! Here&apos;s what&apos;s happening with your sales.
         </p>
       </div>
+
+      <OnboardingChecklist />
 
       <StatsCards />
 

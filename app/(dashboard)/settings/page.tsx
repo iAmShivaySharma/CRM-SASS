@@ -45,6 +45,7 @@ import {
 } from '@/lib/slices/themeSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import { ThemeCustomizer } from '@/components/theme/ThemeCustomizer'
+import { TwoFactorCard } from '@/components/settings/TwoFactorCard'
 import {
   useGetUserPreferencesQuery,
   usePatchUserPreferencesMutation,
@@ -570,35 +571,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Two-Factor Authentication</CardTitle>
-              <CardDescription>
-                Add an extra layer of security to your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">SMS Authentication</p>
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">
-                    Receive codes via SMS
-                  </p>
-                </div>
-                <Switch />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Authenticator App</p>
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">
-                    Use an authenticator app
-                  </p>
-                </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
+          <TwoFactorCard />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">
