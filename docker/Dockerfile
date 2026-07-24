@@ -15,16 +15,18 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV MONGODB_URI="mongodb://placeholder:27017/placeholder" \
-    JWT_SECRET="build-time-placeholder-not-real" \
-    CORS_ORIGINS="http://localhost:3000" \
-    N8N_BASE_URL="http://placeholder:5678" \
-    N8N_API_KEY="placeholder" \
-    DODO_API_KEY="placeholder" \
-    DODO_WEBHOOK_SECRET="placeholder" \
-    REDIS_URL="" \
-    NEXT_PUBLIC_APP_URL="" \
-    NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN printf '%s\n' \
+    'MONGODB_URI=mongodb://placeholder:27017/placeholder' \
+    'JWT_SECRET=build-time-placeholder' \
+    'CORS_ORIGINS=http://localhost:3000' \
+    'N8N_BASE_URL=http://placeholder:5678' \
+    'N8N_API_KEY=placeholder' \
+    'DODO_API_KEY=placeholder' \
+    'DODO_WEBHOOK_SECRET=placeholder' \
+    'REDIS_URL=' \
+    'NEXT_PUBLIC_APP_URL=' > .env.production
 
 RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build:unix
 
