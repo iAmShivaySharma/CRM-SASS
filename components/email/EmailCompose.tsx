@@ -142,6 +142,38 @@ export function EmailCompose({
   const [showBcc, setShowBcc] = useState(false)
   const [isRichText, setIsRichText] = useState(true)
   const [isSending, setIsSending] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const handleAIGenerate = async () => {
+    setIsGenerating(true)
+    try {
+      const response = await fetch('/api/ai/generate-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: replyTo ? 'follow-up' : 'introduction',
+          recipientName: emailData.to?.split('@')[0],
+          recipientEmail: emailData.to,
+          context: emailData.subject || '',
+        }),
+      })
+      const result = await response.json()
+      if (result.success) {
+        setEmailData((prev: any) => ({
+          ...prev,
+          subject: prev.subject || result.subject,
+          body: result.body,
+        }))
+        toast.success('AI draft generated')
+      } else {
+        toast.error(result.message || 'Failed to generate')
+      }
+    } catch {
+      toast.error('Failed to generate email')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
   const [isDraft, setIsDraft] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
   const [priority, setPriority] = useState<'low' | 'normal' | 'high'>('normal')
@@ -734,6 +766,18 @@ export function EmailCompose({
             </div>
 
             <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={handleAIGenerate}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="mr-2 h-4 w-4" />
+                )}
+                AI Draft
+              </Button>
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>

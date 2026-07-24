@@ -520,6 +520,7 @@ export function LeadList() {
                   <TableHead>Status</TableHead>
                   <TableHead>Tags</TableHead>
                   <TableHead>Assigned To</TableHead>
+                  <TableHead>Score</TableHead>
                   <TableHead>Value</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -606,6 +607,24 @@ export function LeadList() {
                         <span className="text-sm text-muted-foreground">
                           Unassigned
                         </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {lead.leadScore != null ? (
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`h-2 w-2 rounded-full ${
+                              lead.leadScore >= 60
+                                ? 'bg-green-500'
+                                : lead.leadScore >= 30
+                                  ? 'bg-yellow-500'
+                                  : 'bg-gray-400'
+                            }`}
+                          />
+                          <span className="text-sm">{lead.leadScore}</span>
+                        </div>
+                      ) : (
+                        '-'
                       )}
                     </TableCell>
                     <TableCell>
