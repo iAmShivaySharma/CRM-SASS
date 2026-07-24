@@ -4,7 +4,7 @@ import { Lead, LeadStatus, Tag } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 const VALID_SOURCES = [
   'manual',
@@ -49,10 +49,29 @@ export async function POST(request: NextRequest) {
     if (permError) return permError
 
     const arrayBuffer = await file.arrayBuffer()
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' })
-    const sheetName = workbook.SheetNames[0]
-    const worksheet = workbook.Sheets[sheetName]
-    const rows: any[] = XLSX.utils.sheet_to_json(worksheet)
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(Buffer.from(arrayBuffer))
+    const worksheet = workbook.worksheets[0]
+    if (!worksheet) {
+      return NextResponse.json(
+        { error: 'No worksheet found in file' },
+        { status: 400 }
+      )
+    }
+    const headers: string[] = []
+    worksheet.getRow(1).eachCell((cell, colNumber) => {
+      headers[colNumber - 1] = String(cell.value || '')
+    })
+    const rows: any[] = []
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return
+      const obj: any = {}
+      row.eachCell((cell, colNumber) => {
+        const key = headers[colNumber - 1]
+        if (key) obj[key] = cell.value
+      })
+      rows.push(obj)
+    })
 
     if (rows.length === 0) {
       return NextResponse.json(
