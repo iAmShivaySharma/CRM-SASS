@@ -65,6 +65,12 @@ export function ModernLoginForm() {
   const [attemptCount, setAttemptCount] = useState(0)
   const [isBlocked, setIsBlocked] = useState(false)
   const [blockTimeRemaining, setBlockTimeRemaining] = useState(0)
+  const [requires2FA, setRequires2FA] = useState(false)
+  const [twoFactorCode, setTwoFactorCode] = useState('')
+  const [savedCredentials, setSavedCredentials] = useState<{
+    email: string
+    password: string
+  } | null>(null)
 
   const {
     register,
@@ -121,10 +127,29 @@ export function ModernLoginForm() {
       clearErrors()
 
       try {
-        const result = await loginUser({
-          email: data.email,
-          password: data.password,
-        }).unwrap()
+        const loginPayload: any = {
+          email:
+            requires2FA && savedCredentials
+              ? savedCredentials.email
+              : data.email,
+          password:
+            requires2FA && savedCredentials
+              ? savedCredentials.password
+              : data.password,
+        }
+
+        if (requires2FA && twoFactorCode) {
+          loginPayload.twoFactorToken = twoFactorCode
+        }
+
+        const result = await loginUser(loginPayload).unwrap()
+
+        if (result.requiresTwoFactor) {
+          setRequires2FA(true)
+          setSavedCredentials({ email: data.email, password: data.password })
+          setLoading(false)
+          return
+        }
 
         dispatch(
           loginSuccess({
@@ -420,6 +445,26 @@ export function ModernLoginForm() {
                     </Button>
                   </Link>
                 </div>
+
+                {requires2FA && (
+                  <div className="space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+                    <p className="text-sm font-medium">
+                      Enter the 6-digit code from your authenticator app
+                    </p>
+                    <input
+                      type="text"
+                      value={twoFactorCode}
+                      onChange={e =>
+                        setTwoFactorCode(
+                          e.target.value.replace(/\D/g, '').slice(0, 6)
+                        )
+                      }
+                      placeholder="000000"
+                      maxLength={6}
+                      className="w-full rounded-lg border px-4 py-3 text-center text-xl tracking-[0.5em] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                )}
 
                 <Button
                   type="submit"
