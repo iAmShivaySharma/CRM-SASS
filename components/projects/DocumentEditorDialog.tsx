@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Save, X } from 'lucide-react'
+import { DocumentVersionHistory } from './DocumentVersionHistory'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -25,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { BlockEditor } from '@/components/ui/block-editor'
+import { TiptapEditor } from '@/components/ui/tiptap-editor-improved'
 import {
   useCreateDocumentMutation,
   useUpdateDocumentMutation,
@@ -318,7 +319,7 @@ export function DocumentEditorDialog({
           <div className="flex-1 overflow-hidden">
             <Label>Content</Label>
             <div className="mt-2 h-full overflow-hidden rounded-lg border">
-              <BlockEditor
+              <TiptapEditor
                 content={content}
                 onChange={setContent}
                 onSave={handleSave}
@@ -329,6 +330,12 @@ export function DocumentEditorDialog({
           </div>
 
           <DialogFooter className="mt-4">
+            {document?.id && (
+              <DocumentVersionHistory
+                documentId={document.id}
+                onRestore={() => onOpenChange(false)}
+              />
+            )}
             <Button
               type="button"
               variant="outline"
