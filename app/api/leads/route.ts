@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { dispatchWebhookEvent } from '@/lib/services/webhookDispatcher'
 import {
   Lead,
   WorkspaceMember,
@@ -337,6 +338,14 @@ export const POST = withSecurityLogging(
             company: leadData.company,
           },
         })
+
+        dispatchWebhookEvent(workspaceId, 'lead.created', {
+          id: lead._id,
+          name: leadData.name,
+          email: leadData.email,
+          company: leadData.company,
+          source: leadData.source,
+        }).catch(() => {})
 
         logUserActivity(auth.user.id, 'lead_created', 'lead', {
           leadId: lead._id,
