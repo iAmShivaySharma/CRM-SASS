@@ -7,6 +7,7 @@ import {
   WorkspaceMember,
   Role,
   Activity,
+  Subscription,
   type IUser,
 } from './models'
 import connectToMongoDB from './connection'
@@ -99,9 +100,21 @@ export async function signUp({
         name: workspaceName,
         slug,
         planId: 'free',
+        subscriptionStatus: 'trialing',
         createdBy: user._id,
       })
       await workspace.save()
+
+      const trialEnd = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      await Subscription.create({
+        workspaceId: workspace._id,
+        planId: 'free',
+        status: 'trialing',
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: trialEnd,
+        trialStart: new Date(),
+        trialEnd,
+      }).catch(() => {})
 
       const ownerRole = new Role({
         workspaceId: workspace._id,
