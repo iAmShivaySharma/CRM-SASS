@@ -242,7 +242,6 @@ BlogSchema.pre('save', function (this: IBlog, next) {
 })
 
 if (typeof window === 'undefined') {
-  BlogSchema.index({ slug: 1 }, { unique: true })
   BlogSchema.index({ status: 1, publishedAt: -1 })
   BlogSchema.index({ categoryId: 1, status: 1 })
   BlogSchema.index({ tags: 1 })

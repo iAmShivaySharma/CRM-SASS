@@ -41,7 +41,6 @@ const LicenseKeySchema = new Schema<ILicenseKey>(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
     planId: {
       type: String,

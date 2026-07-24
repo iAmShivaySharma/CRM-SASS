@@ -77,7 +77,6 @@ const BlogCategorySchema = new Schema<IBlogCategory>(
 )
 
 if (typeof window === 'undefined') {
-  BlogCategorySchema.index({ slug: 1 }, { unique: true })
   BlogCategorySchema.index({ isActive: 1, order: 1 })
   BlogCategorySchema.index({ parentId: 1 })
 }

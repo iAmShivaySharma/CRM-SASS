@@ -89,7 +89,10 @@ export const POST = withSecurityLogging(
               id: defaultWorkspace._id.toString(),
               name: defaultWorkspace.name,
               planId: defaultWorkspace.planId || 'free',
-              memberCount: 1, // We'll calculate this properly later if needed
+              memberCount: await WorkspaceMember.countDocuments({
+                workspaceId: defaultWorkspace._id,
+                status: 'active',
+              }),
               currency: defaultWorkspace.currency || 'USD',
               timezone: defaultWorkspace.timezone || 'UTC',
               settings: defaultWorkspace.settings || {
