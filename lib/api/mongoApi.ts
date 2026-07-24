@@ -16,6 +16,8 @@ export interface Lead {
   tagIds?: string[] | { id: string; name: string; color: string }[]
   notes?: string
   priority: 'low' | 'medium' | 'high'
+  leadScore?: number
+  leadScoreFactors?: string[]
   workspaceId: string
   createdBy: string
   createdAt: string

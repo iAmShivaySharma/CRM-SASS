@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  Download,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
@@ -189,8 +190,21 @@ export function ContactList({
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Contacts ({contactsData.pagination.total})</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              window.open(
+                `/api/contacts/export?workspaceId=${workspaceId}&format=xlsx`,
+                '_blank'
+              )
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
