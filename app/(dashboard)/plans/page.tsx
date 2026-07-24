@@ -160,6 +160,50 @@ export default function PlansPage() {
   const [workspaceName, setWorkspaceName] = useState<string>('')
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null)
   const [billingTab, setBillingTab] = useState('plans')
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'stripe'>(
+    'razorpay'
+  )
+
+  const handleStripeUpgrade = async (planId: string) => {
+    if (planId === 'free' || planId === currentPlanId) return
+    setUpgradingPlanId(planId)
+    try {
+      const res = await fetch('/api/payments/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ planId }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        toast.error(data.error || 'Failed to start checkout')
+      }
+    } catch {
+      toast.error('Payment failed')
+    } finally {
+      setUpgradingPlanId(null)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    try {
+      const res = await fetch('/api/payments/subscription', {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast.success(data.message)
+        fetchSubscription()
+      } else {
+        toast.error(data.error || 'Failed to cancel')
+      }
+    } catch {
+      toast.error('Failed to cancel subscription')
+    }
+  }
 
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
@@ -407,6 +451,18 @@ export default function PlansPage() {
               )}
             </div>
           </CardHeader>
+          {subscription.status === 'active' && currentPlanId !== 'free' && (
+            <CardContent className="pt-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive"
+                onClick={handleCancelSubscription}
+              >
+                Cancel Subscription
+              </Button>
+            </CardContent>
+          )}
         </Card>
       )}
 
@@ -418,6 +474,23 @@ export default function PlansPage() {
         </TabsList>
 
         <TabsContent value="plans" className="mt-6">
+          <div className="mb-4 flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Pay with:</span>
+            <Button
+              variant={paymentMethod === 'razorpay' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setPaymentMethod('razorpay')}
+            >
+              Razorpay
+            </Button>
+            <Button
+              variant={paymentMethod === 'stripe' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setPaymentMethod('stripe')}
+            >
+              Stripe
+            </Button>
+          </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {PLANS.map(plan => {
               const isCurrent = plan.id === currentPlanId
@@ -492,7 +565,11 @@ export default function PlansPage() {
                             : 'outline'
                       }
                       disabled={isCurrent || isDowngrade || isUpgrading}
-                      onClick={() => handleUpgrade(plan.id)}
+                      onClick={() =>
+                        paymentMethod === 'stripe'
+                          ? handleStripeUpgrade(plan.id)
+                          : handleUpgrade(plan.id)
+                      }
                     >
                       {isUpgrading ? (
                         <>
