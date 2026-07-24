@@ -34,6 +34,9 @@ import {
   Laptop,
   User,
   PenSquare,
+  CalendarDays,
+  Gift,
+  MailPlus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -153,6 +156,14 @@ const navigation = [
     permission: Permission.CHAT_VIEW,
   },
   { name: 'Email', href: '/email', icon: Mail, category: 'main' },
+  {
+    name: 'Sequences',
+    href: '/email-sequences',
+    icon: MailPlus,
+    category: 'main',
+  },
+  { name: 'Calendar', href: '/calendar', icon: CalendarDays, category: 'main' },
+  { name: 'Referrals', href: '/referrals', icon: Gift, category: 'main' },
 
   {
     name: 'Project',

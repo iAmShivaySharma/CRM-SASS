@@ -1,7 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { User, WorkspaceMember, Attendance } from '@/lib/mongodb/models'
+import {
+  User,
+  WorkspaceMember,
+  Attendance,
+  Workspace,
+} from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
+import { emailService } from '@/lib/services/emailService'
 
 export async function GET(request: NextRequest) {
   try {
@@ -235,7 +241,34 @@ export async function POST(request: NextRequest) {
     await newMember.save()
     await newMember.populate(['userId', 'roleId'])
 
-    // TODO: Send invitation email here
+    try {
+      const workspace = (await Workspace.findById(workspaceId).lean()) as any
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+      await emailService.sendEmail({
+        to: email,
+        subject: `You've been invited to ${workspace?.name || 'a workspace'}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1e40af;">You're Invited!</h2>
+            <p>Hi ${fullName},</p>
+            <p><strong>${auth.user.fullName}</strong> has invited you to join <strong>${workspace?.name || 'their workspace'}</strong>${position ? ` as ${position}` : ''}.</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${appUrl}/login" style="background-color: #2563eb; color: white; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Get Started
+              </a>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">Log in with your email: ${email}</p>
+          </div>
+        `,
+        text: `Hi ${fullName}, you've been invited to ${workspace?.name || 'a workspace'}. Log in at ${appUrl}/login with ${email}`,
+      })
+    } catch (emailError) {
+      log.warn('Failed to send employee invite email', {
+        email,
+        error: emailError,
+      })
+    }
 
     return NextResponse.json({
       success: true,
