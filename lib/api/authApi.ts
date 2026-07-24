@@ -3,6 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 export interface AuthResponse {
   success: boolean
   message: string
+  requiresTwoFactor?: boolean
   user?: any
   workspace?: any
 }
@@ -10,6 +11,7 @@ export interface AuthResponse {
 export interface LoginRequest {
   email: string
   password: string
+  twoFactorToken?: string
 }
 
 export interface SignupRequest {
