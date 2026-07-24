@@ -16,6 +16,9 @@ import {
   Volume2,
   VolumeX,
   Info,
+  Phone,
+  Video,
+  CalendarPlus,
 } from 'lucide-react'
 import { type RootState } from '@/lib/store'
 import {
@@ -24,7 +27,17 @@ import {
   useDeleteChatRoomMutation,
 } from '@/lib/api/chatApi'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -60,6 +73,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [scheduleMeetingOpen, setScheduleMeetingOpen] = useState(false)
+  const [meetingTitle, setMeetingTitle] = useState('')
+  const [meetingDate, setMeetingDate] = useState('')
+  const [meetingCreating, setMeetingCreating] = useState(false)
   const [addParticipantsDialogOpen, setAddParticipantsDialogOpen] =
     useState(false)
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
@@ -224,8 +241,65 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        {/* Quick actions for larger screens */}
         <div className="hidden items-center gap-1 sm:flex">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              try {
+                const workspace = (window as any).__WORKSPACE_ID
+                const res = await fetch('/api/meetings', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    workspaceId: workspace || '',
+                    chatRoomId: chatRoom.id,
+                    title: `Voice call in ${chatRoom.name}`,
+                    type: 'voice',
+                  }),
+                })
+                const data = await res.json()
+                if (data.success) {
+                  const { socket } = (await import(
+                    '@/lib/context/SocketContext'
+                  ).then(() => ({}))) as any
+                }
+              } catch {}
+            }}
+            title="Voice call"
+          >
+            <Phone className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              try {
+                const workspace = (window as any).__WORKSPACE_ID
+                await fetch('/api/meetings', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    workspaceId: workspace || '',
+                    chatRoomId: chatRoom.id,
+                    title: `Video call in ${chatRoom.name}`,
+                    type: 'video',
+                  }),
+                })
+              } catch {}
+            }}
+            title="Video call"
+          >
+            <Video className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setScheduleMeetingOpen(true)}
+            title="Schedule meeting"
+          >
+            <CalendarPlus className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -370,6 +444,91 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         open={settingsDialogOpen}
         onOpenChange={setSettingsDialogOpen}
       />
+
+      <Dialog open={scheduleMeetingOpen} onOpenChange={setScheduleMeetingOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Schedule Meeting</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Title</Label>
+              <Input
+                value={meetingTitle}
+                onChange={e => setMeetingTitle(e.target.value)}
+                placeholder="Meeting title"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Date & Time</Label>
+              <Input
+                type="datetime-local"
+                value={meetingDate}
+                onChange={e => setMeetingDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setScheduleMeetingOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={meetingCreating || !meetingTitle || !meetingDate}
+              onClick={async () => {
+                setMeetingCreating(true)
+                try {
+                  const res = await fetch('/api/meetings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      workspaceId:
+                        chatRoom.workspaceId ||
+                        (window as any).__WORKSPACE_ID ||
+                        '',
+                      chatRoomId: chatRoom.id,
+                      title: meetingTitle,
+                      type: 'scheduled',
+                      scheduledAt: new Date(meetingDate).toISOString(),
+                      participantIds: chatRoom.participants || [],
+                    }),
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    toast.success('Meeting scheduled')
+                    setScheduleMeetingOpen(false)
+                    setMeetingTitle('')
+                    setMeetingDate('')
+
+                    await fetch(`/api/meetings/${data.meeting.id}/invite`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        userIds: chatRoom.participants || [],
+                      }),
+                    }).catch(() => {})
+                  } else {
+                    toast.error(data.message || 'Failed to schedule')
+                  }
+                } catch {
+                  toast.error('Failed to schedule meeting')
+                } finally {
+                  setMeetingCreating(false)
+                }
+              }}
+            >
+              {meetingCreating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CalendarPlus className="mr-2 h-4 w-4" />
+              )}
+              Schedule
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
