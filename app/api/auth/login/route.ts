@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { type NextRequest, NextResponse } from 'next/server'
-import { authenticator } from 'otplib'
+import speakeasy from 'speakeasy'
 import { signIn } from '@/lib/mongodb/auth'
 import { WorkspaceMember } from '@/lib/mongodb/models/WorkspaceMember'
 import { User } from '@/lib/mongodb/models/User'
@@ -38,9 +38,11 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const isValid = authenticator.verify({
-        token: String(twoFactorToken),
+      const isValid = speakeasy.totp.verify({
         secret: user.twoFactorSecret,
+        encoding: 'base32',
+        token: String(twoFactorToken),
+        window: 1,
       })
 
       if (!isValid) {

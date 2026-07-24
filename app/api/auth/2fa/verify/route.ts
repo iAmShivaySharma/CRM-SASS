@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { authenticator } from 'otplib'
+import speakeasy from 'speakeasy'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { User } from '@/lib/mongodb/models'
@@ -37,9 +37,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const isValid = authenticator.verify({
-      token: String(token),
+    const isValid = speakeasy.totp.verify({
       secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: String(token),
+      window: 1,
     })
 
     if (!isValid) {

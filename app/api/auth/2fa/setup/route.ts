@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { authenticator } from 'otplib'
+import speakeasy from 'speakeasy'
 import QRCode from 'qrcode'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
@@ -29,18 +29,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const secret = authenticator.generateSecret()
-    const appName = 'CRM Pro'
-    const otpAuthUrl = authenticator.keyuri(user.email, appName, secret)
+    const generated = speakeasy.generateSecret({
+      name: `CRM Pro (${user.email})`,
+      issuer: 'CRM Pro',
+    })
 
-    user.twoFactorSecret = secret
+    user.twoFactorSecret = generated.base32
     await user.save()
 
-    const qrCodeDataUrl = await QRCode.toDataURL(otpAuthUrl)
+    const qrCodeDataUrl = await QRCode.toDataURL(generated.otpauth_url || '')
 
     return NextResponse.json({
       success: true,
-      secret,
+      secret: generated.base32,
       qrCode: qrCodeDataUrl,
     })
   } catch (error) {
