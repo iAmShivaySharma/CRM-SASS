@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { calculateLeadScore } from '@/lib/services/leadScoringService'
 import {
   Lead,
   WorkspaceMember,
@@ -104,7 +105,7 @@ export const GET = withSecurityLogging(
         const [leads, total] = await Promise.all([
           Lead.find(query)
             .select(
-              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt notes customData'
+              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt notes customData leadScore leadScoreFactors'
             )
             .populate('statusId', 'name color')
             .populate('tagIds', 'name color')
@@ -296,6 +297,11 @@ export const POST = withSecurityLogging(
             ? new Date(validationResult.data.nextFollowUpAt)
             : undefined,
         }
+
+        const scoreResult = calculateLeadScore(leadData as any)
+        leadData.leadScore = scoreResult.score
+        leadData.leadScoreFactors = scoreResult.factors
+        leadData.priority = scoreResult.priority
 
         const lead = await Lead.create(leadData)
 
