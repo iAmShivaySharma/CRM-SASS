@@ -430,6 +430,48 @@ export function LeadList() {
             )}
             Delete Selected
           </Button>
+          {statuses && statuses.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Change Status
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {statuses.map((status: any) => (
+                  <DropdownMenuItem
+                    key={status.id}
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/leads/bulk-update', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            workspaceId: currentWorkspace?.id,
+                            leadIds: Array.from(selectedIds),
+                            updates: { statusId: status.id },
+                          }),
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          toast.success(`Updated ${data.modifiedCount} leads`)
+                          setSelectedIds(new Set())
+                        }
+                      } catch {
+                        toast.error('Failed to update')
+                      }
+                    }}
+                  >
+                    <div
+                      className="mr-2 h-3 w-3 rounded-full"
+                      style={{ backgroundColor: status.color }}
+                    />
+                    {status.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <Button
             variant="ghost"
             size="sm"
