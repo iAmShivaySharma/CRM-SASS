@@ -11,11 +11,14 @@ export interface ISubscription extends Omit<Document, '_id'> {
   cancelledAt?: Date
   trialStart?: Date
   trialEnd?: Date
+  provider?: 'razorpay' | 'stripe' | 'dodo'
   dodoSubscriptionId?: string
   dodoCustomerId?: string
   razorpayOrderId?: string
   razorpayPaymentId?: string
   razorpaySubscriptionId?: string
+  stripeSubscriptionId?: string
+  stripeCustomerId?: string
   metadata: Record<string, any>
   createdAt: Date
   updatedAt: Date
@@ -69,6 +72,10 @@ const SubscriptionSchema = new Schema<ISubscription>(
     trialEnd: {
       type: Date,
     },
+    provider: {
+      type: String,
+      enum: ['razorpay', 'stripe', 'dodo'],
+    },
     dodoSubscriptionId: {
       type: String,
     },
@@ -82,6 +89,12 @@ const SubscriptionSchema = new Schema<ISubscription>(
       type: String,
     },
     razorpaySubscriptionId: {
+      type: String,
+    },
+    stripeSubscriptionId: {
+      type: String,
+    },
+    stripeCustomerId: {
       type: String,
     },
     metadata: {
