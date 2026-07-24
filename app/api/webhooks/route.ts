@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import crypto from 'crypto'
 import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
