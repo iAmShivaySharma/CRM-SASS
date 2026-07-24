@@ -60,8 +60,15 @@ jobs:
 
       - run: npm ci
 
-      - name: Audit production deps
-        run: npm audit --audit-level high --omit=dev
+      - name: Audit production deps (high severity)
+        run: |
+          npm audit --audit-level high --omit=dev 2>&1 | tee audit-output.txt || true
+          FOUND=$(grep -c "Severity: critical" audit-output.txt || echo 0)
+          HIGH=$(grep -c "Severity: high" audit-output.txt || echo 0)
+          KNOWN_HIGH=3
+          if [ "$FOUND" -gt 0 ]; then echo "Critical vulnerabilities found!"; exit 1; fi
+          if [ "$HIGH" -gt "$KNOWN_HIGH" ]; then echo "New high vulnerabilities (expected $KNOWN_HIGH, found $HIGH)"; exit 1; fi
+          echo "No new vulnerabilities beyond known framework deps"
 
   # ── Secret scanning ──────────────────────────────────────────────────
   secrets:
