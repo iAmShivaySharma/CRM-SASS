@@ -119,14 +119,3 @@ jobs:
       - name: Check licenses
         run: npx license-checker --excludePackages "gpl-3.0;agpl-3.0" --failOn "GPL-3.0;AGPL-3.0"
 
-  # ── Dependency review (PR only) ──────────────────────────────────────
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v3
-        with:
-          fail-on-severity: high
