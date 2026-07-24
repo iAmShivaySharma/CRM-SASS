@@ -161,6 +161,63 @@ app.prepare().then(() => {
       })
     })
 
+    socket.on('call-initiate', data => {
+      if (!socket.data?.userId) return
+      io.to(`chat:${data.chatRoomId}`).emit('call-incoming', {
+        meetingId: data.meetingId,
+        chatRoomId: data.chatRoomId,
+        callType: data.callType || 'voice',
+        callerId: socket.data.userId,
+        callerName: socket.data.userName,
+      })
+    })
+
+    socket.on('call-accept', data => {
+      if (!socket.data?.userId) return
+      io.to(`chat:${data.chatRoomId}`).emit('call-accepted', {
+        meetingId: data.meetingId,
+        userId: socket.data.userId,
+        userName: socket.data.userName,
+      })
+    })
+
+    socket.on('call-reject', data => {
+      if (!socket.data?.userId) return
+      io.to(`chat:${data.chatRoomId}`).emit('call-rejected', {
+        meetingId: data.meetingId,
+        userId: socket.data.userId,
+      })
+    })
+
+    socket.on('call-end', data => {
+      if (!socket.data?.userId) return
+      io.to(`chat:${data.chatRoomId}`).emit('call-ended', {
+        meetingId: data.meetingId,
+        endedBy: socket.data.userId,
+      })
+    })
+
+    socket.on('webrtc-offer', data => {
+      socket.to(`chat:${data.chatRoomId}`).emit('webrtc-offer', {
+        offer: data.offer,
+        from: socket.data?.userId,
+      })
+    })
+
+    socket.on('webrtc-answer', data => {
+      socket.to(`chat:${data.chatRoomId}`).emit('webrtc-answer', {
+        answer: data.answer,
+        from: socket.data?.userId,
+      })
+    })
+
+    socket.on('webrtc-ice-candidate', data => {
+      socket.to(`chat:${data.chatRoomId}`).emit('webrtc-ice-candidate', {
+        candidate: data.candidate,
+        from: socket.data?.userId,
+      })
+    })
+
     socket.on('disconnect', () => {
       if (socket.data?.rooms && socket.data?.userName) {
         socket.data.rooms.forEach(chatRoomId => {
