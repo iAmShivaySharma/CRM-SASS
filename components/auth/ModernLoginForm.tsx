@@ -93,20 +93,19 @@ export function ModernLoginForm() {
       setBlockTimeRemaining(300)
 
       const timer = setInterval(() => {
-        setBlockTimeRemaining(prev => {
-          if (prev <= 1) {
-            setIsBlocked(false)
-            setAttemptCount(0)
-            clearInterval(timer)
-            return 0
-          }
-          return prev - 1
-        })
+        setBlockTimeRemaining(prev => prev - 1)
       }, 1000)
 
       return () => clearInterval(timer)
     }
   }, [attemptCount])
+
+  useEffect(() => {
+    if (blockTimeRemaining <= 0 && isBlocked) {
+      setIsBlocked(false)
+      setAttemptCount(0)
+    }
+  }, [blockTimeRemaining, isBlocked])
 
   const onSubmit = useCallback(
     async (data: LoginFormData) => {
