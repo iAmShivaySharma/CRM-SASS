@@ -16,6 +16,7 @@ const nextConfig = {
     'mailparser',
     'socket.io',
     'socket.io-client',
+    'web-push',
   ],
   async headers() {
     return [
