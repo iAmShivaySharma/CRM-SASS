@@ -17,6 +17,8 @@ export interface IUser extends Omit<Document, '_id'> {
   oauthId?: string
   passwordResetToken?: string
   passwordResetExpires?: Date
+  twoFactorSecret?: string
+  twoFactorEnabled: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -84,6 +86,13 @@ const UserSchema = new Schema<IUser>(
     },
     passwordResetExpires: {
       type: Date,
+    },
+    twoFactorSecret: {
+      type: String,
+    },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
     },
   },
   {

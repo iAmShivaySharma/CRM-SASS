@@ -16,6 +16,7 @@ const nextConfig = {
     'mailparser',
     'socket.io',
     'socket.io-client',
+    'speakeasy',
   ],
   async headers() {
     return [

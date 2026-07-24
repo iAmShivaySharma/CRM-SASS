@@ -1,12 +1,14 @@
 export const dynamic = 'force-dynamic'
 import { type NextRequest, NextResponse } from 'next/server'
+import speakeasy from 'speakeasy'
 import { signIn } from '@/lib/mongodb/auth'
 import { WorkspaceMember } from '@/lib/mongodb/models/WorkspaceMember'
+import { User } from '@/lib/mongodb/models/User'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const { email, password, twoFactorToken } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json(
@@ -15,7 +17,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Sign in user using MongoDB
     const result = await signIn({ email, password })
 
     if (result.error) {
@@ -23,6 +24,35 @@ export async function POST(request: NextRequest) {
     }
 
     await connectToMongoDB()
+
+    const user = await User.findById(result.user?._id)
+
+    if (user?.twoFactorEnabled && user?.twoFactorSecret) {
+      if (!twoFactorToken) {
+        return NextResponse.json(
+          {
+            requiresTwoFactor: true,
+            message: 'Two-factor authentication code required',
+          },
+          { status: 200 }
+        )
+      }
+
+      const isValid = speakeasy.totp.verify({
+        secret: user.twoFactorSecret,
+        encoding: 'base32',
+        token: String(twoFactorToken),
+        window: 1,
+      })
+
+      if (!isValid) {
+        return NextResponse.json(
+          { message: 'Invalid two-factor code' },
+          { status: 401 }
+        )
+      }
+    }
+
     let userRole: any = null
     let userPermissions: string[] = []
 
@@ -48,12 +78,11 @@ export async function POST(request: NextRequest) {
       success: true,
     })
 
-    // Set secure HTTP-only cookie with JWT token
     response.cookies.set('auth_token', result.token!, {
       httpOnly: true,
       secure: process.env.COOKIE_SECURE === 'true',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: 7 * 24 * 60 * 60,
       path: '/',
     })
 
