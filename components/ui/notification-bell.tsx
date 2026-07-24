@@ -79,6 +79,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
     data: notificationsData,
     isLoading,
     error,
+    refetch,
   } = useGetNotificationsQuery(
     { workspaceId: currentWorkspace?.id || '', limit: 20 },
     { skip: !currentWorkspace?.id, pollingInterval: 30000 } // Poll every 30 seconds
@@ -101,6 +102,27 @@ export function NotificationBell({ className }: NotificationBellProps) {
     } catch (error) {
       console.error('Error marking notification as read:', error)
     }
+  }
+
+  const handleDeleteNotification = async (id: string) => {
+    if (!currentWorkspace?.id) return
+    try {
+      await fetch(
+        `/api/notifications?id=${id}&workspaceId=${currentWorkspace.id}`,
+        { method: 'DELETE' }
+      )
+      refetch()
+    } catch {}
+  }
+
+  const handleClearRead = async () => {
+    if (!currentWorkspace?.id) return
+    try {
+      await fetch(`/api/notifications?workspaceId=${currentWorkspace.id}`, {
+        method: 'DELETE',
+      })
+      refetch()
+    } catch {}
   }
 
   const handleMarkAllAsRead = async () => {
@@ -213,7 +235,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
                 <DropdownMenuItem
                   key={notification.id}
                   className={cn(
-                    'flex cursor-pointer items-start space-x-3 p-4 focus:bg-accent',
+                    'group flex cursor-pointer items-start space-x-3 p-4 focus:bg-accent',
                     !notification.read && 'bg-accent/50'
                   )}
                   onClick={() => {
@@ -245,9 +267,20 @@ export function NotificationBell({ className }: NotificationBellProps) {
                     <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
                       {notification.message}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {getTimeAgo(notification.timestamp.toString())}
-                    </p>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        {getTimeAgo(notification.timestamp.toString())}
+                      </p>
+                      <button
+                        className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleDeleteNotification(notification.id)
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
                   </div>
                 </DropdownMenuItem>
               ))}
@@ -268,6 +301,13 @@ export function NotificationBell({ className }: NotificationBellProps) {
             >
               <Settings className="mr-2 h-4 w-4" />
               View all notifications
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex items-center justify-center py-2 text-sm text-destructive hover:text-destructive"
+              onClick={handleClearRead}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Clear read notifications
             </DropdownMenuItem>
           </>
         )}
