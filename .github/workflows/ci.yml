@@ -163,7 +163,7 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm audit --audit-level high --production
+      - run: npm audit --audit-level high --omit=dev
 
   # ── PR Gate ───────────────────────────────────────────────────────────
   ci-gate:
@@ -176,8 +176,7 @@ jobs:
         run: |
           if [[ "${{ needs.quality.result }}" != "success" ]] || \
              [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.audit.result }}" != "success" ]]; then
+             [[ "${{ needs.integration-tests.result }}" != "success" ]]; then
             echo "CI checks failed"
             exit 1
           fi

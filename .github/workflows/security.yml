@@ -61,7 +61,7 @@ jobs:
       - run: npm ci
 
       - name: Audit production deps
-        run: npm audit --audit-level high --production
+        run: npm audit --audit-level high --omit=dev
 
   # ── Secret scanning ──────────────────────────────────────────────────
   secrets:
