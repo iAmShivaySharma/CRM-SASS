@@ -13,6 +13,8 @@ export interface IUser extends Omit<Document, '_id'> {
   lastSignInAt?: Date
   lastActiveWorkspaceId?: string
   currentWorkspace?: string
+  twoFactorSecret?: string
+  twoFactorEnabled: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -68,6 +70,13 @@ const UserSchema = new Schema<IUser>(
     currentWorkspace: {
       type: String,
       ref: 'Workspace',
+    },
+    twoFactorSecret: {
+      type: String,
+    },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
     },
   },
   {
