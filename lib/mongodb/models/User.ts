@@ -13,6 +13,12 @@ export interface IUser extends Omit<Document, '_id'> {
   lastSignInAt?: Date
   lastActiveWorkspaceId?: string
   currentWorkspace?: string
+  oauthProvider?: string
+  oauthId?: string
+  passwordResetToken?: string
+  passwordResetExpires?: Date
+  twoFactorSecret?: string
+  twoFactorEnabled: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -68,6 +74,25 @@ const UserSchema = new Schema<IUser>(
     currentWorkspace: {
       type: String,
       ref: 'Workspace',
+    },
+    oauthProvider: {
+      type: String,
+    },
+    oauthId: {
+      type: String,
+    },
+    passwordResetToken: {
+      type: String,
+    },
+    passwordResetExpires: {
+      type: Date,
+    },
+    twoFactorSecret: {
+      type: String,
+    },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
     },
   },
   {

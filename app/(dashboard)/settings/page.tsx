@@ -45,6 +45,7 @@ import {
 } from '@/lib/slices/themeSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import { ThemeCustomizer } from '@/components/theme/ThemeCustomizer'
+import { TwoFactorCard } from '@/components/settings/TwoFactorCard'
 import {
   useGetUserPreferencesQuery,
   usePatchUserPreferencesMutation,
@@ -85,6 +86,10 @@ export default function SettingsPage() {
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
+  const [currentPasswordValue, setCurrentPasswordValue] = useState('')
+  const [newPasswordValue, setNewPasswordValue] = useState('')
+  const [confirmPasswordValue, setConfirmPasswordValue] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -151,8 +156,43 @@ export default function SettingsPage() {
     toast.success('Profile updated successfully')
   }
 
-  const handleSavePassword = () => {
-    toast.success('Password updated successfully')
+  const handleSavePassword = async () => {
+    if (!currentPasswordValue || !newPasswordValue || !confirmPasswordValue) {
+      toast.error('All password fields are required')
+      return
+    }
+    if (newPasswordValue !== confirmPasswordValue) {
+      toast.error('New passwords do not match')
+      return
+    }
+    if (newPasswordValue.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+    setIsChangingPassword(true)
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: currentPasswordValue,
+          newPassword: newPasswordValue,
+        }),
+      })
+      const result = await response.json()
+      if (!response.ok) {
+        toast.error(result.message || 'Failed to change password')
+        return
+      }
+      toast.success('Password updated successfully')
+      setCurrentPasswordValue('')
+      setNewPasswordValue('')
+      setConfirmPasswordValue('')
+    } catch (error) {
+      toast.error('Failed to change password')
+    } finally {
+      setIsChangingPassword(false)
+    }
   }
 
   const handleSaveNotifications = async () => {
@@ -518,6 +558,8 @@ export default function SettingsPage() {
                   <Input
                     id="currentPassword"
                     type={showCurrentPassword ? 'text' : 'password'}
+                    value={currentPasswordValue}
+                    onChange={e => setCurrentPasswordValue(e.target.value)}
                   />
                   <Button
                     type="button"
@@ -541,6 +583,8 @@ export default function SettingsPage() {
                   <Input
                     id="newPassword"
                     type={showNewPassword ? 'text' : 'password'}
+                    value={newPasswordValue}
+                    onChange={e => setNewPasswordValue(e.target.value)}
                   />
                   <Button
                     type="button"
@@ -560,45 +604,25 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input id="confirmPassword" type="password" />
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPasswordValue}
+                  onChange={e => setConfirmPasswordValue(e.target.value)}
+                />
               </div>
 
-              <Button onClick={handleSavePassword}>
+              <Button
+                onClick={handleSavePassword}
+                disabled={isChangingPassword}
+              >
                 <Key className="mr-2 h-4 w-4" />
-                Update Password
+                {isChangingPassword ? 'Updating...' : 'Update Password'}
               </Button>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Two-Factor Authentication</CardTitle>
-              <CardDescription>
-                Add an extra layer of security to your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">SMS Authentication</p>
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">
-                    Receive codes via SMS
-                  </p>
-                </div>
-                <Switch />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Authenticator App</p>
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">
-                    Use an authenticator app
-                  </p>
-                </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
+          <TwoFactorCard />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">

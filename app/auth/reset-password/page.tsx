@@ -1,7 +1,16 @@
+import { Suspense } from 'react'
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   return <ResetPasswordForm />
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordContent />
+    </Suspense>
+  )
 }
 
 export const metadata = {
