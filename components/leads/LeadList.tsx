@@ -430,7 +430,7 @@ export function LeadList() {
             )}
             Delete Selected
           </Button>
-          {statuses && statuses.length > 0 && (
+          {leadStatuses && leadStatuses.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -438,7 +438,7 @@ export function LeadList() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                {statuses.map((status: any) => (
+                {leadStatuses.map((status: any) => (
                   <DropdownMenuItem
                     key={status.id}
                     onClick={async () => {
