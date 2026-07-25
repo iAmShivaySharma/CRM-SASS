@@ -49,29 +49,57 @@ export async function POST(request: NextRequest) {
     if (permError) return permError
 
     const arrayBuffer = await file.arrayBuffer()
-    const workbook = new ExcelJS.Workbook()
-    await workbook.xlsx.load(Buffer.from(arrayBuffer))
-    const worksheet = workbook.worksheets[0]
-    if (!worksheet) {
-      return NextResponse.json(
-        { error: 'No worksheet found in file' },
-        { status: 400 }
-      )
-    }
-    const headers: string[] = []
-    worksheet.getRow(1).eachCell((cell, colNumber) => {
-      headers[colNumber - 1] = String(cell.value || '')
-    })
+    const buffer = Buffer.from(arrayBuffer)
+    const fileName = file.name?.toLowerCase() || ''
     const rows: any[] = []
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return
-      const obj: any = {}
-      row.eachCell((cell, colNumber) => {
-        const key = headers[colNumber - 1]
-        if (key) obj[key] = cell.value
+
+    const workbook = new ExcelJS.Workbook()
+
+    if (fileName.endsWith('.csv')) {
+      const csvText = buffer.toString('utf-8')
+      const lines = csvText.split('\n').filter(l => l.trim())
+      if (lines.length < 2) {
+        return NextResponse.json(
+          { error: 'CSV file is empty or has no data rows' },
+          { status: 400 }
+        )
+      }
+      const csvHeaders = lines[0]
+        .split(',')
+        .map(h => h.trim().replace(/^"|"$/g, ''))
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i]
+          .split(',')
+          .map(v => v.trim().replace(/^"|"$/g, ''))
+        const obj: any = {}
+        csvHeaders.forEach((h, idx) => {
+          if (h && values[idx]) obj[h] = values[idx]
+        })
+        if (Object.keys(obj).length > 0) rows.push(obj)
+      }
+    } else {
+      await workbook.xlsx.load(buffer)
+      const worksheet = workbook.worksheets[0]
+      if (!worksheet) {
+        return NextResponse.json(
+          { error: 'No worksheet found in file' },
+          { status: 400 }
+        )
+      }
+      const headers: string[] = []
+      worksheet.getRow(1).eachCell((cell, colNumber) => {
+        headers[colNumber - 1] = String(cell.value || '')
       })
-      rows.push(obj)
-    })
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return
+        const obj: any = {}
+        row.eachCell((cell, colNumber) => {
+          const key = headers[colNumber - 1]
+          if (key) obj[key] = cell.value
+        })
+        rows.push(obj)
+      })
+    }
 
     if (rows.length === 0) {
       return NextResponse.json(

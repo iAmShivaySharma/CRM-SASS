@@ -16,6 +16,7 @@ const nextConfig = {
     'mailparser',
     'socket.io',
     'socket.io-client',
+    'exceljs',
   ],
   async headers() {
     return [
