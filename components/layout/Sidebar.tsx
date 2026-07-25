@@ -392,7 +392,7 @@ export function Sidebar({
             size="sm"
             onClick={onToggle}
             className={cn(
-              'hidden items-center justify-center rounded-lg bg-primary-foreground/20 text-primary-foreground transition-all duration-200 hover:bg-primary-foreground/30 lg:flex',
+              'hidden items-center justify-center rounded-lg bg-primary-foreground/20 text-primary-foreground transition-all duration-200 hover:!bg-primary-foreground/30 hover:!text-primary-foreground lg:flex',
               collapsed ? 'h-9 w-9' : 'h-9 w-9'
             )}
           >

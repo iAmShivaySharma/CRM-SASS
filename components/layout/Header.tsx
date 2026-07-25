@@ -132,7 +132,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="p-2 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground lg:hidden"
+            className="p-2 text-primary-foreground hover:!bg-primary-foreground/10 hover:!text-primary-foreground lg:hidden"
             onClick={onMobileMenuToggle}
             aria-label="Toggle mobile menu"
           >
@@ -166,7 +166,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center space-x-1 p-1 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground sm:space-x-2 sm:p-2"
+                className="flex items-center space-x-1 p-1 text-primary-foreground hover:!bg-primary-foreground/10 hover:!text-primary-foreground sm:space-x-2 sm:p-2"
               >
                 <Avatar className="h-7 w-7 border border-primary-foreground/30 sm:h-8 sm:w-8">
                   <AvatarImage src="/avatars/01.png" alt={user?.name} />

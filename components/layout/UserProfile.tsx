@@ -132,7 +132,7 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full p-0 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full p-0 hover:!bg-primary-foreground/10 hover:!text-primary-foreground"
               title={`${currentUser.name} - ${currentUser?.plan.name} Plan`}
             >
               <Avatar className="h-8 w-8 border border-primary-foreground/30">
@@ -207,7 +207,7 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="h-auto w-full justify-between p-3 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            className="h-auto w-full justify-between p-3 text-primary-foreground hover:!bg-primary-foreground/10 hover:!text-primary-foreground"
           >
             <div className="flex min-w-0 items-center space-x-3">
               <Avatar className="h-9 w-9 border border-primary-foreground/30">
