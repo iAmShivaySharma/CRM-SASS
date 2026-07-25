@@ -27,6 +27,13 @@ export async function POST(request: NextRequest) {
 
     const user = await User.findById(result.user?._id)
 
+    if (user && !user.emailConfirmed) {
+      return NextResponse.json(
+        { message: 'Please verify your email before logging in' },
+        { status: 403 }
+      )
+    }
+
     if (user?.twoFactorEnabled && user?.twoFactorSecret) {
       if (!twoFactorToken) {
         return NextResponse.json(
