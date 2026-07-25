@@ -18,6 +18,7 @@ const nextConfig = {
     'socket.io-client',
     'exceljs',
     'bullmq',
+    'speakeasy',
   ],
   async headers() {
     return [

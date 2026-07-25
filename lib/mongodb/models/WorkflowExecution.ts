@@ -86,8 +86,7 @@ export interface IWorkflowExecutionStatics {
 }
 
 export interface IWorkflowExecutionModel
-  extends Model<IWorkflowExecution>,
-    IWorkflowExecutionStatics {}
+  extends Model<IWorkflowExecution>, IWorkflowExecutionStatics {}
 
 const WorkflowExecutionSchema = new Schema<IWorkflowExecution>(
   {
@@ -517,8 +516,10 @@ const WorkflowExecution = (mongoose.models.WorkflowExecution ||
   )) as IWorkflowExecutionModel
 
 // Drop the old unique index on n8nExecutionId that blocks null values
-WorkflowExecution.collection.dropIndex('n8nExecutionId_1').catch(() => {
-  // Index may not exist or already dropped — safe to ignore
-})
+if (typeof window === 'undefined') {
+  mongoose.connection.on('connected', () => {
+    WorkflowExecution.collection.dropIndex('n8nExecutionId_1').catch(() => {})
+  })
+}
 
 export default WorkflowExecution
