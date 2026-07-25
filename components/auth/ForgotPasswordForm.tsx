@@ -96,13 +96,16 @@ export function ForgotPasswordForm() {
               <Button
                 onClick={() => setEmailSent(false)}
                 variant="outline"
-                className="w-full"
+                className="w-full hover:!bg-primary hover:!text-primary-foreground"
               >
                 Send another email
               </Button>
 
               <Link href="/login">
-                <Button variant="ghost" className="w-full">
+                <Button
+                  variant="ghost"
+                  className="w-full hover:!bg-primary hover:!text-primary-foreground"
+                >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to login
                 </Button>
@@ -155,14 +158,21 @@ export function ForgotPasswordForm() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full hover:!text-primary-foreground"
+              disabled={loading}
+            >
               {loading ? 'Sending...' : 'Send reset email'}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <Link href="/login">
-              <Button variant="ghost" className="text-sm">
+              <Button
+                variant="ghost"
+                className="text-sm hover:!bg-primary hover:!text-primary-foreground"
+              >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to login
               </Button>
