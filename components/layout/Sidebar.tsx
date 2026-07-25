@@ -371,7 +371,7 @@ export function Sidebar({
       <div className="flex h-full flex-col">
         <div
           className={cn(
-            'flex shrink-0 items-center bg-background',
+            'flex shrink-0 items-center bg-primary text-primary-foreground',
             collapsed
               ? 'h-16 flex-col justify-center gap-1 px-2 py-2'
               : 'h-16 justify-between px-4'
@@ -379,10 +379,10 @@ export function Sidebar({
         >
           {!collapsed && (
             <div className="flex items-center space-x-3">
-              <div className="rounded-lg bg-primary p-1.5 shadow-lg">
-                <Briefcase className="h-6 w-6 text-white" />
+              <div className="rounded-lg bg-primary-foreground/20 p-1.5">
+                <Briefcase className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-xl font-bold text-transparent">
+              <span className="text-xl font-bold text-primary-foreground">
                 CRM Pro
               </span>
             </div>

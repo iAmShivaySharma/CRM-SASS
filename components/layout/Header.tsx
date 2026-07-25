@@ -127,7 +127,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 sm:px-6">
+      <header className="flex h-16 items-center justify-between bg-primary px-4 text-primary-foreground sm:px-6">
         <div className="flex flex-1 items-center space-x-2 sm:space-x-4">
           {/* Mobile menu button */}
           <Button
