@@ -125,17 +125,19 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
 
   if (compact) {
     return (
-      <div className={cn('border-t border-border pt-3', className)}>
+      <div
+        className={cn('border-t border-primary-foreground/20 pt-3', className)}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full p-0 hover:bg-accent"
+              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full p-0 hover:bg-primary-foreground/10"
               title={`${currentUser.name} - ${currentUser?.plan.name} Plan`}
             >
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-8 w-8 border border-primary-foreground/30">
                 <AvatarImage src={currentUser?.avatar || undefined} />
-                <AvatarFallback className="text-xs font-medium">
+                <AvatarFallback className="bg-primary-foreground/20 text-xs font-medium text-primary-foreground">
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
@@ -198,22 +200,24 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
   }
 
   return (
-    <div className={cn('border-t border-border pt-4', className)}>
+    <div
+      className={cn('border-t border-primary-foreground/20 pt-4', className)}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="h-auto w-full justify-between p-3 hover:bg-accent"
+            className="h-auto w-full justify-between p-3 text-primary-foreground hover:bg-primary-foreground/10"
           >
             <div className="flex min-w-0 items-center space-x-3">
-              <Avatar className="h-9 w-9">
+              <Avatar className="h-9 w-9 border border-primary-foreground/30">
                 <AvatarImage src={currentUser?.avatar || undefined} />
-                <AvatarFallback className="text-sm font-medium">
+                <AvatarFallback className="bg-primary-foreground/20 text-sm font-medium text-primary-foreground">
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 text-left">
-                <p className="truncate text-sm font-medium">
+                <p className="truncate text-sm font-medium text-primary-foreground">
                   {currentUser.name}
                 </p>
                 <div className="mt-0.5 flex items-center space-x-2">
@@ -225,13 +229,13 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
                   >
                     {currentUser?.plan.name}
                   </Badge>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="truncate text-xs text-primary-foreground/70">
                     {currentUser.role}
                   </span>
                 </div>
               </div>
             </div>
-            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            <ChevronUp className="h-4 w-4 text-primary-foreground/70" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="mb-2 w-80">

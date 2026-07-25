@@ -132,7 +132,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
           variant="ghost"
           size="sm"
           className={cn(
-            'relative h-9 w-9 rounded-full p-2 hover:bg-accent',
+            'relative h-9 w-9 rounded-full p-2 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground',
             className
           )}
           aria-label={`Notifications${hasUnread ? ` (${unreadCount} unread)` : ''}`}
