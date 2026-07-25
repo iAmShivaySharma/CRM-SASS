@@ -88,9 +88,9 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
             key={chatRoom.id}
             onClick={() => onChatRoomSelect(chatRoom.id)}
             className={cn(
-              'w-full rounded-lg p-3 text-left transition-colors hover:bg-accent/50',
+              'w-full rounded-lg p-3 text-left transition-colors hover:bg-primary/10',
               'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              isSelected && 'bg-accent'
+              isSelected && 'bg-primary text-primary-foreground'
             )}
           >
             <div className="flex items-start gap-3">
@@ -134,7 +134,12 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
 
                   <div className="flex items-center gap-2">
                     {chatRoom.lastMessage && (
-                      <span className="text-xs text-muted-foreground">
+                      <span
+                        className={cn(
+                          'text-xs text-muted-foreground',
+                          isSelected && 'text-primary-foreground/70'
+                        )}
+                      >
                         {formatLastMessageTime(chatRoom.lastMessage.timestamp)}
                       </span>
                     )}
@@ -153,13 +158,19 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
                 {/* Last Message Preview */}
                 {chatRoom.lastMessage ? (
                   <div className="flex items-center gap-1">
-                    <span className="text-xs font-medium text-muted-foreground">
+                    <span
+                      className={cn(
+                        'text-xs font-medium text-muted-foreground',
+                        isSelected && 'text-primary-foreground/70'
+                      )}
+                    >
                       {chatRoom.lastMessage.senderName}:
                     </span>
                     <span
                       className={cn(
                         'truncate text-xs text-muted-foreground',
-                        hasUnreadMessages && 'font-medium text-foreground'
+                        hasUnreadMessages && 'font-medium text-foreground',
+                        isSelected && '!text-primary-foreground/70'
                       )}
                     >
                       {chatRoom.lastMessage?.type === 'text'
