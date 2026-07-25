@@ -69,7 +69,9 @@ export function ResetPasswordForm() {
       }
 
       toast.success('Password reset successfully! Redirecting to login...')
-      setTimeout(() => router.push('/login'), 2000)
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 2000)
     } catch (error: any) {
       toast.error('Failed to reset password')
     } finally {
