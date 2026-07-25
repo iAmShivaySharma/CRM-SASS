@@ -143,7 +143,11 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="end" className="w-64">
+          <DropdownMenuContent
+            side="right"
+            align="end"
+            className="w-64 [&_[role=menuitem]:focus]:bg-primary [&_[role=menuitem]:focus]:text-primary-foreground"
+          >
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">
@@ -238,7 +242,11 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
             <ChevronUp className="h-4 w-4 text-primary-foreground/70" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="top" align="start" className="mb-2 w-80">
+        <DropdownMenuContent
+          side="top"
+          align="start"
+          className="mb-2 w-80 [&_[role=menuitem]:focus]:bg-primary [&_[role=menuitem]:focus]:text-primary-foreground"
+        >
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-2">
               <div className="flex items-center space-x-3">

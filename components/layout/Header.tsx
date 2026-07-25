@@ -180,7 +180,10 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 <ChevronDown className="h-3 w-3 text-primary-foreground/70 sm:h-4 sm:w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent
+              align="end"
+              className="w-56 [&_[role=menuitem]:focus]:bg-primary [&_[role=menuitem]:focus]:text-primary-foreground"
+            >
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
