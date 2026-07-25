@@ -139,7 +139,6 @@
     "imap": "0.8.17",
     "input-otp": "^1.2.4",
     "ioredis": "^5.11.1",
-    "isomorphic-dompurify": "^2.26.0",
     "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^4.2.1",

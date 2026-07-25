@@ -17,8 +17,6 @@ const nextConfig = {
     'socket.io',
     'socket.io-client',
     'exceljs',
-    'isomorphic-dompurify',
-    'jsdom',
     'bullmq',
   ],
   async headers() {
