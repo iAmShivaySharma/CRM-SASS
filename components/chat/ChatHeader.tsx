@@ -54,6 +54,26 @@ interface ChatHeaderProps {
   onMobileMenuClick: () => void
 }
 
+function getChatRoomIcon(type: ChatRoom['type']) {
+  switch (type) {
+    case 'private':
+      return <Lock className="h-4 w-4" />
+    case 'direct':
+      return <Users className="h-4 w-4" />
+    default:
+      return <Hash className="h-4 w-4" />
+  }
+}
+
+function getChatRoomInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   chatRoom,
   onMobileMenuClick,
@@ -69,25 +89,6 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   const [updateChatRoom, { isLoading: isUpdatingRoom }] =
     useUpdateChatRoomMutation()
   const [deleteChatRoom] = useDeleteChatRoomMutation()
-  const getChatRoomIcon = (type: ChatRoom['type']) => {
-    switch (type) {
-      case 'private':
-        return <Lock className="h-4 w-4" />
-      case 'direct':
-        return <Users className="h-4 w-4" />
-      default:
-        return <Hash className="h-4 w-4" />
-    }
-  }
-
-  const getChatRoomInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
 
   const getParticipantCount = () => {
     if (Array.isArray(chatRoom.participants)) {

@@ -140,7 +140,7 @@ export function EnhancedLeadList() {
   const [assignedToFilter, setAssignedToFilter] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
-  const [isViewOpen, setIsViewOpen] = useState(false)
+  const isViewOpenRef = useRef(false)
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false)
   const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null)
   const [isAddingNote, setIsAddingNote] = useState(false)
@@ -496,7 +496,7 @@ export function EnhancedLeadList() {
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedLead(lead)
-                              setIsViewOpen(true)
+                              isViewOpenRef.current = true
                             }}
                           >
                             <Eye className="mr-2 h-4 w-4" />

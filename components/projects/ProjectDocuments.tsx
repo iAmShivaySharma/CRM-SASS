@@ -45,6 +45,17 @@ interface ProjectDocumentsProps {
   onEditDocument?: (document: Document) => void
 }
 
+function getDocumentIcon(type: string) {
+  switch (type) {
+    case 'template':
+      return '📋'
+    case 'note':
+      return '📝'
+    default:
+      return '📄'
+  }
+}
+
 export function ProjectDocuments({
   projectId,
   documents,
@@ -60,17 +71,6 @@ export function ProjectDocuments({
     useCreateDocumentMutation()
   const [deleteDocument, { isLoading: isDeletingDoc }] =
     useDeleteDocumentMutation()
-
-  const getDocumentIcon = (type: string) => {
-    switch (type) {
-      case 'template':
-        return '📋'
-      case 'note':
-        return '📝'
-      default:
-        return '📄'
-    }
-  }
 
   const getTypeColor = (type: string) => {
     switch (type) {

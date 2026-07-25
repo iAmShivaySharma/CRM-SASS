@@ -67,12 +67,16 @@ export function EmailAccountList({
   )
 
   useEffect(() => {
+    let cancelled = false
     if (currentWorkspace?.id) {
-      fetchAccounts()
+      fetchAccounts(cancelled)
+    }
+    return () => {
+      cancelled = true
     }
   }, [currentWorkspace?.id])
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = async (cancelled = false) => {
     try {
       const response = await fetch(
         `/api/email/accounts?workspaceId=${currentWorkspace?.id}`
@@ -80,7 +84,7 @@ export function EmailAccountList({
       if (!response.ok) throw new Error('Failed to fetch accounts')
 
       const data = await response.json()
-      setAccounts(data.accounts || [])
+      if (!cancelled) setAccounts(data.accounts || [])
 
       if (!activeAccount && data.accounts?.length > 0) {
         onAccountSelect(data.accounts[0]._id)
