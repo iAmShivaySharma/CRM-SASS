@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         if (Object.keys(obj).length > 0) rows.push(obj)
       }
     } else {
-      await workbook.xlsx.load(buffer)
+      await workbook.xlsx.load(buffer as any)
       const worksheet = workbook.worksheets[0]
       if (!worksheet) {
         return NextResponse.json(
