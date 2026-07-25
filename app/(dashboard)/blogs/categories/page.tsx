@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Edit, Save, X, ArrowLeft, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Save, X, ArrowLeft, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
