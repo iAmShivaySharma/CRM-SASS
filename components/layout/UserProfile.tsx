@@ -1,10 +1,3 @@
-/**
- * User Profile Component for Sidebar
- *
- * Displays user information, plan details, and quick actions
- * in the sidebar footer. Responsive and follows CRM best practices.
- */
-
 'use client'
 
 import { useState } from 'react'
@@ -20,6 +13,7 @@ import {
   Star,
   Clock,
   Timer,
+  Loader2,
 } from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
 import { useLogoutMutation } from '@/lib/api/authApi'
@@ -90,7 +84,7 @@ function getPlanColor(planType: string) {
 export function UserProfile({ compact = false, className }: UserProfileProps) {
   const { user } = useAppSelector(state => state.auth)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
-  const [logoutUser] = useLogoutMutation()
+  const [logoutUser, { isLoading: isLoggingOut }] = useLogoutMutation()
 
   const currentUser = {
     name: user?.fullName || user?.email || 'User',
@@ -185,8 +179,16 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
               <HelpCircle className="mr-2 h-4 w-4" />
               Help & Support
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-              <LogOut className="mr-2 h-4 w-4" />
+            <DropdownMenuItem
+              disabled={isLoggingOut}
+              onClick={handleLogout}
+              className="text-red-600"
+            >
+              {isLoggingOut ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <LogOut className="mr-2 h-4 w-4" />
+              )}
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -324,8 +326,16 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
             <HelpCircle className="mr-2 h-4 w-4" />
             Help & Support
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-            <LogOut className="mr-2 h-4 w-4" />
+          <DropdownMenuItem
+            disabled={isLoggingOut}
+            onClick={handleLogout}
+            className="text-red-600"
+          >
+            {isLoggingOut ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="mr-2 h-4 w-4" />
+            )}
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>

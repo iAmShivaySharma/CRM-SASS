@@ -115,8 +115,8 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
     workspaceId: currentWorkspace?.id,
   })
   const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation()
-  const [updateAsset] = useUpdateAssetMutation()
-  const [deleteAsset] = useDeleteAssetMutation()
+  const [updateAsset, { isLoading: isUpdatingAsset }] = useUpdateAssetMutation()
+  const [deleteAsset, { isLoading: isDeletingAsset }] = useDeleteAssetMutation()
 
   const assets = assetsData?.assets || []
 
@@ -658,32 +658,52 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
+                        disabled={isUpdatingAsset}
                         onClick={() =>
                           handleUpdateStatus(asset._id, 'maintenance')
                         }
                       >
-                        <Settings className="mr-2 h-4 w-4" />
+                        {isUpdatingAsset ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Settings className="mr-2 h-4 w-4" />
+                        )}
                         Mark Maintenance
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        disabled={isUpdatingAsset}
                         onClick={() =>
                           handleUpdateStatus(asset._id, 'available')
                         }
                       >
-                        <CheckCircle className="mr-2 h-4 w-4" />
+                        {isUpdatingAsset ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                        )}
                         Mark Available
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        disabled={isUpdatingAsset}
                         onClick={() => handleUpdateStatus(asset._id, 'retired')}
                       >
-                        <Clock className="mr-2 h-4 w-4" />
+                        {isUpdatingAsset ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Clock className="mr-2 h-4 w-4" />
+                        )}
                         Retire Asset
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600"
+                        disabled={isDeletingAsset}
                         onClick={() => handleDeleteAsset(asset._id)}
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
+                        {isDeletingAsset ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="mr-2 h-4 w-4" />
+                        )}
                         Delete Asset
                       </DropdownMenuItem>
                     </DropdownMenuContent>

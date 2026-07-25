@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
   Building2,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -75,7 +76,8 @@ export default function SettingsPage() {
 
   const { data: userPreferences, isLoading: preferencesLoading } =
     useGetUserPreferencesQuery()
-  const [patchPreferences] = usePatchUserPreferencesMutation()
+  const [patchPreferences, { isLoading: isSavingPreferences }] =
+    usePatchUserPreferencesMutation()
 
   const { data: workspaceData, isLoading: workspaceLoading } =
     useGetWorkspaceQuery(currentWorkspace?.id || '', {
@@ -683,8 +685,15 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <Button onClick={handleSaveNotifications}>
-                <Save className="mr-2 h-4 w-4" />
+              <Button
+                onClick={handleSaveNotifications}
+                disabled={isSavingPreferences}
+              >
+                {isSavingPreferences ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
                 Save Preferences
               </Button>
             </CardContent>

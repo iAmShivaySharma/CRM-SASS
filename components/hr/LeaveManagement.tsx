@@ -112,7 +112,8 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
     useCreateLeaveRequestMutation()
   const [updateLeave, { isLoading: isUpdating }] =
     useUpdateLeaveRequestMutation()
-  const [deleteLeave] = useDeleteLeaveRequestMutation()
+  const [deleteLeave, { isLoading: isDeleting }] =
+    useDeleteLeaveRequestMutation()
 
   const leaveRequests = leaveData?.leaveRequests || []
 
@@ -659,11 +660,16 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
                           {request.status === 'pending' && (
                             <>
                               <DropdownMenuItem
+                                disabled={isUpdating}
                                 onClick={() =>
                                   handleApproveRequest(request._id)
                                 }
                               >
-                                <CheckCircle className="mr-2 h-4 w-4" />
+                                {isUpdating ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                )}
                                 Approve
                               </DropdownMenuItem>
                               <DropdownMenuItem
@@ -673,10 +679,15 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
                                 Reject
                               </DropdownMenuItem>
                               <DropdownMenuItem
+                                disabled={isDeleting}
                                 onClick={() => handleDeleteRequest(request._id)}
                                 className="text-red-600"
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                {isDeleting ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                )}
                                 Delete
                               </DropdownMenuItem>
                             </>

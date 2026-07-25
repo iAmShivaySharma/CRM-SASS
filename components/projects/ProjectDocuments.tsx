@@ -13,6 +13,7 @@ import {
   Eye,
   Edit,
   Download,
+  Loader2,
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
@@ -55,8 +56,10 @@ export function ProjectDocuments({
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  const [createDocument] = useCreateDocumentMutation()
-  const [deleteDocument] = useDeleteDocumentMutation()
+  const [createDocument, { isLoading: isCreatingDoc }] =
+    useCreateDocumentMutation()
+  const [deleteDocument, { isLoading: isDeletingDoc }] =
+    useDeleteDocumentMutation()
 
   const getDocumentIcon = (type: string) => {
     switch (type) {
@@ -308,8 +311,12 @@ export function ProjectDocuments({
             Create and manage project documentation
           </p>
         </div>
-        <Button onClick={handleCreateDocument}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={handleCreateDocument} disabled={isCreatingDoc}>
+          {isCreatingDoc ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Plus className="mr-2 h-4 w-4" />
+          )}
           New Document
         </Button>
       </div>
@@ -423,8 +430,12 @@ export function ProjectDocuments({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-red-600"
+                        disabled={isDeletingDoc}
                         onClick={() => handleDeleteDocument(document.id)}
                       >
+                        {isDeletingDoc ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : null}
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -525,8 +536,12 @@ export function ProjectDocuments({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-600"
+                          disabled={isDeletingDoc}
                           onClick={() => handleDeleteDocument(document.id)}
                         >
+                          {isDeletingDoc ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : null}
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>

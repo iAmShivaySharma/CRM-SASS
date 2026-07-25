@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Edit, Save, X, ArrowLeft } from 'lucide-react'
+import { Plus, Trash2, Edit, Save, X, ArrowLeft, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,7 @@ function generateSlug(name: string) {
 export default function BlogCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -109,6 +110,7 @@ export default function BlogCategoriesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this category?')) return
 
+    setDeletingId(id)
     try {
       const res = await fetch(`/api/blogs/categories/${id}`, {
         method: 'DELETE',
@@ -121,6 +123,8 @@ export default function BlogCategoriesPage() {
       }
     } catch {
       toast.error('Failed to delete')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -308,9 +312,14 @@ export default function BlogCategoriesPage() {
                       variant="ghost"
                       size="sm"
                       className="text-destructive hover:text-destructive"
+                      disabled={deletingId === cat.id}
                       onClick={() => handleDelete(cat.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {deletingId === cat.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   </td>
                 </tr>

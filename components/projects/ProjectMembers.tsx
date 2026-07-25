@@ -10,6 +10,7 @@ import {
   MoreVertical,
   MessageSquare,
   UserMinus,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -42,7 +43,8 @@ export function ProjectMembers({
   isLoading,
 }: ProjectMembersProps) {
   const [showInviteDialog, setShowInviteDialog] = useState(false)
-  const [removeProjectMember] = useRemoveProjectMemberMutation()
+  const [removeProjectMember, { isLoading: isRemovingMember }] =
+    useRemoveProjectMemberMutation()
 
   const existingMemberIds = members.map(member => member.userId).filter(Boolean)
 
@@ -242,6 +244,7 @@ export function ProjectMembers({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-600"
+                          disabled={isRemovingMember}
                           onClick={() =>
                             handleRemoveMember(
                               member.id,
@@ -249,7 +252,11 @@ export function ProjectMembers({
                             )
                           }
                         >
-                          <UserMinus className="mr-2 h-4 w-4" />
+                          {isRemovingMember ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <UserMinus className="mr-2 h-4 w-4" />
+                          )}
                           Remove from Project
                         </DropdownMenuItem>
                       </DropdownMenuContent>

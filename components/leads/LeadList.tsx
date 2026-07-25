@@ -111,11 +111,12 @@ export function LeadList() {
     useGetLeadStatusesQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
-  const [deleteLead] = useDeleteLeadMutation()
+  const [deleteLead, { isLoading: isDeletingLead }] = useDeleteLeadMutation()
   const [bulkDeleteLeads, { isLoading: isBulkDeleting }] =
     useBulkDeleteLeadsMutation()
   const [importLeads, { isLoading: isImporting }] = useImportLeadsMutation()
-  const [convertLeadToContact] = useConvertLeadToContactMutation()
+  const [convertLeadToContact, { isLoading: isConverting }] =
+    useConvertLeadToContactMutation()
 
   const leads = leadsData?.leads || []
   const pagination = leadsData?.pagination
@@ -679,15 +680,25 @@ export function LeadList() {
                             <DropdownMenuItem
                               onClick={() => handleConvertToContact(lead)}
                               className="text-green-600"
+                              disabled={isConverting}
                             >
-                              <UserPlus className="mr-2 h-4 w-4" />
+                              {isConverting ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <UserPlus className="mr-2 h-4 w-4" />
+                              )}
                               Convert to Contact
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-red-600"
                               onClick={() => handleDelete(lead.id)}
+                              disabled={isDeletingLead}
                             >
-                              <Trash2 className="mr-2 h-4 w-4" />
+                              {isDeletingLead ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="mr-2 h-4 w-4" />
+                              )}
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
