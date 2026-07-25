@@ -88,9 +88,9 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
             key={chatRoom.id}
             onClick={() => onChatRoomSelect(chatRoom.id)}
             className={cn(
-              'w-full rounded-lg p-3 text-left transition-colors hover:bg-primary/10',
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              isSelected && 'bg-primary text-primary-foreground'
+              'w-full rounded-lg p-3 text-left transition-colors hover:bg-primary/10 hover:text-primary',
+              'focus:outline-none focus:ring-0 focus:ring-offset-0',
+              isSelected && '!bg-primary !text-primary-foreground'
             )}
           >
             <div className="flex items-start gap-3">
@@ -107,7 +107,9 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
                   <div
                     className={cn(
                       'flex h-10 w-10 items-center justify-center rounded-full',
-                      'bg-primary/10 text-primary'
+                      isSelected
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'bg-primary/10 text-primary'
                     )}
                   >
                     {getChatRoomIcon(chatRoom.type)}
