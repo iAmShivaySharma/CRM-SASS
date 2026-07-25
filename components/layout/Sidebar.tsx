@@ -371,7 +371,7 @@ export function Sidebar({
       <div className="flex h-full flex-col">
         <div
           className={cn(
-            'flex shrink-0 items-center border-b border-border bg-background',
+            'flex shrink-0 items-center bg-background',
             collapsed
               ? 'h-16 flex-col justify-center gap-1 px-2 py-2'
               : 'h-16 justify-between px-4'
