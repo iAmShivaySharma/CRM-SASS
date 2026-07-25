@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import DOMPurify from 'isomorphic-dompurify'
 
 export const emailSchema = z.string().email('Invalid email format').max(255)
 export const passwordSchema = z
@@ -109,10 +108,14 @@ export const updateWebhookSchema = createWebhookSchema
 export function sanitizeString(input: string): string {
   if (typeof input !== 'string') return ''
 
-  const cleaned = DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  })
+  const cleaned = input
+    .replace(/<[^>]*>/g, '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/<[^>]*>/g, '')
 
   return cleaned.trim()
 }

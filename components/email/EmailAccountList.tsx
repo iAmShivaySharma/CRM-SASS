@@ -10,6 +10,7 @@ import {
   Zap,
   Shield,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -60,14 +61,22 @@ export function EmailAccountList({
   const [accounts, setAccounts] = useState<EmailAccount[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [syncingAccounts, setSyncingAccounts] = useState<Set<string>>(new Set())
+  const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null)
+  const [deletingAccountId, setDeletingAccountId] = useState<string | null>(
+    null
+  )
 
   useEffect(() => {
+    let cancelled = false
     if (currentWorkspace?.id) {
-      fetchAccounts()
+      fetchAccounts(cancelled)
+    }
+    return () => {
+      cancelled = true
     }
   }, [currentWorkspace?.id])
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = async (cancelled = false) => {
     try {
       const response = await fetch(
         `/api/email/accounts?workspaceId=${currentWorkspace?.id}`
@@ -75,7 +84,7 @@ export function EmailAccountList({
       if (!response.ok) throw new Error('Failed to fetch accounts')
 
       const data = await response.json()
-      setAccounts(data.accounts || [])
+      if (!cancelled) setAccounts(data.accounts || [])
 
       if (!activeAccount && data.accounts?.length > 0) {
         onAccountSelect(data.accounts[0]._id)
@@ -124,6 +133,7 @@ export function EmailAccountList({
   const deleteAccount = async (accountId: string) => {
     if (!confirm('Are you sure you want to delete this email account?')) return
 
+    setDeletingAccountId(accountId)
     try {
       const response = await fetch(
         `/api/email/accounts/${accountId}?workspaceId=${currentWorkspace?.id}`,
@@ -144,10 +154,13 @@ export function EmailAccountList({
       toast.success('Email account deleted')
     } catch (error) {
       toast.error('Failed to delete account')
+    } finally {
+      setDeletingAccountId(null)
     }
   }
 
   const setAsDefault = async (accountId: string) => {
+    setSettingDefaultId(accountId)
     try {
       const response = await fetch(
         `/api/email/accounts/${accountId}/set-default?workspaceId=${currentWorkspace?.id}`,
@@ -168,6 +181,8 @@ export function EmailAccountList({
       toast.success('Default account updated')
     } catch (error) {
       toast.error('Failed to update default account')
+    } finally {
+      setSettingDefaultId(null)
     }
   }
 
@@ -335,8 +350,15 @@ export function EmailAccountList({
                 )}
 
                 {!account.isDefault && (
-                  <DropdownMenuItem onSelect={() => setAsDefault(account._id)}>
-                    <Zap className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem
+                    disabled={settingDefaultId === account._id}
+                    onSelect={() => setAsDefault(account._id)}
+                  >
+                    {settingDefaultId === account._id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Zap className="mr-2 h-4 w-4" />
+                    )}
                     Set as Default
                   </DropdownMenuItem>
                 )}
@@ -351,10 +373,15 @@ export function EmailAccountList({
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
+                  disabled={deletingAccountId === account._id}
                   onSelect={() => deleteAccount(account._id)}
                   className="text-red-600 dark:text-red-400"
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  {deletingAccountId === account._id ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
                   Delete Account
                 </DropdownMenuItem>
               </DropdownMenuContent>

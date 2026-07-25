@@ -16,7 +16,8 @@ const nextConfig = {
     'mailparser',
     'socket.io',
     'socket.io-client',
-    'speakeasy',
+    'exceljs',
+    'bullmq',
   ],
   async headers() {
     return [

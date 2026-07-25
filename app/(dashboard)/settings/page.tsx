@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
   Building2,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -76,13 +77,15 @@ export default function SettingsPage() {
 
   const { data: userPreferences, isLoading: preferencesLoading } =
     useGetUserPreferencesQuery()
-  const [patchPreferences] = usePatchUserPreferencesMutation()
+  const [patchPreferences, { isLoading: isSavingPreferences }] =
+    usePatchUserPreferencesMutation()
 
   const { data: workspaceData, isLoading: workspaceLoading } =
     useGetWorkspaceQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
-  const [updateWorkspace] = useUpdateWorkspaceMutation()
+  const [updateWorkspace, { isLoading: isSavingWorkspace }] =
+    useUpdateWorkspaceMutation()
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -532,9 +535,14 @@ export default function SettingsPage() {
 
                   <Button
                     onClick={handleSaveWorkspace}
+                    disabled={isSavingWorkspace}
                     className="w-full sm:w-auto"
                   >
-                    <Save className="mr-2 h-4 w-4" />
+                    {isSavingWorkspace ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 h-4 w-4" />
+                    )}
                     Save Workspace Settings
                   </Button>
                 </>
@@ -707,8 +715,15 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <Button onClick={handleSaveNotifications}>
-                <Save className="mr-2 h-4 w-4" />
+              <Button
+                onClick={handleSaveNotifications}
+                disabled={isSavingPreferences}
+              >
+                {isSavingPreferences ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
                 Save Preferences
               </Button>
             </CardContent>

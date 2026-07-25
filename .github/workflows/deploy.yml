@@ -30,11 +30,12 @@ jobs:
     steps:
       - name: Determine environment
         id: env
+        env:
+          EVENT: ${{ github.event_name }}
+          LABEL: ${{ github.event.label.name }}
+          REF: ${{ github.ref }}
         run: |
-          EVENT="${{ github.event_name }}"
-          LABEL="${{ github.event.label.name }}"
-
-          if [[ "$EVENT" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ "$EVENT" == "push" && "$REF" == "refs/heads/main" ]]; then
             echo "environment=prod" >> "$GITHUB_OUTPUT"
             echo "should_deploy=true" >> "$GITHUB_OUTPUT"
           elif [[ "$EVENT" == "pull_request" && "$LABEL" == "READY TO DEV" ]]; then

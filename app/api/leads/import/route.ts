@@ -4,7 +4,7 @@ import { Lead, LeadStatus, Tag } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 const VALID_SOURCES = [
   'manual',
@@ -49,10 +49,57 @@ export async function POST(request: NextRequest) {
     if (permError) return permError
 
     const arrayBuffer = await file.arrayBuffer()
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' })
-    const sheetName = workbook.SheetNames[0]
-    const worksheet = workbook.Sheets[sheetName]
-    const rows: any[] = XLSX.utils.sheet_to_json(worksheet)
+    const buffer = Buffer.from(arrayBuffer)
+    const fileName = file.name?.toLowerCase() || ''
+    const rows: any[] = []
+
+    const workbook = new ExcelJS.Workbook()
+
+    if (fileName.endsWith('.csv')) {
+      const csvText = buffer.toString('utf-8')
+      const lines = csvText.split('\n').filter(l => l.trim())
+      if (lines.length < 2) {
+        return NextResponse.json(
+          { error: 'CSV file is empty or has no data rows' },
+          { status: 400 }
+        )
+      }
+      const csvHeaders = lines[0]
+        .split(',')
+        .map(h => h.trim().replace(/^"|"$/g, ''))
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i]
+          .split(',')
+          .map(v => v.trim().replace(/^"|"$/g, ''))
+        const obj: any = {}
+        csvHeaders.forEach((h, idx) => {
+          if (h && values[idx]) obj[h] = values[idx]
+        })
+        if (Object.keys(obj).length > 0) rows.push(obj)
+      }
+    } else {
+      await workbook.xlsx.load(buffer as any)
+      const worksheet = workbook.worksheets[0]
+      if (!worksheet) {
+        return NextResponse.json(
+          { error: 'No worksheet found in file' },
+          { status: 400 }
+        )
+      }
+      const headers: string[] = []
+      worksheet.getRow(1).eachCell((cell, colNumber) => {
+        headers[colNumber - 1] = String(cell.value || '')
+      })
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return
+        const obj: any = {}
+        row.eachCell((cell, colNumber) => {
+          const key = headers[colNumber - 1]
+          if (key) obj[key] = cell.value
+        })
+        rows.push(obj)
+      })
+    }
 
     if (rows.length === 0) {
       return NextResponse.json(

@@ -19,7 +19,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SocketProvider>
-      <div className="min-h-screen bg-background dark:bg-gray-900">
+      <div className="min-h-screen bg-primary">
         {/* Mobile overlay */}
         {mobileMenuOpen && (
           <div
@@ -46,7 +46,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <Header
             onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
           />
-          <main className="w-full p-4 sm:p-6 lg:p-8">
+          <main className="min-h-[calc(100vh-4rem)] w-full rounded-tl-2xl bg-background p-4 sm:p-6 lg:p-8">
             <div className="w-full">{children}</div>
           </main>
         </div>

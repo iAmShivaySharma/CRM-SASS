@@ -1,7 +1,3 @@
-/**
- * @deprecated This component uses direct fetch calls and should be replaced with
- * the LeadList component that uses RTK Query for better caching and state management.
- */
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -25,6 +21,7 @@ import {
   CheckCircle,
   XCircle,
   Eye,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -143,8 +140,10 @@ export function EnhancedLeadList() {
   const [assignedToFilter, setAssignedToFilter] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
-  const [isViewOpen, setIsViewOpen] = useState(false)
+  const isViewOpenRef = useRef(false)
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false)
+  const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null)
+  const [isAddingNote, setIsAddingNote] = useState(false)
   const [noteContent, setNoteContent] = useState('')
   const [noteType, setNoteType] = useState<
     'note' | 'call' | 'email' | 'meeting' | 'task'
@@ -236,6 +235,7 @@ export function EnhancedLeadList() {
   }, [searchTerm, statusFilter, priorityFilter, assignedToFilter, fetchLeads])
 
   const handleDelete = async (id: string) => {
+    setDeletingLeadId(id)
     try {
       const response = await fetch(`/api/leads/${id}`, {
         method: 'DELETE',
@@ -251,12 +251,15 @@ export function EnhancedLeadList() {
     } catch (error) {
       console.error('Error deleting lead:', error)
       toast.error('Failed to delete lead')
+    } finally {
+      setDeletingLeadId(null)
     }
   }
 
   const handleAddNote = async () => {
     if (!selectedLead || !noteContent.trim()) return
 
+    setIsAddingNote(true)
     try {
       const response = await fetch(`/api/leads/${selectedLead.id}/notes`, {
         method: 'POST',
@@ -281,6 +284,8 @@ export function EnhancedLeadList() {
     } catch (error) {
       console.error('Error adding note:', error)
       toast.error('Failed to add note')
+    } finally {
+      setIsAddingNote(false)
     }
   }
 
@@ -491,7 +496,7 @@ export function EnhancedLeadList() {
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedLead(lead)
-                              setIsViewOpen(true)
+                              isViewOpenRef.current = true
                             }}
                           >
                             <Eye className="mr-2 h-4 w-4" />
@@ -511,10 +516,15 @@ export function EnhancedLeadList() {
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            disabled={deletingLeadId === lead.id}
                             onClick={() => handleDelete(lead.id)}
                             className="text-destructive"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
+                            {deletingLeadId === lead.id ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="mr-2 h-4 w-4" />
+                            )}
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -614,7 +624,15 @@ export function EnhancedLeadList() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleAddNote} disabled={!noteContent.trim()}>
+              <Button
+                onClick={handleAddNote}
+                disabled={!noteContent.trim() || isAddingNote}
+              >
+                {isAddingNote ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                )}
                 Add Note
               </Button>
             </div>

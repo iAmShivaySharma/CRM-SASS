@@ -127,30 +127,27 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 sm:px-6">
+      <header className="flex h-16 items-center justify-between bg-primary px-4 text-primary-foreground sm:px-6">
         <div className="flex flex-1 items-center space-x-2 sm:space-x-4">
-          {/* Mobile menu button */}
           <Button
             variant="ghost"
             size="sm"
-            className="p-2 lg:hidden"
+            className="p-2 text-primary-foreground hover:!bg-primary-foreground/10 hover:!text-primary-foreground lg:hidden"
             onClick={onMobileMenuToggle}
             aria-label="Toggle mobile menu"
           >
             <Menu className="h-5 w-5" />
           </Button>
 
-          {/* Search bar - responsive */}
           <div className="relative hidden max-w-md flex-1 sm:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-primary-foreground/50" />
             <Input
               type="search"
               placeholder="Search leads, contacts..."
-              className="w-full pl-10"
+              className="focus-visible:bg-primary-foreground/15 w-full rounded-lg border-transparent bg-primary-foreground/10 pl-10 text-primary-foreground placeholder:text-primary-foreground/50 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
 
-          {/* Mobile search button */}
           <Button
             variant="ghost"
             size="sm"
@@ -162,7 +159,6 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-4">
-          {/* Notifications */}
           <NotificationBell />
 
           {/* User Menu - Simple dropdown for settings and logout */}
@@ -170,21 +166,24 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center space-x-1 p-1 sm:space-x-2 sm:p-2"
+                className="flex items-center space-x-1 p-1 text-primary-foreground hover:!bg-primary-foreground/10 hover:!text-primary-foreground sm:space-x-2 sm:p-2"
               >
-                <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+                <Avatar className="h-7 w-7 border border-primary-foreground/30 sm:h-8 sm:w-8">
                   <AvatarImage src="/avatars/01.png" alt={user?.name} />
-                  <AvatarFallback className="text-xs sm:text-sm">
+                  <AvatarFallback className="bg-primary-foreground/20 text-xs text-primary-foreground sm:text-sm">
                     {user?.name?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="hidden text-xs font-medium sm:block sm:text-sm">
+                <span className="hidden text-xs font-medium text-primary-foreground sm:block sm:text-sm">
                   {user?.name}
                 </span>
-                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                <ChevronDown className="h-3 w-3 text-primary-foreground/70 sm:h-4 sm:w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent
+              align="end"
+              className="w-56 [&_[role=menuitem]:focus]:bg-primary [&_[role=menuitem]:focus]:text-primary-foreground"
+            >
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
