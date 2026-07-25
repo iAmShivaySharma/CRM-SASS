@@ -83,7 +83,8 @@ export default function SettingsPage() {
     useGetWorkspaceQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
-  const [updateWorkspace] = useUpdateWorkspaceMutation()
+  const [updateWorkspace, { isLoading: isSavingWorkspace }] =
+    useUpdateWorkspaceMutation()
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -494,9 +495,14 @@ export default function SettingsPage() {
 
                   <Button
                     onClick={handleSaveWorkspace}
+                    disabled={isSavingWorkspace}
                     className="w-full sm:w-auto"
                   >
-                    <Save className="mr-2 h-4 w-4" />
+                    {isSavingWorkspace ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 h-4 w-4" />
+                    )}
                     Save Workspace Settings
                   </Button>
                 </>

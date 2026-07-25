@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Shield, Edit, Trash2 } from 'lucide-react'
+import { Plus, Shield, Edit, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,7 +32,7 @@ export function RoleManager() {
   } = useGetRolesQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
-  const [deleteRole] = useDeleteRoleMutation()
+  const [deleteRole, { isLoading: isDeletingRole }] = useDeleteRoleMutation()
 
   const roles = rolesData?.roles || []
 
@@ -114,10 +114,15 @@ export function RoleManager() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      disabled={isDeletingRole}
                       onClick={() => handleDelete(role.id)}
                       className="text-red-600 hover:text-red-700"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {isDeletingRole ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   )}
                 </div>

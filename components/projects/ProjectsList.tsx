@@ -10,6 +10,7 @@ import {
   RotateCcw,
   FileText,
   ListTodo,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -36,7 +37,8 @@ interface ProjectsListProps {
 }
 
 export function ProjectsList({ projects }: ProjectsListProps) {
-  const [updateProject] = useUpdateProjectMutation()
+  const [updateProject, { isLoading: isUpdatingProject }] =
+    useUpdateProjectMutation()
 
   const statusColors = {
     active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -219,6 +221,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          disabled={isUpdatingProject}
                           onClick={() => handleArchiveToggle(project)}
                           className={
                             project.status === 'archived'
@@ -226,7 +229,14 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                               : 'text-orange-600'
                           }
                         >
-                          {project.status === 'archived' ? (
+                          {isUpdatingProject ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              {project.status === 'archived'
+                                ? 'Restore Project'
+                                : 'Archive Project'}
+                            </>
+                          ) : project.status === 'archived' ? (
                             <>
                               <RotateCcw className="mr-2 h-4 w-4" />
                               Restore Project

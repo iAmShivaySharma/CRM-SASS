@@ -51,7 +51,7 @@ export function TagManager() {
   } = useGetTagsQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
-  const [createTag] = useCreateTagMutation()
+  const [createTag, { isLoading: isCreatingTag }] = useCreateTagMutation()
   const [deleteTag] = useDeleteTagMutation()
 
   const tags = tagsData?.tags || []
@@ -196,7 +196,10 @@ export function TagManager() {
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={isCreatingTag}>
+                  {isCreatingTag ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
                   {editingTag ? 'Update' : 'Create'} Tag
                 </Button>
               </div>
