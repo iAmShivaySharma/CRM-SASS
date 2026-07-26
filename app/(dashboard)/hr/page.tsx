@@ -19,6 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
 import { useAppSelector } from '@/lib/hooks'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 interface HRStats {
   totalEmployees: number
@@ -169,6 +171,12 @@ export default function HRPage() {
       actions: ['Asset Inventory', 'Allocations', 'Maintenance'],
     },
   ]
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.MEMBERS_VIEW)) {
+    return <AccessDenied />
+  }
 
   if (!currentWorkspace) {
     return (

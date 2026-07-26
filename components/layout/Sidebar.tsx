@@ -233,16 +233,12 @@ export function Sidebar({
   onMobileMenuToggle,
 }: SidebarProps) {
   const pathname = usePathname()
-  const { userPermissions } = usePermissions()
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
 
   const hasNavPermission = (permission?: Permission) => {
     if (!permission) return true
-    if (userPermissions.length === 0) return true
-    const permStr = permission as string
-    if (userPermissions.includes('*:*' as Permission)) return true
-    const [resource] = permStr.split('.')
-    if (userPermissions.includes(`${resource}.*` as Permission)) return true
-    return userPermissions.includes(permission)
+    if (permissionsLoading) return true
+    return hasPermission(permission)
   }
 
   const filteredNavigation = navigation.filter(item => {

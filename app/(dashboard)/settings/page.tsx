@@ -58,6 +58,8 @@ import {
   getSupportedCurrencies,
   getSupportedTimezones,
 } from '@/lib/utils/workspace-formatting'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 const colorOptions = [
   { name: 'Blue', value: '#3b82f6' },
@@ -95,6 +97,8 @@ export default function SettingsPage() {
     teamActivity: true,
     weeklyReports: false,
   })
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
 
   const [workspaceForm, setWorkspaceForm] = useState({
     name: '',
@@ -149,6 +153,10 @@ export default function SettingsPage() {
       })
     }
   }, [workspaceData])
+
+  if (!permissionsLoading && !hasPermission(Permission.SETTINGS_VIEW)) {
+    return <AccessDenied />
+  }
 
   const handleSaveProfile = () => {
     toast.success('Profile updated successfully')
