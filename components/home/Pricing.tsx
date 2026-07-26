@@ -9,7 +9,8 @@ import { Switch } from '@/components/ui/switch'
 const plans = [
   {
     name: 'Free',
-    mo: 0, yr: 0,
+    mo: 0,
+    yr: 0,
     desc: '2 members · 100 leads',
     rows: [
       [true, 'Basic pipeline'],
@@ -24,7 +25,8 @@ const plans = [
   },
   {
     name: 'Starter',
-    mo: 12, yr: 9,
+    mo: 12,
+    yr: 9,
     desc: '5 members · 1K leads',
     rows: [
       [true, 'Full pipeline + statuses'],
@@ -39,7 +41,8 @@ const plans = [
   },
   {
     name: 'Pro',
-    mo: 29, yr: 23,
+    mo: 29,
+    yr: 23,
     desc: '15 members · 10K leads',
     rows: [
       [true, 'AI scoring + pipelines'],
@@ -54,7 +57,8 @@ const plans = [
   },
   {
     name: 'Enterprise',
-    mo: 99, yr: 79,
+    mo: 99,
+    yr: 79,
     desc: 'Unlimited everything',
     rows: [
       [true, 'Everything in Pro'],
@@ -73,7 +77,10 @@ export default function Pricing() {
   const [annual, setAnnual] = useState(true)
 
   return (
-    <section id="pricing" className="relative overflow-hidden bg-muted py-24 lg:py-32">
+    <section
+      id="pricing"
+      className="relative overflow-hidden bg-muted py-16 lg:py-20"
+    >
       <div className="mx-auto max-w-6xl px-5">
         <div className="mx-auto mb-4 max-w-xl text-center">
           <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
@@ -83,17 +90,29 @@ export default function Pricing() {
             Per workspace, not per seat
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            Your price stays the same whether you have 1 or 15 members.
-            Growing your team shouldn&apos;t grow your bill.
+            Your price stays the same whether you have 1 or 15 members. Growing
+            your team shouldn&apos;t grow your bill.
           </p>
         </div>
 
         {/* toggle */}
         <div className="mb-12 flex items-center justify-center gap-3">
-          <span className={`text-sm font-medium ${!annual ? 'text-foreground' : 'text-muted-foreground/70'}`}>Monthly</span>
+          <span
+            className={`text-sm font-medium ${!annual ? 'text-foreground' : 'text-muted-foreground/70'}`}
+          >
+            Monthly
+          </span>
           <Switch checked={annual} onCheckedChange={setAnnual} />
-          <span className={`text-sm font-medium ${annual ? 'text-foreground' : 'text-muted-foreground/70'}`}>Annual</span>
-          {annual && <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">Save 20%</span>}
+          <span
+            className={`text-sm font-medium ${annual ? 'text-foreground' : 'text-muted-foreground/70'}`}
+          >
+            Annual
+          </span>
+          {annual && (
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+              Save 20%
+            </span>
+          )}
         </div>
 
         {/* cards */}
@@ -101,33 +120,58 @@ export default function Pricing() {
           {plans.map(p => {
             const price = annual ? p.yr : p.mo
             return (
-              <div key={p.name} className={`relative flex flex-col rounded-2xl border bg-background p-6 transition-shadow duration-200 ${
-                p.pop ? 'border-primary/20 shadow-xl shadow-primary/10 ring-1 ring-primary/15' : 'border-border hover:shadow-lg hover:shadow-muted/60'
-              }`}>
+              <div
+                key={p.name}
+                className={`relative flex flex-col rounded-2xl border bg-background p-6 transition-shadow duration-200 ${
+                  p.pop
+                    ? 'ring-primary/15 border-primary/20 shadow-xl shadow-primary/10 ring-1'
+                    : 'border-border hover:shadow-lg hover:shadow-muted/60'
+                }`}
+              >
                 {p.pop && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[11px] font-semibold text-white">
                     Most popular
                   </span>
                 )}
                 <div>
-                  <h3 className="text-base font-semibold text-foreground">{p.name}</h3>
+                  <h3 className="text-base font-semibold text-foreground">
+                    {p.name}
+                  </h3>
                   <p className="text-xs text-muted-foreground/70">{p.desc}</p>
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className="font-mono text-3xl font-bold text-foreground">{price === 0 ? 'Free' : `$${price}`}</span>
-                    {price > 0 && <span className="text-sm text-muted-foreground/70">/mo</span>}
+                    <span className="font-mono text-3xl font-bold text-foreground">
+                      {price === 0 ? 'Free' : `$${price}`}
+                    </span>
+                    {price > 0 && (
+                      <span className="text-sm text-muted-foreground/70">
+                        /mo
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 <ul className="mt-6 flex-1 space-y-2.5">
                   {p.rows.map(([ok, text]) => (
                     <li key={text as string} className="flex items-start gap-2">
-                      {ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> : <X className="mt-0.5 h-4 w-4 shrink-0 text-neutral-300" />}
-                      <span className={`text-[13px] ${ok ? 'text-muted-foreground' : 'text-muted-foreground/70'}`}>{text as string}</span>
+                      {ok ? (
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      ) : (
+                        <X className="mt-0.5 h-4 w-4 shrink-0 text-neutral-300" />
+                      )}
+                      <span
+                        className={`text-[13px] ${ok ? 'text-muted-foreground' : 'text-muted-foreground/70'}`}
+                      >
+                        {text as string}
+                      </span>
                     </li>
                   ))}
                 </ul>
 
-                <Button asChild className={`mt-6 w-full rounded-lg ${p.pop ? 'bg-primary hover:bg-primary/90' : ''}`} variant={p.pop ? 'default' : 'outline'}>
+                <Button
+                  asChild
+                  className={`mt-6 w-full rounded-lg ${p.pop ? 'bg-primary hover:bg-primary/90' : ''}`}
+                  variant={p.pop ? 'default' : 'outline'}
+                >
                   <Link href="/register">{p.cta}</Link>
                 </Button>
               </div>
