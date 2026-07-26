@@ -153,10 +153,8 @@ export function WebhookList({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Webhooks
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h2 className="text-2xl font-bold text-foreground">Webhooks</h2>
+          <p className="text-muted-foreground">
             Manage webhook endpoints for receiving leads from external sources
           </p>
         </div>
@@ -169,11 +167,11 @@ export function WebhookList({
       {webhooks.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Webhook className="mb-4 h-12 w-12 text-gray-400" />
-            <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+            <Webhook className="mb-4 h-12 w-12 text-muted-foreground" />
+            <h3 className="mb-2 text-lg font-medium text-foreground">
               No webhooks configured
             </h3>
-            <p className="mb-4 text-center text-gray-600 dark:text-gray-400">
+            <p className="mb-4 text-center text-muted-foreground">
               Create your first webhook to start receiving leads from external
               sources like Facebook, Google Forms, or custom integrations.
             </p>
@@ -264,19 +262,23 @@ export function WebhookList({
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                     <div className="flex items-center space-x-2">
-                      <Activity className="h-4 w-4 text-gray-500" />
+                      <Activity className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">
                           {webhook.totalRequests}
                         </p>
-                        <p className="text-xs text-gray-500">Total Requests</p>
+                        <p className="text-xs text-muted-foreground">
+                          Total Requests
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
                       <div>
                         <p className="text-sm font-medium">{successRate}%</p>
-                        <p className="text-xs text-gray-500">Success Rate</p>
+                        <p className="text-xs text-muted-foreground">
+                          Success Rate
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -285,11 +287,13 @@ export function WebhookList({
                         <p className="text-sm font-medium">
                           {webhook.failedRequests}
                         </p>
-                        <p className="text-xs text-gray-500">Failed Requests</p>
+                        <p className="text-xs text-muted-foreground">
+                          Failed Requests
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-gray-500" />
+                      <Clock className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">
                           {webhook.lastTriggered
@@ -299,7 +303,9 @@ export function WebhookList({
                               )
                             : 'Never'}
                         </p>
-                        <p className="text-xs text-gray-500">Last Triggered</p>
+                        <p className="text-xs text-muted-foreground">
+                          Last Triggered
+                        </p>
                       </div>
                     </div>
                   </div>

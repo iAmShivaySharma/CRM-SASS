@@ -89,7 +89,7 @@ export function AttendanceOverview({
         )
       case 'clocked_out':
         return (
-          <Badge className="bg-gray-100 text-gray-800">
+          <Badge className="bg-muted text-foreground">
             <Clock className="mr-1 h-3 w-3" />
             Finished
           </Badge>

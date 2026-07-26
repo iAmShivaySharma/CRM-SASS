@@ -86,7 +86,7 @@ export default function AssetsPage() {
   }
 
   const getUtilizationColor = (allocated: number, total: number) => {
-    if (total === 0) return 'text-gray-600'
+    if (total === 0) return 'text-muted-foreground'
     const percentage = (allocated / total) * 100
     if (percentage > 80) return 'text-red-600'
     if (percentage > 60) return 'text-yellow-600'
@@ -269,7 +269,7 @@ export default function AssetsPage() {
                       Value: ${(category.totalValue / 1000).toFixed(0)}K
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-gray-200">
+                  <div className="h-2 w-full rounded-full bg-muted">
                     <div
                       className="h-2 rounded-full bg-primary transition-all duration-300"
                       style={{

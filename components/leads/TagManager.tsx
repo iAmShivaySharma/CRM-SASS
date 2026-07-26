@@ -125,10 +125,8 @@ export function TagManager() {
     <div className="w-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Lead Tags
-          </h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-foreground">Lead Tags</h1>
+          <p className="mt-1 text-muted-foreground">
             Organize and categorize your leads
           </p>
         </div>
@@ -243,7 +241,7 @@ export function TagManager() {
             </CardHeader>
             {tag.description && (
               <CardContent>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {tag.description}
                 </p>
               </CardContent>
@@ -254,9 +252,9 @@ export function TagManager() {
 
       {tags.length === 0 && (
         <div className="py-12 text-center">
-          <Tag className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-          <p className="text-gray-500 dark:text-gray-400">No tags found</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500">
+          <Tag className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">No tags found</p>
+          <p className="text-sm text-muted-foreground">
             Create your first tag to get started
           </p>
         </div>

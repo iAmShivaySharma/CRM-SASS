@@ -220,7 +220,7 @@ function AcceptInvitationContent() {
 
   if (userState === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardContent className="flex items-center justify-center p-8">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -233,7 +233,7 @@ function AcceptInvitationContent() {
 
   if (userState === 'error' || !invitation) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
@@ -260,7 +260,7 @@ function AcceptInvitationContent() {
 
   if (result?.success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
@@ -276,7 +276,7 @@ function AcceptInvitationContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-muted-foreground">
               <p>
                 You&apos;ve been added to the workspace as a{' '}
                 <strong>{result.role?.name}</strong>.
@@ -305,7 +305,7 @@ function AcceptInvitationContent() {
 
   if (userState === 'wrong-user') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
@@ -322,7 +322,7 @@ function AcceptInvitationContent() {
               <h3 className="mb-2 text-sm font-semibold">
                 Invitation Details:
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 <strong>Workspace:</strong> {invitation.workspace.name}
                 <br />
                 <strong>Role:</strong> {invitation.role.name}
@@ -361,7 +361,7 @@ function AcceptInvitationContent() {
 
   if (userState === 'correct-user') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
@@ -378,7 +378,7 @@ function AcceptInvitationContent() {
               <h3 className="mb-2 text-sm font-semibold">
                 Invitation Details:
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 <strong>Workspace:</strong> {invitation.workspace.name}
                 <br />
                 <strong>Role:</strong> {invitation.role.name}
@@ -425,7 +425,7 @@ function AcceptInvitationContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-muted/50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
@@ -440,7 +440,7 @@ function AcceptInvitationContent() {
         <CardContent className="space-y-4">
           <div className="rounded-lg bg-blue-50 p-4">
             <h3 className="mb-2 text-sm font-semibold">Invitation Details:</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               <strong>Email:</strong> {invitation.email}
               <br />
               <strong>Workspace:</strong> {invitation.workspace.name}
@@ -512,7 +512,7 @@ function AcceptInvitationContent() {
           </Button>
 
           <div className="space-y-2 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link
                 href={`/auth/login?redirect=${encodeURIComponent(window.location.href)}`}
@@ -539,9 +539,9 @@ export default function AcceptInvitationPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex min-h-screen items-center justify-center bg-muted/50">
           <div className="flex items-center space-x-2">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-blue-600"></div>
             <span>Loading invitation...</span>
           </div>
         </div>

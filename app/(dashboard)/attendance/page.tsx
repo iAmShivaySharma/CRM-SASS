@@ -92,7 +92,7 @@ export default function AttendancePage() {
             ? 'text-yellow-600'
             : 'text-red-600'
       default:
-        return 'text-gray-600'
+        return 'text-muted-foreground'
     }
   }
 
@@ -278,7 +278,7 @@ export default function AttendancePage() {
                           {stats.attendanceRate}%
                         </span>
                       </div>
-                      <div className="h-2 w-full rounded-full bg-gray-200">
+                      <div className="h-2 w-full rounded-full bg-muted">
                         <div
                           className="h-2 rounded-full bg-primary transition-all duration-300"
                           style={{ width: `${stats.attendanceRate}%` }}

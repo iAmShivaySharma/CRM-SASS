@@ -92,13 +92,13 @@ export default function EmployeesPage() {
                     {(role.permissions || []).slice(0, 5).map((p: string) => (
                       <span
                         key={p}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700"
+                        className="rounded bg-muted px-2 py-1 text-xs text-foreground"
                       >
                         {p}
                       </span>
                     ))}
                     {role.permissions?.length > 5 && (
-                      <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                      <span className="rounded bg-muted px-2 py-1 text-xs text-foreground">
                         +{role.permissions.length - 5} more
                       </span>
                     )}

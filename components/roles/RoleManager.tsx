@@ -65,10 +65,10 @@ export function RoleManager() {
     <div className="w-full space-y-6">
       <div className="flex w-full flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
             Role Management
           </h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-muted-foreground">
             Create and manage custom roles with granular permissions
           </p>
         </div>
@@ -127,7 +127,7 @@ export function RoleManager() {
                   )}
                 </div>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {role.description}
               </p>
             </CardHeader>
@@ -142,13 +142,15 @@ export function RoleManager() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Permissions</span>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     {role.permissions.length}
                   </span>
                 </div>
 
                 <div className="border-t pt-3">
-                  <p className="mb-2 text-xs text-gray-500">Key Permissions:</p>
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    Key Permissions:
+                  </p>
                   <div className="flex flex-wrap gap-1">
                     {role.permissions.slice(0, 3).map((permission, index) => (
                       <Badge key={index} variant="outline" className="text-xs">

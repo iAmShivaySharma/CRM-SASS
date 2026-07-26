@@ -330,8 +330,8 @@ export function Sidebar({
           'group relative flex items-center overflow-hidden rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300',
           isSubItem && 'ml-6 rounded-lg py-2.5',
           isActive
-            ? 'bg-primary-foreground/20 font-semibold text-primary-foreground'
-            : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'
+            ? 'bg-primary-foreground/20 font-semibold text-primary-foreground dark:bg-secondary dark:text-foreground'
+            : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-muted-foreground dark:hover:bg-secondary dark:hover:text-foreground'
         )}
       >
         {isSubItem && !collapsed && (
@@ -361,7 +361,7 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        'fixed inset-y-0 left-0 z-50 bg-primary text-primary-foreground transition-all duration-300',
+        'fixed inset-y-0 left-0 z-50 bg-primary text-primary-foreground transition-all duration-300 dark:bg-muted dark:text-foreground',
         'hidden flex-col lg:flex',
         collapsed ? 'lg:w-16' : 'lg:w-64',
         mobileMenuOpen && 'flex w-64 flex-col',
@@ -371,7 +371,7 @@ export function Sidebar({
       <div className="flex h-full flex-col">
         <div
           className={cn(
-            'flex shrink-0 items-center bg-primary text-primary-foreground',
+            'flex shrink-0 items-center bg-primary text-primary-foreground dark:bg-muted',
             collapsed
               ? 'h-16 flex-col justify-center gap-1 px-2 py-2'
               : 'h-16 justify-between px-4'
@@ -392,7 +392,7 @@ export function Sidebar({
             size="sm"
             onClick={onToggle}
             className={cn(
-              'hidden items-center justify-center rounded-lg bg-primary-foreground/20 text-primary-foreground transition-all duration-200 hover:!bg-primary-foreground/30 hover:!text-primary-foreground lg:flex',
+              'hidden items-center justify-center rounded-lg bg-primary-foreground/20 text-primary-foreground transition-all duration-200 hover:!bg-primary-foreground/30 hover:!text-primary-foreground dark:bg-secondary dark:text-foreground dark:hover:!bg-secondary/80 lg:flex',
               collapsed ? 'h-9 w-9' : 'h-9 w-9'
             )}
           >

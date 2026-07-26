@@ -54,7 +54,7 @@ export function ContactDetail({
       case 'low':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -63,11 +63,11 @@ export function ContactDetail({
       case 'active':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
       case 'inactive':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-muted text-foreground'
       case 'archived':
         return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -82,7 +82,7 @@ export function ContactDetail({
       case 'vendor':
         return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-muted text-foreground'
     }
   }
 
