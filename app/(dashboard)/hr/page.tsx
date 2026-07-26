@@ -8,10 +8,8 @@ import {
   UserCheck,
   UserX,
   Plus,
-  Download,
   Laptop,
   User,
-  ArrowRight,
   Building,
   ChevronRight,
   Loader2,
@@ -196,16 +194,10 @@ export default function HRPage() {
             Comprehensive HR management system for {currentWorkspace.name}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
-          <Button size="sm" onClick={() => router.push('/employees')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
-        </div>
+        <Button size="sm" onClick={() => router.push('/employees')}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Employee
+        </Button>
       </div>
 
       <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
@@ -408,14 +400,6 @@ export default function HRPage() {
                       ))}
                     </div>
                   </div>
-
-                  <Button
-                    className="w-full transition-colors group-hover:bg-primary group-hover:text-white"
-                    variant="outline"
-                  >
-                    <ArrowRight className="mr-2 h-4 w-4" />
-                    Open {module.name}
-                  </Button>
                 </CardContent>
               </Card>
             )

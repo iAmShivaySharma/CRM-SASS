@@ -5,12 +5,11 @@ import {
   Laptop,
   Users,
   Settings,
-  Plus,
-  Download,
   Package,
   AlertTriangle,
   TrendingUp,
   DollarSign,
+  Download,
   Calendar,
   Wrench,
   Loader2,
@@ -104,16 +103,54 @@ export default function AssetsPage() {
             Manage company assets and allocations for {currentWorkspace.name}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Inventory
-          </Button>
-          <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Asset
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const rows = [
+              ['Status', 'Count', 'Percentage'],
+              [
+                'Available',
+                availableAssets,
+                totalAssets > 0
+                  ? `${Math.round((availableAssets / totalAssets) * 100)}%`
+                  : '0%',
+              ],
+              [
+                'Allocated',
+                allocatedAssets,
+                totalAssets > 0
+                  ? `${Math.round((allocatedAssets / totalAssets) * 100)}%`
+                  : '0%',
+              ],
+              [
+                'Maintenance',
+                maintenanceAssets,
+                totalAssets > 0
+                  ? `${Math.round((maintenanceAssets / totalAssets) * 100)}%`
+                  : '0%',
+              ],
+              [
+                'Retired',
+                retiredAssets,
+                totalAssets > 0
+                  ? `${Math.round((retiredAssets / totalAssets) * 100)}%`
+                  : '0%',
+              ],
+            ]
+            const csv = rows.map(r => r.join(',')).join('\n')
+            const blob = new Blob([csv], { type: 'text/csv' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `assets-${new Date().toISOString().split('T')[0]}.csv`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Export Inventory
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
