@@ -50,10 +50,9 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 async function verifyToken(token: string): Promise<boolean> {
+  if (!process.env.JWT_SECRET) return false
   try {
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET || 'fallback-secret'
-    )
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
     const { payload } = await jwtVerify(token, secret)
     return !!(payload.userId && payload.exp && payload.exp > Date.now() / 1000)
   } catch {
