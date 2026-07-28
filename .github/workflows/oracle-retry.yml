@@ -3,7 +3,7 @@ name: Oracle Instance Retry
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '*/5 * * * *'
 
 jobs:
   create-instance:
@@ -37,22 +37,27 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Launch instance
+      - name: Retry launch (10 attempts, 30s apart)
         if: steps.check.outputs.exists == 'false'
         run: |
-          oci compute instance launch \
-            --compartment-id ${{ secrets.OCI_TENANCY_OCID }} \
-            --availability-domain NREd:AP-HYDERABAD-1-AD-1 \
-            --shape VM.Standard.A1.Flex \
-            --shape-config '{"ocpus":2,"memoryInGBs":12}' \
-            --image-id ocid1.image.oc1.ap-hyderabad-1.aaaaaaaapcliizjtvzjc47ddc4p3te2sw6f4eelood7tblia54d77t6skbha \
-            --subnet-id ocid1.subnet.oc1.ap-hyderabad-1.aaaaaaaactmgx5gf7s5yd7myrdlknospao6tecmdstkd6zjezsh7dawgrwva \
-            --display-name crm-pro-vps \
-            --assign-public-ip true \
-            --ssh-authorized-keys "${{ secrets.OCI_SSH_PUBLIC_KEY }}" \
-            --query "data.{ID:id, State:\"lifecycle-state\", IP:\"primary-public-ip-address\"}" \
-            --output table || echo "Out of capacity, will retry in 5 minutes"
+          for i in $(seq 1 10); do
+            echo "Attempt $i/10 at $(date)"
+            oci compute instance launch \
+              --compartment-id ${{ secrets.OCI_TENANCY_OCID }} \
+              --availability-domain NREd:AP-HYDERABAD-1-AD-1 \
+              --shape VM.Standard.A1.Flex \
+              --shape-config '{"ocpus":2,"memoryInGBs":12}' \
+              --image-id ocid1.image.oc1.ap-hyderabad-1.aaaaaaaapcliizjtvzjc47ddc4p3te2sw6f4eelood7tblia54d77t6skbha \
+              --subnet-id ocid1.subnet.oc1.ap-hyderabad-1.aaaaaaaactmgx5gf7s5yd7myrdlknospao6tecmdstkd6zjezsh7dawgrwva \
+              --display-name crm-pro-vps \
+              --assign-public-ip true \
+              --ssh-authorized-keys "${{ secrets.OCI_SSH_PUBLIC_KEY }}" && echo "SUCCESS" && exit 0
+            echo "Failed, waiting 30s..."
+            sleep 30
+          done
+          echo "All 10 attempts failed. Will retry next schedule."
+          exit 1
 
       - name: Skip - already running
         if: steps.check.outputs.exists == 'true'
-        run: echo "Instance already exists. Disable this workflow."
+        run: echo "Instance already exists. Go to GitHub Actions and disable this workflow."
