@@ -515,8 +515,9 @@ const WorkflowExecution = (mongoose.models.WorkflowExecution ||
     WorkflowExecutionSchema
   )) as IWorkflowExecutionModel
 
-mongoose.connection.on('connected', () => {
-  WorkflowExecution.collection.dropIndex('n8nExecutionId_1').catch(() => {})
+// Drop the old unique index on n8nExecutionId that blocks null values
+WorkflowExecution.collection.dropIndex('n8nExecutionId_1').catch(() => {
+  // Index may not exist or already dropped — safe to ignore
 })
 
 export default WorkflowExecution
