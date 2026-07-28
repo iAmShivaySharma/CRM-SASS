@@ -1,0 +1,19 @@
+services:
+  app:
+    image: ${CRM_IMAGE:-ghcr.io/iamshivaysharma/crm-sass:latest}
+    container_name: crm-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - HOSTNAME=0.0.0.0
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
