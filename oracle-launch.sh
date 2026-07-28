@@ -1,0 +1,2 @@
+#!/bin/bash
+oci compute instance launch --compartment-id ocid1.tenancy.oc1..aaaaaaaarvry5vkxzobdm63x4o2ktth6qlqrfwd23sstzikhkk72ddxocgkq --availability-domain NREd:AP-HYDERABAD-1-AD-1 --shape VM.Standard.A1.Flex --shape-config '{"ocpus":2,"memoryInGBs":12}' --image-id ocid1.image.oc1.ap-hyderabad-1.aaaaaaaapcliizjtvzjc47ddc4p3te2sw6f4eelood7tblia54d77t6skbha --subnet-id ocid1.subnet.oc1.ap-hyderabad-1.aaaaaaaactmgx5gf7s5yd7myrdlknospao6tecmdstkd6zjezsh7dawgrwva --display-name crm-pro-vps --assign-public-ip true --ssh-authorized-keys-file ~/.ssh/crm_key.pub
