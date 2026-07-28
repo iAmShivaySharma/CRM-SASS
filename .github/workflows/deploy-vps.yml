@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE: ${{ github.repository }}
+  IMAGE: iamshivaysharma/crm-sass
 
 jobs:
   build-and-deploy:
