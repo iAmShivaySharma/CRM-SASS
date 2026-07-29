@@ -86,8 +86,7 @@ export interface IWorkflowExecutionStatics {
 }
 
 export interface IWorkflowExecutionModel
-  extends Model<IWorkflowExecution>,
-    IWorkflowExecutionStatics {}
+  extends Model<IWorkflowExecution>, IWorkflowExecutionStatics {}
 
 const WorkflowExecutionSchema = new Schema<IWorkflowExecution>(
   {
