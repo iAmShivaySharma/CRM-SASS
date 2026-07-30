@@ -39,6 +39,7 @@ const PUBLIC_ROUTES = [
   '/shared',
   '/api/shared',
   '/blog',
+  '/home',
   '/feed.xml',
 ]
 
@@ -234,11 +235,13 @@ export async function middleware(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.chatwoot.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
-    "font-src 'self'",
-    "connect-src 'self'",
+    "font-src 'self' https://app.chatwoot.com",
+    "connect-src 'self' https://app.chatwoot.com wss://app.chatwoot.com",
+    "frame-src 'self' https://app.chatwoot.com",
+    "child-src 'self' https://app.chatwoot.com",
     "frame-ancestors 'none'",
   ].join('; ')
 

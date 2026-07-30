@@ -66,6 +66,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
               pathname === '/signup' ||
               pathname.startsWith('/shared') ||
               pathname.startsWith('/blog') ||
+              pathname.startsWith('/home') ||
               pathname === '/'
             if (!isPublicPage) {
               window.location.href = `/login?redirect=${encodeURIComponent(pathname)}`
@@ -80,6 +81,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
             pathname === '/signup' ||
             pathname.startsWith('/shared') ||
             pathname.startsWith('/blog') ||
+            pathname.startsWith('/home') ||
             pathname === '/'
           if (!isPublicPage) {
             window.location.href = `/login?redirect=${encodeURIComponent(pathname)}`

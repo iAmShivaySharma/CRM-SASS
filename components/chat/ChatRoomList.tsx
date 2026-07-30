@@ -166,7 +166,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
                         isSelected && 'text-primary-foreground/70'
                       )}
                     >
-                      {chatRoom.lastMessage.senderName}:
+                      {chatRoom.lastMessage.senderName || 'Unknown'}:
                     </span>
                     <span
                       className={cn(

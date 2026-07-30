@@ -407,7 +407,7 @@ export function Sidebar({
         {/* Workspace Switcher */}
         {!collapsed && (
           <div className="px-3 py-3">
-            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200">
+            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200 hover:[&_*]:text-primary-foreground">
               <WorkspaceSwitcher
                 className="text-primary-foreground [&_*]:text-primary-foreground/80 [&_svg]:text-primary-foreground/60"
                 showCreateButton={true}
@@ -419,7 +419,7 @@ export function Sidebar({
 
         {collapsed && (
           <div className="px-2 py-3">
-            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200">
+            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200 hover:[&_*]:text-primary-foreground">
               <WorkspaceSwitcher
                 className="text-primary-foreground [&_*]:text-primary-foreground/80 [&_svg]:text-primary-foreground/60"
                 showCreateButton={false}

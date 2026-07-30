@@ -213,7 +213,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
                 <DropdownMenuItem
                   key={notification.id}
                   className={cn(
-                    'flex cursor-pointer items-start space-x-3 p-4 focus:bg-accent',
+                    'flex cursor-pointer items-start space-x-3 p-4 focus:bg-primary focus:text-primary-foreground',
                     !notification.read && 'bg-accent/50'
                   )}
                   onClick={() => {
