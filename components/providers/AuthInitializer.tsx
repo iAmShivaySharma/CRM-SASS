@@ -104,8 +104,39 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
 
   if (!isVerified) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="min-h-screen bg-background">
+        <div className="flex h-screen">
+          <div className="hidden w-64 flex-col gap-4 border-r bg-muted/30 p-4 lg:flex">
+            <div className="h-10 w-32 animate-pulse rounded-lg bg-muted" />
+            <div className="h-8 w-full animate-pulse rounded-lg bg-muted" />
+            <div className="mt-4 space-y-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-9 w-full animate-pulse rounded-lg bg-muted"
+                />
+              ))}
+            </div>
+          </div>
+          <div className="flex-1 p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
+              <div className="flex gap-2">
+                <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+                <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-28 animate-pulse rounded-xl bg-muted"
+                />
+              ))}
+            </div>
+            <div className="mt-6 h-64 animate-pulse rounded-xl bg-muted" />
+          </div>
+        </div>
       </div>
     )
   }
