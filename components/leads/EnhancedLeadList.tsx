@@ -119,11 +119,11 @@ const statusColors = {
     'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
   closed_won:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300',
-  closed_lost: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  closed_lost: 'bg-muted text-foreground',
 }
 
 const priorityColors = {
-  low: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  low: 'bg-muted text-foreground',
   medium:
     'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
   high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
@@ -296,7 +296,7 @@ export function EnhancedLeadList() {
       case 'medium':
         return <Clock className="h-4 w-4 text-yellow-500" />
       case 'low':
-        return <CheckCircle className="h-4 w-4 text-gray-500" />
+        return <CheckCircle className="h-4 w-4 text-muted-foreground" />
       default:
         return null
     }

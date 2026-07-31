@@ -177,7 +177,7 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
           </Badge>
         )
       case 'cancelled':
-        return <Badge className="bg-gray-100 text-gray-800">Cancelled</Badge>
+        return <Badge className="bg-muted text-foreground">Cancelled</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
@@ -378,7 +378,7 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
               </div>
 
               {requestForm.startDate && requestForm.endDate && (
-                <div className="rounded-lg bg-gray-50 p-3">
+                <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm font-medium">
                     Total Days:{' '}
                     {calculateDays(requestForm.startDate, requestForm.endDate)}

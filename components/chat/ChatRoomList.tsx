@@ -89,7 +89,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
             onClick={() => onChatRoomSelect(chatRoom.id)}
             className={cn(
               'w-full rounded-lg p-3 text-left transition-colors hover:bg-primary/10 hover:text-primary',
-              'focus:outline-none focus:ring-0 focus:ring-offset-0',
+              'focus:outline-none',
               isSelected && '!bg-primary !text-primary-foreground'
             )}
           >
@@ -166,7 +166,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
                         isSelected && 'text-primary-foreground/70'
                       )}
                     >
-                      {chatRoom.lastMessage.senderName}:
+                      {chatRoom.lastMessage.senderName || 'Unknown'}:
                     </span>
                     <span
                       className={cn(

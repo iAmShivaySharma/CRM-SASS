@@ -75,6 +75,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   }
 
   const getMessageInitials = (name: string) => {
+    if (!name) return '??'
     return name
       .split(' ')
       .map(word => word[0])
@@ -231,7 +232,9 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         {/* Header */}
         {showAvatar && (
           <div className="mb-1 flex items-baseline gap-2">
-            <span className="text-sm font-semibold">{message.senderName}</span>
+            <span className="text-sm font-semibold">
+              {message.senderName || 'Unknown'}
+            </span>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -269,7 +272,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
               <Reply className="mr-1 inline h-3 w-3" />
               Replying to{' '}
               {typeof message.replyTo === 'object'
-                ? message.replyTo.senderName
+                ? message.replyTo.senderName || 'Unknown'
                 : 'a message'}
             </p>
             <p className="truncate text-xs text-foreground/80">

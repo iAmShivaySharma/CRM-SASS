@@ -19,7 +19,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SocketProvider>
-      <div className="min-h-screen bg-primary">
+      <div className="min-h-screen bg-primary dark:bg-card">
         {/* Mobile overlay */}
         {mobileMenuOpen && (
           <div

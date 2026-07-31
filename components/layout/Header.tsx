@@ -127,7 +127,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between bg-primary px-4 text-primary-foreground sm:px-6">
+      <header className="flex h-16 items-center justify-between bg-primary px-4 text-primary-foreground dark:bg-muted dark:text-foreground sm:px-6">
         <div className="flex flex-1 items-center space-x-2 sm:space-x-4">
           <Button
             variant="ghost"
@@ -144,7 +144,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
             <Input
               type="search"
               placeholder="Search leads, contacts..."
-              className="focus-visible:bg-primary-foreground/15 w-full rounded-lg border-transparent bg-primary-foreground/10 pl-10 text-primary-foreground placeholder:text-primary-foreground/50 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="focus-visible:bg-primary-foreground/15 w-full rounded-lg border-transparent bg-primary-foreground/10 pl-10 text-primary-foreground placeholder:text-primary-foreground/50 focus-visible:border-transparent focus-visible:ring-0"
             />
           </div>
 

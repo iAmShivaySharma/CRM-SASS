@@ -281,7 +281,7 @@ export function WorkspaceSwitcher({
       <div className={`space-y-2 ${className}`}>
         <div className={compact ? 'px-1 py-2' : 'px-3 py-2'}>
           {!compact && (
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Workspace
             </p>
           )}
@@ -314,7 +314,7 @@ export function WorkspaceSwitcher({
                         <p className="truncate font-medium">
                           {currentWorkspace?.name || 'Select Workspace'}
                         </p>
-                        <p className="truncate text-xs text-gray-500">
+                        <p className="truncate text-xs text-muted-foreground">
                           Free Plan
                         </p>
                       </div>
@@ -343,7 +343,7 @@ export function WorkspaceSwitcher({
                     <Building className="h-4 w-4 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="truncate font-medium">{workspace.name}</p>
-                      <p className="truncate text-xs text-gray-500">
+                      <p className="truncate text-xs text-muted-foreground">
                         Free Plan • 1 member
                       </p>
                     </div>
@@ -398,7 +398,7 @@ export function WorkspaceSwitcher({
             <DialogTitle className="text-xl font-semibold">
               Create New Workspace
             </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Set up a new workspace to organize your team, projects, and leads
               in one place.
             </DialogDescription>
@@ -433,7 +433,8 @@ export function WorkspaceSwitcher({
                   htmlFor="workspace-description"
                   className="text-sm font-medium"
                 >
-                  Description <span className="text-gray-400">(Optional)</span>
+                  Description{' '}
+                  <span className="text-muted-foreground">(Optional)</span>
                 </Label>
                 <Input
                   id="workspace-description"
@@ -451,11 +452,11 @@ export function WorkspaceSwitcher({
               </div>
             </div>
 
-            <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800/50">
-              <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+            <div className="rounded-lg bg-muted p-4">
+              <h4 className="mb-2 text-sm font-medium text-foreground">
                 Your workspace will include:
               </h4>
-              <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              <ul className="space-y-1 text-sm text-muted-foreground">
                 <li className="flex items-center space-x-2">
                   <Check className="h-3 w-3 text-green-500" />
                   <span>Lead management and tracking</span>

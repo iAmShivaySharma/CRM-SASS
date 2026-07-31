@@ -183,7 +183,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-gray-600"></div>
+            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-muted-foreground"></div>
             <p className="mt-2 text-sm text-muted-foreground">
               Loading notifications...
             </p>
@@ -213,7 +213,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
                 <DropdownMenuItem
                   key={notification.id}
                   className={cn(
-                    'flex cursor-pointer items-start space-x-3 p-4 focus:bg-accent',
+                    'flex cursor-pointer items-start space-x-3 p-4 focus:bg-primary focus:text-primary-foreground',
                     !notification.read && 'bg-accent/50'
                   )}
                   onClick={() => {

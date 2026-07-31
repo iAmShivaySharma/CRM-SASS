@@ -89,7 +89,7 @@ export function AttendanceOverview({
         )
       case 'clocked_out':
         return (
-          <Badge className="bg-gray-100 text-gray-800">
+          <Badge className="bg-muted text-foreground">
             <Clock className="mr-1 h-3 w-3" />
             Finished
           </Badge>
@@ -170,7 +170,40 @@ export function AttendanceOverview({
                     <SelectItem value="absent">Absent</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="sm" className="h-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => {
+                    const rows = [
+                      ['Name', 'Status', 'Clock In', 'Clock Out'],
+                      ...filteredEmployees.map((emp: any) => [
+                        emp.name || emp.fullName || emp.email,
+                        emp.todayAttendance?.status || 'absent',
+                        emp.todayAttendance?.clockIn
+                          ? format(
+                              new Date(emp.todayAttendance.clockIn),
+                              'HH:mm'
+                            )
+                          : '-',
+                        emp.todayAttendance?.clockOut
+                          ? format(
+                              new Date(emp.todayAttendance.clockOut),
+                              'HH:mm'
+                            )
+                          : '-',
+                      ]),
+                    ]
+                    const csv = rows.map(r => r.join(',')).join('\n')
+                    const blob = new Blob([csv], { type: 'text/csv' })
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `attendance-${dateFilter}-${new Date().toISOString().split('T')[0]}.csv`
+                    a.click()
+                    URL.revokeObjectURL(url)
+                  }}
+                >
                   <Download className="mr-1 h-3 w-3" />
                   Export
                 </Button>
@@ -287,16 +320,6 @@ export function AttendanceOverview({
                   </div>
                 )
               })
-            )}
-
-            {detailed && (
-              <div className="border-t pt-4">
-                <div className="flex items-center justify-center">
-                  <Button variant="outline" size="sm">
-                    Load More Employees
-                  </Button>
-                </div>
-              </div>
             )}
           </div>
         )}
