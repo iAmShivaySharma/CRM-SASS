@@ -22,7 +22,7 @@ jobs:
       matrix:
         language: [javascript-typescript]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: github/codeql-action/init@v3
         with:
@@ -41,7 +41,7 @@ jobs:
     container:
       image: returntocorp/semgrep
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Run Semgrep
         run: semgrep --config=auto --severity=ERROR --error .
@@ -51,7 +51,7 @@ jobs:
     name: Dependency Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -68,7 +68,7 @@ jobs:
     name: Secret Scanning
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build image
         run: docker build -f docker/Dockerfile -t crm-app:scan .
@@ -107,7 +107,7 @@ jobs:
     name: License Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
