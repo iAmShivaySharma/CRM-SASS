@@ -390,7 +390,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                       /* eslint-disable-next-line jsx-a11y/alt-text */
                       <Image className="h-4 w-4 text-blue-500" />
                     ) : (
-                      <FileText className="h-4 w-4 text-gray-500" />
+                      <FileText className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -555,7 +555,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 }
                 className={cn(
                   'max-h-[120px] min-h-[40px] resize-none pr-12',
-                  'transition-all focus:ring-2 focus:ring-primary/20',
+                  'transition-all focus:ring-1 focus:ring-ring',
                   isSending && 'border-primary/30 bg-muted/30'
                 )}
                 disabled={isSending || isUploading}

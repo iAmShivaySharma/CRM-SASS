@@ -439,7 +439,7 @@ export default function WorkspaceSettingsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="workspaceSlug">Workspace URL</Label>
                     <div className="flex">
-                      <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800">
+                      <span className="inline-flex items-center rounded-l-md border border-r-0 border-border bg-muted px-3 text-sm text-muted-foreground">
                         crm.app/
                       </span>
                       <Input
@@ -736,12 +736,12 @@ export default function WorkspaceSettingsPage() {
                             key={i}
                             className="flex animate-pulse items-center space-x-4 rounded-lg border p-4"
                           >
-                            <div className="h-10 w-10 rounded-lg bg-gray-200"></div>
+                            <div className="h-10 w-10 rounded-lg bg-muted"></div>
                             <div className="flex-1 space-y-2">
-                              <div className="h-4 w-1/4 rounded bg-gray-200"></div>
-                              <div className="h-3 w-1/2 rounded bg-gray-200"></div>
+                              <div className="h-4 w-1/4 rounded bg-muted"></div>
+                              <div className="h-3 w-1/2 rounded bg-muted"></div>
                             </div>
-                            <div className="h-6 w-20 rounded bg-gray-200"></div>
+                            <div className="h-6 w-20 rounded bg-muted"></div>
                           </div>
                         ))}
                       </div>
@@ -889,12 +889,12 @@ export default function WorkspaceSettingsPage() {
                       <div className="space-y-4">
                         {Array.from({ length: 4 }).map((_, i) => (
                           <div key={i} className="animate-pulse">
-                            <div className="mb-3 h-4 w-24 rounded bg-gray-200"></div>
+                            <div className="mb-3 h-4 w-24 rounded bg-muted"></div>
                             <div className="grid grid-cols-2 gap-4">
                               {Array.from({ length: 6 }).map((_, j) => (
                                 <div
                                   key={j}
-                                  className="h-16 rounded bg-gray-200"
+                                  className="h-16 rounded bg-muted"
                                 ></div>
                               ))}
                             </div>
@@ -919,10 +919,10 @@ export default function WorkspaceSettingsPage() {
                             <div className="flex items-center">
                               <Shield className="h-8 w-8 text-blue-600" />
                               <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                <p className="text-sm font-medium text-muted-foreground">
                                   Total Permissions
                                 </p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p className="text-2xl font-bold text-foreground">
                                   {permissions.length}
                                 </p>
                               </div>
@@ -932,10 +932,10 @@ export default function WorkspaceSettingsPage() {
                             <div className="flex items-center">
                               <Shield className="h-8 w-8 text-green-600" />
                               <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                <p className="text-sm font-medium text-muted-foreground">
                                   System Permissions
                                 </p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p className="text-2xl font-bold text-foreground">
                                   {
                                     permissions.filter(
                                       p => p.isSystemPermission
@@ -949,10 +949,10 @@ export default function WorkspaceSettingsPage() {
                             <div className="flex items-center">
                               <Shield className="h-8 w-8 text-purple-600" />
                               <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                <p className="text-sm font-medium text-muted-foreground">
                                   Custom Permissions
                                 </p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p className="text-2xl font-bold text-foreground">
                                   {
                                     permissions.filter(
                                       p => !p.isSystemPermission
@@ -1021,7 +1021,7 @@ export default function WorkspaceSettingsPage() {
                                             <span className="text-sm font-medium">
                                               Permission Name
                                             </span>
-                                            <code className="rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-800">
+                                            <code className="rounded bg-muted px-2 py-1 text-sm">
                                               {permission.id}
                                             </code>
                                           </div>
@@ -1050,7 +1050,7 @@ export default function WorkspaceSettingsPage() {
                                               <div className="border-t pt-3">
                                                 <div className="mb-2 flex items-center space-x-2">
                                                   <Shield className="h-4 w-4 text-blue-500" />
-                                                  <p className="text-xs text-gray-500">
+                                                  <p className="text-xs text-muted-foreground">
                                                     Dependencies:
                                                   </p>
                                                 </div>
@@ -1076,7 +1076,7 @@ export default function WorkspaceSettingsPage() {
                                               <div className="border-t pt-3">
                                                 <div className="mb-2 flex items-center space-x-2">
                                                   <AlertTriangle className="h-4 w-4 text-orange-500" />
-                                                  <p className="text-xs text-gray-500">
+                                                  <p className="text-xs text-muted-foreground">
                                                     Conflicts with:
                                                   </p>
                                                 </div>

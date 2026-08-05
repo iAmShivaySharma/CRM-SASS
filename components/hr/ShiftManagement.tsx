@@ -87,7 +87,8 @@ export function ShiftManagement() {
   const [createShift, { isLoading: isCreating }] = useCreateShiftMutation()
   const [updateShift, { isLoading: isUpdating }] = useUpdateShiftMutation()
   const [deleteShift, { isLoading: isDeleting }] = useDeleteShiftMutation()
-  const [setDefaultShift] = useSetDefaultShiftMutation()
+  const [setDefaultShift, { isLoading: isSettingDefault }] =
+    useSetDefaultShiftMutation()
 
   const shifts = shiftsData?.shifts || []
 
@@ -436,7 +437,7 @@ export function ShiftManagement() {
                 {shiftTemplates.map(template => (
                   <Card
                     key={template.id}
-                    className="cursor-pointer hover:bg-gray-50"
+                    className="cursor-pointer hover:bg-muted"
                     onClick={() => applyTemplate(template)}
                   >
                     <CardHeader>
@@ -726,7 +727,7 @@ export function ShiftManagement() {
                           className={
                             shift.isActive
                               ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
+                              : 'bg-muted text-foreground'
                           }
                         >
                           {shift.isActive ? (
@@ -761,25 +762,39 @@ export function ShiftManagement() {
                               Edit Shift
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                              disabled={isCreating}
                               onClick={() => handleDuplicateShift(shift)}
                             >
-                              <Copy className="mr-2 h-4 w-4" />
+                              {isCreating ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Copy className="mr-2 h-4 w-4" />
+                              )}
                               Duplicate
                             </DropdownMenuItem>
                             {!shift.isDefault && (
                               <DropdownMenuItem
+                                disabled={isSettingDefault}
                                 onClick={() => handleSetDefaultShift(shift._id)}
                               >
-                                <CheckCircle className="mr-2 h-4 w-4" />
+                                {isSettingDefault ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                )}
                                 Set as Default
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem
                               onClick={() => handleDeleteShift(shift._id)}
                               className="text-red-600"
-                              disabled={shift.employeeCount > 0}
+                              disabled={shift.employeeCount > 0 || isDeleting}
                             >
-                              <Trash2 className="mr-2 h-4 w-4" />
+                              {isDeleting ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="mr-2 h-4 w-4" />
+                              )}
                               Delete Shift
                             </DropdownMenuItem>
                           </DropdownMenuContent>

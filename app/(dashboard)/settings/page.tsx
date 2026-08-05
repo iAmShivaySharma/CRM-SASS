@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
   Building2,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -75,13 +76,15 @@ export default function SettingsPage() {
 
   const { data: userPreferences, isLoading: preferencesLoading } =
     useGetUserPreferencesQuery()
-  const [patchPreferences] = usePatchUserPreferencesMutation()
+  const [patchPreferences, { isLoading: isSavingPreferences }] =
+    usePatchUserPreferencesMutation()
 
   const { data: workspaceData, isLoading: workspaceLoading } =
     useGetWorkspaceQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
-  const [updateWorkspace] = useUpdateWorkspaceMutation()
+  const [updateWorkspace, { isLoading: isSavingWorkspace }] =
+    useUpdateWorkspaceMutation()
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -196,16 +199,16 @@ export default function SettingsPage() {
   return (
     <div className="w-full space-y-6">
       <div className="w-full">
-        <h1 className="text-2xl font-bold text-foreground dark:text-white sm:text-3xl">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
           Settings
         </h1>
-        <p className="mt-1 text-muted-foreground dark:text-gray-400">
+        <p className="mt-1 text-muted-foreground">
           Manage your account settings and preferences
         </p>
       </div>
 
       <Tabs defaultValue="profile" className="w-full space-y-4">
-        <TabsList className="grid w-full grid-cols-2 bg-muted dark:bg-gray-800 sm:grid-cols-3 lg:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-2 bg-muted sm:grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="profile" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span>Profile</span>
@@ -321,9 +324,9 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               {workspaceLoading ? (
                 <div className="space-y-4">
-                  <div className="h-4 animate-pulse rounded bg-gray-200"></div>
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
-                  <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
+                  <div className="h-4 animate-pulse rounded bg-muted"></div>
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-muted"></div>
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-muted"></div>
                 </div>
               ) : (
                 <>
@@ -492,9 +495,14 @@ export default function SettingsPage() {
 
                   <Button
                     onClick={handleSaveWorkspace}
+                    disabled={isSavingWorkspace}
                     className="w-full sm:w-auto"
                   >
-                    <Save className="mr-2 h-4 w-4" />
+                    {isSavingWorkspace ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 h-4 w-4" />
+                    )}
                     Save Workspace Settings
                   </Button>
                 </>
@@ -581,7 +589,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">SMS Authentication</p>
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Receive codes via SMS
                   </p>
                 </div>
@@ -591,7 +599,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Authenticator App</p>
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Use an authenticator app
                   </p>
                 </div>
@@ -614,7 +622,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Email Notifications</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Receive notifications via email
                     </p>
                   </div>
@@ -631,7 +639,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Lead Updates</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       New leads and status changes
                     </p>
                   </div>
@@ -649,7 +657,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Team Activity</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Team member actions and updates
                     </p>
                   </div>
@@ -667,7 +675,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Weekly Reports</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Weekly performance summaries
                     </p>
                   </div>
@@ -683,8 +691,15 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <Button onClick={handleSaveNotifications}>
-                <Save className="mr-2 h-4 w-4" />
+              <Button
+                onClick={handleSaveNotifications}
+                disabled={isSavingPreferences}
+              >
+                {isSavingPreferences ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
                 Save Preferences
               </Button>
             </CardContent>
@@ -706,7 +721,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">API Access</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Enable API access for integrations
                     </p>
                   </div>
@@ -716,7 +731,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Data Export</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Allow data export functionality
                     </p>
                   </div>
@@ -729,7 +744,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium text-red-600">Danger Zone</h4>
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Irreversible and destructive actions
                   </p>
                 </div>

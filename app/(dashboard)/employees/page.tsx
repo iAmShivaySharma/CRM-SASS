@@ -1,16 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  Users,
-  UserCog,
-  Plus,
-  Download,
-  UserPlus,
-  Shield,
-  Building,
-  TrendingUp,
-} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Users, UserCog, UserPlus, Shield, Building } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -24,6 +16,7 @@ import {
 export default function EmployeesPage() {
   const [activeTab, setActiveTab] = useState('list')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const router = useRouter()
 
   const { data: membersData } = useGetWorkspaceMembersQuery(
     currentWorkspace?.id || '',
@@ -63,10 +56,6 @@ export default function EmployeesPage() {
             Manage employee roles and access permissions
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Role
-        </Button>
       </div>
 
       <div className="grid w-full grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -92,21 +81,28 @@ export default function EmployeesPage() {
                     {(role.permissions || []).slice(0, 5).map((p: string) => (
                       <span
                         key={p}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700"
+                        className="rounded bg-muted px-2 py-1 text-xs text-foreground"
                       >
                         {p}
                       </span>
                     ))}
                     {role.permissions?.length > 5 && (
-                      <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                      <span className="rounded bg-muted px-2 py-1 text-xs text-foreground">
                         +{role.permissions.length - 5} more
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between border-t pt-2">
-                  <Button variant="outline" size="sm">
+                <div className="border-t pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      router.push('/roles')
+                    }}
+                  >
                     Edit Role
                   </Button>
                 </div>
@@ -132,16 +128,6 @@ export default function EmployeesPage() {
           <p className="mt-1 text-muted-foreground">
             Manage employees and roles for {currentWorkspace.name}
           </p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export List
-          </Button>
-          <Button size="sm">
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
         </div>
       </div>
 

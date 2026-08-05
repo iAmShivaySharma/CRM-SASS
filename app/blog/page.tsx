@@ -217,7 +217,7 @@ export default async function BlogListingPage({
               name="q"
               placeholder="Search articles..."
               defaultValue={params.q}
-              className="w-full rounded-lg border border-input bg-background py-2 pl-10 pr-4 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary sm:w-64"
+              className="w-full rounded-lg border border-input bg-background py-2 pl-10 pr-4 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring sm:w-64"
             />
           </form>
         </div>

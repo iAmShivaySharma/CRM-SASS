@@ -262,7 +262,7 @@ export function EmailDetails({
       case 'high':
         return 'text-red-600 bg-red-50 dark:bg-red-900/20'
       case 'low':
-        return 'text-gray-600 bg-gray-50 dark:bg-gray-800'
+        return 'text-muted-foreground bg-muted'
       default:
         return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20'
     }
@@ -279,7 +279,7 @@ export function EmailDetails({
       case 'draft':
         return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20'
       default:
-        return 'text-gray-600 bg-gray-50 dark:bg-gray-800'
+        return 'text-muted-foreground bg-muted'
     }
   }
 
@@ -293,7 +293,7 @@ export function EmailDetails({
 
   if (!email) {
     return (
-      <div className="flex h-full items-center justify-center text-gray-500">
+      <div className="flex h-full items-center justify-center text-muted-foreground">
         <div className="text-center">
           <div className="mb-4 text-4xl">📧</div>
           <p>Email not found</p>
@@ -304,12 +304,12 @@ export function EmailDetails({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+      <div className="border-b border-border bg-background p-4">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" onClick={toggleStar}>
               <Star
-                className={`h-4 w-4 ${email.isStarred ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`}
+                className={`h-4 w-4 ${email.isStarred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`}
               />
             </Button>
 
@@ -409,7 +409,7 @@ export function EmailDetails({
           </div>
         </div>
 
-        <h1 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+        <h1 className="mb-4 text-xl font-semibold text-foreground">
           {email.subject || '(No Subject)'}
         </h1>
 
@@ -429,15 +429,15 @@ export function EmailDetails({
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-medium text-foreground">
                   {email.from.name || email.from.email}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {email.from.email}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {formatDate(
                     email.receivedAt || email.sentAt || email.createdAt
                   )}
@@ -450,7 +450,7 @@ export function EmailDetails({
               </div>
             </div>
 
-            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="mt-2 text-sm text-muted-foreground">
               <p>
                 <span className="font-medium">To:</span>{' '}
                 {email.to
@@ -528,15 +528,15 @@ export function EmailDetails({
                 {email.attachments.map((attachment, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between rounded-lg bg-gray-50 p-2 dark:bg-gray-700"
+                    className="flex items-center justify-between rounded-lg bg-muted p-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <Paperclip className="h-4 w-4 text-gray-400" />
+                      <Paperclip className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">
                           {attachment.filename}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {formatFileSize(attachment.size)} •{' '}
                           {attachment.contentType}
                         </p>
@@ -563,7 +563,7 @@ export function EmailDetails({
 
         <div className="prose prose-sm max-w-none dark:prose-invert">
           {showRawContent ? (
-            <pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-gray-100 p-4 text-xs dark:bg-gray-800">
+            <pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-4 text-xs">
               {email.bodyText}
             </pre>
           ) : email.bodyHtml ? (

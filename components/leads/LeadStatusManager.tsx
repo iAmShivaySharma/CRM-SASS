@@ -54,7 +54,8 @@ export function LeadStatusManager() {
   } = useGetLeadStatusesQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
-  const [createLeadStatus] = useCreateLeadStatusMutation()
+  const [createLeadStatus, { isLoading: isCreatingStatus }] =
+    useCreateLeadStatusMutation()
   const [deleteLeadStatus] = useDeleteLeadStatusMutation()
 
   const statuses = statusesData?.statuses || []
@@ -131,10 +132,8 @@ export function LeadStatusManager() {
     <div className="w-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Lead Statuses
-          </h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-foreground">Lead Statuses</h1>
+          <p className="mt-1 text-muted-foreground">
             Manage your lead pipeline statuses
           </p>
         </div>
@@ -204,7 +203,10 @@ export function LeadStatusManager() {
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={isCreatingStatus}>
+                  {isCreatingStatus ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
                   {editingStatus ? 'Update' : 'Create'} Status
                 </Button>
               </div>
@@ -258,7 +260,7 @@ export function LeadStatusManager() {
             </CardHeader>
             {status.description && (
               <CardContent>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {status.description}
                 </p>
               </CardContent>
@@ -269,11 +271,9 @@ export function LeadStatusManager() {
 
       {statuses.length === 0 && (
         <div className="py-12 text-center">
-          <Circle className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-          <p className="text-gray-500 dark:text-gray-400">
-            No lead statuses found
-          </p>
-          <p className="text-sm text-gray-400 dark:text-gray-500">
+          <Circle className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">No lead statuses found</p>
+          <p className="text-sm text-muted-foreground">
             Create your first status to get started
           </p>
         </div>
