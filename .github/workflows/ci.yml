@@ -59,7 +59,7 @@ jobs:
         env:
           CI: true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: unit-coverage
@@ -146,7 +146,7 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017/crm_test
           JWT_SECRET: ci-test-jwt-secret-do-not-use-in-production
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-traces
