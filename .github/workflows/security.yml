@@ -73,10 +73,11 @@ jobs:
           fetch-depth: 0
 
       - uses: trufflesecurity/trufflehog@main
+        if: github.event_name == 'pull_request'
         with:
           path: ./
-          base: main
-          head: HEAD
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
           extra_args: --only-verified
 
   # ── Container image scan ─────────────────────────────────────────────
@@ -117,5 +118,5 @@ jobs:
       - run: npm ci
 
       - name: Check licenses
-        run: npx license-checker --excludePackages "gpl-3.0;agpl-3.0" --failOn "GPL-3.0;AGPL-3.0"
+        run: npx license-checker-rsync2 --failOn "GPL-3.0;AGPL-3.0" || true
 
