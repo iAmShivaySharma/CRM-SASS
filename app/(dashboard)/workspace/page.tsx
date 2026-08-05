@@ -596,15 +596,77 @@ export default function WorkspaceSettingsPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  const newRole = prompt('Enter new role name:')
+                                  if (!newRole) return
+                                  try {
+                                    const roles = await fetch(
+                                      `/api/workspaces/${currentWorkspace?.id}/roles`
+                                    ).then(r => r.json())
+                                    const role = roles.roles?.find(
+                                      (r: any) =>
+                                        r.name.toLowerCase() ===
+                                        newRole.toLowerCase()
+                                    )
+                                    if (!role) {
+                                      toast.error('Role not found')
+                                      return
+                                    }
+                                    const res = await fetch(
+                                      `/api/workspaces/${currentWorkspace?.id}/members/${member.userId}`,
+                                      {
+                                        method: 'PATCH',
+                                        headers: {
+                                          'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                          roleId: role.id,
+                                        }),
+                                      }
+                                    )
+                                    const data = await res.json()
+                                    if (data.success) {
+                                      toast.success('Role updated')
+                                      window.location.reload()
+                                    } else {
+                                      toast.error(data.message || 'Failed')
+                                    }
+                                  } catch {
+                                    toast.error('Failed to change role')
+                                  }
+                                }}
+                              >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Role
+                                Change Role
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Resend Invitation
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={async () => {
+                                  if (
+                                    !confirm(
+                                      `Remove ${member.name} from workspace?`
+                                    )
+                                  ) {
+                                    return
+                                  }
+                                  try {
+                                    const res = await fetch(
+                                      `/api/workspaces/${currentWorkspace?.id}/members/${member.userId}`,
+                                      { method: 'DELETE' }
+                                    )
+                                    const data = await res.json()
+                                    if (data.success) {
+                                      toast.success('Member removed')
+                                      window.location.reload()
+                                    } else {
+                                      toast.error(data.message || 'Failed')
+                                    }
+                                  } catch {
+                                    toast.error('Failed to remove member')
+                                  }
+                                }}
+                              >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Remove Member
                               </DropdownMenuItem>

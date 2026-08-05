@@ -7,7 +7,10 @@ import {
   Workspace,
   WorkspaceMember,
 } from '@/lib/mongodb/client'
-import { createSubscription as createRazorpaySubscription } from '@/lib/razorpay/client'
+import {
+  createSubscription as createRazorpaySubscription,
+  cancelSubscription as cancelRazorpaySubscription,
+} from '@/lib/razorpay/client'
 import { log } from '@/lib/logging/logger'
 
 // GET /api/payments/subscription - Get current subscription for workspace
@@ -193,6 +196,76 @@ export async function POST(request: NextRequest) {
     })
     return NextResponse.json(
       { error: 'Failed to create subscription' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    await connectToMongoDB()
+
+    const membership = await WorkspaceMember.findOne({
+      userId: auth.user._id,
+      status: 'active',
+    }).sort({ createdAt: 1 })
+
+    if (!membership) {
+      return NextResponse.json(
+        { error: 'No active workspace found' },
+        { status: 404 }
+      )
+    }
+
+    const subscription = await Subscription.findOne({
+      workspaceId: membership.workspaceId,
+      status: { $in: ['active', 'authenticated'] },
+    })
+
+    if (!subscription) {
+      return NextResponse.json(
+        { error: 'No active subscription found' },
+        { status: 404 }
+      )
+    }
+
+    if (subscription.razorpaySubscriptionId) {
+      await cancelRazorpaySubscription(
+        subscription.razorpaySubscriptionId,
+        true
+      )
+    }
+
+    subscription.status = 'cancelled'
+    subscription.cancelAtPeriodEnd = true
+    subscription.cancelledAt = new Date()
+    await subscription.save()
+
+    await Workspace.findByIdAndUpdate(membership.workspaceId, {
+      subscriptionStatus: 'cancelled',
+    })
+
+    log.info('Subscription cancelled', {
+      workspaceId: membership.workspaceId,
+      subscriptionId: subscription._id,
+    })
+
+    return NextResponse.json({
+      success: true,
+      message:
+        'Subscription will be cancelled at the end of the current billing period',
+    })
+  } catch (error) {
+    log.error('Error cancelling subscription', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
+    return NextResponse.json(
+      { error: 'Failed to cancel subscription' },
       { status: 500 }
     )
   }
