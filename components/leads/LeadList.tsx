@@ -111,11 +111,12 @@ export function LeadList() {
     useGetLeadStatusesQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
-  const [deleteLead] = useDeleteLeadMutation()
+  const [deleteLead, { isLoading: isDeletingLead }] = useDeleteLeadMutation()
   const [bulkDeleteLeads, { isLoading: isBulkDeleting }] =
     useBulkDeleteLeadsMutation()
   const [importLeads, { isLoading: isImporting }] = useImportLeadsMutation()
-  const [convertLeadToContact] = useConvertLeadToContactMutation()
+  const [convertLeadToContact, { isLoading: isConverting }] =
+    useConvertLeadToContactMutation()
 
   const leads = leadsData?.leads || []
   const pagination = leadsData?.pagination
@@ -340,10 +341,10 @@ export function LeadList() {
     <div className="w-full space-y-6">
       <div className="flex w-full flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
             Leads
           </h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-muted-foreground">
             Manage your sales leads and prospects
           </p>
         </div>
@@ -448,7 +449,7 @@ export function LeadList() {
             </CardTitle>
             <div className="flex flex-col items-start space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
               <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
                 <Input
                   placeholder="Search leads..."
                   value={searchTerm}
@@ -500,7 +501,7 @@ export function LeadList() {
         <CardContent>
           {leads.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 No leads found. Create your first lead to get started.
               </p>
             </div>
@@ -623,7 +624,7 @@ export function LeadList() {
                           title="View"
                           onClick={() => handleViewDetails(lead)}
                         >
-                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <Eye className="h-4 w-4" />
                         </Button>
                         {/* {lead.email && (
                           <Button
@@ -678,16 +679,26 @@ export function LeadList() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => handleConvertToContact(lead)}
-                              className="text-green-600"
+                              className="text-emerald-600 focus:text-emerald-600 dark:text-emerald-400 dark:focus:text-emerald-400"
+                              disabled={isConverting}
                             >
-                              <UserPlus className="mr-2 h-4 w-4" />
+                              {isConverting ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <UserPlus className="mr-2 h-4 w-4" />
+                              )}
                               Convert to Contact
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              className="text-red-600"
+                              className="text-destructive focus:text-destructive"
                               onClick={() => handleDelete(lead.id)}
+                              disabled={isDeletingLead}
                             >
-                              <Trash2 className="mr-2 h-4 w-4" />
+                              {isDeletingLead ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="mr-2 h-4 w-4" />
+                              )}
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>

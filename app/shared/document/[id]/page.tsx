@@ -76,7 +76,7 @@ export default function PublicDocumentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-muted/50">
         <div className="container mx-auto max-w-4xl px-4 py-8">
           <div className="flex h-96 items-center justify-center">
             <div className="flex items-center space-x-2">
@@ -91,7 +91,7 @@ export default function PublicDocumentPage() {
 
   if (error || !document) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-muted/50">
         <div className="container mx-auto max-w-4xl px-4 py-8">
           <Card className="border-dashed">
             <CardContent className="p-12">
@@ -115,7 +115,7 @@ export default function PublicDocumentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-muted/50">
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <Card className="mb-6">
           <CardHeader>

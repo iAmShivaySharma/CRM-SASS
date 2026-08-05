@@ -68,22 +68,46 @@ const PLANS: PlanData[] = [
     name: 'Free',
     price: 0,
     interval: 'month',
-    description: 'Perfect for getting started',
+    description: '3 members · 500 leads',
     features: [
-      { name: 'Up to 100 leads', included: true },
-      { name: '2 team members', included: true },
-      { name: 'Basic analytics', included: true },
-      { name: 'Email support', included: true },
-      { name: 'Advanced reporting', included: false },
-      { name: 'API access', included: false },
-      { name: 'Custom integrations', included: false },
-      { name: 'Priority support', included: false },
+      { name: 'Up to 500 leads', included: true },
+      { name: '3 team members', included: true },
+      { name: 'Basic pipeline', included: true },
+      { name: '5 projects · 50 tasks', included: true },
+      { name: 'Team chat (30 days)', included: true },
+      { name: 'Email integration', included: false },
+      { name: 'HR & attendance', included: false },
+      { name: 'AI workflows', included: false },
     ],
     limits: {
-      leads: 100,
-      users: 2,
+      leads: 500,
+      users: 3,
       storage: '1 GB',
       apiCalls: 1000,
+    },
+    popular: false,
+  },
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 12,
+    interval: 'month',
+    description: '10 members · 5K leads',
+    features: [
+      { name: 'Up to 5,000 leads', included: true },
+      { name: '10 team members', included: true },
+      { name: 'Full pipeline + statuses', included: true },
+      { name: '15 projects · unlimited tasks', included: true },
+      { name: 'Team chat (full history)', included: true },
+      { name: 'Email (1 account)', included: true },
+      { name: 'Basic HR', included: true },
+      { name: 'AI workflows', included: false },
+    ],
+    limits: {
+      leads: 5000,
+      users: 10,
+      storage: '10 GB',
+      apiCalls: 5000,
     },
     popular: false,
   },
@@ -92,22 +116,22 @@ const PLANS: PlanData[] = [
     name: 'Pro',
     price: 29,
     interval: 'month',
-    description: 'Best for growing teams',
+    description: '25 members · 50K leads',
     features: [
-      { name: 'Up to 1,000 leads', included: true },
-      { name: '10 team members', included: true },
-      { name: 'Advanced analytics', included: true },
-      { name: 'Email & chat support', included: true },
-      { name: 'Advanced reporting', included: true },
-      { name: 'API access', included: true },
-      { name: 'Custom integrations', included: false },
-      { name: 'Priority support', included: false },
+      { name: 'Up to 50,000 leads', included: true },
+      { name: '25 team members', included: true },
+      { name: 'AI scoring + pipelines', included: true },
+      { name: 'Unlimited projects + time tracking', included: true },
+      { name: 'Chat + doc collaboration', included: true },
+      { name: 'Email (3 accounts)', included: true },
+      { name: 'Full HR suite', included: true },
+      { name: 'AI engine (500 credits)', included: true },
     ],
     limits: {
-      leads: 1000,
-      users: 10,
-      storage: '10 GB',
-      apiCalls: 10000,
+      leads: 50000,
+      users: 25,
+      storage: '50 GB',
+      apiCalls: 50000,
     },
     popular: true,
   },
@@ -116,21 +140,21 @@ const PLANS: PlanData[] = [
     name: 'Enterprise',
     price: 99,
     interval: 'month',
-    description: 'For large organizations',
+    description: 'Unlimited everything',
     features: [
       { name: 'Unlimited leads', included: true },
       { name: 'Unlimited team members', included: true },
-      { name: 'Advanced analytics', included: true },
-      { name: 'Priority support', included: true },
-      { name: 'Advanced reporting', included: true },
+      { name: 'Everything in Pro', included: true },
+      { name: 'Unlimited AI credits', included: true },
+      { name: 'SSO / SAML', included: true },
       { name: 'API access', included: true },
-      { name: 'Custom integrations', included: true },
+      { name: 'White-label (+$49)', included: true },
       { name: 'Dedicated account manager', included: true },
     ],
     limits: {
       leads: 'Unlimited',
       users: 'Unlimited',
-      storage: '100 GB',
+      storage: '200 GB',
       apiCalls: 100000,
     },
     popular: false,
@@ -352,10 +376,10 @@ export default function PlansPage() {
   return (
     <div className="w-full space-y-6">
       <div className="w-full">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
           Plans & Billing
         </h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <p className="mt-1 text-muted-foreground">
           Manage your subscription and view usage statistics
         </p>
       </div>
@@ -389,7 +413,7 @@ export default function PlansPage() {
                 </div>
               </div>
               {subscription.currentPeriodEnd && (
-                <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-right text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     <span>
@@ -431,7 +455,7 @@ export default function PlansPage() {
                   key={plan.id}
                   className={`relative flex flex-col ${
                     plan.popular ? 'border-2 border-indigo-500 shadow-lg' : ''
-                  } ${isCurrent ? 'ring-2 ring-green-500' : ''}`}
+                  } ${isCurrent ? 'ring-1 ring-green-500' : ''}`}
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -451,11 +475,11 @@ export default function PlansPage() {
                     <CardTitle className="text-xl">{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="mt-4">
-                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                      <span className="text-4xl font-bold text-foreground">
                         {plan.price === 0 ? 'Free' : `$${plan.price}`}
                       </span>
                       {plan.price > 0 && (
-                        <span className="text-gray-500 dark:text-gray-400">
+                        <span className="text-muted-foreground">
                           /{plan.interval}
                         </span>
                       )}
@@ -468,13 +492,13 @@ export default function PlansPage() {
                           {feature.included ? (
                             <Check className="h-4 w-4 flex-shrink-0 text-green-500" />
                           ) : (
-                            <X className="h-4 w-4 flex-shrink-0 text-gray-300 dark:text-gray-600" />
+                            <X className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                           )}
                           <span
                             className={`text-sm ${
                               feature.included
-                                ? 'text-gray-700 dark:text-gray-300'
-                                : 'text-gray-400 dark:text-gray-600'
+                                ? 'text-foreground'
+                                : 'text-muted-foreground'
                             }`}
                           >
                             {feature.name}
@@ -529,9 +553,7 @@ export default function PlansPage() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Used
-                    </span>
+                    <span className="text-muted-foreground">Used</span>
                     <span className="font-medium">
                       {currentPlan?.limits.leads === 'Unlimited'
                         ? 'Unlimited'
@@ -559,9 +581,7 @@ export default function PlansPage() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Used
-                    </span>
+                    <span className="text-muted-foreground">Used</span>
                     <span className="font-medium">
                       {currentPlan?.limits.users === 'Unlimited'
                         ? 'Unlimited'
@@ -591,9 +611,7 @@ export default function PlansPage() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      This month
-                    </span>
+                    <span className="text-muted-foreground">This month</span>
                     <span className="font-medium">
                       0 /{' '}
                       {currentPlan?.limits.apiCalls?.toLocaleString() ||
@@ -621,9 +639,7 @@ export default function PlansPage() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Used
-                    </span>
+                    <span className="text-muted-foreground">Used</span>
                     <span className="font-medium">
                       0 GB / {currentPlan?.limits.storage || '1 GB'}
                     </span>
@@ -649,14 +665,14 @@ export default function PlansPage() {
             <CardContent>
               {subscription && subscription.metadata?.razorpayPaymentId ? (
                 <div className="rounded-lg border">
-                  <div className="grid grid-cols-4 gap-4 border-b bg-gray-50 p-3 text-sm font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  <div className="grid grid-cols-4 gap-4 border-b bg-muted p-3 text-sm font-medium text-muted-foreground">
                     <span>Date</span>
                     <span>Plan</span>
                     <span>Amount</span>
                     <span>Status</span>
                   </div>
                   <div className="grid grid-cols-4 gap-4 p-3 text-sm">
-                    <span className="text-gray-700 dark:text-gray-300">
+                    <span className="text-foreground">
                       {subscription.currentPeriodStart
                         ? new Date(
                             subscription.currentPeriodStart
@@ -667,11 +683,11 @@ export default function PlansPage() {
                           })
                         : '-'}
                     </span>
-                    <span className="text-gray-700 dark:text-gray-300">
+                    <span className="text-foreground">
                       {PLANS.find(p => p.id === subscription.planId)?.name ||
                         subscription.planId}
                     </span>
-                    <span className="text-gray-700 dark:text-gray-300">
+                    <span className="text-foreground">
                       $
                       {PLANS.find(p => p.id === subscription.planId)?.price ||
                         0}
@@ -692,11 +708,11 @@ export default function PlansPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <CreditCard className="mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" />
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <CreditCard className="mb-4 h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">
                     No billing history yet
                   </p>
-                  <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Your transaction history will appear here after your first
                     payment
                   </p>

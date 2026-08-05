@@ -180,7 +180,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
                     {filteredMembers.map(member => (
                       <div
                         key={member.userId}
-                        className="flex items-center space-x-2 rounded-md p-2 hover:bg-accent"
+                        className="flex items-center space-x-2 rounded-md p-2 hover:bg-accent hover:text-accent-foreground"
                       >
                         <Checkbox
                           id={member.userId}

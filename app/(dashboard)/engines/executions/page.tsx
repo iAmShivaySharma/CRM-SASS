@@ -79,15 +79,13 @@ const STATUS_CONFIG = {
   },
   timeout: {
     icon: Timer,
-    className:
-      'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
-    iconColor: 'text-gray-600',
+    className: 'bg-muted text-foreground',
+    iconColor: 'text-muted-foreground',
   },
   pending: {
     icon: AlertCircle,
-    className:
-      'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
-    iconColor: 'text-gray-500',
+    className: 'bg-muted text-foreground',
+    iconColor: 'text-muted-foreground',
   },
 } as const
 

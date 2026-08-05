@@ -5,7 +5,6 @@ import {
   Calendar,
   FileText,
   Target,
-  Plus,
   Download,
   Clock,
   CheckCircle,
@@ -91,16 +90,31 @@ export default function LeavesPage() {
             {currentWorkspace.name}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
-          <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            New Request
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const rows = [
+              ['Type', 'Days Used', 'Requests'],
+              ...displayStats.leaveTypeBreakdown.map(t => [
+                t._id,
+                t.totalDays,
+                t.count,
+              ]),
+            ]
+            const csv = rows.map(r => r.join(',')).join('\n')
+            const blob = new Blob([csv], { type: 'text/csv' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `leaves-${new Date().toISOString().split('T')[0]}.csv`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Export Report
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -198,7 +212,7 @@ export default function LeavesPage() {
                         {type.totalDays} days ({type.count} requests)
                       </span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-gray-200">
+                    <div className="h-2 w-full rounded-full bg-muted">
                       <div
                         className="h-2 rounded-full bg-primary transition-all duration-300"
                         style={{

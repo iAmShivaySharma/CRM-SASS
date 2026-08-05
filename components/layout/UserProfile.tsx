@@ -1,10 +1,3 @@
-/**
- * User Profile Component for Sidebar
- *
- * Displays user information, plan details, and quick actions
- * in the sidebar footer. Responsive and follows CRM best practices.
- */
-
 'use client'
 
 import { useState } from 'react'
@@ -20,6 +13,7 @@ import {
   Star,
   Clock,
   Timer,
+  Loader2,
 } from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
 import { useLogoutMutation } from '@/lib/api/authApi'
@@ -83,14 +77,14 @@ function getPlanColor(planType: string) {
     case 'premium':
       return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300'
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+      return 'bg-muted text-foreground'
   }
 }
 
 export function UserProfile({ compact = false, className }: UserProfileProps) {
   const { user } = useAppSelector(state => state.auth)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
-  const [logoutUser] = useLogoutMutation()
+  const [logoutUser, { isLoading: isLoggingOut }] = useLogoutMutation()
 
   const currentUser = {
     name: user?.fullName || user?.email || 'User',
@@ -131,23 +125,29 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
 
   if (compact) {
     return (
-      <div className={cn('border-t border-border pt-3', className)}>
+      <div
+        className={cn('border-t border-primary-foreground/20 pt-3', className)}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full p-0 hover:bg-accent"
+              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full p-0 hover:!bg-primary-foreground/10 hover:!text-primary-foreground"
               title={`${currentUser.name} - ${currentUser?.plan.name} Plan`}
             >
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-8 w-8 border border-primary-foreground/30">
                 <AvatarImage src={currentUser?.avatar || undefined} />
-                <AvatarFallback className="text-xs font-medium">
+                <AvatarFallback className="bg-primary-foreground/20 text-xs font-medium text-primary-foreground">
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="end" className="w-64">
+          <DropdownMenuContent
+            side="right"
+            align="end"
+            className="w-64 [&_[role=menuitem]:focus]:bg-primary [&_[role=menuitem]:focus]:text-primary-foreground"
+          >
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">
@@ -185,8 +185,16 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
               <HelpCircle className="mr-2 h-4 w-4" />
               Help & Support
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-              <LogOut className="mr-2 h-4 w-4" />
+            <DropdownMenuItem
+              disabled={isLoggingOut}
+              onClick={handleLogout}
+              className="text-red-600"
+            >
+              {isLoggingOut ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <LogOut className="mr-2 h-4 w-4" />
+              )}
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -196,22 +204,24 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
   }
 
   return (
-    <div className={cn('border-t border-border pt-4', className)}>
+    <div
+      className={cn('border-t border-primary-foreground/20 pt-4', className)}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="h-auto w-full justify-between p-3 hover:bg-accent"
+            className="h-auto w-full justify-between p-3 text-primary-foreground hover:!bg-primary-foreground/10 hover:!text-primary-foreground"
           >
             <div className="flex min-w-0 items-center space-x-3">
-              <Avatar className="h-9 w-9">
+              <Avatar className="h-9 w-9 border border-primary-foreground/30">
                 <AvatarImage src={currentUser?.avatar || undefined} />
-                <AvatarFallback className="text-sm font-medium">
+                <AvatarFallback className="bg-primary-foreground/20 text-sm font-medium text-primary-foreground">
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 text-left">
-                <p className="truncate text-sm font-medium">
+                <p className="truncate text-sm font-medium text-primary-foreground">
                   {currentUser.name}
                 </p>
                 <div className="mt-0.5 flex items-center space-x-2">
@@ -223,16 +233,20 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
                   >
                     {currentUser?.plan.name}
                   </Badge>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="truncate text-xs text-primary-foreground/70">
                     {currentUser.role}
                   </span>
                 </div>
               </div>
             </div>
-            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            <ChevronUp className="h-4 w-4 text-primary-foreground/70" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="top" align="start" className="mb-2 w-80">
+        <DropdownMenuContent
+          side="top"
+          align="start"
+          className="mb-2 w-80 [&_[role=menuitem]:focus]:bg-primary [&_[role=menuitem]:focus]:text-primary-foreground"
+        >
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-2">
               <div className="flex items-center space-x-3">
@@ -324,8 +338,16 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
             <HelpCircle className="mr-2 h-4 w-4" />
             Help & Support
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-            <LogOut className="mr-2 h-4 w-4" />
+          <DropdownMenuItem
+            disabled={isLoggingOut}
+            onClick={handleLogout}
+            className="text-red-600"
+          >
+            {isLoggingOut ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="mr-2 h-4 w-4" />
+            )}
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>

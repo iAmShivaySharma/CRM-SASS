@@ -54,7 +54,7 @@ const activityColors = {
   user_signed_in:
     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
   user_signed_out: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  default: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  default: 'bg-muted text-foreground',
 }
 
 export function RecentActivity() {
@@ -110,15 +110,15 @@ export function RecentActivity() {
             return (
               <div
                 key={activity.id}
-                className="flex items-start space-x-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="flex items-start space-x-3 rounded-lg p-3 transition-colors hover:bg-muted"
               >
                 <div className="flex-shrink-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-                    <IconComponent className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                    <IconComponent className="h-5 w-5 text-muted-foreground" />
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <p className="text-sm font-medium text-foreground">
                     {activity.description}
                   </p>
                   <div className="mt-2 flex items-center space-x-2">
@@ -130,7 +130,7 @@ export function RecentActivity() {
                         (activity as any).entityType ||
                         'activity'}
                     </Badge>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-muted-foreground">
                       {getTimeAgo(
                         (activity as any).created_at ||
                           (activity as any).createdAt
@@ -138,8 +138,8 @@ export function RecentActivity() {
                     </span>
                     {(activity as any).user_name && (
                       <>
-                        <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground">
                           by {(activity as any).user_name}
                         </span>
                       </>
@@ -153,9 +153,9 @@ export function RecentActivity() {
 
         {activities.length === 0 && !isLoading && (
           <div className="py-8 text-center">
-            <Clock className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-            <p className="text-sm text-gray-500">No recent activity</p>
-            <p className="mt-1 text-xs text-gray-400">
+            <Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">No recent activity</p>
+            <p className="mt-1 text-xs text-muted-foreground">
               Activity will appear here as your team works
             </p>
           </div>

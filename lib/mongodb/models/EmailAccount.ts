@@ -271,7 +271,9 @@ EmailAccountSchema.methods.decryptCredentials = function (
 
   const iv = new Uint8Array(Buffer.from(ivHex, 'hex'))
   const authTag = Buffer.from(authTagHex, 'hex')
-  const decipher = crypto.createDecipheriv(algorithm, key, iv)
+  const decipher = crypto.createDecipheriv(algorithm, key, iv, {
+    authTagLength: 16,
+  } as any)
 
   decipher.setAuthTag(new Uint8Array(authTag))
 

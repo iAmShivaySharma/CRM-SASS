@@ -54,7 +54,7 @@ export function TaskFileUploader({
     } else if (fileType.startsWith('video/')) {
       return <Video className="h-4 w-4 text-purple-500" />
     } else {
-      return <FileText className="h-4 w-4 text-gray-500" />
+      return <FileText className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -288,7 +288,7 @@ export function TaskFileUploader({
           className={`relative cursor-pointer rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
             dragActive
               ? 'border-blue-400 bg-blue-50 dark:bg-blue-950'
-              : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
+              : 'border-border hover:border-border/80'
           } ${disabled || isUploading ? 'cursor-not-allowed opacity-50' : ''} `}
           style={{
             position: 'relative',
@@ -310,11 +310,11 @@ export function TaskFileUploader({
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <Upload className="h-8 w-8 text-gray-400" />
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <Upload className="h-8 w-8 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">
                 Drop files here or click to browse
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Images, videos, documents up to{' '}
                 {uploadConfig?.config.maxFileSizeMB || 10}MB (max {maxFiles}{' '}
                 files)
@@ -342,20 +342,20 @@ export function TaskFileUploader({
         {/* File List */}
         {existingFiles.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            <p className="text-sm font-medium text-foreground">
               Attached Files ({existingFiles.length})
             </p>
             {existingFiles.map((file, index) => (
               <div
                 key={`${file.url}-${index}`}
-                className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
+                className="flex items-center gap-3 rounded-lg border border-border bg-muted p-2"
               >
                 {getFileIcon(file.type)}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {formatFileSize(file.size)}
                   </p>
                 </div>

@@ -478,11 +478,11 @@ export function CreateTaskDialog({
                       className={`flex items-center space-x-1 text-sm font-medium ${
                         isCompleted
                           ? 'text-green-600 dark:text-green-400'
-                          : 'text-gray-500'
+                          : 'text-muted-foreground'
                       }`}
                     >
                       <CheckCircle2
-                        className={`h-4 w-4 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`}
+                        className={`h-4 w-4 ${isCompleted ? 'text-green-600' : 'text-muted-foreground'}`}
                       />
                       <span>{isCompleted ? 'Completed' : 'Not completed'}</span>
                     </Label>
