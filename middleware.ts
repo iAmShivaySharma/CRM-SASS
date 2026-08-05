@@ -210,8 +210,6 @@ export async function middleware(request: NextRequest) {
     const isAuthenticated = await verifyAuthFromRequest(request)
     if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
-    } else {
-      return NextResponse.redirect(new URL('/login', request.url))
     }
   }
 
