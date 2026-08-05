@@ -3,7 +3,7 @@ import { Star } from 'lucide-react'
 const items = [
   {
     quote:
-      'We were paying $1,200/month across Salesforce, Monday, Slack, and BambooHR. CRM Pro replaced all four. The AI workflows alone save our SDR team 15 hours a week.',
+      'We were paying $1,200/month across Salesforce, Monday, Slack, and BambooHR. ClearCRM replaced all four. The AI workflows alone save our SDR team 15 hours a week.',
     name: 'Sarah C.',
     title: 'VP Sales · TechFlow',
     tag: '$910/mo saved',

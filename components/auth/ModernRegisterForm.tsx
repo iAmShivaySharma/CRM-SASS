@@ -346,13 +346,13 @@ export function ModernRegisterForm() {
               <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm">
                 <Briefcase className="h-8 w-8" />
               </div>
-              <span className="text-3xl font-bold">CRM Pro</span>
+              <span className="text-3xl font-bold">ClearCRM</span>
             </div>
             <h1 className="mb-4 text-4xl font-bold leading-tight">
               Start your CRM journey today
             </h1>
             <p className="mb-8 text-xl text-green-100">
-              Join thousands of businesses that trust CRM Pro to manage their
+              Join thousands of businesses that trust ClearCRM to manage their
               customer relationships and drive growth.
             </p>
           </div>
@@ -406,7 +406,7 @@ export function ModernRegisterForm() {
                 <Briefcase className="h-6 w-6 text-white" />
               </div>
               <span className="text-2xl font-bold text-foreground">
-                CRM Pro
+                ClearCRM
               </span>
             </div>
           </div>

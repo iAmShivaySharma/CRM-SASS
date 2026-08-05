@@ -215,7 +215,7 @@ app.prepare().then(() => {
 
   server.listen(config.port, config.hostname, () => {
     console.log(
-      `> CRM Pro running on http://${config.hostname}:${config.port} [${config.dev ? 'development' : 'production'}]`
+      `> ClearCRM running on http://${config.hostname}:${config.port} [${config.dev ? 'development' : 'production'}]`
     )
   })
 

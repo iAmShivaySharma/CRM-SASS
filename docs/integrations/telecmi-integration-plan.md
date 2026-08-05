@@ -1,7 +1,7 @@
 # TeleCMI Telephony Integration Plan
 
 ## Why
-CRM Pro needs built-in calling so employees can click-to-call leads/contacts directly from the CRM dashboard. TeleCMI provides the telephony API. Each workspace connects their own TeleCMI account, employees make calls, and all call logs + recordings are automatically linked to leads/contacts.
+ClearCRM needs built-in calling so employees can click-to-call leads/contacts directly from the CRM dashboard. TeleCMI provides the telephony API. Each workspace connects their own TeleCMI account, employees make calls, and all call logs + recordings are automatically linked to leads/contacts.
 
 ---
 
@@ -23,7 +23,7 @@ CRM Pro needs built-in calling so employees can click-to-call leads/contacts dir
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    CRM Pro Frontend                  │
+│                    ClearCRM Frontend                  │
 │                                                     │
 │  Settings/Integrations    LeadSheet    ContactDetail │
 │  ┌──────────────────┐  ┌───────────┐  ┌───────────┐ │
@@ -41,7 +41,7 @@ CRM Pro needs built-in calling so employees can click-to-call leads/contacts dir
                       │
                       ▼
 ┌─────────────────────────────────────────────────────┐
-│                   CRM Pro Backend                    │
+│                   ClearCRM Backend                    │
 │                                                     │
 │  API Routes                                         │
 │  ├── /api/telecmi/account      (GET/POST/DELETE)    │

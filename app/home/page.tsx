@@ -16,9 +16,9 @@ import Footer from '@/components/home/Footer'
 import ChatwootWidget from '@/components/home/ChatwootWidget'
 
 export const metadata: Metadata = {
-  title: 'CRM Pro — AI-Powered CRM That Replaces 6 Tools | $29/mo',
+  title: 'ClearCRM — AI-Powered CRM That Replaces 6 Tools | $29/mo',
   description:
-    'Stop paying $1,200/mo for Salesforce, Monday, Slack, BambooHR, Zapier & Mailchimp. CRM Pro gives you CRM, projects, HR, chat, email & AI automation — $29/mo per workspace, not per seat.',
+    'Stop paying $1,200/mo for Salesforce, Monday, Slack, BambooHR, Zapier & Mailchimp. ClearCRM gives you CRM, projects, HR, chat, email & AI automation — $29/mo per workspace, not per seat.',
   keywords: [
     'CRM',
     'AI CRM',
@@ -38,16 +38,16 @@ export const metadata: Metadata = {
     'best CRM for small business',
   ],
   openGraph: {
-    title: 'CRM Pro — Replace 6 Tools with One AI-Powered Platform',
+    title: 'ClearCRM — Replace 6 Tools with One AI-Powered Platform',
     description:
       'CRM, Projects, HR, Chat, Email & AI Automation — all in one. $29/mo per workspace, not per seat. Start free.',
     type: 'website',
     locale: 'en_US',
-    siteName: 'CRM Pro',
+    siteName: 'ClearCRM',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CRM Pro — Replace 6 Tools with One AI-Powered Platform',
+    title: 'ClearCRM — Replace 6 Tools with One AI-Powered Platform',
     description:
       'CRM, Projects, HR, Chat, Email & AI Automation — all in one. $29/mo per workspace, not per seat.',
   },
@@ -68,7 +68,7 @@ const structuredData = [
   {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'CRM Pro',
+    name: 'ClearCRM',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
     description:
@@ -94,7 +94,7 @@ const structuredData = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'CRM Pro',
+    name: 'ClearCRM',
     description:
       'AI-powered all-in-one CRM platform for SMBs, agencies, and startups.',
   },

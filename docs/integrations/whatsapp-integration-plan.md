@@ -1,7 +1,7 @@
 # WhatsApp Business Cloud API Integration Plan
 
 ## Why
-CRM Pro needs built-in WhatsApp messaging so employees can chat with leads/contacts directly from the CRM. Each workspace connects their own WhatsApp Business account via Meta Cloud API. Messages are sent/received inline, linked to leads/contacts, with template support for outbound campaigns.
+ClearCRM needs built-in WhatsApp messaging so employees can chat with leads/contacts directly from the CRM. Each workspace connects their own WhatsApp Business account via Meta Cloud API. Messages are sent/received inline, linked to leads/contacts, with template support for outbound campaigns.
 
 ---
 
@@ -41,7 +41,7 @@ CRM Pro needs built-in WhatsApp messaging so employees can chat with leads/conta
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    CRM Pro Frontend                      │
+│                    ClearCRM Frontend                      │
 │                                                         │
 │  Settings/Integrations   LeadSheet     WhatsApp Inbox   │
 │  ┌──────────────────┐  ┌───────────┐  ┌──────────────┐ │
@@ -59,7 +59,7 @@ CRM Pro needs built-in WhatsApp messaging so employees can chat with leads/conta
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                   CRM Pro Backend                        │
+│                   ClearCRM Backend                        │
 │                                                         │
 │  API Routes                                             │
 │  ├── /api/whatsapp/account         (GET/POST/DELETE)    │

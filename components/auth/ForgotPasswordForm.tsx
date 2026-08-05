@@ -56,7 +56,7 @@ export function ForgotPasswordForm() {
               <div className="flex items-center space-x-2">
                 <Briefcase className="h-8 w-8 text-blue-600" />
                 <span className="text-2xl font-bold text-foreground">
-                  CRM Pro
+                  ClearCRM
                 </span>
               </div>
             </div>
@@ -113,7 +113,7 @@ export function ForgotPasswordForm() {
             <div className="flex items-center space-x-2">
               <Briefcase className="h-8 w-8 text-blue-600" />
               <span className="text-2xl font-bold text-foreground">
-                CRM Pro
+                ClearCRM
               </span>
             </div>
           </div>

@@ -247,7 +247,7 @@ export function ModernLoginForm() {
               <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm">
                 <Briefcase className="h-8 w-8" />
               </div>
-              <span className="text-3xl font-bold">CRM Pro</span>
+              <span className="text-3xl font-bold">ClearCRM</span>
             </div>
             <h1 className="mb-4 text-4xl font-bold leading-tight">
               Manage your business relationships with ease
@@ -319,7 +319,7 @@ export function ModernLoginForm() {
                 <Briefcase className="h-6 w-6 text-white" />
               </div>
               <span className="text-2xl font-bold text-foreground">
-                CRM Pro
+                ClearCRM
               </span>
             </div>
           </div>

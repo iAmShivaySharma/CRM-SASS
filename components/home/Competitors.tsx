@@ -1,7 +1,7 @@
 import { Check, X, Minus } from 'lucide-react'
 
 const competitors = [
-  { name: 'CRM Pro', price: '$29/mo', you: true },
+  { name: 'ClearCRM', price: '$29/mo', you: true },
   { name: 'HubSpot', price: '$800+/mo' },
   { name: 'Salesforce', price: '$75/user' },
   { name: 'Monday', price: '$16/seat' },
@@ -35,7 +35,7 @@ export default function Competitors() {
           More features. Less cost. No contest.
         </h2>
         <p className="mt-3 text-base text-muted-foreground">
-          See how CRM Pro stacks up against tools that only do <em>one</em>{' '}
+          See how ClearCRM stacks up against tools that only do <em>one</em>{' '}
           thing.
         </p>
       </div>
@@ -97,7 +97,7 @@ export default function Competitors() {
           <strong className="text-foreground/80">Your position:</strong>{' '}
           Powerful + Affordable — the underserved quadrant. HubSpot and
           Salesforce are powerful but expensive. Folk and Pipedrive are simple
-          but limited. CRM Pro is{' '}
+          but limited. ClearCRM is{' '}
           <strong className="text-primary">both powerful and affordable</strong>
           .
         </p>

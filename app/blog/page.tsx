@@ -12,9 +12,9 @@ export const revalidate = 300
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
 
 export const metadata: Metadata = {
-  title: 'Blog — CRM Pro | Tips, Guides & Insights for Business Growth',
+  title: 'Blog — ClearCRM | Tips, Guides & Insights for Business Growth',
   description:
-    'Expert articles on CRM strategy, sales automation, AI workflows, lead management, and business productivity. Actionable insights to grow your business with CRM Pro.',
+    'Expert articles on CRM strategy, sales automation, AI workflows, lead management, and business productivity. Actionable insights to grow your business with ClearCRM.',
   keywords: [
     'CRM blog',
     'sales tips',
@@ -28,17 +28,17 @@ export const metadata: Metadata = {
     'sales pipeline tips',
   ],
   openGraph: {
-    title: 'Blog — CRM Pro | Tips, Guides & Insights for Business Growth',
+    title: 'Blog — ClearCRM | Tips, Guides & Insights for Business Growth',
     description:
       'Expert articles on CRM strategy, sales automation, AI workflows, and business productivity.',
     type: 'website',
     locale: 'en_US',
-    siteName: 'CRM Pro',
+    siteName: 'ClearCRM',
     url: `${APP_URL}/blog`,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Blog — CRM Pro | Tips, Guides & Insights',
+    title: 'Blog — ClearCRM | Tips, Guides & Insights',
     description:
       'Expert articles on CRM strategy, sales automation, and business growth.',
   },
@@ -143,13 +143,13 @@ export default async function BlogListingPage({
   const blogListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
-    name: 'CRM Pro Blog',
+    name: 'ClearCRM Blog',
     description:
       'Expert articles on CRM strategy, sales automation, AI workflows, and business productivity.',
     url: `${APP_URL}/blog`,
     publisher: {
       '@type': 'Organization',
-      name: 'CRM Pro',
+      name: 'ClearCRM',
       url: APP_URL,
     },
     blogPost: blogs.map((b: any) => ({
@@ -175,7 +175,7 @@ export default async function BlogListingPage({
 
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            CRM Pro Blog
+            ClearCRM Blog
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             Expert insights on CRM strategy, sales automation, AI workflows, and

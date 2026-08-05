@@ -4,7 +4,7 @@ import { Blog } from '@/lib/mongodb/models/Blog'
 import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://crmprosaas.com'
-const SITE_NAME = 'CRM Pro Blog'
+const SITE_NAME = 'ClearCRM Blog'
 const SITE_DESCRIPTION =
   'Expert articles on CRM strategy, sales automation, AI workflows, and business productivity.'
 
@@ -44,7 +44,7 @@ export async function GET() {
       <guid isPermaLink="true">${APP_URL}/blog/${blog.slug}</guid>
       <description>${escapeXml(blog.excerpt || '')}</description>
       <pubDate>${new Date(blog.publishedAt).toUTCString()}</pubDate>
-      <author>${escapeXml(blog.author?.name || 'CRM Pro')}</author>
+      <author>${escapeXml(blog.author?.name || 'ClearCRM')}</author>
       ${categoryName ? `<category>${escapeXml(categoryName)}</category>` : ''}
       ${(blog.tags || []).map((t: string) => `<category>${escapeXml(t)}</category>`).join('\n      ')}
     </item>`
@@ -60,7 +60,7 @@ export async function GET() {
     <language>en-us</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${APP_URL}/feed.xml" rel="self" type="application/rss+xml" />
-    <generator>CRM Pro Blog</generator>
+    <generator>ClearCRM Blog</generator>
 ${rssItems}
   </channel>
 </rss>`

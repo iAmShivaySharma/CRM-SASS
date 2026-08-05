@@ -40,7 +40,7 @@ export default function Navbar() {
             <Zap className="h-4 w-4" />
           </div>
           <span className="text-[17px] font-semibold text-foreground">
-            CRM Pro
+            ClearCRM
           </span>
         </Link>
 

@@ -383,7 +383,7 @@ export function Sidebar({
                 <Briefcase className="h-6 w-6 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold text-primary-foreground">
-                CRM Pro
+                ClearCRM
               </span>
             </div>
           )}

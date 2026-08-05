@@ -1107,7 +1107,7 @@ export default function AnimatedDemo() {
                     <Briefcase className="h-3 w-3 text-primary-foreground" />
                   </div>
                   <span className="text-[9px] font-bold text-primary-foreground">
-                    CRM Pro
+                    ClearCRM
                   </span>
                 </div>
                 <div className="space-y-0.5">

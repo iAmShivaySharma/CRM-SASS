@@ -135,7 +135,7 @@ export default function Calculator() {
           <div className="flex flex-col justify-between bg-gradient-to-br from-primary/5 to-background p-7">
             <div>
               <p className="mb-1 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
-                With CRM Pro
+                With ClearCRM
               </p>
               <h3 className="text-2xl font-bold text-foreground">
                 All of the above — included.
@@ -160,7 +160,7 @@ export default function Calculator() {
               <div className="mt-6 flex items-center justify-between rounded-xl bg-emerald-50 px-5 py-3">
                 <div>
                   <span className="text-sm font-semibold text-emerald-700">
-                    CRM Pro
+                    ClearCRM
                   </span>
                   <span className="ml-1.5 text-xs text-emerald-600">
                     ({plan.name})
