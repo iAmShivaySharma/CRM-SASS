@@ -7,6 +7,8 @@ import {
   Tag,
   LeadStatus,
   Activity,
+  Workspace,
+  Plan,
 } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
@@ -19,6 +21,7 @@ import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
 import { activityQueue, notificationQueue } from '@/lib/queue/queues'
 import { checkPermission } from '@/lib/security/check-permission'
+import { checkLeadLimit } from '@/lib/billing/plan-limits'
 
 const createLeadSchema = z.object({
   name: z.string().min(1).max(100),
@@ -228,6 +231,9 @@ export const POST = withSecurityLogging(
           'leads.create'
         )
         if (permError) return permError
+
+        const limitError = await checkLeadLimit(workspaceId)
+        if (limitError) return limitError
 
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
