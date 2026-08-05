@@ -106,7 +106,7 @@ export const StartDirectChatDialog: React.FC<StartDirectChatDialogProps> = ({
                   key={member.userId}
                   onClick={() => handleStartDirectChat(member)}
                   disabled={isLoading}
-                  className="flex w-full items-center space-x-3 rounded-md p-3 text-left transition-colors hover:bg-accent disabled:opacity-50"
+                  className="flex w-full items-center space-x-3 rounded-md p-3 text-left transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage src="" />

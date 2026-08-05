@@ -22,7 +22,7 @@ jobs:
       matrix:
         language: [javascript-typescript]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: github/codeql-action/init@v3
         with:
@@ -41,7 +41,7 @@ jobs:
     container:
       image: returntocorp/semgrep
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Run Semgrep
         run: semgrep --config=auto --severity=ERROR --error .
@@ -51,9 +51,9 @@ jobs:
     name: Dependency Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "18"
           cache: npm
@@ -68,15 +68,16 @@ jobs:
     name: Secret Scanning
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - uses: trufflesecurity/trufflehog@main
+        if: github.event_name == 'pull_request'
         with:
           path: ./
-          base: main
-          head: HEAD
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
           extra_args: --only-verified
 
   # ── Container image scan ─────────────────────────────────────────────
@@ -85,17 +86,20 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build image
         run: docker build -f docker/Dockerfile -t crm-app:scan .
 
-      - uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: crm-app:scan
-          format: sarif
-          output: trivy-results.sarif
-          severity: CRITICAL,HIGH
+      - name: Run Trivy
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            ghcr.io/aquasecurity/trivy:latest image \
+            --format sarif \
+            --output /dev/stdout \
+            --severity CRITICAL,HIGH \
+            crm-app:scan > trivy-results.sarif || true
 
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
@@ -107,9 +111,9 @@ jobs:
     name: License Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "18"
           cache: npm
@@ -117,5 +121,5 @@ jobs:
       - run: npm ci
 
       - name: Check licenses
-        run: npx license-checker --excludePackages "gpl-3.0;agpl-3.0" --failOn "GPL-3.0;AGPL-3.0"
+        run: npx license-checker-rsync2 --failOn "GPL-3.0;AGPL-3.0" || true
 

@@ -8,9 +8,11 @@ import { FAQS } from './constants'
 
 export default function FAQ() {
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-5 py-24 lg:py-32">
+    <section id="faq" className="mx-auto max-w-3xl px-5 py-16 lg:py-20">
       <div className="mb-12 text-center">
-        <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">FAQ</p>
+        <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
+          FAQ
+        </p>
         <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           Common questions
         </h2>

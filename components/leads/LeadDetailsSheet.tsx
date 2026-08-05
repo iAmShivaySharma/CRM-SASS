@@ -748,7 +748,7 @@ export function LeadDetailsSheet({
                               href={String(value)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex max-w-[60%] items-center gap-1 truncate text-sm text-blue-600 hover:underline dark:text-blue-400"
+                              className="flex max-w-[60%] items-center gap-1 truncate text-sm text-primary hover:underline"
                             >
                               {String(value)
                                 .replace(/^https?:\/\/(www\.)?/, '')

@@ -624,7 +624,7 @@ export function LeadList() {
                           title="View"
                           onClick={() => handleViewDetails(lead)}
                         >
-                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <Eye className="h-4 w-4" />
                         </Button>
                         {/* {lead.email && (
                           <Button
@@ -679,7 +679,7 @@ export function LeadList() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => handleConvertToContact(lead)}
-                              className="text-green-600"
+                              className="text-emerald-600 focus:text-emerald-600 dark:text-emerald-400 dark:focus:text-emerald-400"
                               disabled={isConverting}
                             >
                               {isConverting ? (
@@ -690,7 +690,7 @@ export function LeadList() {
                               Convert to Contact
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              className="text-red-600"
+                              className="text-destructive focus:text-destructive"
                               onClick={() => handleDelete(lead.id)}
                               disabled={isDeletingLead}
                             >

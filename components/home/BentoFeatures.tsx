@@ -1,7 +1,18 @@
 import {
-  Users, GitBranch, Mail, FolderKanban, Clock,
-  MessageCircle, CalendarCheck, Plane, QrCode,
-  Shield, BarChart3, Webhook, BrainCircuit, FileText,
+  Users,
+  GitBranch,
+  Mail,
+  FolderKanban,
+  Clock,
+  MessageCircle,
+  CalendarCheck,
+  Plane,
+  QrCode,
+  Shield,
+  BarChart3,
+  Webhook,
+  BrainCircuit,
+  FileText,
 } from 'lucide-react'
 
 /*
@@ -10,9 +21,9 @@ import {
  */
 export default function BentoFeatures() {
   return (
-    <section id="features" className="mx-auto max-w-6xl px-5 py-24 lg:py-32">
+    <section id="features" className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
       {/* heading */}
-      <div className="mx-auto mb-14 max-w-xl text-center">
+      <div className="mx-auto mb-10 max-w-xl text-center">
         <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-primary">
           Everything in one place
         </p>
@@ -30,13 +41,16 @@ export default function BentoFeatures() {
         {/* ── LARGE: Sales Pipeline ── */}
         <div className="col-span-4 flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-background p-6 sm:col-span-2 lg:row-span-2">
           <div>
-            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+            <div className="bg-primary/15 mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-primary">
               <GitBranch className="h-5 w-5" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Sales Pipeline</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              Sales Pipeline
+            </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Drag leads through custom stages. AI-scored, auto-assigned, color-coded.
-              10+ sources: LinkedIn, Ads, Referrals, Website, Events.
+              Drag leads through custom stages. AI-scored, auto-assigned,
+              color-coded. 10+ sources: LinkedIn, Ads, Referrals, Website,
+              Events.
             </p>
           </div>
           {/* mini pipeline visual */}
@@ -48,9 +62,14 @@ export default function BentoFeatures() {
               { n: 'Won', w: '18%', c: 'bg-emerald-400' },
             ].map(p => (
               <div key={p.n} className="flex items-center gap-2">
-                <span className="w-14 text-[11px] font-medium text-muted-foreground/70">{p.n}</span>
+                <span className="w-14 text-[11px] font-medium text-muted-foreground/70">
+                  {p.n}
+                </span>
                 <div className="h-2 flex-1 rounded-full bg-background/60">
-                  <div className={`h-2 rounded-full ${p.c}`} style={{ width: p.w }} />
+                  <div
+                    className={`h-2 rounded-full ${p.c}`}
+                    style={{ width: p.w }}
+                  />
                 </div>
               </div>
             ))}
@@ -63,10 +82,12 @@ export default function BentoFeatures() {
             <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
               <BrainCircuit className="h-5 w-5" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">AI Workflow Engine</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              AI Workflow Engine
+            </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Drag-and-drop visual builder. Enrich leads, draft emails, analyze sentiment,
-              score deals — all running on autopilot.
+              Drag-and-drop visual builder. Enrich leads, draft emails, analyze
+              sentiment, score deals — all running on autopilot.
             </p>
           </div>
           {/* mini workflow visual */}
@@ -83,10 +104,30 @@ export default function BentoFeatures() {
         </div>
 
         {/* ── MEDIUM cards ── */}
-        <Card icon={FolderKanban} title="Projects & Tasks" desc="Kanban boards, time tracking, subtasks, due dates, and file attachments per project." color="orange" />
-        <Card icon={MessageCircle} title="Team Chat" desc="Real-time rooms and DMs. File sharing, reactions, typing indicators — replace Slack." color="green" />
-        <Card icon={Mail} title="Email Inbox" desc="Connect Gmail & Outlook. Send, track, template, and schedule — without leaving the CRM." color="sky" />
-        <Card icon={CalendarCheck} title="Attendance & Shifts" desc="Clock in/out with GPS. Manage Office, Remote, Hybrid, and Field work types." color="amber" />
+        <Card
+          icon={FolderKanban}
+          title="Projects & Tasks"
+          desc="Kanban boards, time tracking, subtasks, due dates, and file attachments per project."
+          color="orange"
+        />
+        <Card
+          icon={MessageCircle}
+          title="Team Chat"
+          desc="Real-time rooms and DMs. File sharing, reactions, typing indicators — replace Slack."
+          color="green"
+        />
+        <Card
+          icon={Mail}
+          title="Email Inbox"
+          desc="Connect Gmail & Outlook. Send, track, template, and schedule — without leaving the CRM."
+          color="sky"
+        />
+        <Card
+          icon={CalendarCheck}
+          title="Attendance & Shifts"
+          desc="Clock in/out with GPS. Manage Office, Remote, Hybrid, and Field work types."
+          color="amber"
+        />
 
         {/* ── SMALL strip ── */}
         <SmallCard icon={Plane} label="Leave Management" />
@@ -101,13 +142,34 @@ export default function BentoFeatures() {
 /* ── Reusable card components ── */
 
 const colorMap: Record<string, { bg: string; icon: string; border: string }> = {
-  orange: { bg: 'bg-orange-50', icon: 'text-orange-600 bg-orange-100', border: 'border-orange-100' },
-  green:  { bg: 'bg-emerald-50', icon: 'text-emerald-600 bg-emerald-100', border: 'border-emerald-100' },
-  sky:    { bg: 'bg-sky-50', icon: 'text-sky-600 bg-sky-100', border: 'border-sky-100' },
-  amber:  { bg: 'bg-amber-50', icon: 'text-amber-600 bg-amber-100', border: 'border-amber-100' },
+  orange: {
+    bg: 'bg-orange-50',
+    icon: 'text-orange-600 bg-orange-100',
+    border: 'border-orange-100',
+  },
+  green: {
+    bg: 'bg-emerald-50',
+    icon: 'text-emerald-600 bg-emerald-100',
+    border: 'border-emerald-100',
+  },
+  sky: {
+    bg: 'bg-sky-50',
+    icon: 'text-sky-600 bg-sky-100',
+    border: 'border-sky-100',
+  },
+  amber: {
+    bg: 'bg-amber-50',
+    icon: 'text-amber-600 bg-amber-100',
+    border: 'border-amber-100',
+  },
 }
 
-function Card({ icon: Icon, title, desc, color }: {
+function Card({
+  icon: Icon,
+  title,
+  desc,
+  color,
+}: {
   icon: React.ComponentType<{ className?: string }>
   title: string
   desc: string
@@ -115,22 +177,31 @@ function Card({ icon: Icon, title, desc, color }: {
 }) {
   const c = colorMap[color]
   return (
-    <div className={`col-span-2 sm:col-span-1 flex flex-col rounded-2xl border border-border ${c.bg} p-5`}>
-      <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg ${c.icon}`}>
+    <div
+      className={`col-span-2 flex flex-col rounded-2xl border border-border sm:col-span-1 ${c.bg} p-5`}
+    >
+      <div
+        className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg ${c.icon}`}
+      >
         <Icon className="h-4 w-4" />
       </div>
       <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-      <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{desc}</p>
+      <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+        {desc}
+      </p>
     </div>
   )
 }
 
-function SmallCard({ icon: Icon, label }: {
+function SmallCard({
+  icon: Icon,
+  label,
+}: {
   icon: React.ComponentType<{ className?: string }>
   label: string
 }) {
   return (
-    <div className="col-span-2 sm:col-span-1 flex items-center gap-3 rounded-2xl border border-border bg-muted/50 px-5">
+    <div className="col-span-2 flex items-center gap-3 rounded-2xl border border-border bg-muted/50 px-5 sm:col-span-1">
       <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground shadow-sm">
         <Icon className="h-4 w-4" />
       </div>
