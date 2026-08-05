@@ -215,8 +215,9 @@ export default function PlansPage() {
       !confirm(
         'Are you sure you want to cancel your subscription? Your plan will remain active until the end of the billing period.'
       )
-    )
+    ) {
       return
+    }
     setIsCancelling(true)
     try {
       const response = await fetch('/api/payments/cancel', {
