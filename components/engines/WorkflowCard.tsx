@@ -70,16 +70,13 @@ export function WorkflowCard({
       Finance:
         'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
     }
-    return (
-      colors[category as keyof typeof colors] ||
-      'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-    )
+    return colors[category as keyof typeof colors] || 'bg-muted text-foreground'
   }
 
   const getPopularityColor = () => {
     if (usageCount > 2000) return 'text-green-600'
     if (usageCount > 1000) return 'text-blue-600'
-    return 'text-gray-600'
+    return 'text-muted-foreground'
   }
 
   const formatExecutionTime = (seconds: number) => {

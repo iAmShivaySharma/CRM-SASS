@@ -241,10 +241,10 @@ export function ThemeCustomizer() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground dark:text-white">
+          <h2 className="text-2xl font-bold text-foreground">
             Theme Customizer
           </h2>
-          <p className="text-muted-foreground dark:text-gray-400">
+          <p className="text-muted-foreground">
             Customize the appearance of your dashboard
           </p>
         </div>
@@ -314,7 +314,7 @@ export function ThemeCustomizer() {
                     className={`flex flex-col items-center space-y-2 rounded-lg border p-4 transition-colors ${
                       theme.mode === mode.value
                         ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
-                        : 'border-border bg-card text-foreground hover:border-border/80 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-600'
+                        : 'border-border bg-card text-foreground hover:border-border/80'
                     }`}
                   >
                     <mode.icon className="h-6 w-6" />
@@ -341,7 +341,7 @@ export function ThemeCustomizer() {
                     className={`rounded-lg border p-4 transition-colors ${
                       theme.preset === preset.id
                         ? 'border-primary bg-primary/10 dark:bg-primary/20'
-                        : 'border-border bg-card hover:border-border/80 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600'
+                        : 'border-border bg-card hover:border-border/80'
                     }`}
                   >
                     <div className="mb-2 flex items-center space-x-2">
@@ -394,7 +394,7 @@ export function ThemeCustomizer() {
                         onChange={e =>
                           handleColorChange(colorInput.key, e.target.value)
                         }
-                        className="h-10 w-12 cursor-pointer rounded border border-border bg-background dark:border-gray-600 dark:bg-gray-800"
+                        className="h-10 w-12 cursor-pointer rounded border border-border bg-background"
                       />
                       <Input
                         value={
@@ -408,7 +408,7 @@ export function ThemeCustomizer() {
                         className="flex-1"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground dark:text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       {colorInput.description}
                     </p>
                   </div>
@@ -534,7 +534,7 @@ export function ThemeCustomizer() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-base">Animations</Label>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Enable smooth transitions and animations
                     </p>
                   </div>

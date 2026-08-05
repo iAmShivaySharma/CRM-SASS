@@ -5,7 +5,7 @@ import {
   Users,
   Search,
   Filter,
-  Plus,
+  UserPlus,
   Edit,
   Trash2,
   Mail,
@@ -16,12 +16,14 @@ import {
   MoreVertical,
   Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -29,6 +31,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -44,6 +54,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useGetEmployeesQuery } from '@/lib/api/attendanceApi'
+import {
+  useInviteToWorkspaceMutation,
+  useGetRolesQuery,
+} from '@/lib/api/mongoApi'
 import { useAppSelector } from '@/lib/hooks'
 
 export function EmployeeList() {
@@ -51,6 +65,43 @@ export function EmployeeList() {
   const [searchQuery, setSearchQuery] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('')
+
+  const [inviteToWorkspace, { isLoading: inviteLoading }] =
+    useInviteToWorkspaceMutation()
+  const { data: rolesData } = useGetRolesQuery(currentWorkspace?.id || '', {
+    skip: !currentWorkspace?.id,
+  })
+  const roles = rolesData?.roles || []
+
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) {
+      toast.error('Email address is required')
+      return
+    }
+    if (!inviteRole) {
+      toast.error('Please select a role')
+      return
+    }
+    try {
+      const result = await inviteToWorkspace({
+        workspaceId: currentWorkspace?.id || '',
+        email: inviteEmail,
+        roleId: inviteRole,
+        message: `You've been invited to join ${currentWorkspace?.name} workspace.`,
+      }).unwrap()
+      if (result.success) {
+        toast.success(`Invitation sent to ${inviteEmail}`)
+        setInviteEmail('')
+        setInviteRole('')
+        setInviteOpen(false)
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || 'Failed to send invitation')
+    }
+  }
 
   // API integration
   const {
@@ -143,212 +194,266 @@ export function EmployeeList() {
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <Users className="h-5 w-5" />
-            <span>Employee Management</span>
-          </CardTitle>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Filters */}
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search employees..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All Departments" />
-            </SelectTrigger>
-            <SelectContent>
-              {departments.map(dept => (
-                <SelectItem key={dept} value={dept}>
-                  {dept === 'all' ? 'All Departments' : dept}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="on_leave">On Leave</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Employee Table */}
-        {isLoading ? (
-          <div className="flex h-32 items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="ml-2">Loading employees...</span>
-          </div>
-        ) : error ? (
-          <div className="py-8 text-center">
-            <p className="mb-2 text-red-500">Failed to load employees</p>
-            <Button onClick={refetch} variant="outline" size="sm">
-              Try Again
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <span>Employee Management</span>
+            </CardTitle>
+            <Button size="sm" onClick={() => setInviteOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite Employee
             </Button>
           </div>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Work Type</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead>Last Active</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEmployees.length === 0 ? (
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Filters */}
+          <div className="flex items-center space-x-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search employees..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select
+              value={departmentFilter}
+              onValueChange={setDepartmentFilter}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept === 'all' ? 'All Departments' : dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="on_leave">On Leave</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Employee Table */}
+          {isLoading ? (
+            <div className="flex h-32 items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Loading employees...</span>
+            </div>
+          ) : error ? (
+            <div className="py-8 text-center">
+              <p className="mb-2 text-red-500">Failed to load employees</p>
+              <Button onClick={refetch} variant="outline" size="sm">
+                Try Again
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center">
-                      <p className="text-muted-foreground">
-                        No employees found.
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Try adjusting your search or filters.
-                      </p>
-                    </TableCell>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Work Type</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead>Last Active</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-12"></TableHead>
                   </TableRow>
-                ) : (
-                  filteredEmployees.map(employee => (
-                    <TableRow key={employee._id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={employee.avatar} />
-                            <AvatarFallback>
-                              {employee.fullName
-                                .split(' ')
-                                .map(n => n[0])
-                                .join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">
-                              {employee.fullName}
-                            </div>
-                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                              <Mail className="h-3 w-3" />
-                              <span>{employee.email}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {employee.role?.name || 'No Role'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {employee.todayAttendance?.workType ? (
-                          getWorkTypeBadge(employee.todayAttendance.workType)
-                        ) : (
-                          <Badge variant="outline">-</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="h-3 w-3 text-muted-foreground" />
-                          <span>
-                            {format(
-                              new Date(employee.joinedAt),
-                              'MMM dd, yyyy'
-                            )}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {employee.lastActive ? (
-                          <div className="text-sm">
-                            {format(
-                              new Date(employee.lastActive),
-                              'MMM dd, yyyy'
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">
-                            Never
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(employee.status)}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Employee
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Clock className="mr-2 h-4 w-4" />
-                              View Attendance
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Mail className="mr-2 h-4 w-4" />
-                              Send Message
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Remove Employee
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                </TableHeader>
+                <TableBody>
+                  {filteredEmployees.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-8 text-center">
+                        <p className="text-muted-foreground">
+                          No employees found.
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Try adjusting your search or filters.
+                        </p>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+                  ) : (
+                    filteredEmployees.map(employee => (
+                      <TableRow key={employee._id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={employee.avatar} />
+                              <AvatarFallback>
+                                {employee.fullName
+                                  .split(' ')
+                                  .map(n => n[0])
+                                  .join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">
+                                {employee.fullName}
+                              </div>
+                              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                <span>{employee.email}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {employee.role?.name || 'No Role'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {employee.todayAttendance?.workType ? (
+                            getWorkTypeBadge(employee.todayAttendance.workType)
+                          ) : (
+                            <Badge variant="outline">-</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            <span>
+                              {format(
+                                new Date(employee.joinedAt),
+                                'MMM dd, yyyy'
+                              )}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {employee.lastActive ? (
+                            <div className="text-sm">
+                              {format(
+                                new Date(employee.lastActive),
+                                'MMM dd, yyyy'
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              Never
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(employee.status)}</TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Employee
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Clock className="mr-2 h-4 w-4" />
+                                View Attendance
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Send Message
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Remove Employee
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredEmployees.length} of {employees.length} employees
+          {/* Pagination */}
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredEmployees.length} of {employees.length} employees
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" disabled>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled>
+                Next
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" disabled>
-              Previous
-            </Button>
-            <Button variant="outline" size="sm" disabled>
-              Next
-            </Button>
+        </CardContent>
+      </Card>
+
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite Employee</DialogTitle>
+            <DialogDescription>
+              Send an invitation to join {currentWorkspace?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="invite-email">Email Address</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                placeholder="Enter email address"
+                value={inviteEmail}
+                onChange={e => setInviteEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invite-role">Role</Label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((role: any) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleInvite}
+              disabled={!inviteEmail || !inviteRole || inviteLoading}
+            >
+              {inviteLoading ? 'Sending...' : 'Send Invitation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

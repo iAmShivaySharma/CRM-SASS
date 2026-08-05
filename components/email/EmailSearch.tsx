@@ -8,13 +8,18 @@ interface EmailSearchProps {
   placeholder?: string
 }
 
-export const EmailSearch = memo(function EmailSearch({ onSearch, placeholder = 'Search emails...' }: EmailSearchProps) {
+export const EmailSearch = memo(function EmailSearch({
+  onSearch,
+  placeholder = 'Search emails...',
+}: EmailSearchProps) {
   const [query, setQuery] = useState('')
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,7 +38,7 @@ export const EmailSearch = memo(function EmailSearch({ onSearch, placeholder = '
 
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <input
         ref={inputRef}
         type="text"
@@ -41,14 +46,14 @@ export const EmailSearch = memo(function EmailSearch({ onSearch, placeholder = '
         value={query}
         onChange={handleChange}
         placeholder={placeholder}
-        className="flex h-8 w-full rounded-md border border-input bg-background pl-10 pr-10 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="flex h-8 w-full rounded-md border border-input bg-background py-2 pl-10 pr-10 text-sm transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         style={{ textAlign: 'left', direction: 'ltr' }}
       />
       {query && (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded text-gray-400 hover:text-gray-600"
+          className="absolute right-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:text-foreground"
         >
           <X className="h-3 w-3" />
         </button>

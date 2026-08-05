@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Inbox } from 'lucide-react'
+import { Plus, Inbox, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -45,8 +45,10 @@ export function SprintBoard({ projectId, onEditTask }: SprintBoardProps) {
     { skip: !projectId || !currentWorkspace?.id }
   )
 
-  const [startSprint] = useStartSprintMutation()
-  const [assignTasks] = useAssignTasksToSprintMutation()
+  const [startSprint, { isLoading: isStartingSprint }] =
+    useStartSprintMutation()
+  const [assignTasks, { isLoading: isAssigningTasks }] =
+    useAssignTasksToSprintMutation()
 
   const sprints = sprintsData?.sprints || []
   const allTasks = allTasksData?.tasks || []
@@ -170,6 +172,7 @@ export function SprintBoard({ projectId, onEditTask }: SprintBoardProps) {
               onStart={() => handleStartSprint(sprint)}
               onComplete={() => {}}
               onEdit={() => setEditingSprint(sprint)}
+              isStarting={isStartingSprint}
             />
           ))}
         </div>
@@ -232,8 +235,12 @@ export function SprintBoard({ projectId, onEditTask }: SprintBoardProps) {
                   <Button
                     size="sm"
                     variant="outline"
+                    disabled={isAssigningTasks}
                     onClick={() => handleAddToSprint(activeSprint.id)}
                   >
+                    {isAssigningTasks ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : null}
                     Add to Sprint ({selectedBacklogTasks.length})
                   </Button>
                 )}
@@ -243,8 +250,12 @@ export function SprintBoard({ projectId, onEditTask }: SprintBoardProps) {
                     <Button
                       size="sm"
                       variant="outline"
+                      disabled={isAssigningTasks}
                       onClick={() => handleAddToSprint(planningSprints[0].id)}
                     >
+                      {isAssigningTasks ? (
+                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                      ) : null}
                       Add to {planningSprints[0].name} (
                       {selectedBacklogTasks.length})
                     </Button>

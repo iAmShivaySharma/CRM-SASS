@@ -152,7 +152,14 @@ CustomerApiKeySchema.methods.decryptApiKey = function (): string {
 
   const iv = Buffer.from(ivHex, 'hex')
   const authTag = Buffer.from(authTagHex, 'hex')
-  const decipher = crypto.createDecipheriv(algorithm, key, iv as any)
+  const decipher = crypto.createDecipheriv(
+    algorithm,
+    key,
+    iv as any,
+    {
+      authTagLength: 16,
+    } as any
+  )
 
   decipher.setAuthTag(authTag as any)
 

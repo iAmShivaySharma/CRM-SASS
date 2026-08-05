@@ -277,7 +277,7 @@ export function TiptapEditor({
   return (
     <div className={`rounded-lg border bg-background shadow-sm ${className}`}>
       {editable && (
-        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-lg border-b bg-gradient-to-r from-gray-50 to-white p-3 backdrop-blur-sm dark:from-gray-900 dark:to-gray-800">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-lg border-b bg-gradient-to-r from-muted to-background p-3 backdrop-blur-sm">
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -374,7 +374,7 @@ export function TiptapEditor({
                 editor.chain().focus().toggleBold().run()
               }}
               data-active={editor.isActive('bold')}
-              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
+              className="h-8 w-8 p-0 hover:bg-muted data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Bold (Ctrl+B)"
             >
               <Bold className="h-4 w-4" />
@@ -388,7 +388,7 @@ export function TiptapEditor({
                 editor.chain().focus().toggleItalic().run()
               }}
               data-active={editor.isActive('italic')}
-              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
+              className="h-8 w-8 p-0 hover:bg-muted data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Italic (Ctrl+I)"
             >
               <Italic className="h-4 w-4" />
@@ -402,7 +402,7 @@ export function TiptapEditor({
                 editor.chain().focus().toggleStrike().run()
               }}
               data-active={editor.isActive('strike')}
-              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
+              className="h-8 w-8 p-0 hover:bg-muted data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Strikethrough"
             >
               <Strikethrough className="h-4 w-4" />
@@ -416,7 +416,7 @@ export function TiptapEditor({
                 editor.chain().focus().toggleCode().run()
               }}
               data-active={editor.isActive('code')}
-              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
+              className="h-8 w-8 p-0 hover:bg-muted data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 dark:data-[active=true]:bg-blue-900 dark:data-[active=true]:text-blue-300"
               title="Code"
             >
               <Code className="h-4 w-4" />
@@ -441,27 +441,29 @@ export function TiptapEditor({
             </Button>
 
             {showColorDropdown && (
-              <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+              <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border border-border bg-background p-3 shadow-lg">
                 <div className="mb-4">
-                  <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    <div className="h-3 w-3 rounded border border-gray-300 dark:border-gray-600"></div>
+                  <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-foreground">
+                    <div className="h-3 w-3 rounded border border-border"></div>
                     Text Color
                   </div>
                   <div className="grid grid-cols-6 gap-2">
                     <button
-                      className="flex h-7 w-7 items-center justify-center rounded-md border-2 border-gray-300 bg-white transition-all duration-200 hover:scale-110 dark:border-gray-600 dark:bg-gray-700"
+                      className="flex h-7 w-7 items-center justify-center rounded-md border-2 border-border bg-background transition-all duration-200 hover:scale-110"
                       onClick={() => {
                         editor.chain().focus().unsetColor().run()
                         setShowColorDropdown(false)
                       }}
                       title="Remove text color"
                     >
-                      <span className="text-xs font-bold text-gray-500">×</span>
+                      <span className="text-xs font-bold text-muted-foreground">
+                        ×
+                      </span>
                     </button>
                     {colors.map(color => (
                       <button
                         key={`text-${color}`}
-                        className="h-7 w-7 rounded-md border-2 border-gray-200 transition-all duration-200 hover:scale-110 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:hover:border-gray-400"
+                        className="h-7 w-7 rounded-md border-2 border-border transition-all duration-200 hover:scale-110 hover:border-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                         style={{ backgroundColor: color }}
                         onClick={() => {
                           editor.chain().focus().setColor(color).run()
@@ -474,25 +476,27 @@ export function TiptapEditor({
                 </div>
 
                 <div>
-                  <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-foreground">
                     <div className="h-3 w-3 rounded border border-yellow-300 bg-yellow-200"></div>
                     Highlight
                   </div>
                   <div className="grid grid-cols-6 gap-2">
                     <button
-                      className="flex h-7 w-7 items-center justify-center rounded-md border-2 border-gray-300 bg-white transition-all duration-200 hover:scale-110 dark:border-gray-600 dark:bg-gray-700"
+                      className="flex h-7 w-7 items-center justify-center rounded-md border-2 border-border bg-background transition-all duration-200 hover:scale-110"
                       onClick={() => {
                         editor.chain().focus().unsetHighlight().run()
                         setShowColorDropdown(false)
                       }}
                       title="Remove highlight"
                     >
-                      <span className="text-xs font-bold text-gray-500">×</span>
+                      <span className="text-xs font-bold text-muted-foreground">
+                        ×
+                      </span>
                     </button>
                     {colors.map(color => (
                       <button
                         key={`highlight-${color}`}
-                        className="h-7 w-7 rounded-md border-2 border-gray-200 transition-all duration-200 hover:scale-110 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:hover:border-gray-400"
+                        className="h-7 w-7 rounded-md border-2 border-border transition-all duration-200 hover:scale-110 hover:border-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                         style={{ backgroundColor: color }}
                         onClick={() => {
                           editor.chain().focus().setHighlight({ color }).run()
@@ -519,7 +523,7 @@ export function TiptapEditor({
                 editor.chain().focus().toggleBulletList().run()
               }}
               data-active={editor.isActive('bulletList')}
-              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
+              className="h-8 w-8 p-0 hover:bg-muted data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Bullet List"
             >
               <List className="h-4 w-4" />
@@ -533,7 +537,7 @@ export function TiptapEditor({
                 editor.chain().focus().toggleOrderedList().run()
               }}
               data-active={editor.isActive('orderedList')}
-              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
+              className="h-8 w-8 p-0 hover:bg-muted data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Numbered List"
             >
               <ListOrdered className="h-4 w-4" />
@@ -547,7 +551,7 @@ export function TiptapEditor({
                 editor.chain().focus().toggleTaskList().run()
               }}
               data-active={editor.isActive('taskList')}
-              className="h-8 w-8 p-0 hover:bg-gray-100 data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:hover:bg-gray-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
+              className="h-8 w-8 p-0 hover:bg-muted data-[active=true]:bg-green-100 data-[active=true]:text-green-700 dark:data-[active=true]:bg-green-900 dark:data-[active=true]:text-green-300"
               title="Task List"
             >
               <CheckSquare className="h-4 w-4" />
