@@ -1,10 +1,10 @@
-FROM --platform=$BUILDPLATFORM node:22-alpine AS deps
+FROM --platform=$BUILDPLATFORM node:22.16-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts && npm cache clean --force
+RUN npm install -g npm@11 && npm ci --ignore-scripts && npm cache clean --force
 
-FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:22.16-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -21,12 +21,12 @@ RUN printf '%s\n' \
     'NEXT_PUBLIC_APP_URL=' > .env.production
 RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build:unix
 
-FROM --platform=$TARGETPLATFORM node:22-alpine AS proddeps
+FROM --platform=$TARGETPLATFORM node:22.16-alpine AS proddeps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
-FROM --platform=$TARGETPLATFORM node:22-alpine AS runner
+FROM --platform=$TARGETPLATFORM node:22.16-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production \
