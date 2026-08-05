@@ -10,6 +10,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
+import { NotificationService } from '@/lib/services/notificationService'
 
 const updateTaskSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -201,6 +202,18 @@ export const PUT = withSecurityLogging(
 
         await updatedTask?.populate('assigneeId', 'fullName email avatarUrl')
 
+        NotificationService.createNotification({
+          workspaceId: taskData.project.workspaceId.toString(),
+          title: 'Task Updated',
+          message: `${auth.user.fullName || auth.user.email} updated task: ${updatedTask?.title}`,
+          type: 'success',
+          entityType: 'task',
+          entityId: id,
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
+
         await logUserActivity(
           auth.user.id,
           'tasks.update',
@@ -275,6 +288,18 @@ export const DELETE = withSecurityLogging(
         if (permError) return permError
 
         await Task.findByIdAndDelete(id)
+
+        NotificationService.createNotification({
+          workspaceId: taskData.project.workspaceId.toString(),
+          title: 'Task Deleted',
+          message: `${auth.user.fullName || auth.user.email} deleted task: ${taskData.task.title}`,
+          type: 'warning',
+          entityType: 'task',
+          entityId: id,
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
 
         await logUserActivity(
           auth.user.id,
