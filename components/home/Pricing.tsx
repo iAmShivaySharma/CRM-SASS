@@ -11,7 +11,7 @@ const plans = [
     name: 'Free',
     mo: 0,
     yr: 0,
-    desc: '2 members · 100 leads',
+    desc: '3 members · 500 leads',
     rows: [
       [true, 'Basic pipeline'],
       [true, '5 projects · 50 tasks'],
@@ -27,7 +27,7 @@ const plans = [
     name: 'Starter',
     mo: 12,
     yr: 9,
-    desc: '5 members · 1K leads',
+    desc: '10 members · 5K leads',
     rows: [
       [true, 'Full pipeline + statuses'],
       [true, '15 projects · ∞ tasks'],
@@ -43,7 +43,7 @@ const plans = [
     name: 'Pro',
     mo: 29,
     yr: 23,
-    desc: '15 members · 10K leads',
+    desc: '25 members · 50K leads',
     rows: [
       [true, 'AI scoring + pipelines'],
       [true, '∞ projects + time tracking'],
