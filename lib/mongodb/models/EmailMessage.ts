@@ -94,7 +94,6 @@ const EmailMessageSchema = new Schema<IEmailMessage>(
       type: Schema.Types.ObjectId,
       ref: 'Workspace',
       required: true,
-      index: true,
     },
     emailAccountId: {
       type: Schema.Types.ObjectId,
@@ -307,8 +306,6 @@ EmailMessageSchema.index({
   folder: 1,
   receivedAt: -1,
 })
-EmailMessageSchema.index({ linkedLeadId: 1 })
-EmailMessageSchema.index({ linkedContactId: 1 })
 EmailMessageSchema.index({ 'from.email': 1, workspaceId: 1 })
 
 EmailMessageSchema.index(

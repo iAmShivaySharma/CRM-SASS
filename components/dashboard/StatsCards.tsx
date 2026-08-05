@@ -100,8 +100,8 @@ export function StatsCards() {
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
               <p className="text-xs text-muted-foreground">
-                <span className="text-gray-500">{stat.change}</span> from last
-                month
+                <span className="text-muted-foreground">{stat.change}</span>{' '}
+                from last month
               </p>
             </CardContent>
           </Card>

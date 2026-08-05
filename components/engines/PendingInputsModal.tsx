@@ -1,7 +1,13 @@
 'use client'
 
 import React, { useState } from 'react'
-import { X, Clock, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react'
+import {
+  X,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  ExternalLink,
+} from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -53,7 +59,7 @@ export function PendingInputsModal({
   isOpen,
   onClose,
   onInputSelected,
-  isLoading = false
+  isLoading = false,
 }: PendingInputsModalProps) {
   const [selectedInput, setSelectedInput] = useState<string | null>(null)
 
@@ -66,7 +72,7 @@ export function PendingInputsModal({
       case 'low':
         return 'bg-green-100 text-green-800 border-green-200'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-muted text-foreground border-border'
     }
   }
 
@@ -97,12 +103,16 @@ export function PendingInputsModal({
   }
 
   const expiredInputs = pendingInputs.filter(input => input.isExpired)
-  const urgentInputs = pendingInputs.filter(input => !input.isExpired && input.timeRemainingMinutes < 15)
-  const normalInputs = pendingInputs.filter(input => !input.isExpired && input.timeRemainingMinutes >= 15)
+  const urgentInputs = pendingInputs.filter(
+    input => !input.isExpired && input.timeRemainingMinutes < 15
+  )
+  const normalInputs = pendingInputs.filter(
+    input => !input.isExpired && input.timeRemainingMinutes >= 15
+  )
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Clock className="h-5 w-5 text-primary" />
@@ -111,19 +121,20 @@ export function PendingInputsModal({
           <DialogDescription>
             {pendingInputs.length > 0
               ? `You have ${pendingInputs.length} workflow${pendingInputs.length > 1 ? 's' : ''} waiting for input`
-              : 'No pending inputs at the moment'
-            }
+              : 'No pending inputs at the moment'}
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
           </div>
         ) : pendingInputs.length === 0 ? (
-          <div className="text-center py-8">
-            <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <p className="text-muted-foreground">All workflows are running smoothly!</p>
+          <div className="py-8 text-center">
+            <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-600" />
+            <p className="text-muted-foreground">
+              All workflows are running smoothly!
+            </p>
           </div>
         ) : (
           <ScrollArea className="max-h-[60vh]">
@@ -131,12 +142,14 @@ export function PendingInputsModal({
               {/* Expired Inputs */}
               {expiredInputs.length > 0 && (
                 <div>
-                  <div className="flex items-center space-x-2 mb-3">
+                  <div className="mb-3 flex items-center space-x-2">
                     <AlertTriangle className="h-5 w-5 text-red-600" />
-                    <h3 className="text-lg font-semibold text-red-800">Expired ({expiredInputs.length})</h3>
+                    <h3 className="text-lg font-semibold text-red-800">
+                      Expired ({expiredInputs.length})
+                    </h3>
                   </div>
                   <div className="space-y-2">
-                    {expiredInputs.map((input) => (
+                    {expiredInputs.map(input => (
                       <InputCard
                         key={input._id}
                         input={input}
@@ -154,12 +167,14 @@ export function PendingInputsModal({
               {/* Urgent Inputs */}
               {urgentInputs.length > 0 && (
                 <div>
-                  <div className="flex items-center space-x-2 mb-3">
+                  <div className="mb-3 flex items-center space-x-2">
                     <Clock className="h-5 w-5 text-orange-600" />
-                    <h3 className="text-lg font-semibold text-orange-800">Urgent ({urgentInputs.length})</h3>
+                    <h3 className="text-lg font-semibold text-orange-800">
+                      Urgent ({urgentInputs.length})
+                    </h3>
                   </div>
                   <div className="space-y-2">
-                    {urgentInputs.map((input) => (
+                    {urgentInputs.map(input => (
                       <InputCard
                         key={input._id}
                         input={input}
@@ -177,12 +192,14 @@ export function PendingInputsModal({
               {/* Normal Inputs */}
               {normalInputs.length > 0 && (
                 <div>
-                  <div className="flex items-center space-x-2 mb-3">
+                  <div className="mb-3 flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
-                    <h3 className="text-lg font-semibold text-green-800">Active ({normalInputs.length})</h3>
+                    <h3 className="text-lg font-semibold text-green-800">
+                      Active ({normalInputs.length})
+                    </h3>
                   </div>
                   <div className="space-y-2">
-                    {normalInputs.map((input) => (
+                    {normalInputs.map(input => (
                       <InputCard
                         key={input._id}
                         input={input}
@@ -200,7 +217,7 @@ export function PendingInputsModal({
           </ScrollArea>
         )}
 
-        <div className="flex justify-end space-x-3 pt-4 border-t">
+        <div className="flex justify-end space-x-3 border-t pt-4">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
@@ -225,33 +242,46 @@ function InputCard({
   isSelected,
   getPriorityColor,
   getUrgencyIndicator,
-  formatTimeRemaining
+  formatTimeRemaining,
 }: InputCardProps) {
   return (
     <div
-      className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+      className={`cursor-pointer rounded-lg border p-4 transition-all hover:shadow-md ${
         isSelected ? 'border-primary bg-primary/5' : 'border-border'
       } ${input.isExpired ? 'border-red-200 bg-red-50' : ''}`}
       onClick={onSelect}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-2">
+          <div className="mb-2 flex items-center space-x-2">
             {getUrgencyIndicator(input)}
-            <h4 className="font-medium text-sm">{input.execution.workflowName}</h4>
-            <Badge className={`text-xs ${getPriorityColor(input.metadata.priority)}`}>
+            <h4 className="text-sm font-medium">
+              {input.execution.workflowName}
+            </h4>
+            <Badge
+              className={`text-xs ${getPriorityColor(input.metadata.priority)}`}
+            >
               {input.metadata.priority}
             </Badge>
           </div>
 
-          <p className="text-sm text-muted-foreground mb-2">
-            Step {input.step}: {input.metadata.stepDescription || 'User input required'}
+          <p className="mb-2 text-sm text-muted-foreground">
+            Step {input.step}:{' '}
+            {input.metadata.stepDescription || 'User input required'}
           </p>
 
           <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-            <span>Started: {new Date(input.execution.startedAt).toLocaleString()}</span>
+            <span>
+              Started: {new Date(input.execution.startedAt).toLocaleString()}
+            </span>
             <span>•</span>
-            <span className={input.timeRemainingMinutes < 15 ? 'text-orange-600 font-medium' : ''}>
+            <span
+              className={
+                input.timeRemainingMinutes < 15
+                  ? 'font-medium text-orange-600'
+                  : ''
+              }
+            >
               {formatTimeRemaining(input.timeRemainingMinutes)} remaining
             </span>
           </div>
@@ -264,7 +294,7 @@ function InputCard({
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-1"
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
             >
               <span>Provide Input</span>
               <ExternalLink className="h-3 w-3" />
@@ -276,7 +306,7 @@ function InputCard({
       {input.isExpired && (
         <Alert className="mt-3 border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800 text-sm">
+          <AlertDescription className="text-sm text-red-800">
             This input request has expired. The workflow has been cancelled.
           </AlertDescription>
         </Alert>

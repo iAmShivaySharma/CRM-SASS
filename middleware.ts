@@ -39,6 +39,7 @@ const PUBLIC_ROUTES = [
   '/shared',
   '/api/shared',
   '/blog',
+  '/home',
   '/feed.xml',
 ]
 
@@ -50,10 +51,9 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 async function verifyToken(token: string): Promise<boolean> {
+  if (!process.env.JWT_SECRET) return false
   try {
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET || 'fallback-secret'
-    )
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
     const { payload } = await jwtVerify(token, secret)
     return !!(payload.userId && payload.exp && payload.exp > Date.now() / 1000)
   } catch {
@@ -210,8 +210,6 @@ export async function middleware(request: NextRequest) {
     const isAuthenticated = await verifyAuthFromRequest(request)
     if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
-    } else {
-      return NextResponse.redirect(new URL('/login', request.url))
     }
   }
 
@@ -235,11 +233,13 @@ export async function middleware(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.chatwoot.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
-    "font-src 'self'",
-    "connect-src 'self'",
+    "font-src 'self' https://app.chatwoot.com",
+    "connect-src 'self' https://app.chatwoot.com wss://app.chatwoot.com",
+    "frame-src 'self' https://app.chatwoot.com",
+    "child-src 'self' https://app.chatwoot.com",
     "frame-ancestors 'none'",
   ].join('; ')
 

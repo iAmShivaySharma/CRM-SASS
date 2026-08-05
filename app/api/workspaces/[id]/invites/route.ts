@@ -22,6 +22,7 @@ import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
 import { NotificationService } from '@/lib/services/notificationService'
 import { emailService } from '@/lib/services/emailService'
+import { checkMemberLimit } from '@/lib/billing/plan-limits'
 
 const inviteUserSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase(),
@@ -291,6 +292,9 @@ export const POST = withSecurityLogging(
             { status: 404 }
           )
         }
+
+        const memberLimitError = await checkMemberLimit(workspaceId)
+        if (memberLimitError) return memberLimitError
 
         const inviteToken = generateInviteToken()
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)

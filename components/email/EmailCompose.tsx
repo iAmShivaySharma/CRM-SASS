@@ -572,7 +572,7 @@ export function EmailCompose({
           </div>
 
           {isRichText && (
-            <div className="flex items-center space-x-1 rounded-lg border bg-gray-50 p-2 dark:bg-gray-800">
+            <div className="flex items-center space-x-1 rounded-lg border bg-muted p-2">
               <Button
                 variant="ghost"
                 size="sm"
@@ -663,7 +663,7 @@ export function EmailCompose({
               <div
                 ref={editorRef}
                 contentEditable
-                className="min-h-[200px] rounded-lg border p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="min-h-[200px] rounded-lg border border-input p-3 focus:border-ring focus:outline-none"
                 style={{ whiteSpace: 'pre-wrap' }}
                 dangerouslySetInnerHTML={{ __html: emailData.body }}
                 onInput={e => {
@@ -698,7 +698,7 @@ export function EmailCompose({
                   {attachments.map(attachment => (
                     <div
                       key={attachment.id}
-                      className="flex items-center justify-between rounded-lg bg-gray-50 p-2 dark:bg-gray-800"
+                      className="flex items-center justify-between rounded-lg bg-muted p-2"
                     >
                       <div className="flex items-center space-x-2">
                         <FileText className="h-4 w-4" />

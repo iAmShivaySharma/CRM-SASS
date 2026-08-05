@@ -255,7 +255,7 @@ export const ChatDetailsDialog: React.FC<ChatDetailsDialogProps> = ({
                         {chatRoom.settings?.notifications !== false ? (
                           <Volume2 className="h-3 w-3 text-blue-500" />
                         ) : (
-                          <VolumeX className="h-3 w-3 text-gray-500" />
+                          <VolumeX className="h-3 w-3 text-muted-foreground" />
                         )}
                       </div>
                       <span className="text-sm font-medium">Notifications</span>

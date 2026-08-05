@@ -305,7 +305,7 @@ export function LeadDetailsSheet({
       case 'low':
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+        return 'bg-muted text-foreground'
     }
   }
   return (
@@ -771,7 +771,7 @@ export function LeadDetailsSheet({
                               href={String(value)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex max-w-[60%] items-center gap-1 truncate text-sm text-blue-600 hover:underline dark:text-blue-400"
+                              className="flex max-w-[60%] items-center gap-1 truncate text-sm text-primary hover:underline"
                             >
                               {String(value)
                                 .replace(/^https?:\/\/(www\.)?/, '')

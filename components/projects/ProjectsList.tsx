@@ -10,6 +10,7 @@ import {
   RotateCcw,
   FileText,
   ListTodo,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -35,21 +36,22 @@ interface ProjectsListProps {
   projects: Project[]
 }
 
+const statusColors: Record<string, string> = {
+  active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  archived: 'bg-muted text-foreground',
+}
+
+const visibilityColors: Record<string, string> = {
+  private: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  workspace:
+    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  public: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+}
+
 export function ProjectsList({ projects }: ProjectsListProps) {
-  const [updateProject] = useUpdateProjectMutation()
-
-  const statusColors = {
-    active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    archived: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-  }
-
-  const visibilityColors = {
-    private: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    workspace:
-      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    public: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  }
+  const [updateProject, { isLoading: isUpdatingProject }] =
+    useUpdateProjectMutation()
 
   const handleArchiveToggle = async (project: Project) => {
     try {
@@ -164,7 +166,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                 <TableCell>
                   {(project.taskCount || 0) > 0 ? (
                     <div className="flex items-center space-x-2">
-                      <div className="h-1.5 w-16 rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div className="h-1.5 w-16 rounded-full bg-muted">
                         <div
                           className="h-1.5 rounded-full bg-primary transition-all"
                           style={{ width: `${completionPercentage}%` }}
@@ -219,6 +221,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          disabled={isUpdatingProject}
                           onClick={() => handleArchiveToggle(project)}
                           className={
                             project.status === 'archived'
@@ -226,7 +229,14 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                               : 'text-orange-600'
                           }
                         >
-                          {project.status === 'archived' ? (
+                          {isUpdatingProject ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              {project.status === 'archived'
+                                ? 'Restore Project'
+                                : 'Archive Project'}
+                            </>
+                          ) : project.status === 'archived' ? (
                             <>
                               <RotateCcw className="mr-2 h-4 w-4" />
                               Restore Project
