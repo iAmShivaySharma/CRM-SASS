@@ -17,6 +17,10 @@ import {
   ChevronLeft,
   ChevronRight,
   FileSpreadsheet,
+  Filter,
+  X,
+  ArrowUpDown,
+  Calendar,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -71,6 +75,8 @@ import {
   useGetLeadStatusesQuery,
   useBulkDeleteLeadsMutation,
   useImportLeadsMutation,
+  useGetWorkspaceMembersQuery,
+  useGetTagsQuery,
 } from '@/lib/api/mongoApi'
 import { useConvertLeadToContactMutation } from '@/lib/api/contactsApi'
 import { LeadDetailsSheet } from './LeadDetailsSheet'
@@ -79,6 +85,15 @@ import { LeadForm } from './LeadForm'
 export function LeadList() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [assignedToFilter, setAssignedToFilter] = useState('all')
+  const [sourceFilter, setSourceFilter] = useState('all')
+  const [tagsFilter, setTagsFilter] = useState('all')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [sortBy, setSortBy] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState('desc')
+  const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState<any>(null)
@@ -104,6 +119,14 @@ export function LeadList() {
       limit: pageSize,
       search: searchTerm || undefined,
       statusId: statusFilter !== 'all' ? statusFilter : undefined,
+      priority: priorityFilter !== 'all' ? priorityFilter : undefined,
+      assignedTo: assignedToFilter !== 'all' ? assignedToFilter : undefined,
+      source: sourceFilter !== 'all' ? sourceFilter : undefined,
+      tags: tagsFilter !== 'all' ? tagsFilter : undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      sortBy,
+      sortOrder,
     },
     { skip: !currentWorkspace?.id }
   )
@@ -118,9 +141,43 @@ export function LeadList() {
   const [convertLeadToContact, { isLoading: isConverting }] =
     useConvertLeadToContactMutation()
 
+  const { data: membersData } = useGetWorkspaceMembersQuery(
+    currentWorkspace?.id || '',
+    { skip: !currentWorkspace?.id }
+  )
+  const { data: tagsData } = useGetTagsQuery(currentWorkspace?.id || '', {
+    skip: !currentWorkspace?.id,
+  })
+
   const leads = leadsData?.leads || []
   const pagination = leadsData?.pagination
   const leadStatuses = statusesData?.statuses || []
+  const members = membersData?.members || []
+  const tags = tagsData?.tags || []
+
+  const activeFilterCount = [
+    statusFilter !== 'all',
+    priorityFilter !== 'all',
+    assignedToFilter !== 'all',
+    sourceFilter !== 'all',
+    tagsFilter !== 'all',
+    dateFrom,
+    dateTo,
+  ].filter(Boolean).length
+
+  const clearAllFilters = () => {
+    setStatusFilter('all')
+    setPriorityFilter('all')
+    setAssignedToFilter('all')
+    setSourceFilter('all')
+    setTagsFilter('all')
+    setDateFrom('')
+    setDateTo('')
+    setSortBy('createdAt')
+    setSortOrder('desc')
+    setSearchTerm('')
+    setCurrentPage(1)
+  }
 
   const handleDelete = async (id: string) => {
     if (!currentWorkspace?.id) return
@@ -447,7 +504,7 @@ export function LeadList() {
             <CardTitle>
               All Leads ({pagination?.total ?? leads.length})
             </CardTitle>
-            <div className="flex flex-col items-start space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
+            <div className="flex items-center gap-2">
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
                 <Input
@@ -460,43 +517,163 @@ export function LeadList() {
                   className="w-full pl-10"
                 />
               </div>
-              <Select
-                value={statusFilter}
-                onValueChange={val => {
-                  setStatusFilter(val)
-                  setCurrentPage(1)
-                }}
+              <Button
+                variant={showFilters ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="relative"
               >
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {loadingStatuses ? (
-                    <SelectItem value="loading" disabled>
-                      Loading statuses...
-                    </SelectItem>
-                  ) : leadStatuses.length > 0 ? (
-                    leadStatuses.map(status => (
+                <Filter className="mr-2 h-4 w-4" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="ml-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive px-1 text-xs text-destructive-foreground">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+              {activeFilterCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                  <X className="mr-1 h-4 w-4" />
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {showFilters && (
+            <div className="mt-4 grid grid-cols-1 gap-3 rounded-lg border bg-muted/30 p-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Status</label>
+                <Select value={statusFilter} onValueChange={val => { setStatusFilter(val); setCurrentPage(1) }}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    {leadStatuses.map(status => (
                       <SelectItem key={status.id} value={status.id}>
-                        <div className="flex items-center space-x-2">
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: status.color }}
-                          />
+                        <div className="flex items-center gap-2">
+                          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: status.color }} />
                           <span>{status.name}</span>
                         </div>
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-status" disabled>
-                      No statuses available
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Priority</label>
+                <Select value={priorityFilter} onValueChange={val => { setPriorityFilter(val); setCurrentPage(1) }}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Priorities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priorities</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Assigned To</label>
+                <Select value={assignedToFilter} onValueChange={val => { setAssignedToFilter(val); setCurrentPage(1) }}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Members" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Members</SelectItem>
+                    {members.map(member => (
+                      <SelectItem key={member.userId} value={member.userId}>
+                        {member.user?.fullName || member.user?.email || member.userId}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Source</label>
+                <Select value={sourceFilter} onValueChange={val => { setSourceFilter(val); setCurrentPage(1) }}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sources</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="website">Website</SelectItem>
+                    <SelectItem value="referral">Referral</SelectItem>
+                    <SelectItem value="social">Social Media</SelectItem>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="phone">Phone</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Tags</label>
+                <Select value={tagsFilter} onValueChange={val => { setTagsFilter(val); setCurrentPage(1) }}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Tags" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tags</SelectItem>
+                    {tags.map(tag => (
+                      <SelectItem key={tag.id || tag._id} value={tag.id || tag._id}>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                          <span>{tag.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">From Date</label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={e => { setDateFrom(e.target.value); setCurrentPage(1) }}
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">To Date</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={e => { setDateTo(e.target.value); setCurrentPage(1) }}
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Sort By</label>
+                <Select value={`${sortBy}-${sortOrder}`} onValueChange={val => { const [field, order] = val.split('-'); setSortBy(field); setSortOrder(order); setCurrentPage(1) }}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="createdAt-desc">Newest First</SelectItem>
+                    <SelectItem value="createdAt-asc">Oldest First</SelectItem>
+                    <SelectItem value="name-asc">Name A-Z</SelectItem>
+                    <SelectItem value="name-desc">Name Z-A</SelectItem>
+                    <SelectItem value="value-desc">Highest Value</SelectItem>
+                    <SelectItem value="value-asc">Lowest Value</SelectItem>
+                    <SelectItem value="priority-desc">Priority High→Low</SelectItem>
+                    <SelectItem value="priority-asc">Priority Low→High</SelectItem>
+                    <SelectItem value="nextFollowUpAt-asc">Follow-up Soonest</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+          )}
         </CardHeader>
         <CardContent>
           {leads.length === 0 ? (
