@@ -35,20 +35,14 @@ declare global {
   }
 }
 
-interface PlanFeature {
-  name: string
-  included: boolean
-}
-
 interface PlanData {
   id: string
   name: string
   price: number
   interval: string
   description: string
-  features: PlanFeature[]
+  features: string[]
   limits: Record<string, string | number>
-  popular: boolean
 }
 
 interface SubscriptionData {
@@ -62,104 +56,7 @@ interface SubscriptionData {
   metadata: Record<string, any>
 }
 
-const PLANS: PlanData[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    interval: 'month',
-    description: '3 members · 500 leads',
-    features: [
-      { name: 'Up to 500 leads', included: true },
-      { name: '3 team members', included: true },
-      { name: 'Basic pipeline', included: true },
-      { name: '5 projects · 50 tasks', included: true },
-      { name: 'Team chat (30 days)', included: true },
-      { name: 'Email integration', included: false },
-      { name: 'HR & attendance', included: false },
-      { name: 'AI workflows', included: false },
-    ],
-    limits: {
-      leads: 500,
-      users: 3,
-      storage: '1 GB',
-      apiCalls: 1000,
-    },
-    popular: false,
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    price: 12,
-    interval: 'month',
-    description: '10 members · 5K leads',
-    features: [
-      { name: 'Up to 5,000 leads', included: true },
-      { name: '10 team members', included: true },
-      { name: 'Full pipeline + statuses', included: true },
-      { name: '15 projects · unlimited tasks', included: true },
-      { name: 'Team chat (full history)', included: true },
-      { name: 'Email (1 account)', included: true },
-      { name: 'Basic HR', included: true },
-      { name: 'AI workflows', included: false },
-    ],
-    limits: {
-      leads: 5000,
-      users: 10,
-      storage: '10 GB',
-      apiCalls: 5000,
-    },
-    popular: false,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 29,
-    interval: 'month',
-    description: '25 members · 50K leads',
-    features: [
-      { name: 'Up to 50,000 leads', included: true },
-      { name: '25 team members', included: true },
-      { name: 'AI scoring + pipelines', included: true },
-      { name: 'Unlimited projects + time tracking', included: true },
-      { name: 'Chat + doc collaboration', included: true },
-      { name: 'Email (3 accounts)', included: true },
-      { name: 'Full HR suite', included: true },
-      { name: 'AI engine (500 credits)', included: true },
-    ],
-    limits: {
-      leads: 50000,
-      users: 25,
-      storage: '50 GB',
-      apiCalls: 50000,
-    },
-    popular: true,
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 99,
-    interval: 'month',
-    description: 'Unlimited everything',
-    features: [
-      { name: 'Unlimited leads', included: true },
-      { name: 'Unlimited team members', included: true },
-      { name: 'Everything in Pro', included: true },
-      { name: 'Unlimited AI credits', included: true },
-      { name: 'SSO / SAML', included: true },
-      { name: 'API access', included: true },
-      { name: 'White-label (+$49)', included: true },
-      { name: 'Dedicated account manager', included: true },
-    ],
-    limits: {
-      leads: 'Unlimited',
-      users: 'Unlimited',
-      storage: '200 GB',
-      apiCalls: 100000,
-    },
-    popular: false,
-  },
-]
+const POPULAR_PLAN_ID = 'pro'
 
 function loadRazorpayScript(): Promise<boolean> {
   return new Promise(resolve => {
@@ -180,6 +77,7 @@ export default function PlansPage() {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(
     null
   )
+  const [plans, setPlans] = useState<any[]>([])
   const [currentPlanId, setCurrentPlanId] = useState<string>('free')
   const [workspaceName, setWorkspaceName] = useState<string>('')
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null)
@@ -210,6 +108,9 @@ export default function PlansPage() {
       if (data.workspace) {
         setCurrentPlanId(data.workspace.planId || 'free')
         setWorkspaceName(data.workspace.name || '')
+      }
+      if (data.availablePlans?.length > 0) {
+        setPlans(data.availablePlans)
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
@@ -299,13 +200,13 @@ export default function PlansPage() {
 
       const orderData = await orderResponse.json()
 
-      const plan = PLANS.find(p => p.id === planId)
+      const plan = plans.find(p => p.id === planId)
 
       const options = {
         key: orderData.key,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'CRM SaaS',
+        name: 'ClearCRM',
         description: `${plan?.name || planId} Plan - Monthly Subscription`,
         order_id: orderData.orderId,
         handler: async function (response: any) {
@@ -402,7 +303,7 @@ export default function PlansPage() {
     return Math.min(Math.round((current / limit) * 100), 100)
   }
 
-  const currentPlan = PLANS.find(p => p.id === currentPlanId)
+  const currentPlan = plans.find(p => p.id === currentPlanId)
 
   if (isLoading) {
     return (
@@ -503,21 +404,21 @@ export default function PlansPage() {
 
         <TabsContent value="plans" className="mt-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PLANS.map(plan => {
+            {plans.map(plan => {
               const isCurrent = plan.id === currentPlanId
               const isDowngrade =
-                PLANS.findIndex(p => p.id === plan.id) <
-                PLANS.findIndex(p => p.id === currentPlanId)
+                plans.findIndex(p => p.id === plan.id) <
+                plans.findIndex(p => p.id === currentPlanId)
               const isUpgrading = upgradingPlanId === plan.id
 
               return (
                 <Card
                   key={plan.id}
                   className={`relative flex flex-col ${
-                    plan.popular ? 'border-2 border-indigo-500 shadow-lg' : ''
+                    plan.id === POPULAR_PLAN_ID ? 'border-2 border-primary shadow-lg' : ''
                   } ${isCurrent ? 'ring-1 ring-green-500' : ''}`}
                 >
-                  {plan.popular && (
+                  {plan.id === POPULAR_PLAN_ID && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <Badge className="bg-indigo-500 text-white">
                         Most Popular
@@ -547,21 +448,11 @@ export default function PlansPage() {
                   </CardHeader>
                   <CardContent className="flex flex-1 flex-col">
                     <ul className="mb-6 flex-1 space-y-3">
-                      {plan.features.map((feature, index) => (
+                      {(plan.features || []).map((feature: string, index: number) => (
                         <li key={index} className="flex items-center gap-2">
-                          {feature.included ? (
-                            <Check className="h-4 w-4 flex-shrink-0 text-green-500" />
-                          ) : (
-                            <X className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                          )}
-                          <span
-                            className={`text-sm ${
-                              feature.included
-                                ? 'text-foreground'
-                                : 'text-muted-foreground'
-                            }`}
-                          >
-                            {feature.name}
+                          <Check className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                          <span className="text-sm text-foreground">
+                            {feature}
                           </span>
                         </li>
                       ))}
@@ -571,7 +462,7 @@ export default function PlansPage() {
                       variant={
                         isCurrent
                           ? 'outline'
-                          : plan.popular
+                          : plan.id === POPULAR_PLAN_ID
                             ? 'default'
                             : 'outline'
                       }
@@ -750,12 +641,12 @@ export default function PlansPage() {
                         : '-'}
                     </span>
                     <span className="text-foreground">
-                      {PLANS.find(p => p.id === subscription.planId)?.name ||
+                      {plans.find(p => p.id === subscription.planId)?.name ||
                         subscription.planId}
                     </span>
                     <span className="text-foreground">
                       $
-                      {PLANS.find(p => p.id === subscription.planId)?.price ||
+                      {plans.find(p => p.id === subscription.planId)?.price ||
                         0}
                     </span>
                     <Badge
