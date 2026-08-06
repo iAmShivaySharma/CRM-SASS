@@ -5,10 +5,10 @@ export const DEFAULT_LIMITS: Record<
   string,
   { leads: number; members: number; storage: number }
 > = {
-  free: { leads: 100, members: 2, storage: 500 },
-  starter: { leads: 1000, members: 5, storage: 5000 },
-  pro: { leads: 10000, members: 15, storage: 25000 },
-  enterprise: { leads: Infinity, members: Infinity, storage: 100000 },
+  free: { leads: 500, members: 3, storage: 1000 },
+  starter: { leads: 5000, members: 10, storage: 10000 },
+  pro: { leads: 50000, members: 25, storage: 50000 },
+  enterprise: { leads: Infinity, members: Infinity, storage: 200000 },
 }
 
 async function getPlanLimits(planId: string) {

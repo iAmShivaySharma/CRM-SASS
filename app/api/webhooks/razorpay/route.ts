@@ -178,6 +178,7 @@ async function handleSubscriptionActivated(event: any, eventId: string) {
       metadata: {
         razorpaySubscriptionId: subscription.id,
         lastPaymentAt: now.toISOString(),
+        lastEventId: eventId,
       },
     },
     { upsert: true, new: true }
@@ -186,6 +187,7 @@ async function handleSubscriptionActivated(event: any, eventId: string) {
   await (Workspace as any).findByIdAndUpdate(workspaceId, {
     planId: planId || 'pro',
     subscriptionStatus: 'active',
+    razorpaySubscriptionId: subscription.id,
   })
 
   log.info('Subscription activated via webhook', {
@@ -224,6 +226,7 @@ async function handleSubscriptionCharged(event: any, eventId: string) {
         razorpayPaymentId: payment?.id,
         lastPaymentAt: new Date().toISOString(),
         chargeCount: subscription.paid_count,
+        lastEventId: eventId,
       },
     }
   )
@@ -257,6 +260,7 @@ async function handleSubscriptionCancelled(event: any, eventId: string) {
       status: 'cancelled',
       cancelledAt: new Date(),
       cancelAtPeriodEnd: true,
+      'metadata.lastEventId': eventId,
     }
   )
 
@@ -279,7 +283,7 @@ async function handleSubscriptionPaused(event: any, eventId: string) {
 
   await (Subscription as any).findOneAndUpdate(
     { workspaceId },
-    { status: 'inactive' }
+    { status: 'inactive', 'metadata.lastEventId': eventId }
   )
 
   await (Workspace as any).findByIdAndUpdate(workspaceId, {
@@ -301,7 +305,7 @@ async function handleSubscriptionResumed(event: any, eventId: string) {
 
   await (Subscription as any).findOneAndUpdate(
     { workspaceId },
-    { status: 'active' }
+    { status: 'active', 'metadata.lastEventId': eventId }
   )
 
   await (Workspace as any).findByIdAndUpdate(workspaceId, {
@@ -334,6 +338,7 @@ async function handlePaymentFailed(event: any, eventId: string) {
         lastFailedPaymentId: payment.id,
         lastFailedAt: new Date().toISOString(),
         failureReason: payment.error_description || 'Payment failed',
+        lastEventId: eventId,
       },
     }
   )

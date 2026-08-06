@@ -183,7 +183,12 @@ export default function PlansPage() {
   const [currentPlanId, setCurrentPlanId] = useState<string>('free')
   const [workspaceName, setWorkspaceName] = useState<string>('')
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null)
+  const [isCancelling, setIsCancelling] = useState(false)
   const [billingTab, setBillingTab] = useState('plans')
+  const [usage, setUsage] = useState<{
+    leads: { used: number; limit: number }
+    members: { used: number; limit: number }
+  } | null>(null)
 
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
@@ -213,9 +218,49 @@ export default function PlansPage() {
     }
   }, [])
 
+  const fetchUsage = useCallback(async () => {
+    try {
+      const response = await fetch('/api/payments/usage', {
+        credentials: 'include',
+      })
+      if (response.ok) {
+        setUsage(await response.json())
+      }
+    } catch {}
+  }, [])
+
   useEffect(() => {
     fetchSubscription()
-  }, [fetchSubscription])
+    fetchUsage()
+  }, [fetchSubscription, fetchUsage])
+
+  const handleCancel = async () => {
+    if (
+      !confirm(
+        'Are you sure you want to cancel your subscription? Your plan will remain active until the end of the billing period.'
+      )
+    ) {
+      return
+    }
+    setIsCancelling(true)
+    try {
+      const response = await fetch('/api/payments/cancel', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (response.ok) {
+        toast.success('Subscription cancelled successfully')
+        fetchSubscription()
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Failed to cancel subscription')
+      }
+    } catch {
+      toast.error('Failed to cancel subscription')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   const handleUpgrade = async (planId: string) => {
     if (planId === 'free') {
@@ -412,23 +457,38 @@ export default function PlansPage() {
                   </CardDescription>
                 </div>
               </div>
-              {subscription.currentPeriodEnd && (
-                <div className="text-right text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      Renews{' '}
-                      {new Date(
-                        subscription.currentPeriodEnd
-                      ).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
+              <div className="flex items-center gap-3">
+                {subscription.currentPeriodEnd && (
+                  <div className="text-right text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {subscription.status === 'cancelled'
+                          ? 'Active until'
+                          : 'Renews'}{' '}
+                        {new Date(
+                          subscription.currentPeriodEnd
+                        ).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+                {currentPlanId !== 'free' &&
+                  subscription.status === 'active' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancel}
+                      disabled={isCancelling}
+                    >
+                      {isCancelling ? 'Cancelling...' : 'Cancel Plan'}
+                    </Button>
+                  )}
+              </div>
             </div>
           </CardHeader>
         </Card>
@@ -555,15 +615,19 @@ export default function PlansPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Used</span>
                     <span className="font-medium">
-                      {currentPlan?.limits.leads === 'Unlimited'
+                      {usage?.leads.limit === -1
                         ? 'Unlimited'
-                        : `0 / ${currentPlan?.limits.leads || 100}`}
+                        : `${usage?.leads.used ?? 0} / ${usage?.leads.limit ?? currentPlan?.limits.leads ?? 100}`}
                     </span>
                   </div>
                   <Progress
                     value={getUsagePercentage(
-                      0,
-                      currentPlan?.limits.leads || 100
+                      usage?.leads.used ?? 0,
+                      usage?.leads.limit === -1
+                        ? 1
+                        : (usage?.leads.limit ??
+                            currentPlan?.limits.leads ??
+                            100)
                     )}
                     className="h-2"
                   />
@@ -583,17 +647,19 @@ export default function PlansPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Used</span>
                     <span className="font-medium">
-                      {currentPlan?.limits.users === 'Unlimited'
+                      {usage?.members.limit === -1
                         ? 'Unlimited'
-                        : `${currentWorkspace?.memberCount || 1} / ${
-                            currentPlan?.limits.users || 2
-                          }`}
+                        : `${usage?.members.used ?? 1} / ${usage?.members.limit ?? currentPlan?.limits.users ?? 2}`}
                     </span>
                   </div>
                   <Progress
                     value={getUsagePercentage(
-                      currentWorkspace?.memberCount || 1,
-                      currentPlan?.limits.users || 2
+                      usage?.members.used ?? 1,
+                      usage?.members.limit === -1
+                        ? 1
+                        : (usage?.members.limit ??
+                            currentPlan?.limits.users ??
+                            2)
                     )}
                     className="h-2"
                   />
