@@ -10,6 +10,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
+import { NotificationService } from '@/lib/services/notificationService'
 
 const createDocumentSchema = z.object({
   title: z.string().min(1).max(200),
@@ -252,6 +253,18 @@ export const POST = withSecurityLogging(
         await document.save()
 
         await document.populate('createdBy', 'fullName email')
+
+        await NotificationService.createNotification({
+          workspaceId: project.workspaceId.toString(),
+          title: 'Document Created',
+          message: `${auth.user.fullName || auth.user.email} created document: ${document.title}`,
+          type: 'info',
+          entityType: 'document',
+          entityId: document._id.toString(),
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
 
         await logUserActivity(
           auth.user.id,

@@ -11,6 +11,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
+import { NotificationService } from '@/lib/services/notificationService'
 
 const updateContactSchema = z.object({
   name: z
@@ -272,6 +273,18 @@ export const PUT = withSecurityLogging(
           })
         } catch (activityError) {}
 
+        NotificationService.createNotification({
+          workspaceId,
+          title: 'Contact Updated',
+          message: `${auth.user.fullName || auth.user.email} updated contact: ${contact.name}`,
+          type: 'success',
+          entityType: 'contact',
+          entityId: contactId,
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
+
         logUserActivity(auth.user.id, 'contact_updated', 'contact', {
           contactId,
           contactName: contact.name,
@@ -359,6 +372,18 @@ export const DELETE = withSecurityLogging(
         }
 
         await Contact.findByIdAndDelete(contactId)
+
+        NotificationService.createNotification({
+          workspaceId,
+          title: 'Contact Deleted',
+          message: `${auth.user.fullName || auth.user.email} deleted contact: ${contact.name}`,
+          type: 'warning',
+          entityType: 'contact',
+          entityId: contactId,
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
 
         logUserActivity(auth.user.id, 'contact.delete', 'contact', {
           workspaceId,

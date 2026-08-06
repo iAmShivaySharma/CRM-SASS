@@ -7,8 +7,6 @@ import {
   Tag,
   LeadStatus,
   Activity,
-  Workspace,
-  Plan,
 } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
@@ -19,7 +17,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
-import { activityQueue, notificationQueue } from '@/lib/queue/queues'
+import { activityQueue } from '@/lib/queue/queues'
 import { checkPermission } from '@/lib/security/check-permission'
 import { checkLeadLimit } from '@/lib/billing/plan-limits'
 
@@ -351,7 +349,7 @@ export const POST = withSecurityLogging(
           },
         })
 
-        await notificationQueue.add('lead-created', {
+        await NotificationService.createNotification({
           workspaceId,
           title: 'New Lead Created',
           message: `${auth.user.fullName || auth.user.email} created a new lead: ${leadData.name}`,
@@ -361,13 +359,7 @@ export const POST = withSecurityLogging(
           createdBy: auth.user.id,
           notificationLevel: 'team',
           excludeUserIds: [auth.user.id],
-          metadata: {
-            leadName: leadData.name,
-            source: finalSource,
-            value: leadData.value || 0,
-            company: leadData.company,
-          },
-        })
+        }).catch(() => {})
 
         logUserActivity(auth.user.id, 'lead_created', 'lead', {
           leadId: lead._id,
