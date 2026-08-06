@@ -95,12 +95,13 @@ export async function POST(request: NextRequest) {
       planName: plan.name,
       workspaceName: workspace.name,
     })
-  } catch (error) {
+  } catch (error: any) {
     log.error('Error creating Razorpay order', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error?.message || error?.error?.description || JSON.stringify(error),
+      statusCode: error?.statusCode,
     })
     return NextResponse.json(
-      { error: 'Failed to create payment order' },
+      { error: error?.error?.description || error?.message || 'Failed to create payment order' },
       { status: 500 }
     )
   }
