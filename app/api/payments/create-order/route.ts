@@ -66,11 +66,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Amount in paise (smallest currency unit)
-    const amountInPaise = Math.round(plan.price * 100)
+    const currency = workspace.currency || 'USD'
+    const amountInSubunit = Math.round(plan.price * 100)
 
     const order = await createOrder({
-      amount: amountInPaise,
-      currency: 'INR',
+      amount: amountInSubunit,
+      currency,
       receipt: `order_${workspace._id}_${planId}_${Date.now()}`,
       notes: {
         workspaceId: workspace._id.toString(),
