@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       workspaceId: workspace._id,
       planId,
-      amount: amountInPaise,
+      amount: amountInSubunit,
     })
 
     return NextResponse.json({
