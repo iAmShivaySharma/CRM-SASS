@@ -233,13 +233,13 @@ export async function middleware(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.chatwoot.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.chatwoot.com https://checkout.razorpay.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' https://app.chatwoot.com",
-    "connect-src 'self' https://app.chatwoot.com wss://app.chatwoot.com",
-    "frame-src 'self' https://app.chatwoot.com",
-    "child-src 'self' https://app.chatwoot.com",
+    "connect-src 'self' https://app.chatwoot.com wss://app.chatwoot.com https://lumberjack.razorpay.com https://api.razorpay.com",
+    "frame-src 'self' https://app.chatwoot.com https://api.razorpay.com https://checkout.razorpay.com",
+    "child-src 'self' https://app.chatwoot.com https://checkout.razorpay.com",
     "frame-ancestors 'none'",
   ].join('; ')
 
