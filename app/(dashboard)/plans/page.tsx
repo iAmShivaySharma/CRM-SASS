@@ -622,44 +622,58 @@ export default function PlansPage() {
             <CardContent>
               {subscription && subscription.metadata?.razorpayPaymentId ? (
                 <div className="rounded-lg border">
-                  <div className="grid grid-cols-4 gap-4 border-b bg-muted p-3 text-sm font-medium text-muted-foreground">
+                  <div className="grid grid-cols-5 gap-4 border-b bg-muted p-3 text-sm font-medium text-muted-foreground">
                     <span>Date</span>
                     <span>Plan</span>
                     <span>Amount</span>
+                    <span>Payment ID</span>
                     <span>Status</span>
                   </div>
-                  <div className="grid grid-cols-4 gap-4 p-3 text-sm">
+                  <div className="grid grid-cols-5 gap-4 border-b p-3 text-sm last:border-0">
                     <span className="text-foreground">
-                      {subscription.currentPeriodStart
+                      {subscription.metadata?.lastPaymentAt
                         ? new Date(
-                            subscription.currentPeriodStart
+                            subscription.metadata.lastPaymentAt
                           ).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
                           })
-                        : '-'}
+                        : subscription.currentPeriodStart
+                          ? new Date(
+                              subscription.currentPeriodStart
+                            ).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })
+                          : '-'}
                     </span>
                     <span className="text-foreground">
                       {plans.find(p => p.id === subscription.planId)?.name ||
                         subscription.planId}
                     </span>
-                    <span className="text-foreground">
-                      $
-                      {plans.find(p => p.id === subscription.planId)?.price ||
-                        0}
+                    <span className="font-medium text-foreground">
+                      ${((subscription.metadata?.amountPaid || 0) / 100).toFixed(2) !== '0.00'
+                        ? ((subscription.metadata?.amountPaid || 0) / 100).toFixed(2)
+                        : plans.find(p => p.id === subscription.planId)?.price || 0}
+                    </span>
+                    <span className="truncate font-mono text-xs text-muted-foreground">
+                      {subscription.metadata?.razorpayPaymentId || '-'}
                     </span>
                     <Badge
                       variant={
                         subscription.status === 'active'
                           ? 'default'
-                          : 'secondary'
+                          : subscription.status === 'cancelled'
+                            ? 'secondary'
+                            : 'destructive'
                       }
                       className={
-                        subscription.status === 'active' ? 'bg-green-600' : ''
+                        subscription.status === 'active' ? 'bg-emerald-600' : ''
                       }
                     >
-                      Paid
+                      {subscription.status === 'active' ? 'Paid' : subscription.status === 'cancelled' ? 'Cancelled' : subscription.status}
                     </Badge>
                   </div>
                 </div>

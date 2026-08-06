@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const order = await createOrder({
       amount: amountInSubunit,
       currency,
-      receipt: `order_${workspace._id}_${planId}_${Date.now()}`,
+      receipt: `${workspace._id.toString().slice(-8)}_${planId}_${Date.now()}`.slice(0, 40),
       notes: {
         workspaceId: workspace._id.toString(),
         planId: planId,
