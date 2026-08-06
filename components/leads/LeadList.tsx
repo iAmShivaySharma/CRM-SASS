@@ -622,7 +622,7 @@ export function LeadList() {
                   <SelectContent>
                     <SelectItem value="all">All Tags</SelectItem>
                     {tags.map(tag => (
-                      <SelectItem key={tag.id || tag._id} value={tag.id || tag._id}>
+                      <SelectItem key={tag.id} value={tag.id}>
                         <div className="flex items-center gap-2">
                           <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} />
                           <span>{tag.name}</span>
