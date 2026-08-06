@@ -176,9 +176,31 @@ export const mongoApi = createApi({
         limit?: number
         statusId?: string
         search?: string
+        assignedTo?: string
+        priority?: string
+        tags?: string
+        source?: string
+        dateFrom?: string
+        dateTo?: string
+        sortBy?: string
+        sortOrder?: string
       }
     >({
-      query: ({ workspaceId, page = 1, limit = 20, statusId, search }) => {
+      query: ({
+        workspaceId,
+        page = 1,
+        limit = 20,
+        statusId,
+        search,
+        assignedTo,
+        priority,
+        tags,
+        source,
+        dateFrom,
+        dateTo,
+        sortBy,
+        sortOrder,
+      }) => {
         const params = new URLSearchParams({
           workspaceId,
           page: page.toString(),
@@ -186,6 +208,14 @@ export const mongoApi = createApi({
         })
         if (statusId) params.append('status', statusId)
         if (search) params.append('search', search)
+        if (assignedTo) params.append('assignedTo', assignedTo)
+        if (priority) params.append('priority', priority)
+        if (tags) params.append('tags', tags)
+        if (source) params.append('source', source)
+        if (dateFrom) params.append('dateFrom', dateFrom)
+        if (dateTo) params.append('dateTo', dateTo)
+        if (sortBy) params.append('sortBy', sortBy)
+        if (sortOrder) params.append('sortOrder', sortOrder)
         return `leads?${params}`
       },
       providesTags: ['Lead'],

@@ -77,6 +77,11 @@ export const GET = withSecurityLogging(
         const priority = url.searchParams.get('priority')
         const search = url.searchParams.get('search')
         const tags = url.searchParams.get('tags')?.split(',').filter(Boolean)
+        const source = url.searchParams.get('source')
+        const dateFrom = url.searchParams.get('dateFrom')
+        const dateTo = url.searchParams.get('dateTo')
+        const sortBy = url.searchParams.get('sortBy') || 'createdAt'
+        const sortOrder = url.searchParams.get('sortOrder') || 'desc'
         const skip = (page - 1) * limit
 
         if (!workspaceId) {
@@ -99,10 +104,32 @@ export const GET = withSecurityLogging(
         if (assignedTo) query.assignedTo = assignedTo
         if (priority) query.priority = priority
         if (tags && tags.length > 0) query.tagIds = { $in: tags }
+        if (source) query.source = source
+
+        if (dateFrom || dateTo) {
+          query.createdAt = {}
+          if (dateFrom) query.createdAt.$gte = new Date(dateFrom)
+          if (dateTo) {
+            const end = new Date(dateTo)
+            end.setHours(23, 59, 59, 999)
+            query.createdAt.$lte = end
+          }
+        }
 
         if (search) {
           query.$text = { $search: search }
         }
+
+        const sortMap: Record<string, any> = {
+          createdAt: { createdAt: sortOrder === 'asc' ? 1 : -1 },
+          name: { name: sortOrder === 'asc' ? 1 : -1 },
+          value: { value: sortOrder === 'asc' ? 1 : -1 },
+          priority: { priority: sortOrder === 'asc' ? 1 : -1 },
+          nextFollowUpAt: { nextFollowUpAt: sortOrder === 'asc' ? 1 : -1 },
+        }
+        const sortOption = search
+          ? { score: { $meta: 'textScore' } }
+          : sortMap[sortBy] || { createdAt: -1 }
 
         const [leads, total] = await Promise.all([
           Lead.find(query)
@@ -112,9 +139,7 @@ export const GET = withSecurityLogging(
             .populate('statusId', 'name color')
             .populate('tagIds', 'name color')
             .populate('assignedTo', 'fullName email')
-            .sort(
-              search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
-            )
+            .sort(sortOption)
             .skip(skip)
             .limit(limit)
             .lean(),
