@@ -51,18 +51,8 @@ jobs:
           script: |
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd /opt/crm
-            grep -q "RAZORPAY_KEY_ID" .env.production 2>/dev/null || cat >> .env.production << 'ENVEOF'
-            RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}
-            RAZORPAY_KEY_SECRET=${{ secrets.RAZORPAY_KEY_SECRET }}
-            NEXT_PUBLIC_RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}
-            RAZORPAY_WEBHOOK_SECRET=${{ secrets.RAZORPAY_WEBHOOK_SECRET }}
-            ENVEOF
-            sed -i "s|^RAZORPAY_KEY_ID=.*|RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}|" .env.production
-            sed -i "s|^RAZORPAY_KEY_SECRET=.*|RAZORPAY_KEY_SECRET=${{ secrets.RAZORPAY_KEY_SECRET }}|" .env.production
-            sed -i "s|^NEXT_PUBLIC_RAZORPAY_KEY_ID=.*|NEXT_PUBLIC_RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}|" .env.production
-            sed -i "s|^RAZORPAY_WEBHOOK_SECRET=.*|RAZORPAY_WEBHOOK_SECRET=${{ secrets.RAZORPAY_WEBHOOK_SECRET }}|" .env.production
-            docker compose -f docker-compose.vps.yml pull app
-            docker compose -f docker-compose.vps.yml up -d
+            docker compose pull
+            docker compose up -d
             docker image prune -f
             echo "Deployed ${{ github.sha }}"
 
