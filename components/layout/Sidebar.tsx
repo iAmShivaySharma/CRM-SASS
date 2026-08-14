@@ -81,6 +81,14 @@ const navigation = [
     permission: Permission.CONTACTS_VIEW,
   },
   {
+    name: 'Invoices',
+    href: '/invoices',
+    icon: FileText,
+    category: 'sales',
+    parent: 'sales',
+    permission: Permission.LEADS_VIEW,
+  },
+  {
     name: 'Lead Statuses',
     href: '/leads/statuses',
     icon: Circle,

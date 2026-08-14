@@ -82,3 +82,7 @@ export { Comment, type IComment, type ICommentEditHistory } from './Comment'
 
 // Sprint Planning
 export { Sprint, type ISprint } from './Sprint'
+
+// Invoice & Billing
+export { Invoice, type IInvoice } from './Invoice'
+export { PaymentRecord, type IPaymentRecord } from './Payment'

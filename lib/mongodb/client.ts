@@ -42,6 +42,8 @@ import { Column, type IColumn } from './models/Column'
 import { MessageRead, type IMessageRead } from './models/MessageRead'
 import { Comment, type IComment } from './models/Comment'
 import { Sprint, type ISprint } from './models/Sprint'
+import { Invoice, type IInvoice } from './models/Invoice'
+import { PaymentRecord, type IPaymentRecord } from './models/Payment'
 
 export class MongoDBClient {
   constructor() {
@@ -415,4 +417,6 @@ export {
   MessageRead,
   Comment,
   Sprint,
+  Invoice,
+  PaymentRecord,
 }
