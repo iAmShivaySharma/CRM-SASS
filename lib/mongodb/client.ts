@@ -42,6 +42,18 @@ import { Column, type IColumn } from './models/Column'
 import { MessageRead, type IMessageRead } from './models/MessageRead'
 import { Comment, type IComment } from './models/Comment'
 import { Sprint, type ISprint } from './models/Sprint'
+import {
+  WhatsAppAccount,
+  type IWhatsAppAccount,
+} from './models/WhatsAppAccount'
+import {
+  WhatsAppTemplate,
+  type IWhatsAppTemplate,
+} from './models/WhatsAppTemplate'
+import {
+  WhatsAppMessage,
+  type IWhatsAppMessage,
+} from './models/WhatsAppMessage'
 
 export class MongoDBClient {
   constructor() {
@@ -415,4 +427,7 @@ export {
   MessageRead,
   Comment,
   Sprint,
+  WhatsAppAccount,
+  WhatsAppTemplate,
+  WhatsAppMessage,
 }

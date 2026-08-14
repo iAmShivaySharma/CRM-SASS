@@ -82,3 +82,8 @@ export { Comment, type IComment, type ICommentEditHistory } from './Comment'
 
 // Sprint Planning
 export { Sprint, type ISprint } from './Sprint'
+
+// WhatsApp Integration
+export { WhatsAppAccount, type IWhatsAppAccount } from './WhatsAppAccount'
+export { WhatsAppTemplate, type IWhatsAppTemplate } from './WhatsAppTemplate'
+export { WhatsAppMessage, type IWhatsAppMessage } from './WhatsAppMessage'
