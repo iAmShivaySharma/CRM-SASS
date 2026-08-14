@@ -27,6 +27,7 @@ import {
   MessageSquare,
   FolderKanban,
   Folder,
+  Handshake,
   CheckSquare,
   FileText,
   Clock,
@@ -79,6 +80,14 @@ const navigation = [
     category: 'sales',
     parent: 'sales',
     permission: Permission.CONTACTS_VIEW,
+  },
+  {
+    name: 'Deals',
+    href: '/deals',
+    icon: Handshake,
+    category: 'sales',
+    parent: 'sales',
+    permission: Permission.LEADS_VIEW,
   },
   {
     name: 'Lead Statuses',

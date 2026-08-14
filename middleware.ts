@@ -25,6 +25,8 @@ const PROTECTED_ROUTES = [
   '/leaves',
   '/notifications',
   '/plans',
+  '/pipelines',
+  '/deals',
 ]
 
 const PUBLIC_ROUTES = [

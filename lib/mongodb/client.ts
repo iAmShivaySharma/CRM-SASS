@@ -42,6 +42,10 @@ import { Column, type IColumn } from './models/Column'
 import { MessageRead, type IMessageRead } from './models/MessageRead'
 import { Comment, type IComment } from './models/Comment'
 import { Sprint, type ISprint } from './models/Sprint'
+import { Pipeline, type IPipeline } from './models/Pipeline'
+import { PipelineStage, type IPipelineStage } from './models/PipelineStage'
+import { Deal, type IDeal } from './models/Deal'
+import { DealActivity, type IDealActivity } from './models/DealActivity'
 
 export class MongoDBClient {
   constructor() {
@@ -415,4 +419,8 @@ export {
   MessageRead,
   Comment,
   Sprint,
+  Pipeline,
+  PipelineStage,
+  Deal,
+  DealActivity,
 }

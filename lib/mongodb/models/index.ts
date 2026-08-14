@@ -82,3 +82,9 @@ export { Comment, type IComment, type ICommentEditHistory } from './Comment'
 
 // Sprint Planning
 export { Sprint, type ISprint } from './Sprint'
+
+// Deal & Pipeline Management
+export { Pipeline, type IPipeline } from './Pipeline'
+export { PipelineStage, type IPipelineStage } from './PipelineStage'
+export { Deal, type IDeal } from './Deal'
+export { DealActivity, type IDealActivity } from './DealActivity'
