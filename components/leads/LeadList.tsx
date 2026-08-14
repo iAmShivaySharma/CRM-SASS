@@ -543,8 +543,16 @@ export function LeadList() {
           {showFilters && (
             <div className="mt-4 grid grid-cols-1 gap-3 rounded-lg border bg-muted/30 p-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Status</label>
-                <Select value={statusFilter} onValueChange={val => { setStatusFilter(val); setCurrentPage(1) }}>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Status
+                </span>
+                <Select
+                  value={statusFilter}
+                  onValueChange={val => {
+                    setStatusFilter(val)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
@@ -553,7 +561,10 @@ export function LeadList() {
                     {leadStatuses.map(status => (
                       <SelectItem key={status.id} value={status.id}>
                         <div className="flex items-center gap-2">
-                          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: status.color }} />
+                          <div
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: status.color }}
+                          />
                           <span>{status.name}</span>
                         </div>
                       </SelectItem>
@@ -563,8 +574,16 @@ export function LeadList() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Priority</label>
-                <Select value={priorityFilter} onValueChange={val => { setPriorityFilter(val); setCurrentPage(1) }}>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Priority
+                </span>
+                <Select
+                  value={priorityFilter}
+                  onValueChange={val => {
+                    setPriorityFilter(val)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Priorities" />
                   </SelectTrigger>
@@ -578,8 +597,16 @@ export function LeadList() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Assigned To</label>
-                <Select value={assignedToFilter} onValueChange={val => { setAssignedToFilter(val); setCurrentPage(1) }}>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Assigned To
+                </span>
+                <Select
+                  value={assignedToFilter}
+                  onValueChange={val => {
+                    setAssignedToFilter(val)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Members" />
                   </SelectTrigger>
@@ -587,7 +614,9 @@ export function LeadList() {
                     <SelectItem value="all">All Members</SelectItem>
                     {members.map(member => (
                       <SelectItem key={member.userId} value={member.userId}>
-                        {member.user?.fullName || member.user?.email || member.userId}
+                        {member.user?.fullName ||
+                          member.user?.email ||
+                          member.userId}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -595,8 +624,16 @@ export function LeadList() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Source</label>
-                <Select value={sourceFilter} onValueChange={val => { setSourceFilter(val); setCurrentPage(1) }}>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Source
+                </span>
+                <Select
+                  value={sourceFilter}
+                  onValueChange={val => {
+                    setSourceFilter(val)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Sources" />
                   </SelectTrigger>
@@ -614,8 +651,16 @@ export function LeadList() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Tags</label>
-                <Select value={tagsFilter} onValueChange={val => { setTagsFilter(val); setCurrentPage(1) }}>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Tags
+                </span>
+                <Select
+                  value={tagsFilter}
+                  onValueChange={val => {
+                    setTagsFilter(val)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Tags" />
                   </SelectTrigger>
@@ -624,7 +669,10 @@ export function LeadList() {
                     {tags.map(tag => (
                       <SelectItem key={tag.id} value={tag.id}>
                         <div className="flex items-center gap-2">
-                          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                          <div
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                          />
                           <span>{tag.name}</span>
                         </div>
                       </SelectItem>
@@ -634,28 +682,48 @@ export function LeadList() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">From Date</label>
+                <span className="text-xs font-medium text-muted-foreground">
+                  From Date
+                </span>
                 <Input
                   type="date"
                   value={dateFrom}
-                  onChange={e => { setDateFrom(e.target.value); setCurrentPage(1) }}
+                  onChange={e => {
+                    setDateFrom(e.target.value)
+                    setCurrentPage(1)
+                  }}
                   className="h-9"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">To Date</label>
+                <span className="text-xs font-medium text-muted-foreground">
+                  To Date
+                </span>
                 <Input
                   type="date"
                   value={dateTo}
-                  onChange={e => { setDateTo(e.target.value); setCurrentPage(1) }}
+                  onChange={e => {
+                    setDateTo(e.target.value)
+                    setCurrentPage(1)
+                  }}
                   className="h-9"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Sort By</label>
-                <Select value={`${sortBy}-${sortOrder}`} onValueChange={val => { const [field, order] = val.split('-'); setSortBy(field); setSortOrder(order); setCurrentPage(1) }}>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Sort By
+                </span>
+                <Select
+                  value={`${sortBy}-${sortOrder}`}
+                  onValueChange={val => {
+                    const [field, order] = val.split('-')
+                    setSortBy(field)
+                    setSortOrder(order)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="Sort" />
                   </SelectTrigger>
@@ -666,9 +734,15 @@ export function LeadList() {
                     <SelectItem value="name-desc">Name Z-A</SelectItem>
                     <SelectItem value="value-desc">Highest Value</SelectItem>
                     <SelectItem value="value-asc">Lowest Value</SelectItem>
-                    <SelectItem value="priority-desc">Priority High→Low</SelectItem>
-                    <SelectItem value="priority-asc">Priority Low→High</SelectItem>
-                    <SelectItem value="nextFollowUpAt-asc">Follow-up Soonest</SelectItem>
+                    <SelectItem value="priority-desc">
+                      Priority High→Low
+                    </SelectItem>
+                    <SelectItem value="priority-asc">
+                      Priority Low→High
+                    </SelectItem>
+                    <SelectItem value="nextFollowUpAt-asc">
+                      Follow-up Soonest
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
