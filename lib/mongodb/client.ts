@@ -42,6 +42,8 @@ import { Column, type IColumn } from './models/Column'
 import { MessageRead, type IMessageRead } from './models/MessageRead'
 import { Comment, type IComment } from './models/Comment'
 import { Sprint, type ISprint } from './models/Sprint'
+import { Product, type IProduct } from './models/Product'
+import { StockMovement, type IStockMovement } from './models/StockMovement'
 
 export class MongoDBClient {
   constructor() {
@@ -415,4 +417,6 @@ export {
   MessageRead,
   Comment,
   Sprint,
+  Product,
+  StockMovement,
 }

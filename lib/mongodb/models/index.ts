@@ -82,3 +82,7 @@ export { Comment, type IComment, type ICommentEditHistory } from './Comment'
 
 // Sprint Planning
 export { Sprint, type ISprint } from './Sprint'
+
+// Inventory Management
+export { Product, type IProduct } from './Product'
+export { StockMovement, type IStockMovement } from './StockMovement'
