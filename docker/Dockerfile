@@ -1,4 +1,4 @@
-FROM node:18-alpine AS deps
+FROM node:26-alpine AS deps
 
 RUN apk add --no-cache libc6-compat
 
@@ -8,7 +8,7 @@ COPY package.json package-lock.json ./
 
 RUN npm ci --ignore-scripts && npm cache clean --force
 
-FROM node:18-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ RUN printf '%s\n' \
 
 RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build:unix
 
-FROM node:18-alpine AS proddeps
+FROM node:26-alpine AS proddeps
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ COPY package.json package-lock.json ./
 
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
-FROM node:18-alpine AS runner
+FROM node:26-alpine AS runner
 
 WORKDIR /app
 
