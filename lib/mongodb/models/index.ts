@@ -82,3 +82,6 @@ export { Comment, type IComment, type ICommentEditHistory } from './Comment'
 
 // Sprint Planning
 export { Sprint, type ISprint } from './Sprint'
+
+// Quotation & Proposal
+export { Quotation, type IQuotation } from './Quotation'
