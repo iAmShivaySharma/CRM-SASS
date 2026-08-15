@@ -194,10 +194,7 @@ function AcceptInvitationContent() {
 
       if (response.ok) {
         setResult(data)
-        setTimeout(
-          () => router.push('/auth/login?message=account-created'),
-          3000
-        )
+        setTimeout(() => router.push('/login?message=account-created'), 3000)
       } else {
         if (data.requireLogin) {
           setError(
@@ -246,7 +243,7 @@ function AcceptInvitationContent() {
           </CardHeader>
           <CardContent>
             <Button
-              onClick={() => router.push('/auth/login')}
+              onClick={() => router.push('/login')}
               className="w-full"
               variant="outline"
             >
@@ -333,12 +330,14 @@ function AcceptInvitationContent() {
 
             <div className="space-y-2">
               <Button
-                onClick={() =>
-                  router.push(
-                    '/auth/logout?redirect=' +
-                      encodeURIComponent(window.location.href)
-                  )
-                }
+                onClick={() => {
+                  fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                  }).then(() => {
+                    window.location.href = window.location.href
+                  })
+                }}
                 className="w-full"
                 variant="outline"
               >
@@ -515,14 +514,14 @@ function AcceptInvitationContent() {
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link
-                href={`/auth/login?redirect=${encodeURIComponent(window.location.href)}`}
+                href={`/login?redirect=${encodeURIComponent(window.location.href)}`}
                 className="text-blue-600 hover:underline"
               >
                 Log in instead
               </Link>
             </p>
             <Button
-              onClick={() => router.push('/auth/login')}
+              onClick={() => router.push('/login')}
               variant="ghost"
               className="text-sm"
             >
