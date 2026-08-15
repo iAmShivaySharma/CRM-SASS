@@ -613,7 +613,7 @@ export default function WorkspaceSettingsPage() {
                                     onClick={async () => {
                                       try {
                                         await removeMember({
-                                          workspaceId: workspaceId!,
+                                          workspaceId: currentWorkspace?.id,
                                           memberId: member.id || member._id,
                                         }).unwrap()
                                         toast.success('Member removed')
@@ -636,7 +636,7 @@ export default function WorkspaceSettingsPage() {
                                     onClick={async () => {
                                       try {
                                         await resendInvitation({
-                                          workspaceId: workspaceId!,
+                                          workspaceId: currentWorkspace?.id,
                                           inviteId: member.id || member._id,
                                         }).unwrap()
                                         toast.success('Invitation resent')
@@ -656,7 +656,7 @@ export default function WorkspaceSettingsPage() {
                                     onClick={async () => {
                                       try {
                                         await cancelInvitation({
-                                          workspaceId: workspaceId!,
+                                          workspaceId: currentWorkspace?.id,
                                           inviteId: member.id || member._id,
                                         }).unwrap()
                                         toast.success('Invitation cancelled')
