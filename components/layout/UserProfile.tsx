@@ -104,11 +104,8 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
   const handleLogout = async () => {
     try {
       await logoutUser().unwrap()
-      window.location.href = '/login'
-    } catch (error) {
-      console.error('Logout error:', error)
-      window.location.href = '/login'
-    }
+    } catch {}
+    window.location.href = '/login'
   }
 
   const handleSettings = () => {

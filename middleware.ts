@@ -35,6 +35,7 @@ const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/auth/signup',
   '/api/auth/google',
+  '/api/auth/logout',
   '/api/webhooks',
   '/shared',
   '/api/shared',

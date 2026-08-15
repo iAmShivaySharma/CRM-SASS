@@ -528,6 +528,48 @@ export const mongoApi = createApi({
       },
     }),
 
+    resendInvitation: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; inviteId: string }
+    >({
+      query: ({ workspaceId, inviteId }) => ({
+        url: `workspaces/${workspaceId}/invites/${inviteId}/resend`,
+        method: 'POST',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+      },
+    }),
+
+    cancelInvitation: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; inviteId: string }
+    >({
+      query: ({ workspaceId, inviteId }) => ({
+        url: `workspaces/${workspaceId}/invites/${inviteId}`,
+        method: 'DELETE',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+      },
+    }),
+
+    removeMember: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; memberId: string }
+    >({
+      query: ({ workspaceId, memberId }) => ({
+        url: `workspaces/${workspaceId}/members/${memberId}`,
+        method: 'DELETE',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember', 'Workspace']))
+      },
+    }),
+
     createLeadNote: builder.mutation<
       { success: boolean; note: any },
       {
@@ -577,5 +619,8 @@ export const {
   useGetWorkspaceMembersQuery,
   useGetWorkspaceRolesQuery,
   useInviteToWorkspaceMutation,
+  useResendInvitationMutation,
+  useCancelInvitationMutation,
+  useRemoveMemberMutation,
   useCreateLeadNoteMutation,
 } = mongoApi
