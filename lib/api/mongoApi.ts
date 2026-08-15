@@ -528,6 +528,34 @@ export const mongoApi = createApi({
       },
     }),
 
+    resendInvitation: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; inviteId: string }
+    >({
+      query: ({ workspaceId, inviteId }) => ({
+        url: `workspaces/${workspaceId}/invites/${inviteId}/resend`,
+        method: 'POST',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+      },
+    }),
+
+    cancelInvitation: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; inviteId: string }
+    >({
+      query: ({ workspaceId, inviteId }) => ({
+        url: `workspaces/${workspaceId}/invites/${inviteId}`,
+        method: 'DELETE',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+      },
+    }),
+
     createLeadNote: builder.mutation<
       { success: boolean; note: any },
       {
@@ -577,5 +605,7 @@ export const {
   useGetWorkspaceMembersQuery,
   useGetWorkspaceRolesQuery,
   useInviteToWorkspaceMutation,
+  useResendInvitationMutation,
+  useCancelInvitationMutation,
   useCreateLeadNoteMutation,
 } = mongoApi

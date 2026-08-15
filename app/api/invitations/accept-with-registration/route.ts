@@ -23,7 +23,7 @@ const acceptWithRegistrationSchema = z.object({
     .max(100, 'Name too long'),
   password: z
     .string()
-    .min(6, 'Password must be at least 6 characters')
+    .min(8, 'Password must be at least 8 characters')
     .max(100, 'Password too long'),
 })
 

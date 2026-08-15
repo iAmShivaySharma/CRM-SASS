@@ -160,6 +160,29 @@ function AcceptInvitationContent() {
     }
   }
 
+  const handleDecline = async () => {
+    if (!token) return
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/invitations/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      if (response.ok) {
+        setError('Invitation declined.')
+        setUserState('error')
+      } else {
+        const data = await response.json()
+        setError(data.message || 'Failed to decline')
+      }
+    } catch {
+      setError('Failed to decline invitation')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleRegistrationAndAccept = async () => {
     if (!token || !fullName || !password) return
 
@@ -168,8 +191,8 @@ function AcceptInvitationContent() {
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long')
       return
     }
 
@@ -410,11 +433,12 @@ function AcceptInvitationContent() {
 
             <div className="text-center">
               <Button
-                onClick={() => router.push('/dashboard')}
+                onClick={handleDecline}
                 variant="ghost"
-                className="text-sm"
+                className="text-sm text-destructive"
+                disabled={isLoading}
               >
-                Cancel
+                Decline Invitation
               </Button>
             </div>
           </CardContent>

@@ -26,6 +26,8 @@ import {
   useGetWorkspaceQuery,
   useGetWorkspaceRolesQuery,
   useInviteToWorkspaceMutation,
+  useResendInvitationMutation,
+  useCancelInvitationMutation,
   useUpdateWorkspaceMutation,
 } from '@/lib/api/mongoApi'
 import {
@@ -124,6 +126,8 @@ export default function WorkspaceSettingsPage() {
   const permissionsData = getPermissionsForAPI()
   const [inviteToWorkspace, { isLoading: inviteLoading }] =
     useInviteToWorkspaceMutation()
+  const [resendInvitation] = useResendInvitationMutation()
+  const [cancelInvitation] = useCancelInvitationMutation()
   const [updateWorkspace, { isLoading: updateLoading }] =
     useUpdateWorkspaceMutation()
 
@@ -600,13 +604,42 @@ export default function WorkspaceSettingsPage() {
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit Role
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  try {
+                                    await resendInvitation({
+                                      workspaceId: workspaceId!,
+                                      inviteId: member.id || member._id,
+                                    }).unwrap()
+                                    toast.success('Invitation resent')
+                                  } catch (err: any) {
+                                    toast.error(
+                                      err?.data?.message || 'Failed to resend'
+                                    )
+                                  }
+                                }}
+                              >
                                 <Mail className="mr-2 h-4 w-4" />
                                 Resend Invitation
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={async () => {
+                                  try {
+                                    await cancelInvitation({
+                                      workspaceId: workspaceId!,
+                                      inviteId: member.id || member._id,
+                                    }).unwrap()
+                                    toast.success('Invitation cancelled')
+                                  } catch (err: any) {
+                                    toast.error(
+                                      err?.data?.message || 'Failed to cancel'
+                                    )
+                                  }
+                                }}
+                              >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Remove Member
+                                Cancel Invitation
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
