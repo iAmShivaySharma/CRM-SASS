@@ -556,6 +556,20 @@ export const mongoApi = createApi({
       },
     }),
 
+    removeMember: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; memberId: string }
+    >({
+      query: ({ workspaceId, memberId }) => ({
+        url: `workspaces/${workspaceId}/members/${memberId}`,
+        method: 'DELETE',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember', 'Workspace']))
+      },
+    }),
+
     createLeadNote: builder.mutation<
       { success: boolean; note: any },
       {
@@ -607,5 +621,6 @@ export const {
   useInviteToWorkspaceMutation,
   useResendInvitationMutation,
   useCancelInvitationMutation,
+  useRemoveMemberMutation,
   useCreateLeadNoteMutation,
 } = mongoApi
