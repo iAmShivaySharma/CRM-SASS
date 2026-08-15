@@ -40,7 +40,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NotificationBell } from '@/components/ui/notification-bell'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
-import { logout } from '@/lib/slices/authSlice'
 import { setCurrentWorkspace } from '@/lib/slices/workspaceSlice'
 import { useCreateWorkspaceMutation } from '@/lib/api/mongoApi'
 import { useLogoutMutation } from '@/lib/api/authApi'
@@ -90,10 +89,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
   const handleLogout = async () => {
     try {
       await logoutUser().unwrap()
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
-    dispatch(logout())
+    } catch {}
     window.location.href = '/login'
   }
 

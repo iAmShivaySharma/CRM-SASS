@@ -358,6 +358,7 @@ function AcceptInvitationContent() {
                     method: 'POST',
                     credentials: 'include',
                   }).then(() => {
+                    localStorage.removeItem('crm_auth_state')
                     window.location.href = window.location.href
                   })
                 }}
