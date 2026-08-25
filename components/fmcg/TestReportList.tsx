@@ -79,21 +79,38 @@ const emptyParameter: FmcgTestParameter = {
   status: 'pass',
 }
 
-const emptyForm = {
+type TestReportForm = {
+  batchId: string
+  productId: string
+  reportNumber: string
+  testType: 'microbiological' | 'chemical' | 'physical' | 'sensory' | 'nutritional' | 'pesticide' | 'heavy_metals' | 'other'
+  labName: string
+  labAccreditationNumber: string
+  sampleCollectedAt: string
+  reportDate: string
+  result: 'pass' | 'fail' | 'conditional_pass'
+  overallObservations: string
+  reportUrl: string
+  certificateNumber: string
+  validUntil: string
+  parameters: FmcgTestParameter[]
+}
+
+const emptyForm: TestReportForm = {
   batchId: '',
   productId: '',
   reportNumber: '',
-  testType: 'microbiological' as const,
+  testType: 'microbiological',
   labName: '',
   labAccreditationNumber: '',
   sampleCollectedAt: '',
   reportDate: '',
-  result: 'pass' as const,
+  result: 'pass',
   overallObservations: '',
   reportUrl: '',
   certificateNumber: '',
   validUntil: '',
-  parameters: [] as FmcgTestParameter[],
+  parameters: [],
 }
 
 export function TestReportList({ workspaceId }: TestReportListProps) {
@@ -102,7 +119,7 @@ export function TestReportList({ workspaceId }: TestReportListProps) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingReport, setEditingReport] = useState<FmcgTestReportRecord | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState<TestReportForm>(emptyForm)
   const [page, setPage] = useState(1)
 
   const { data, isLoading } = useGetTestReportsQuery({
