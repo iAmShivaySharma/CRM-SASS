@@ -74,9 +74,26 @@ function typeBadgeClass(type: string) {
   return 'bg-muted text-muted-foreground hover:bg-muted'
 }
 
-const emptyForm = {
+type LicenseForm = {
+  licenseNumber: string
+  licenseType: 'registration' | 'state' | 'central'
+  category: string
+  businessName: string
+  businessAddress: string
+  state: string
+  district: string
+  pincode: string
+  issueDate: string
+  expiryDate: string
+  renewalDate: string
+  status: 'active' | 'expired' | 'suspended' | 'cancelled' | 'renewal_pending'
+  documentUrl: string
+  remarks: string
+}
+
+const emptyForm: LicenseForm = {
   licenseNumber: '',
-  licenseType: 'state' as const,
+  licenseType: 'state',
   category: '',
   businessName: '',
   businessAddress: '',
@@ -86,7 +103,7 @@ const emptyForm = {
   issueDate: '',
   expiryDate: '',
   renewalDate: '',
-  status: 'active' as const,
+  status: 'active',
   documentUrl: '',
   remarks: '',
 }
@@ -97,7 +114,7 @@ export function FssaiLicenseList({ workspaceId }: FssaiLicenseListProps) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingLicense, setEditingLicense] = useState<FmcgLicenseRecord | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState<LicenseForm>(emptyForm)
   const [page, setPage] = useState(1)
 
   const { data, isLoading } = useGetLicensesQuery({
