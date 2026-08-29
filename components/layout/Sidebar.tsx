@@ -34,6 +34,13 @@ import {
   Laptop,
   User,
   PenSquare,
+  Package,
+  ShoppingBag,
+  Layers,
+  Shield,
+  FlaskConical,
+  Truck,
+  MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -196,6 +203,56 @@ const navigation = [
   },
 
   { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
+
+  {
+    name: 'FMCG',
+    href: '/fmcg',
+    icon: Package,
+    category: 'section',
+    id: 'fmcg',
+  },
+  {
+    name: 'Products',
+    href: '/fmcg',
+    icon: ShoppingBag,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Batches',
+    href: '/fmcg/batches',
+    icon: Layers,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'FSSAI Licenses',
+    href: '/fmcg/licenses',
+    icon: Shield,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Test Reports',
+    href: '/fmcg/test-reports',
+    icon: FlaskConical,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Suppliers',
+    href: '/fmcg/suppliers',
+    icon: Truck,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Distribution',
+    href: '/fmcg/distribution',
+    icon: MapPin,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
   // {
   //   name: 'Analytics',
   //   href: '/analytics',
@@ -263,6 +320,7 @@ export function Sidebar({
     projects: false,
     hr: false,
     engines: false,
+    fmcg: false,
   })
 
   const toggleSection = (sectionId: string) => {
