@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { LeaveManagement } from '@/components/hr/LeaveManagement'
 import { useAppSelector } from '@/lib/hooks'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 interface LeaveStats {
   pendingRequests: number
@@ -63,6 +65,12 @@ export default function LeavesPage() {
     totalLeaveDays: 0,
     upcomingLeaves: 0,
     leaveTypeBreakdown: [],
+  }
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.MEMBERS_VIEW)) {
+    return <AccessDenied />
   }
 
   if (!currentWorkspace) {

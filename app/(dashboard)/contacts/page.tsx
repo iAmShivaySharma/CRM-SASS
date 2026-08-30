@@ -31,6 +31,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 export default function ContactsPage() {
   const currentWorkspace = useSelector(
@@ -97,6 +99,12 @@ export default function ContactsPage() {
     setCategoryFilter('')
     setPriorityFilter('')
     setPage(1)
+  }
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.CONTACTS_VIEW)) {
+    return <AccessDenied />
   }
 
   if (!currentWorkspace) {

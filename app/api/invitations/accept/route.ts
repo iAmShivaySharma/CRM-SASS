@@ -141,6 +141,8 @@ export const POST = withSecurityLogging(
         roleId: invitation.roleId._id,
         status: 'active',
         joinedAt: new Date(),
+        invitedBy: invitation.invitedBy._id,
+        invitedAt: invitation.createdAt,
       })
 
       await membership.save()
