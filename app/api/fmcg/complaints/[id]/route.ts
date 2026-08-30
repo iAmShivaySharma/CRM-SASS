@@ -142,10 +142,12 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData: any = { ...validation.data }
-        if (updateData.dateReceived)
+        if (updateData.dateReceived) {
           updateData.dateReceived = new Date(updateData.dateReceived)
-        if (updateData.closedDate)
+        }
+        if (updateData.closedDate) {
           updateData.closedDate = new Date(updateData.closedDate)
+        }
 
         const complaint = await FmcgComplaintRegister.findOneAndUpdate(
           { _id: id, workspaceId },

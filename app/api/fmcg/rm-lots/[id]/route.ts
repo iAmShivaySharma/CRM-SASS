@@ -118,8 +118,9 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData: any = { ...validation.data }
-        if (updateData.receiptDate)
+        if (updateData.receiptDate) {
           updateData.receiptDate = new Date(updateData.receiptDate)
+        }
 
         const rmLot = await FmcgRmLot.findOneAndUpdate(
           { _id: id, workspaceId },

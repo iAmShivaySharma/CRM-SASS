@@ -122,8 +122,9 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData: any = { ...validation.data }
-        if (updateData.weekEnding)
+        if (updateData.weekEnding) {
           updateData.weekEnding = new Date(updateData.weekEnding)
+        }
 
         const pestLog = await FmcgPestLog.findOneAndUpdate(
           { _id: id, workspaceId },

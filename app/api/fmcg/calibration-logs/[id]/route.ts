@@ -121,10 +121,12 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData: any = { ...validation.data }
-        if (updateData.calibrationDate)
+        if (updateData.calibrationDate) {
           updateData.calibrationDate = new Date(updateData.calibrationDate)
-        if (updateData.nextDueDate)
+        }
+        if (updateData.nextDueDate) {
           updateData.nextDueDate = new Date(updateData.nextDueDate)
+        }
 
         const calibrationLog = await FmcgCalibrationLog.findOneAndUpdate(
           { _id: id, workspaceId },

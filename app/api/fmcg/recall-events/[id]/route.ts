@@ -157,16 +157,20 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData: any = { ...validation.data }
-        if (updateData.initiatedAt)
+        if (updateData.initiatedAt) {
           updateData.initiatedAt = new Date(updateData.initiatedAt)
-        if (updateData.fssaiNotificationAt)
+        }
+        if (updateData.fssaiNotificationAt) {
           updateData.fssaiNotificationAt = new Date(
             updateData.fssaiNotificationAt
           )
-        if (updateData.disposalDate)
+        }
+        if (updateData.disposalDate) {
           updateData.disposalDate = new Date(updateData.disposalDate)
-        if (updateData.closedAt)
+        }
+        if (updateData.closedAt) {
           updateData.closedAt = new Date(updateData.closedAt)
+        }
         if (updateData.distributorNotifications) {
           updateData.distributorNotifications =
             updateData.distributorNotifications.map((n: any) => ({

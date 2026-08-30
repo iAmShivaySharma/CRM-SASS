@@ -124,10 +124,12 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData: any = { ...validation.data }
-        if (updateData.testDate)
+        if (updateData.testDate) {
           updateData.testDate = new Date(updateData.testDate)
-        if (updateData.validUntil)
+        }
+        if (updateData.validUntil) {
           updateData.validUntil = new Date(updateData.validUntil)
+        }
 
         const waterTest = await FmcgWaterTest.findOneAndUpdate(
           { _id: id, workspaceId },

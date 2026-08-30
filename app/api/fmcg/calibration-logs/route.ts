@@ -57,8 +57,9 @@ export const GET = withSecurityLogging(
 
         const query: any = { workspaceId }
 
-        if (equipmentName)
+        if (equipmentName) {
           query.equipmentName = { $regex: equipmentName, $options: 'i' }
+        }
         if (result) query.result = result
         if (dateFrom || dateTo) {
           query.calibrationDate = {}

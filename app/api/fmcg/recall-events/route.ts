@@ -92,8 +92,9 @@ export const GET = withSecurityLogging(
 
         if (status) query.status = status
         if (recallClass) query.recallClass = recallClass
-        if (mockDrill !== null && mockDrill !== undefined)
+        if (mockDrill !== null && mockDrill !== undefined) {
           query.mockDrill = mockDrill === 'true'
+        }
 
         const skip = (page - 1) * limit
 

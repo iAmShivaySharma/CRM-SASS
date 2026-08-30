@@ -55,8 +55,9 @@ export const GET = withSecurityLogging(
         const query: any = { workspaceId }
 
         if (location) query.location = location
-        if (anomalyNoted !== null && anomalyNoted !== undefined)
+        if (anomalyNoted !== null && anomalyNoted !== undefined) {
           query.anomalyNoted = anomalyNoted === 'true'
+        }
         if (dateFrom || dateTo) {
           query.date = {}
           if (dateFrom) query.date.$gte = new Date(dateFrom)
