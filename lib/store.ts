@@ -19,6 +19,7 @@ import { shiftsApi } from './api/shiftsApi'
 import { leaveApi } from './api/leaveApi'
 import { assetApi } from './api/assetApi'
 import { commentsApi } from './api/commentsApi'
+import { dealsApi } from './api/dealsApi'
 import { fmcgApi } from './api/fmcgApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
@@ -54,6 +55,7 @@ export const store = configureStore({
     [assetApi.reducerPath]: assetApi.reducer,
     [emailApi.reducerPath]: emailApi.reducer,
     [commentsApi.reducerPath]: commentsApi.reducer,
+    [dealsApi.reducerPath]: dealsApi.reducer,
     [fmcgApi.reducerPath]: fmcgApi.reducer,
   } as any,
   preloadedState,
@@ -79,6 +81,7 @@ export const store = configureStore({
       assetApi.middleware,
       emailApi.middleware,
       commentsApi.middleware,
+      dealsApi.middleware,
       fmcgApi.middleware
     ),
 })
