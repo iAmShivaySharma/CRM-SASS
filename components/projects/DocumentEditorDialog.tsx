@@ -65,16 +65,7 @@ export function DocumentEditorDialog({
   document,
 }: DocumentEditorDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [content, setContent] = useState<any[]>(() => {
-    if (!document?.content) return []
-    try {
-      return typeof document.content === 'string'
-        ? JSON.parse(document.content)
-        : document.content
-    } catch {
-      return []
-    }
-  })
+  const [content, setContent] = useState<string>(document?.content || '')
   const [tags, setTags] = useState<string[]>(document?.tags || [])
   const [tagInput, setTagInput] = useState('')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
@@ -93,21 +84,6 @@ export function DocumentEditorDialog({
     },
   })
 
-  // Convert HTML string to blocks for editor
-  const htmlToBlocks = (htmlContent: string): any[] => {
-    if (!htmlContent || htmlContent.trim() === '') {
-      return []
-    }
-    // For now, just wrap HTML content in a single paragraph block
-    // This is a simple conversion - could be enhanced for more complex parsing
-    return [
-      {
-        type: 'paragraph',
-        content: htmlContent,
-      },
-    ]
-  }
-
   // Reset form when document changes
   useEffect(() => {
     if (document) {
@@ -118,9 +94,7 @@ export function DocumentEditorDialog({
         visibility: document.visibility,
         tags: document.tags || [],
       })
-      // Convert HTML string content to blocks
-      const blocks = htmlToBlocks(document.content || '')
-      setContent(blocks)
+      setContent(document.content || '')
       setTags(document.tags || [])
     } else {
       form.reset({
@@ -130,7 +104,7 @@ export function DocumentEditorDialog({
         visibility: 'project',
         tags: [],
       })
-      setContent([])
+      setContent('')
       setTags([])
     }
   }, [document, form])
@@ -142,7 +116,7 @@ export function DocumentEditorDialog({
     try {
       const documentData = {
         ...data,
-        content: JSON.stringify(content),
+        content,
         tags,
         projectId,
         workspaceId: currentWorkspace.id,
@@ -163,7 +137,7 @@ export function DocumentEditorDialog({
 
       onOpenChange(false)
       form.reset()
-      setContent([])
+      setContent('')
       setTags([])
       setTagInput('')
     } catch (error) {
