@@ -161,13 +161,15 @@ export const PUT = withSecurityLogging(
           )
         }
 
-        if (data.assignedTo !== undefined)
+        if (data.assignedTo !== undefined) {
           appointment.assignedTo = data.assignedTo || undefined
+        }
         if (data.status) appointment.status = data.status
         if (data.price !== undefined) appointment.price = data.price
         if (data.notes !== undefined) appointment.notes = data.notes
-        if (data.internalNotes !== undefined)
+        if (data.internalNotes !== undefined) {
           appointment.internalNotes = data.internalNotes
+        }
         if (data.location !== undefined) appointment.location = data.location
 
         await appointment.save()

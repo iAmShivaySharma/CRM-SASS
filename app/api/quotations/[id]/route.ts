@@ -185,10 +185,12 @@ export const PUT = withSecurityLogging(
         if (data.validUntil) quotation.validUntil = new Date(data.validUntil)
         if (data.validUntil === null) quotation.validUntil = undefined
         if (data.notes !== undefined) quotation.notes = data.notes
-        if (data.termsAndConditions !== undefined)
+        if (data.termsAndConditions !== undefined) {
           quotation.termsAndConditions = data.termsAndConditions
-        if (data.internalNotes !== undefined)
+        }
+        if (data.internalNotes !== undefined) {
           quotation.internalNotes = data.internalNotes
+        }
 
         await quotation.save()
 
