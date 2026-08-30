@@ -42,6 +42,8 @@ import { Column, type IColumn } from './models/Column'
 import { MessageRead, type IMessageRead } from './models/MessageRead'
 import { Comment, type IComment } from './models/Comment'
 import { Sprint, type ISprint } from './models/Sprint'
+import { Product, type IProduct } from './models/Product'
+import { StockMovement, type IStockMovement } from './models/StockMovement'
 import { Quotation, type IQuotation } from './models/Quotation'
 import { Service, type IService } from './models/Service'
 import { Appointment, type IAppointment } from './models/Appointment'
@@ -438,6 +440,8 @@ export {
   MessageRead,
   Comment,
   Sprint,
+  Product,
+  StockMovement,
   Quotation,
   Service,
   Appointment,
