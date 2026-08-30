@@ -6,6 +6,7 @@ export interface AuthResponse {
   success: boolean
   message: string
   requiresTwoFactor?: boolean
+  requiresVerification?: boolean
   user?: any
   workspace?: any
 }
