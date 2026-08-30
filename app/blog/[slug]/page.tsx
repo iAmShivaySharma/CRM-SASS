@@ -39,7 +39,7 @@ export async function generateMetadata({
     if (!blog) return { title: 'Blog Post Not Found' }
 
     const b = blog as any
-    const title = b.metaTitle || `${b.title} — CRM Pro Blog`
+    const title = b.metaTitle || `${b.title} — ClearCRM Blog`
     const description = b.metaDescription || b.excerpt || ''
     const canonical = b.canonicalUrl || `${APP_URL}/blog/${slug}`
     const ogImage = b.ogImage || b.featuredImage || ''
@@ -54,7 +54,7 @@ export async function generateMetadata({
         description: b.ogDescription || description,
         type: 'article',
         locale: 'en_US',
-        siteName: 'CRM Pro',
+        siteName: 'ClearCRM',
         url: canonical,
         publishedTime: b.publishedAt?.toISOString(),
         modifiedTime: b.updatedAt?.toISOString(),
@@ -79,7 +79,7 @@ export async function generateMetadata({
       alternates: { canonical },
     }
   } catch {
-    return { title: 'Blog — CRM Pro' }
+    return { title: 'Blog — ClearCRM' }
   }
 }
 
@@ -166,7 +166,7 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
           },
           publisher: {
             '@type': 'Organization',
-            name: 'CRM Pro',
+            name: 'ClearCRM',
             url: APP_URL,
           },
           mainEntityOfPage: {

@@ -314,7 +314,7 @@ export const AI_WORKFLOWS = [
 
 export const TESTIMONIALS = [
   {
-    quote: 'We were paying $1,200/month for Salesforce + Monday + Slack + BambooHR. CRM Pro replaced all four for $290/month. The AI workflows alone saved our SDR team 15 hours per week on lead research.',
+    quote: 'We were paying $1,200/month for Salesforce + Monday + Slack + BambooHR. ClearCRM replaced all four for $290/month. The AI workflows alone saved our SDR team 15 hours per week on lead research.',
     name: 'Sarah Chen',
     role: 'VP of Sales',
     company: 'TechFlow Inc.',
@@ -575,16 +575,16 @@ export const PRICING_PLANS: PricingPlan[] = [
 
 export const FAQS = [
   {
-    question: 'What exactly does CRM Pro include?',
-    answer: 'CRM Pro is an all-in-one platform with: Sales CRM (leads, contacts, pipeline, deal tracking), Project Management (Kanban boards, tasks, time tracking, documents), Team Communication (real-time chat, email inbox with Gmail/Outlook), HR & Operations (attendance with GPS, leave management, shift scheduling, asset inventory with QR codes), AI Workflow Engine (lead enrichment, email drafting, sentiment analysis), and Analytics & Reporting — all in a single platform.',
+    question: 'What exactly does ClearCRM include?',
+    answer: 'ClearCRM is an all-in-one platform with: Sales CRM (leads, contacts, pipeline, deal tracking), Project Management (Kanban boards, tasks, time tracking, documents), Team Communication (real-time chat, email inbox with Gmail/Outlook), HR & Operations (attendance with GPS, leave management, shift scheduling, asset inventory with QR codes), AI Workflow Engine (lead enrichment, email drafting, sentiment analysis), and Analytics & Reporting — all in a single platform.',
   },
   {
-    question: 'How does CRM Pro compare to Salesforce or HubSpot?',
-    answer: 'Unlike Salesforce or HubSpot, CRM Pro bundles project management, HR tools, team chat, and AI automation alongside your CRM — no add-ons or separate subscriptions. Salesforce costs $75+/user for CRM alone. With CRM Pro, you get the full suite at $29/workspace. We\'re built for agencies, startups, and SMBs who need everything in one tool without enterprise complexity.',
+    question: 'How does ClearCRM compare to Salesforce or HubSpot?',
+    answer: 'Unlike Salesforce or HubSpot, ClearCRM bundles project management, HR tools, team chat, and AI automation alongside your CRM — no add-ons or separate subscriptions. Salesforce costs $75+/user for CRM alone. With ClearCRM, you get the full suite at $29/workspace. We\'re built for agencies, startups, and SMBs who need everything in one tool without enterprise complexity.',
   },
   {
     question: 'What does "per workspace, not per seat" mean?',
-    answer: 'Most CRMs charge per user — so a 10-person team on Salesforce at $75/user pays $750/month. CRM Pro charges per workspace: $29/month covers up to 15 members on the Pro plan. Your price stays the same whether you have 1 or 15 people. Growing your team shouldn\'t penalize your wallet.',
+    answer: 'Most CRMs charge per user — so a 10-person team on Salesforce at $75/user pays $750/month. ClearCRM charges per workspace: $29/month covers up to 15 members on the Pro plan. Your price stays the same whether you have 1 or 15 people. Growing your team shouldn\'t penalize your wallet.',
   },
   {
     question: 'Is there really a free plan?',
@@ -599,7 +599,7 @@ export const FAQS = [
     answer: 'Yes. We support CSV import for bulk data migration, plus API-based sync from Salesforce, HubSpot, and Pipedrive. Our team assists with custom migrations at no extra cost on Pro and Enterprise plans.',
   },
   {
-    question: 'What integrations does CRM Pro support?',
+    question: 'What integrations does ClearCRM support?',
     answer: 'Gmail and Outlook for email, inbound webhooks from Facebook, Google Forms, HubSpot, LinkedIn, Zapier, and SwipePages for lead capture. The AI workflow engine connects to OpenAI and other LLM providers. REST API and custom webhooks for anything else you need.',
   },
   {
@@ -646,11 +646,11 @@ export const FOOTER_LINKS = {
 }
 
 export const COMPARISON_LINKS = [
-  'CRM Pro vs Salesforce',
-  'CRM Pro vs HubSpot',
-  'CRM Pro vs Pipedrive',
-  'CRM Pro vs Monday.com',
-  'CRM Pro vs Zoho',
+  'ClearCRM vs Salesforce',
+  'ClearCRM vs HubSpot',
+  'ClearCRM vs Pipedrive',
+  'ClearCRM vs Monday.com',
+  'ClearCRM vs Zoho',
 ]
 
 // ─── DASHBOARD MOCK DATA ────────────────────────────────────────

@@ -53,9 +53,9 @@ export function AnalyticsOverview() {
             <div className="grid grid-cols-2 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="space-y-2">
-                  <div className="h-4 rounded bg-gray-200"></div>
-                  <div className="h-8 rounded bg-gray-200"></div>
-                  <div className="h-3 rounded bg-gray-200"></div>
+                  <div className="h-4 rounded bg-muted"></div>
+                  <div className="h-8 rounded bg-muted"></div>
+                  <div className="h-3 rounded bg-muted"></div>
                 </div>
               ))}
             </div>
@@ -146,9 +146,7 @@ export function AnalyticsOverview() {
           {/* Revenue */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Revenue
-              </span>
+              <span className="text-sm text-muted-foreground">Revenue</span>
               <div
                 className={`flex items-center space-x-1 text-xs ${
                   revenueChange.trend === 'up'
@@ -167,7 +165,7 @@ export function AnalyticsOverview() {
             <div className="text-2xl font-bold">
               {formatCurrency(analytics.totalRevenue)}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-muted-foreground">
               vs {formatCurrency(analytics.totalRevenuePrevious)} last month
             </div>
           </div>
@@ -175,9 +173,7 @@ export function AnalyticsOverview() {
           {/* Leads */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Total Leads
-              </span>
+              <span className="text-sm text-muted-foreground">Total Leads</span>
               <div
                 className={`flex items-center space-x-1 text-xs ${
                   leadsChange.trend === 'up' ? 'text-green-600' : 'text-red-600'
@@ -194,7 +190,7 @@ export function AnalyticsOverview() {
             <div className="text-2xl font-bold">
               {formatNumber(analytics.totalLeads)}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-muted-foreground">
               vs {formatNumber(analytics.totalLeadsPrevious)} last month
             </div>
           </div>
@@ -202,9 +198,7 @@ export function AnalyticsOverview() {
           {/* Conversion Rate */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Conversion
-              </span>
+              <span className="text-sm text-muted-foreground">Conversion</span>
               <div
                 className={`flex items-center space-x-1 text-xs ${
                   conversionChange.trend === 'up'
@@ -223,7 +217,7 @@ export function AnalyticsOverview() {
             <div className="text-2xl font-bold">
               {formatPercentage(analytics.conversionRate)}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-muted-foreground">
               vs {formatPercentage(analytics.conversionRatePrevious)} last month
             </div>
           </div>
@@ -231,9 +225,7 @@ export function AnalyticsOverview() {
           {/* Growth */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Growth
-              </span>
+              <span className="text-sm text-muted-foreground">Growth</span>
               <div
                 className={`flex items-center space-x-1 text-xs ${
                   analytics.growth >= 0 ? 'text-green-600' : 'text-red-600'
@@ -250,25 +242,29 @@ export function AnalyticsOverview() {
             <div className="text-2xl font-bold">
               {formatPercentage(analytics.growth)}
             </div>
-            <div className="text-xs text-gray-500">overall growth rate</div>
+            <div className="text-xs text-muted-foreground">
+              overall growth rate
+            </div>
           </div>
         </div>
 
         {/* Quick Stats */}
         <div className="border-t pt-4">
-          <h4 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+          <h4 className="mb-3 text-sm font-medium text-foreground">
             Quick Stats
           </h4>
           <div className="grid grid-cols-3 gap-4">
             {quickStats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div
-                  className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800`}
+                  className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-muted`}
                 >
                   <stat.icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
                 <div className="text-lg font-semibold">{stat.value}</div>
-                <div className="text-xs text-gray-500">{stat.label}</div>
+                <div className="text-xs text-muted-foreground">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
@@ -277,20 +273,18 @@ export function AnalyticsOverview() {
         {/* Performance Indicators */}
         <div className="border-t pt-4">
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-              Performance
-            </h4>
+            <h4 className="text-sm font-medium text-foreground">Performance</h4>
             <Badge variant="secondary" className="text-xs">
               This Month
             </Badge>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 Sales Target
               </span>
               <div className="flex items-center space-x-2">
-                <div className="h-2 w-20 rounded-full bg-gray-200">
+                <div className="h-2 w-20 rounded-full bg-muted">
                   <div
                     className="h-2 rounded-full bg-green-600"
                     style={{
@@ -304,11 +298,11 @@ export function AnalyticsOverview() {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 Lead Quality
               </span>
               <div className="flex items-center space-x-2">
-                <div className="h-2 w-20 rounded-full bg-gray-200">
+                <div className="h-2 w-20 rounded-full bg-muted">
                   <div
                     className="h-2 rounded-full bg-blue-600"
                     style={{
@@ -322,11 +316,11 @@ export function AnalyticsOverview() {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 Customer Satisfaction
               </span>
               <div className="flex items-center space-x-2">
-                <div className="h-2 w-20 rounded-full bg-gray-200">
+                <div className="h-2 w-20 rounded-full bg-muted">
                   <div
                     className="h-2 rounded-full bg-purple-600"
                     style={{

@@ -1,0 +1,31 @@
+'use client'
+
+import { useAppSelector } from '@/lib/hooks'
+import { FssaiLicenseList } from '@/components/fmcg/FssaiLicenseList'
+
+export default function LicensesPage() {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
+
+  if (!currentWorkspace) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">No Workspace Selected</h3>
+          <p className="text-muted-foreground">Please select a workspace to manage licenses.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col space-y-6 p-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">FSSAI Licenses</h1>
+        <p className="text-muted-foreground">
+          Manage FSSAI licenses for {currentWorkspace.name}
+        </p>
+      </div>
+      <FssaiLicenseList workspaceId={currentWorkspace.id} />
+    </div>
+  )
+}

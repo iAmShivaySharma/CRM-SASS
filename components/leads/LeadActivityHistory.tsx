@@ -58,7 +58,7 @@ const activityTypeColors = {
   updated: 'bg-blue-100 text-blue-800',
   status_changed: 'bg-purple-100 text-purple-800',
   assigned: 'bg-orange-100 text-orange-800',
-  note_added: 'bg-gray-100 text-gray-800',
+  note_added: 'bg-muted text-foreground',
   converted: 'bg-emerald-100 text-emerald-800',
   deleted: 'bg-red-100 text-red-800',
 }
@@ -104,7 +104,7 @@ function ActivityItem({ activity }: { activity: LeadActivity }) {
   const colorClass = activityTypeColors[activity.activityType]
 
   return (
-    <div className="flex items-start space-x-3 border-b border-gray-100 p-4 last:border-b-0">
+    <div className="flex items-start space-x-3 border-b border-border p-4 last:border-b-0">
       <div className={`rounded-full p-2 ${colorClass}`}>
         <Icon className="h-4 w-4" />
       </div>
@@ -112,14 +112,14 @@ function ActivityItem({ activity }: { activity: LeadActivity }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium text-foreground">
               {activity.description}
             </p>
             <Badge variant="outline" className="text-xs">
               {activity.activityType.replace('_', ' ')}
             </Badge>
           </div>
-          <div className="flex items-center space-x-2 text-xs text-gray-500">
+          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
             <span>
               {formatDistanceToNow(new Date(activity.createdAt), {
@@ -131,8 +131,8 @@ function ActivityItem({ activity }: { activity: LeadActivity }) {
 
         {/* User information */}
         <div className="mt-1 flex items-center space-x-2">
-          <User className="h-3 w-3 text-gray-400" />
-          <span className="text-xs text-gray-600">
+          <User className="h-3 w-3 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">
             {typeof activity.performedBy === 'object'
               ? activity.performedBy.fullName
               : 'Unknown User'}
@@ -145,7 +145,7 @@ function ActivityItem({ activity }: { activity: LeadActivity }) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-2 h-auto p-0 text-xs text-gray-600 hover:text-gray-900"
+                className="mt-2 h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
               >
                 {isExpanded ? (
                   <ChevronDown className="mr-1 h-3 w-3" />
@@ -157,13 +157,13 @@ function ActivityItem({ activity }: { activity: LeadActivity }) {
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <div className="space-y-2 border-l-2 border-gray-200 pl-4">
+              <div className="space-y-2 border-l-2 border-border pl-4">
                 {activity.changes.map((change, index) => (
                   <div key={index} className="text-xs">
-                    <div className="font-medium text-gray-700">
+                    <div className="font-medium text-foreground">
                       {formatFieldName(change.field)}
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
+                    <div className="flex items-center space-x-2 text-muted-foreground">
                       <span className="rounded bg-red-50 px-2 py-1 text-red-700">
                         {formatFieldValue(change.oldValue)}
                       </span>
@@ -180,7 +180,7 @@ function ActivityItem({ activity }: { activity: LeadActivity }) {
         )}
 
         {activity.metadata && Object.keys(activity.metadata).length > 0 && (
-          <div className="mt-2 text-xs text-gray-500">
+          <div className="mt-2 text-xs text-muted-foreground">
             {activity.metadata.totalChanges && (
               <span>Total changes: {activity.metadata.totalChanges}</span>
             )}
@@ -238,7 +238,7 @@ export function LeadActivityHistory({
         <div className="mt-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-foreground"></div>
             </div>
           ) : error ? (
             <div className="py-8 text-center">
@@ -250,7 +250,7 @@ export function LeadActivityHistory({
               </Button>
             </div>
           ) : activities.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
+            <div className="py-8 text-center text-muted-foreground">
               <History className="mx-auto mb-4 h-12 w-12 opacity-50" />
               <p>No activity history found</p>
             </div>

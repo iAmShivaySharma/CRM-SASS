@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { ChatRoom, WorkspaceMember } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
+import { NotificationService } from '@/lib/services/notificationService'
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +26,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verify user is member of workspace
     const member = await WorkspaceMember.findOne({
       userId: auth.user._id,
       workspaceId,
@@ -39,13 +39,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get chat rooms where user is a participant
     const filter: any = {
       workspaceId,
       participants: auth.user._id,
     }
 
-    // Only filter out archived if not explicitly including them
     if (!includeArchived) {
       filter.isArchived = false
     }
@@ -85,7 +83,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user is member of workspace
     const member = await WorkspaceMember.findOne({
       userId: auth.user._id,
       workspaceId,
@@ -99,7 +96,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if chat room with same name exists in workspace
     const existingRoom = await ChatRoom.findOne({
       workspaceId,
       name,
@@ -113,7 +109,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create new chat room
     const chatRoom = new ChatRoom({
       name,
       description,
@@ -127,6 +122,18 @@ export async function POST(request: NextRequest) {
     })
 
     await chatRoom.save()
+
+    await NotificationService.createNotification({
+      workspaceId,
+      title: 'Chat Room Created',
+      message: `${auth.user.fullName || auth.user.email} created chat room: ${name}`,
+      type: 'info',
+      entityType: 'chatRoom',
+      entityId: chatRoom._id.toString(),
+      createdBy: auth.user._id,
+      notificationLevel: 'workspace',
+      excludeUserIds: [auth.user._id],
+    }).catch(() => {})
 
     const populatedRoom = await ChatRoom.findById(chatRoom._id)
       .populate('participants', 'name email avatar')

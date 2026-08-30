@@ -15,6 +15,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
+import { NotificationService } from '@/lib/services/notificationService'
 
 const updateProjectSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -206,6 +207,18 @@ export const PUT = withSecurityLogging(
           { new: true }
         )
 
+        NotificationService.createNotification({
+          workspaceId: project.workspaceId.toString(),
+          title: 'Project Updated',
+          message: `${auth.user.fullName || auth.user.email} updated project: ${updatedProject?.name}`,
+          type: 'success',
+          entityType: 'project',
+          entityId: id,
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
+
         await logUserActivity(
           auth.user.id,
           'projects.update',
@@ -293,6 +306,18 @@ export const DELETE = withSecurityLogging(
           ProjectMember.deleteMany({ projectId: id }),
           Task.deleteMany({ projectId: id }),
         ])
+
+        NotificationService.createNotification({
+          workspaceId: project.workspaceId.toString(),
+          title: 'Project Deleted',
+          message: `${auth.user.fullName || auth.user.email} deleted project: ${project.name}`,
+          type: 'warning',
+          entityType: 'project',
+          entityId: id,
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
 
         await logUserActivity(
           auth.user.id,

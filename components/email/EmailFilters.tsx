@@ -73,7 +73,7 @@ export function EmailFilters({
             <Filter className="mr-2 h-3 w-3" />
             Filter
             {activeFilterCount > 0 && (
-              <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-semibold leading-none text-primary">
+              <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-background text-[10px] font-semibold leading-none text-primary">
                 {activeFilterCount}
               </span>
             )}
@@ -310,7 +310,7 @@ export function EmailFilters({
             <Badge
               key={key}
               variant="secondary"
-              className="h-5 shrink-0 cursor-pointer text-[10px] hover:bg-gray-200 dark:hover:bg-gray-600"
+              className="h-5 shrink-0 cursor-pointer text-[10px] hover:bg-muted"
               onClick={() => updateFilter(key, null)}
             >
               {getFilterDisplayName(key, value)}

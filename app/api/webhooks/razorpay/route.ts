@@ -24,41 +24,55 @@ export async function POST(request: NextRequest) {
 
     const event = JSON.parse(body)
     const eventType = event.event
+    const eventId =
+      event.account_id +
+      '_' +
+      (event.payload?.payment?.entity?.id ||
+        event.payload?.subscription?.entity?.id ||
+        '') +
+      '_' +
+      eventType
+
+    const existing = await Subscription.findOne({
+      [`metadata.lastEventId`]: eventId,
+    })
+    if (existing) {
+      log.info('Razorpay webhook duplicate, skipping', { eventId })
+      return NextResponse.json({ received: true, duplicate: true })
+    }
 
     log.info('Razorpay webhook received', {
       eventType,
-      payloadId:
-        event.payload?.payment?.entity?.id ||
-        event.payload?.subscription?.entity?.id,
+      eventId,
     })
 
     switch (eventType) {
       case 'payment.captured':
-        await handlePaymentCaptured(event)
+        await handlePaymentCaptured(event, eventId)
         break
 
       case 'subscription.activated':
-        await handleSubscriptionActivated(event)
+        await handleSubscriptionActivated(event, eventId)
         break
 
       case 'subscription.charged':
-        await handleSubscriptionCharged(event)
+        await handleSubscriptionCharged(event, eventId)
         break
 
       case 'subscription.cancelled':
-        await handleSubscriptionCancelled(event)
+        await handleSubscriptionCancelled(event, eventId)
         break
 
       case 'subscription.paused':
-        await handleSubscriptionPaused(event)
+        await handleSubscriptionPaused(event, eventId)
         break
 
       case 'subscription.resumed':
-        await handleSubscriptionResumed(event)
+        await handleSubscriptionResumed(event, eventId)
         break
 
       case 'payment.failed':
-        await handlePaymentFailed(event)
+        await handlePaymentFailed(event, eventId)
         break
 
       default:
@@ -77,7 +91,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handlePaymentCaptured(event: any) {
+async function handlePaymentCaptured(event: any, eventId: string) {
   const payment = event.payload.payment.entity
   const notes = payment.notes || {}
   const workspaceId = notes.workspaceId
@@ -114,6 +128,7 @@ async function handlePaymentCaptured(event: any) {
         lastPaymentAt: now.toISOString(),
         amountPaid: payment.amount,
         currency: payment.currency,
+        lastEventId: eventId,
       },
     },
     { upsert: true, new: true }
@@ -131,7 +146,7 @@ async function handlePaymentCaptured(event: any) {
   })
 }
 
-async function handleSubscriptionActivated(event: any) {
+async function handleSubscriptionActivated(event: any, eventId: string) {
   const subscription = event.payload.subscription.entity
   const notes = subscription.notes || {}
   const workspaceId = notes.workspaceId
@@ -163,6 +178,7 @@ async function handleSubscriptionActivated(event: any) {
       metadata: {
         razorpaySubscriptionId: subscription.id,
         lastPaymentAt: now.toISOString(),
+        lastEventId: eventId,
       },
     },
     { upsert: true, new: true }
@@ -171,6 +187,7 @@ async function handleSubscriptionActivated(event: any) {
   await (Workspace as any).findByIdAndUpdate(workspaceId, {
     planId: planId || 'pro',
     subscriptionStatus: 'active',
+    razorpaySubscriptionId: subscription.id,
   })
 
   log.info('Subscription activated via webhook', {
@@ -179,7 +196,7 @@ async function handleSubscriptionActivated(event: any) {
   })
 }
 
-async function handleSubscriptionCharged(event: any) {
+async function handleSubscriptionCharged(event: any, eventId: string) {
   const subscription = event.payload.subscription.entity
   const payment = event.payload.payment?.entity
   const notes = subscription.notes || {}
@@ -209,6 +226,7 @@ async function handleSubscriptionCharged(event: any) {
         razorpayPaymentId: payment?.id,
         lastPaymentAt: new Date().toISOString(),
         chargeCount: subscription.paid_count,
+        lastEventId: eventId,
       },
     }
   )
@@ -224,7 +242,7 @@ async function handleSubscriptionCharged(event: any) {
   })
 }
 
-async function handleSubscriptionCancelled(event: any) {
+async function handleSubscriptionCancelled(event: any, eventId: string) {
   const subscription = event.payload.subscription.entity
   const notes = subscription.notes || {}
   const workspaceId = notes.workspaceId
@@ -242,6 +260,7 @@ async function handleSubscriptionCancelled(event: any) {
       status: 'cancelled',
       cancelledAt: new Date(),
       cancelAtPeriodEnd: true,
+      'metadata.lastEventId': eventId,
     }
   )
 
@@ -255,7 +274,7 @@ async function handleSubscriptionCancelled(event: any) {
   })
 }
 
-async function handleSubscriptionPaused(event: any) {
+async function handleSubscriptionPaused(event: any, eventId: string) {
   const subscription = event.payload.subscription.entity
   const notes = subscription.notes || {}
   const workspaceId = notes.workspaceId
@@ -264,7 +283,7 @@ async function handleSubscriptionPaused(event: any) {
 
   await (Subscription as any).findOneAndUpdate(
     { workspaceId },
-    { status: 'inactive' }
+    { status: 'inactive', 'metadata.lastEventId': eventId }
   )
 
   await (Workspace as any).findByIdAndUpdate(workspaceId, {
@@ -277,7 +296,7 @@ async function handleSubscriptionPaused(event: any) {
   })
 }
 
-async function handleSubscriptionResumed(event: any) {
+async function handleSubscriptionResumed(event: any, eventId: string) {
   const subscription = event.payload.subscription.entity
   const notes = subscription.notes || {}
   const workspaceId = notes.workspaceId
@@ -286,7 +305,7 @@ async function handleSubscriptionResumed(event: any) {
 
   await (Subscription as any).findOneAndUpdate(
     { workspaceId },
-    { status: 'active' }
+    { status: 'active', 'metadata.lastEventId': eventId }
   )
 
   await (Workspace as any).findByIdAndUpdate(workspaceId, {
@@ -299,7 +318,7 @@ async function handleSubscriptionResumed(event: any) {
   })
 }
 
-async function handlePaymentFailed(event: any) {
+async function handlePaymentFailed(event: any, eventId: string) {
   const payment = event.payload.payment.entity
   const notes = payment.notes || {}
   const workspaceId = notes.workspaceId
@@ -319,6 +338,7 @@ async function handlePaymentFailed(event: any) {
         lastFailedPaymentId: payment.id,
         lastFailedAt: new Date().toISOString(),
         failureReason: payment.error_description || 'Payment failed',
+        lastEventId: eventId,
       },
     }
   )

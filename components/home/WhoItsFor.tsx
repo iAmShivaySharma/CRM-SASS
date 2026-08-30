@@ -109,7 +109,7 @@ export default function WhoItsFor() {
           Built for your business
         </p>
         <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          See exactly how CRM Pro solves <em>your</em> problem
+          See exactly how ClearCRM solves <em>your</em> problem
         </h2>
         <p className="mt-3 text-base text-muted-foreground">
           Different businesses, same frustration — too many tools, too much cost.

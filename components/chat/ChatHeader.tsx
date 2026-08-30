@@ -67,6 +67,26 @@ interface ChatHeaderProps {
   onMobileMenuClick: () => void
 }
 
+function getChatRoomIcon(type: ChatRoom['type']) {
+  switch (type) {
+    case 'private':
+      return <Lock className="h-4 w-4" />
+    case 'direct':
+      return <Users className="h-4 w-4" />
+    default:
+      return <Hash className="h-4 w-4" />
+  }
+}
+
+function getChatRoomInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   chatRoom,
   onMobileMenuClick,
@@ -83,27 +103,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
   const workspace = useSelector((state: RootState) => state.workspace)
 
-  const [updateChatRoom] = useUpdateChatRoomMutation()
+  const [updateChatRoom, { isLoading: isUpdatingRoom }] =
+    useUpdateChatRoomMutation()
   const [deleteChatRoom] = useDeleteChatRoomMutation()
-  const getChatRoomIcon = (type: ChatRoom['type']) => {
-    switch (type) {
-      case 'private':
-        return <Lock className="h-4 w-4" />
-      case 'direct':
-        return <Users className="h-4 w-4" />
-      default:
-        return <Hash className="h-4 w-4" />
-    }
-  }
-
-  const getChatRoomInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
 
   const getParticipantCount = () => {
     if (Array.isArray(chatRoom.participants)) {
@@ -318,8 +320,15 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </Button>
           )}
 
-          <Button variant="ghost" size="sm" onClick={handleNotificationToggle}>
-            {chatRoom.settings?.notifications !== false ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNotificationToggle}
+            disabled={isUpdatingRoom}
+          >
+            {isUpdatingRoom ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : chatRoom.settings?.notifications !== false ? (
               <Volume2 className="h-4 w-4" />
             ) : (
               <VolumeX className="h-4 w-4" />
@@ -358,28 +367,53 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={handleNotificationToggle}>
+            <DropdownMenuItem
+              disabled={isUpdatingRoom}
+              onClick={handleNotificationToggle}
+            >
               {chatRoom.settings?.notifications !== false ? (
                 <>
-                  <VolumeX className="mr-2 h-4 w-4" />
+                  {isUpdatingRoom ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <VolumeX className="mr-2 h-4 w-4" />
+                  )}
                   Mute notifications
                 </>
               ) : (
                 <>
-                  <Volume2 className="mr-2 h-4 w-4" />
+                  {isUpdatingRoom ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Volume2 className="mr-2 h-4 w-4" />
+                  )}
                   Unmute notifications
                 </>
               )}
             </DropdownMenuItem>
 
             {!chatRoom.isArchived ? (
-              <DropdownMenuItem onClick={handleArchiveToggle}>
-                <Archive className="mr-2 h-4 w-4" />
+              <DropdownMenuItem
+                disabled={isUpdatingRoom}
+                onClick={handleArchiveToggle}
+              >
+                {isUpdatingRoom ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Archive className="mr-2 h-4 w-4" />
+                )}
                 Archive chat
               </DropdownMenuItem>
             ) : (
-              <DropdownMenuItem onClick={handleArchiveToggle}>
-                <Archive className="mr-2 h-4 w-4" />
+              <DropdownMenuItem
+                disabled={isUpdatingRoom}
+                onClick={handleArchiveToggle}
+              >
+                {isUpdatingRoom ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Archive className="mr-2 h-4 w-4" />
+                )}
                 Unarchive chat
               </DropdownMenuItem>
             )}

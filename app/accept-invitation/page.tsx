@@ -160,6 +160,29 @@ function AcceptInvitationContent() {
     }
   }
 
+  const handleDecline = async () => {
+    if (!token) return
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/invitations/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      if (response.ok) {
+        setError('Invitation declined.')
+        setUserState('error')
+      } else {
+        const data = await response.json()
+        setError(data.message || 'Failed to decline')
+      }
+    } catch {
+      setError('Failed to decline invitation')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleRegistrationAndAccept = async () => {
     if (!token || !fullName || !password) return
 
@@ -168,8 +191,8 @@ function AcceptInvitationContent() {
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long')
       return
     }
 
@@ -194,10 +217,7 @@ function AcceptInvitationContent() {
 
       if (response.ok) {
         setResult(data)
-        setTimeout(
-          () => router.push('/auth/login?message=account-created'),
-          3000
-        )
+        setTimeout(() => router.push('/login?message=account-created'), 3000)
       } else {
         if (data.requireLogin) {
           setError(
@@ -220,7 +240,7 @@ function AcceptInvitationContent() {
 
   if (userState === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardContent className="flex items-center justify-center p-8">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -233,7 +253,7 @@ function AcceptInvitationContent() {
 
   if (userState === 'error' || !invitation) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
@@ -246,7 +266,7 @@ function AcceptInvitationContent() {
           </CardHeader>
           <CardContent>
             <Button
-              onClick={() => router.push('/auth/login')}
+              onClick={() => router.push('/login')}
               className="w-full"
               variant="outline"
             >
@@ -260,7 +280,7 @@ function AcceptInvitationContent() {
 
   if (result?.success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
@@ -276,7 +296,7 @@ function AcceptInvitationContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-muted-foreground">
               <p>
                 You&apos;ve been added to the workspace as a{' '}
                 <strong>{result.role?.name}</strong>.
@@ -305,7 +325,7 @@ function AcceptInvitationContent() {
 
   if (userState === 'wrong-user') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
@@ -322,7 +342,7 @@ function AcceptInvitationContent() {
               <h3 className="mb-2 text-sm font-semibold">
                 Invitation Details:
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 <strong>Workspace:</strong> {invitation.workspace.name}
                 <br />
                 <strong>Role:</strong> {invitation.role.name}
@@ -333,12 +353,15 @@ function AcceptInvitationContent() {
 
             <div className="space-y-2">
               <Button
-                onClick={() =>
-                  router.push(
-                    '/auth/logout?redirect=' +
-                      encodeURIComponent(window.location.href)
-                  )
-                }
+                onClick={() => {
+                  fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                  }).then(() => {
+                    localStorage.removeItem('crm_auth_state')
+                    window.location.href = window.location.href
+                  })
+                }}
                 className="w-full"
                 variant="outline"
               >
@@ -361,7 +384,7 @@ function AcceptInvitationContent() {
 
   if (userState === 'correct-user') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted/50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
@@ -378,7 +401,7 @@ function AcceptInvitationContent() {
               <h3 className="mb-2 text-sm font-semibold">
                 Invitation Details:
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 <strong>Workspace:</strong> {invitation.workspace.name}
                 <br />
                 <strong>Role:</strong> {invitation.role.name}
@@ -411,11 +434,12 @@ function AcceptInvitationContent() {
 
             <div className="text-center">
               <Button
-                onClick={() => router.push('/dashboard')}
+                onClick={handleDecline}
                 variant="ghost"
-                className="text-sm"
+                className="text-sm text-destructive"
+                disabled={isLoading}
               >
-                Cancel
+                Decline Invitation
               </Button>
             </div>
           </CardContent>
@@ -425,7 +449,7 @@ function AcceptInvitationContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-muted/50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
@@ -440,7 +464,7 @@ function AcceptInvitationContent() {
         <CardContent className="space-y-4">
           <div className="rounded-lg bg-blue-50 p-4">
             <h3 className="mb-2 text-sm font-semibold">Invitation Details:</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               <strong>Email:</strong> {invitation.email}
               <br />
               <strong>Workspace:</strong> {invitation.workspace.name}
@@ -512,17 +536,17 @@ function AcceptInvitationContent() {
           </Button>
 
           <div className="space-y-2 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link
-                href={`/auth/login?redirect=${encodeURIComponent(window.location.href)}`}
+                href={`/login?redirect=${encodeURIComponent(window.location.href)}`}
                 className="text-blue-600 hover:underline"
               >
                 Log in instead
               </Link>
             </p>
             <Button
-              onClick={() => router.push('/auth/login')}
+              onClick={() => router.push('/login')}
               variant="ghost"
               className="text-sm"
             >
@@ -539,9 +563,9 @@ export default function AcceptInvitationPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex min-h-screen items-center justify-center bg-muted/50">
           <div className="flex items-center space-x-2">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-blue-600"></div>
             <span>Loading invitation...</span>
           </div>
         </div>
