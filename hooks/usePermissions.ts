@@ -51,9 +51,12 @@ export function usePermissions(): UserPermissions {
   const userPermissions = useMemo((): Permission[] => {
     if (!user?.permissions) return []
 
-    return user.permissions.filter((perm: Permission): perm is Permission =>
-      Object.values(Permission).includes(perm as Permission)
-    )
+    return user.permissions.filter(
+      (perm: string): perm is Permission =>
+        perm === '*:*' ||
+        perm.endsWith('.*') ||
+        Object.values(Permission).includes(perm as Permission)
+    ) as Permission[]
   }, [user?.permissions])
 
   const hasPermission = useMemo(
