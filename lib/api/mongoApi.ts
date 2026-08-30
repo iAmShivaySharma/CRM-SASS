@@ -16,6 +16,8 @@ export interface Lead {
   tagIds?: string[] | { id: string; name: string; color: string }[]
   notes?: string
   priority: 'low' | 'medium' | 'high'
+  leadScore?: number
+  leadScoreFactors?: string[]
   workspaceId: string
   createdBy: string
   createdAt: string
@@ -176,9 +178,31 @@ export const mongoApi = createApi({
         limit?: number
         statusId?: string
         search?: string
+        assignedTo?: string
+        priority?: string
+        tags?: string
+        source?: string
+        dateFrom?: string
+        dateTo?: string
+        sortBy?: string
+        sortOrder?: string
       }
     >({
-      query: ({ workspaceId, page = 1, limit = 20, statusId, search }) => {
+      query: ({
+        workspaceId,
+        page = 1,
+        limit = 20,
+        statusId,
+        search,
+        assignedTo,
+        priority,
+        tags,
+        source,
+        dateFrom,
+        dateTo,
+        sortBy,
+        sortOrder,
+      }) => {
         const params = new URLSearchParams({
           workspaceId,
           page: page.toString(),
@@ -186,6 +210,14 @@ export const mongoApi = createApi({
         })
         if (statusId) params.append('status', statusId)
         if (search) params.append('search', search)
+        if (assignedTo) params.append('assignedTo', assignedTo)
+        if (priority) params.append('priority', priority)
+        if (tags) params.append('tags', tags)
+        if (source) params.append('source', source)
+        if (dateFrom) params.append('dateFrom', dateFrom)
+        if (dateTo) params.append('dateTo', dateTo)
+        if (sortBy) params.append('sortBy', sortBy)
+        if (sortOrder) params.append('sortOrder', sortOrder)
         return `leads?${params}`
       },
       providesTags: ['Lead'],
@@ -498,6 +530,48 @@ export const mongoApi = createApi({
       },
     }),
 
+    resendInvitation: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; inviteId: string }
+    >({
+      query: ({ workspaceId, inviteId }) => ({
+        url: `workspaces/${workspaceId}/invites/${inviteId}/resend`,
+        method: 'POST',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+      },
+    }),
+
+    cancelInvitation: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; inviteId: string }
+    >({
+      query: ({ workspaceId, inviteId }) => ({
+        url: `workspaces/${workspaceId}/invites/${inviteId}`,
+        method: 'DELETE',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+      },
+    }),
+
+    removeMember: builder.mutation<
+      { success: boolean; message: string },
+      { workspaceId: string; memberId: string }
+    >({
+      query: ({ workspaceId, memberId }) => ({
+        url: `workspaces/${workspaceId}/members/${memberId}`,
+        method: 'DELETE',
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember', 'Workspace']))
+      },
+    }),
+
     createLeadNote: builder.mutation<
       { success: boolean; note: any },
       {
@@ -547,5 +621,8 @@ export const {
   useGetWorkspaceMembersQuery,
   useGetWorkspaceRolesQuery,
   useInviteToWorkspaceMutation,
+  useResendInvitationMutation,
+  useCancelInvitationMutation,
+  useRemoveMemberMutation,
   useCreateLeadNoteMutation,
 } = mongoApi

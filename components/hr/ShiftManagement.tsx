@@ -437,7 +437,7 @@ export function ShiftManagement() {
                 {shiftTemplates.map(template => (
                   <Card
                     key={template.id}
-                    className="cursor-pointer hover:bg-gray-50"
+                    className="cursor-pointer hover:bg-muted"
                     onClick={() => applyTemplate(template)}
                   >
                     <CardHeader>
@@ -727,7 +727,7 @@ export function ShiftManagement() {
                           className={
                             shift.isActive
                               ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
+                              : 'bg-muted text-foreground'
                           }
                         >
                           {shift.isActive ? (

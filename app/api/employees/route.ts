@@ -1,7 +1,14 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
-import { User, WorkspaceMember, Attendance } from '@/lib/mongodb/models'
+import {
+  User,
+  WorkspaceMember,
+  Attendance,
+  Workspace,
+} from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
+import { emailService } from '@/lib/services/emailService'
+import { NotificationService } from '@/lib/services/notificationService'
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,13 +35,11 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const includeAttendance = searchParams.get('includeAttendance') === 'true'
 
-    // Build query for workspace members
     const memberQuery: any = {
       workspaceId,
       status: 'active',
     }
 
-    // Get workspace members with user details
     const membersAggregation: any[] = [
       { $match: memberQuery },
       {
@@ -57,7 +62,6 @@ export async function GET(request: NextRequest) {
       { $unwind: '$role' },
     ]
 
-    // Add search filter if provided
     if (search) {
       membersAggregation.push({
         $match: {
@@ -70,12 +74,10 @@ export async function GET(request: NextRequest) {
       } as any)
     }
 
-    // Get total count
     const totalPipeline = [...membersAggregation, { $count: 'total' }]
     const totalResult = await WorkspaceMember.aggregate(totalPipeline)
     const total = totalResult[0]?.total || 0
 
-    // Add pagination
     membersAggregation.push(
       { $skip: (page - 1) * limit },
       { $limit: limit },
@@ -99,7 +101,6 @@ export async function GET(request: NextRequest) {
 
     const employees = await WorkspaceMember.aggregate(membersAggregation)
 
-    // If attendance data is requested, fetch today's attendance for each employee
     if (includeAttendance) {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -166,11 +167,9 @@ export async function POST(request: NextRequest) {
 
     const { fullName, email, roleId, department, position, startDate } = body
 
-    // Check if user with email already exists
     const existingUser = await User.findOne({ email })
 
     if (existingUser) {
-      // Check if already a member of this workspace
       const existingMember = await WorkspaceMember.findOne({
         userId: existingUser._id,
         workspaceId,
@@ -183,7 +182,6 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Add existing user to workspace
       const newMember = new WorkspaceMember({
         workspaceId,
         userId: existingUser._id,
@@ -200,6 +198,18 @@ export async function POST(request: NextRequest) {
       await newMember.save()
       await newMember.populate(['userId', 'roleId'])
 
+      await NotificationService.createNotification({
+        workspaceId,
+        title: 'New Team Member',
+        message: `${fullName} joined the workspace`,
+        type: 'info',
+        entityType: 'employee',
+        entityId: existingUser._id.toString(),
+        createdBy: auth.user._id,
+        notificationLevel: 'workspace',
+        excludeUserIds: [auth.user._id],
+      }).catch(() => {})
+
       return NextResponse.json({
         success: true,
         employee: newMember,
@@ -207,23 +217,21 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Create new user (this would typically send an invitation email)
     const newUser = new User({
       email,
       fullName,
-      emailConfirmed: false, // Will be confirmed when they set up their account
+      emailConfirmed: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     })
 
     await newUser.save()
 
-    // Add to workspace
     const newMember = new WorkspaceMember({
       workspaceId,
       userId: newUser._id,
       roleId,
-      status: 'pending', // Pending until they accept invitation
+      status: 'pending',
       joinedAt: new Date(),
       metadata: {
         department,
@@ -235,7 +243,46 @@ export async function POST(request: NextRequest) {
     await newMember.save()
     await newMember.populate(['userId', 'roleId'])
 
-    // TODO: Send invitation email here
+    try {
+      const workspace = (await Workspace.findById(workspaceId).lean()) as any
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+      await emailService.sendEmail({
+        to: email,
+        subject: `You've been invited to ${workspace?.name || 'a workspace'}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1e40af;">You're Invited!</h2>
+            <p>Hi ${fullName},</p>
+            <p><strong>${auth.user.fullName}</strong> has invited you to join <strong>${workspace?.name || 'their workspace'}</strong>${position ? ` as ${position}` : ''}.</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${appUrl}/login" style="background-color: #2563eb; color: white; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Get Started
+              </a>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">Log in with your email: ${email}</p>
+          </div>
+        `,
+        text: `Hi ${fullName}, you've been invited to ${workspace?.name || 'a workspace'}. Log in at ${appUrl}/login with ${email}`,
+      })
+    } catch (emailError) {
+      log.warn('Failed to send employee invite email', {
+        email,
+        error: emailError,
+      })
+    }
+
+    await NotificationService.createNotification({
+      workspaceId,
+      title: 'New Team Member',
+      message: `${fullName} joined the workspace`,
+      type: 'info',
+      entityType: 'employee',
+      entityId: newUser._id.toString(),
+      createdBy: auth.user._id,
+      notificationLevel: 'workspace',
+      excludeUserIds: [auth.user._id],
+    }).catch(() => {})
 
     return NextResponse.json({
       success: true,

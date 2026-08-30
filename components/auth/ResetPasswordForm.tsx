@@ -101,21 +101,21 @@ export function ResetPasswordForm() {
     return {
       strength,
       label: labels[strength - 1] || '',
-      color: colors[strength - 1] || 'bg-gray-300',
+      color: colors[strength - 1] || 'bg-muted',
     }
   }
 
   const passwordStrength = getPasswordStrength(password || '')
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-background dark:to-card">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1 text-center">
           <div className="mb-4 flex items-center justify-center">
             <div className="flex items-center space-x-2">
               <Briefcase className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                CRM Pro
+              <span className="text-2xl font-bold text-foreground">
+                ClearCRM
               </span>
             </div>
           </div>
@@ -171,7 +171,7 @@ export function ResetPasswordForm() {
               {password && (
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <div className="h-2 flex-1 rounded-full bg-gray-200">
+                    <div className="h-2 flex-1 rounded-full bg-muted">
                       <div
                         className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.color}`}
                         style={{
@@ -179,32 +179,32 @@ export function ResetPasswordForm() {
                         }}
                       />
                     </div>
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-muted-foreground">
                       {passwordStrength.label}
                     </span>
                   </div>
-                  <div className="space-y-1 text-xs text-gray-500">
+                  <div className="space-y-1 text-xs text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <CheckCircle
-                        className={`h-3 w-3 ${password.length >= 8 ? 'text-green-500' : 'text-gray-300'}`}
+                        className={`h-3 w-3 ${password.length >= 8 ? 'text-green-500' : 'text-muted-foreground'}`}
                       />
                       <span>At least 8 characters</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <CheckCircle
-                        className={`h-3 w-3 ${/[A-Z]/.test(password) ? 'text-green-500' : 'text-gray-300'}`}
+                        className={`h-3 w-3 ${/[A-Z]/.test(password) ? 'text-green-500' : 'text-muted-foreground'}`}
                       />
                       <span>One uppercase letter</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <CheckCircle
-                        className={`h-3 w-3 ${/[a-z]/.test(password) ? 'text-green-500' : 'text-gray-300'}`}
+                        className={`h-3 w-3 ${/[a-z]/.test(password) ? 'text-green-500' : 'text-muted-foreground'}`}
                       />
                       <span>One lowercase letter</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <CheckCircle
-                        className={`h-3 w-3 ${/[0-9]/.test(password) ? 'text-green-500' : 'text-gray-300'}`}
+                        className={`h-3 w-3 ${/[0-9]/.test(password) ? 'text-green-500' : 'text-muted-foreground'}`}
                       />
                       <span>One number</span>
                     </div>
@@ -258,7 +258,7 @@ export function ResetPasswordForm() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               After updating your password, you&apos;ll be automatically signed
               in.
             </p>

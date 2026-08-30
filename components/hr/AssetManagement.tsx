@@ -178,7 +178,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
           </Badge>
         )
       case 'retired':
-        return <Badge className="bg-gray-100 text-gray-800">Retired</Badge>
+        return <Badge className="bg-muted text-foreground">Retired</Badge>
       case 'lost':
         return (
           <Badge className="bg-red-100 text-red-800">
@@ -209,7 +209,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
       case 'poor':
         return 'text-red-600'
       default:
-        return 'text-gray-600'
+        return 'text-muted-foreground'
     }
   }
 

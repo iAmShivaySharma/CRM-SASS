@@ -210,7 +210,7 @@ export function EmailAccountList({
       case 'error':
         return 'bg-red-100 text-red-800'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -234,12 +234,12 @@ export function EmailAccountList({
           {[1, 2, 3].map(i => (
             <div
               key={i}
-              className="flex animate-pulse items-center space-x-3 rounded-lg bg-gray-100 p-3 dark:bg-gray-700"
+              className="flex animate-pulse items-center space-x-3 rounded-lg bg-muted p-3"
             >
-              <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600" />
+              <div className="h-10 w-10 rounded-full bg-muted" />
               <div className="flex-1 space-y-1">
-                <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-600" />
-                <div className="h-3 w-32 rounded bg-gray-200 dark:bg-gray-600" />
+                <div className="h-4 w-24 rounded bg-muted" />
+                <div className="h-3 w-32 rounded bg-muted" />
               </div>
             </div>
           ))}
@@ -251,8 +251,8 @@ export function EmailAccountList({
   if (accounts.length === 0) {
     return (
       <div className="p-4 text-center">
-        <Mail className="mx-auto mb-3 h-8 w-8 text-gray-400" />
-        <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
+        <Mail className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+        <p className="mb-3 text-sm text-muted-foreground">
           No email accounts connected
         </p>
         <Button size="sm" onClick={onAddAccount} className="w-full">
@@ -271,7 +271,7 @@ export function EmailAccountList({
             className={`group relative flex cursor-pointer items-center space-x-3 rounded-lg p-3 transition-colors ${
               activeAccount === account._id
                 ? 'border border-primary/20 bg-primary/10'
-                : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                : 'hover:bg-muted'
             }`}
             onClick={() => onAccountSelect(account._id)}
           >
@@ -283,7 +283,7 @@ export function EmailAccountList({
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+                <p className="truncate text-sm font-medium text-foreground">
                   {account.displayName}
                 </p>
                 {account.isDefault && (
@@ -293,7 +293,7 @@ export function EmailAccountList({
                 )}
               </div>
 
-              <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {account.emailAddress}
               </p>
 
@@ -308,7 +308,7 @@ export function EmailAccountList({
 
                 {account.settings.syncEnabled &&
                   account.settings.lastSyncAt && (
-                    <span className="shrink-0 text-[10px] text-gray-400">
+                    <span className="shrink-0 text-[10px] text-muted-foreground">
                       {new Date(account.settings.lastSyncAt).toLocaleTimeString(
                         [],
                         {
@@ -394,7 +394,7 @@ export function EmailAccountList({
         variant="ghost"
         size="sm"
         onClick={onAddAccount}
-        className="mt-3 w-full justify-start text-gray-600 dark:text-gray-400"
+        className="mt-3 w-full justify-start text-muted-foreground"
       >
         <Mail className="mr-2 h-4 w-4" />
         Add Another Account

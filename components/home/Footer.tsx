@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <Link href="/home" className="mb-4 flex items-center gap-2">
               <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-white"><Zap className="h-4 w-4" /></div>
-              <span className="text-[17px] font-semibold text-foreground">CRM Pro</span>
+              <span className="text-[17px] font-semibold text-foreground">ClearCRM</span>
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
               All-in-one AI CRM for sales, projects, HR &amp; automation.
@@ -37,7 +37,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 sm:flex-row">
-          <p className="text-xs text-muted-foreground/70">&copy; {new Date().getFullYear()} CRM Pro. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground/70">&copy; {new Date().getFullYear()} ClearCRM. All rights reserved.</p>
           <div className="flex gap-5">
             {['Privacy', 'Terms', 'Security'].map(l => (
               <a key={l} href="#" className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors">{l}</a>

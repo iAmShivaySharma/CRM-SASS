@@ -100,14 +100,14 @@ export default function AuthSetupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-background dark:to-card">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1 text-center">
           <div className="mb-4 flex items-center justify-center">
             <div className="flex items-center space-x-2">
               <Briefcase className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                CRM Pro
+              <span className="text-2xl font-bold text-foreground">
+                ClearCRM
               </span>
             </div>
           </div>
@@ -121,9 +121,9 @@ export default function AuthSetupPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm text-gray-600">Email</Label>
-              <div className="flex items-center space-x-2 rounded-md bg-gray-50 p-2">
-                <User className="h-4 w-4 text-gray-400" />
+              <Label className="text-sm text-muted-foreground">Email</Label>
+              <div className="flex items-center space-x-2 rounded-md bg-muted/50 p-2">
+                <User className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{userEmail}</span>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function AuthSetupPage() {
                         <p className="text-sm font-medium">
                           {invitation.workspaces?.name}
                         </p>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-muted-foreground">
                           Role: {invitation.roles?.name}
                         </p>
                       </div>
@@ -185,7 +185,7 @@ export default function AuthSetupPage() {
               <Label htmlFor="createWorkspace" className="text-sm">
                 Create a new workspace
                 {pendingInvitations.length > 0 && (
-                  <span className="block text-xs text-gray-500">
+                  <span className="block text-xs text-muted-foreground">
                     (You can join existing workspaces from your invitations)
                   </span>
                 )}
@@ -196,7 +196,7 @@ export default function AuthSetupPage() {
               <div className="space-y-2">
                 <Label htmlFor="workspaceName">Workspace Name *</Label>
                 <div className="relative">
-                  <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="workspaceName"
                     type="text"
@@ -227,7 +227,7 @@ export default function AuthSetupPage() {
           </form>
 
           <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {!createWorkspace &&
                 'You can join existing workspaces later via invitations'}
             </p>

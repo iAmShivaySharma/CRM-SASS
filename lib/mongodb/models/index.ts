@@ -82,3 +82,62 @@ export { Comment, type IComment, type ICommentEditHistory } from './Comment'
 
 // Sprint Planning
 export { Sprint, type ISprint } from './Sprint'
+
+// Inventory Management
+export { Product, type IProduct } from './Product'
+export { StockMovement, type IStockMovement } from './StockMovement'
+
+// Quotation & Proposal
+export { Quotation, type IQuotation } from './Quotation'
+
+// Appointment & Booking
+export { Service, type IService } from './Service'
+export { Appointment, type IAppointment } from './Appointment'
+
+// WhatsApp Integration
+export { WhatsAppAccount, type IWhatsAppAccount } from './WhatsAppAccount'
+export { WhatsAppTemplate, type IWhatsAppTemplate } from './WhatsAppTemplate'
+export { WhatsAppMessage, type IWhatsAppMessage } from './WhatsAppMessage'
+
+// SMS Module
+export { SmsTemplate, type ISmsTemplate } from './SmsTemplate'
+export { SmsLog, type ISmsLog } from './SmsLog'
+
+// Invoice & Billing
+export { Invoice, type IInvoice } from './Invoice'
+export { PaymentRecord, type IPaymentRecord } from './Payment'
+
+// Deal & Pipeline Management
+export { Pipeline, type IPipeline } from './Pipeline'
+export { PipelineStage, type IPipelineStage } from './PipelineStage'
+export { Deal, type IDeal } from './Deal'
+export { DealActivity, type IDealActivity } from './DealActivity'
+
+// Contact Management
+export { Contact, type IContact } from './Contact'
+
+// Email Sequences
+export { EmailSequence, SequenceEnrollment, type IEmailSequence, type IEmailSequenceStep, type ISequenceEnrollment } from './EmailSequence'
+
+// Lead Activity
+export { LeadActivity, type ILeadActivity } from './LeadActivity'
+
+// Meetings
+export { Meeting, type IMeeting } from './Meeting'
+
+// Message Read Receipts
+export { MessageRead, type IMessageRead } from './MessageRead'
+
+// Push Subscriptions
+export { PushSubscription, type IPushSubscription } from './PushSubscription'
+
+// Referrals
+export { Referral, type IReferral } from './Referral'
+
+// FMCG Brand Management Models
+export { FmcgProduct, type IFmcgProduct } from './FmcgProduct'
+export { FmcgBatch, type IFmcgBatch } from './FmcgBatch'
+export { FmcgFssaiLicense, type IFmcgFssaiLicense } from './FmcgFssaiLicense'
+export { FmcgTestReport, type IFmcgTestReport } from './FmcgTestReport'
+export { FmcgSupplier, type IFmcgSupplier } from './FmcgSupplier'
+export { FmcgDistribution, type IFmcgDistribution } from './FmcgDistribution'

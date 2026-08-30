@@ -59,6 +59,8 @@ import {
   getSupportedCurrencies,
   getSupportedTimezones,
 } from '@/lib/utils/workspace-formatting'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 const colorOptions = [
   { name: 'Blue', value: '#3b82f6' },
@@ -87,6 +89,7 @@ export default function SettingsPage() {
   const [updateWorkspace, { isLoading: isSavingWorkspace }] =
     useUpdateWorkspaceMutation()
 
+  const [avatarUrl, setAvatarUrl] = useState('')
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [currentPasswordValue, setCurrentPasswordValue] = useState('')
@@ -100,6 +103,8 @@ export default function SettingsPage() {
     teamActivity: true,
     weeklyReports: false,
   })
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
 
   const [workspaceForm, setWorkspaceForm] = useState({
     name: '',
@@ -154,6 +159,10 @@ export default function SettingsPage() {
       })
     }
   }, [workspaceData])
+
+  if (!permissionsLoading && !hasPermission(Permission.SETTINGS_VIEW)) {
+    return <AccessDenied />
+  }
 
   const handleSaveProfile = () => {
     toast.success('Profile updated successfully')
@@ -239,16 +248,16 @@ export default function SettingsPage() {
   return (
     <div className="w-full space-y-6">
       <div className="w-full">
-        <h1 className="text-2xl font-bold text-foreground dark:text-white sm:text-3xl">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
           Settings
         </h1>
-        <p className="mt-1 text-muted-foreground dark:text-gray-400">
+        <p className="mt-1 text-muted-foreground">
           Manage your account settings and preferences
         </p>
       </div>
 
       <Tabs defaultValue="profile" className="w-full space-y-4">
-        <TabsList className="grid w-full grid-cols-2 bg-muted dark:bg-gray-800 sm:grid-cols-3 lg:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-2 bg-muted sm:grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="profile" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span>Profile</span>
@@ -293,6 +302,63 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xl font-bold text-primary">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      user?.name?.charAt(0)?.toUpperCase() || '?'
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    id="avatar-upload"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async e => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const formData = new FormData()
+                      formData.append('file', file)
+                      try {
+                        const res = await fetch('/api/users/avatar', {
+                          method: 'POST',
+                          body: formData,
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          setAvatarUrl(data.avatarUrl)
+                          toast.success('Avatar updated')
+                        } else {
+                          toast.error(data.message || 'Upload failed')
+                        }
+                      } catch {
+                        toast.error('Upload failed')
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      document.getElementById('avatar-upload')?.click()
+                    }
+                  >
+                    Change Avatar
+                  </Button>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    JPG, PNG up to 5MB
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
@@ -364,9 +430,9 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               {workspaceLoading ? (
                 <div className="space-y-4">
-                  <div className="h-4 animate-pulse rounded bg-gray-200"></div>
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
-                  <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
+                  <div className="h-4 animate-pulse rounded bg-muted"></div>
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-muted"></div>
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-muted"></div>
                 </div>
               ) : (
                 <>
@@ -646,7 +712,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Email Notifications</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Receive notifications via email
                     </p>
                   </div>
@@ -663,7 +729,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Lead Updates</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       New leads and status changes
                     </p>
                   </div>
@@ -681,7 +747,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Team Activity</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Team member actions and updates
                     </p>
                   </div>
@@ -699,7 +765,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Weekly Reports</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Weekly performance summaries
                     </p>
                   </div>
@@ -745,7 +811,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">API Access</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Enable API access for integrations
                     </p>
                   </div>
@@ -755,7 +821,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Data Export</p>
-                    <p className="text-sm text-muted-foreground dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       Allow data export functionality
                     </p>
                   </div>
@@ -768,7 +834,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium text-red-600">Danger Zone</h4>
-                  <p className="text-sm text-muted-foreground dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Irreversible and destructive actions
                   </p>
                 </div>

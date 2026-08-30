@@ -19,6 +19,14 @@ import { shiftsApi } from './api/shiftsApi'
 import { leaveApi } from './api/leaveApi'
 import { assetApi } from './api/assetApi'
 import { commentsApi } from './api/commentsApi'
+import { invoiceApi } from './api/invoiceApi'
+import { dealsApi } from './api/dealsApi'
+import { fmcgApi } from './api/fmcgApi'
+import { smsApi } from './api/smsApi'
+import { whatsappApi } from './api/whatsappApi'
+import { appointmentApi } from './api/appointmentApi'
+import { quotationApi } from './api/quotationApi'
+import { inventoryApi } from './api/inventoryApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -53,6 +61,14 @@ export const store = configureStore({
     [assetApi.reducerPath]: assetApi.reducer,
     [emailApi.reducerPath]: emailApi.reducer,
     [commentsApi.reducerPath]: commentsApi.reducer,
+    [invoiceApi.reducerPath]: invoiceApi.reducer,
+    [dealsApi.reducerPath]: dealsApi.reducer,
+    [fmcgApi.reducerPath]: fmcgApi.reducer,
+    [smsApi.reducerPath]: smsApi.reducer,
+    [whatsappApi.reducerPath]: whatsappApi.reducer,
+    [appointmentApi.reducerPath]: appointmentApi.reducer,
+    [quotationApi.reducerPath]: quotationApi.reducer,
+    [inventoryApi.reducerPath]: inventoryApi.reducer,
   } as any,
   preloadedState,
   middleware: getDefaultMiddleware =>
@@ -76,7 +92,15 @@ export const store = configureStore({
       leaveApi.middleware,
       assetApi.middleware,
       emailApi.middleware,
-      commentsApi.middleware
+      commentsApi.middleware,
+      invoiceApi.middleware,
+      dealsApi.middleware,
+      fmcgApi.middleware,
+      smsApi.middleware,
+      whatsappApi.middleware,
+      appointmentApi.middleware,
+      quotationApi.middleware,
+      inventoryApi.middleware
     ),
 })
 

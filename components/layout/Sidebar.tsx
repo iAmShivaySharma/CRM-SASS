@@ -27,6 +27,7 @@ import {
   MessageSquare,
   FolderKanban,
   Folder,
+  Handshake,
   CheckSquare,
   FileText,
   Clock,
@@ -34,6 +35,21 @@ import {
   Laptop,
   User,
   PenSquare,
+  CalendarDays,
+  Gift,
+  MailPlus,
+  Package,
+  ShoppingBag,
+  Layers,
+  Shield,
+  FlaskConical,
+  Truck,
+  MapPin,
+  Smartphone,
+  MessageCircle,
+  ClipboardList,
+  CalendarCheck,
+  Boxes,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -79,6 +95,30 @@ const navigation = [
     category: 'sales',
     parent: 'sales',
     permission: Permission.CONTACTS_VIEW,
+  },
+  {
+    name: 'Invoices',
+    href: '/invoices',
+    icon: FileText,
+    category: 'sales',
+    parent: 'sales',
+    permission: Permission.LEADS_VIEW,
+  },
+  {
+    name: 'Quotations',
+    href: '/quotations',
+    icon: ClipboardList,
+    category: 'sales',
+    parent: 'sales',
+    permission: Permission.LEADS_VIEW,
+  },
+  {
+    name: 'Deals',
+    href: '/deals',
+    icon: Handshake,
+    category: 'sales',
+    parent: 'sales',
+    permission: Permission.LEADS_VIEW,
   },
   {
     name: 'Lead Statuses',
@@ -153,6 +193,66 @@ const navigation = [
     permission: Permission.CHAT_VIEW,
   },
   { name: 'Email', href: '/email', icon: Mail, category: 'main' },
+  {
+    name: 'Sequences',
+    href: '/email-sequences',
+    icon: MailPlus,
+    category: 'main',
+  },
+  { name: 'Calendar', href: '/calendar', icon: CalendarDays, category: 'main' },
+  { name: 'Referrals', href: '/referrals', icon: Gift, category: 'main' },
+
+  {
+    name: 'Communication',
+    href: '/communication',
+    icon: MessageCircle,
+    category: 'section',
+    id: 'communication',
+  },
+  {
+    name: 'SMS',
+    href: '/sms',
+    icon: Smartphone,
+    category: 'communication',
+    parent: 'communication',
+  },
+  {
+    name: 'WhatsApp',
+    href: '/whatsapp',
+    icon: MessageCircle,
+    category: 'communication',
+    parent: 'communication',
+  },
+
+  {
+    name: 'Appointments',
+    href: '/appointments',
+    icon: CalendarCheck,
+    category: 'section',
+    id: 'appointments',
+  },
+  {
+    name: 'Appointments',
+    href: '/appointments',
+    icon: CalendarCheck,
+    category: 'appointments',
+    parent: 'appointments',
+  },
+
+  {
+    name: 'Commerce',
+    href: '/commerce',
+    icon: Boxes,
+    category: 'section',
+    id: 'commerce',
+  },
+  {
+    name: 'Inventory',
+    href: '/inventory',
+    icon: Boxes,
+    category: 'commerce',
+    parent: 'commerce',
+  },
 
   {
     name: 'Project',
@@ -196,6 +296,56 @@ const navigation = [
   },
 
   { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
+
+  {
+    name: 'FMCG',
+    href: '/fmcg',
+    icon: Package,
+    category: 'section',
+    id: 'fmcg',
+  },
+  {
+    name: 'Products',
+    href: '/fmcg',
+    icon: ShoppingBag,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Batches',
+    href: '/fmcg/batches',
+    icon: Layers,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'FSSAI Licenses',
+    href: '/fmcg/licenses',
+    icon: Shield,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Test Reports',
+    href: '/fmcg/test-reports',
+    icon: FlaskConical,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Suppliers',
+    href: '/fmcg/suppliers',
+    icon: Truck,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Distribution',
+    href: '/fmcg/distribution',
+    icon: MapPin,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
   // {
   //   name: 'Analytics',
   //   href: '/analytics',
@@ -233,16 +383,12 @@ export function Sidebar({
   onMobileMenuToggle,
 }: SidebarProps) {
   const pathname = usePathname()
-  const { userPermissions } = usePermissions()
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
 
   const hasNavPermission = (permission?: Permission) => {
     if (!permission) return true
-    if (userPermissions.length === 0) return true
-    const permStr = permission as string
-    if (userPermissions.includes('*:*' as Permission)) return true
-    const [resource] = permStr.split('.')
-    if (userPermissions.includes(`${resource}.*` as Permission)) return true
-    return userPermissions.includes(permission)
+    if (permissionsLoading) return true
+    return hasPermission(permission)
   }
 
   const filteredNavigation = navigation.filter(item => {
@@ -263,6 +409,10 @@ export function Sidebar({
     projects: false,
     hr: false,
     engines: false,
+    fmcg: false,
+    communication: false,
+    appointments: false,
+    commerce: false,
   })
 
   const toggleSection = (sectionId: string) => {
@@ -330,8 +480,8 @@ export function Sidebar({
           'group relative flex items-center overflow-hidden rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300',
           isSubItem && 'ml-6 rounded-lg py-2.5',
           isActive
-            ? 'bg-primary-foreground/20 font-semibold text-primary-foreground'
-            : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'
+            ? 'bg-primary-foreground/20 font-semibold text-primary-foreground dark:bg-secondary dark:text-foreground'
+            : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-muted-foreground dark:hover:bg-secondary dark:hover:text-foreground'
         )}
       >
         {isSubItem && !collapsed && (
@@ -361,7 +511,7 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        'fixed inset-y-0 left-0 z-50 bg-primary text-primary-foreground transition-all duration-300',
+        'fixed inset-y-0 left-0 z-50 bg-primary text-primary-foreground transition-all duration-300 dark:bg-muted dark:text-foreground',
         'hidden flex-col lg:flex',
         collapsed ? 'lg:w-16' : 'lg:w-64',
         mobileMenuOpen && 'flex w-64 flex-col',
@@ -371,7 +521,7 @@ export function Sidebar({
       <div className="flex h-full flex-col">
         <div
           className={cn(
-            'flex shrink-0 items-center bg-primary text-primary-foreground',
+            'flex shrink-0 items-center bg-primary text-primary-foreground dark:bg-muted',
             collapsed
               ? 'h-16 flex-col justify-center gap-1 px-2 py-2'
               : 'h-16 justify-between px-4'
@@ -383,7 +533,7 @@ export function Sidebar({
                 <Briefcase className="h-6 w-6 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold text-primary-foreground">
-                CRM Pro
+                ClearCRM
               </span>
             </div>
           )}
@@ -392,7 +542,7 @@ export function Sidebar({
             size="sm"
             onClick={onToggle}
             className={cn(
-              'hidden items-center justify-center rounded-lg bg-primary-foreground/20 text-primary-foreground transition-all duration-200 hover:!bg-primary-foreground/30 hover:!text-primary-foreground lg:flex',
+              'hidden items-center justify-center rounded-lg bg-primary-foreground/20 text-primary-foreground transition-all duration-200 hover:!bg-primary-foreground/30 hover:!text-primary-foreground dark:bg-secondary dark:text-foreground dark:hover:!bg-secondary/80 lg:flex',
               collapsed ? 'h-9 w-9' : 'h-9 w-9'
             )}
           >
@@ -407,7 +557,7 @@ export function Sidebar({
         {/* Workspace Switcher */}
         {!collapsed && (
           <div className="px-3 py-3">
-            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200">
+            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200 hover:[&_*]:text-primary-foreground">
               <WorkspaceSwitcher
                 className="text-primary-foreground [&_*]:text-primary-foreground/80 [&_svg]:text-primary-foreground/60"
                 showCreateButton={true}
@@ -419,7 +569,7 @@ export function Sidebar({
 
         {collapsed && (
           <div className="px-2 py-3">
-            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200">
+            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200 hover:[&_*]:text-primary-foreground">
               <WorkspaceSwitcher
                 className="text-primary-foreground [&_*]:text-primary-foreground/80 [&_svg]:text-primary-foreground/60"
                 showCreateButton={false}

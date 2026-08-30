@@ -77,7 +77,7 @@ function getPlanColor(planType: string) {
     case 'premium':
       return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300'
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+      return 'bg-muted text-foreground'
   }
 }
 
@@ -104,11 +104,8 @@ export function UserProfile({ compact = false, className }: UserProfileProps) {
   const handleLogout = async () => {
     try {
       await logoutUser().unwrap()
-      window.location.href = '/login'
-    } catch (error) {
-      console.error('Logout error:', error)
-      window.location.href = '/login'
-    }
+    } catch {}
+    window.location.href = '/login'
   }
 
   const handleSettings = () => {

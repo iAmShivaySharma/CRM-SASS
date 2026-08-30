@@ -66,12 +66,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Amount in paise (smallest currency unit)
-    const amountInPaise = Math.round(plan.price * 100)
+    const currency = workspace.currency || 'USD'
+    const amountInSubunit = Math.round(plan.price * 100)
 
     const order = await createOrder({
-      amount: amountInPaise,
-      currency: 'INR',
-      receipt: `order_${workspace._id}_${planId}_${Date.now()}`,
+      amount: amountInSubunit,
+      currency,
+      receipt: `${workspace._id.toString().slice(-8)}_${planId}_${Date.now()}`.slice(0, 40),
       notes: {
         workspaceId: workspace._id.toString(),
         planId: planId,
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       workspaceId: workspace._id,
       planId,
-      amount: amountInPaise,
+      amount: amountInSubunit,
     })
 
     return NextResponse.json({
@@ -95,12 +96,13 @@ export async function POST(request: NextRequest) {
       planName: plan.name,
       workspaceName: workspace.name,
     })
-  } catch (error) {
+  } catch (error: any) {
     log.error('Error creating Razorpay order', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error?.message || error?.error?.description || JSON.stringify(error),
+      statusCode: error?.statusCode,
     })
     return NextResponse.json(
-      { error: 'Failed to create payment order' },
+      { error: error?.error?.description || error?.message || 'Failed to create payment order' },
       { status: 500 }
     )
   }

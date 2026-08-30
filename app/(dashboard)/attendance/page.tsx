@@ -14,9 +14,6 @@ import {
   UserX,
   Timer,
   BarChart3,
-  Settings,
-  Plus,
-  Download,
   PieChart,
   Loader2,
 } from 'lucide-react'
@@ -37,6 +34,8 @@ const AttendanceReports = dynamic(
 )
 import { ShiftManagement } from '@/components/hr/ShiftManagement'
 import { useAppSelector } from '@/lib/hooks'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 export default function AttendancePage() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -92,8 +91,14 @@ export default function AttendancePage() {
             ? 'text-yellow-600'
             : 'text-red-600'
       default:
-        return 'text-gray-600'
+        return 'text-muted-foreground'
     }
+  }
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.MEMBERS_VIEW)) {
+    return <AccessDenied />
   }
 
   if (!currentWorkspace) {
@@ -119,16 +124,6 @@ export default function AttendancePage() {
           <p className="mt-1 text-muted-foreground">
             Track employee attendance and work hours for {currentWorkspace.name}
           </p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
-          <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Manual Entry
-          </Button>
         </div>
       </div>
 
@@ -278,33 +273,12 @@ export default function AttendancePage() {
                           {stats.attendanceRate}%
                         </span>
                       </div>
-                      <div className="h-2 w-full rounded-full bg-gray-200">
+                      <div className="h-2 w-full rounded-full bg-muted">
                         <div
                           className="h-2 rounded-full bg-primary transition-all duration-300"
                           style={{ width: `${stats.attendanceRate}%` }}
                         />
                       </div>
-                    </div>
-
-                    <div className="flex space-x-2 pt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setActiveTab('reports')}
-                      >
-                        <BarChart3 className="mr-2 h-4 w-4" />
-                        View Reports
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setActiveTab('shifts')}
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        Manage Shifts
-                      </Button>
                     </div>
                   </div>
                 </CardContent>

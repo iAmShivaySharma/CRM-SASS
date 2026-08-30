@@ -142,6 +142,38 @@ export function EmailCompose({
   const [showBcc, setShowBcc] = useState(false)
   const [isRichText, setIsRichText] = useState(true)
   const [isSending, setIsSending] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const handleAIGenerate = async () => {
+    setIsGenerating(true)
+    try {
+      const response = await fetch('/api/ai/generate-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: replyTo ? 'follow-up' : 'introduction',
+          recipientName: emailData.to?.split('@')[0],
+          recipientEmail: emailData.to,
+          context: emailData.subject || '',
+        }),
+      })
+      const result = await response.json()
+      if (result.success) {
+        setEmailData((prev: any) => ({
+          ...prev,
+          subject: prev.subject || result.subject,
+          body: result.body,
+        }))
+        toast.success('AI draft generated')
+      } else {
+        toast.error(result.message || 'Failed to generate')
+      }
+    } catch {
+      toast.error('Failed to generate email')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
   const [isDraft, setIsDraft] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
   const [priority, setPriority] = useState<'low' | 'normal' | 'high'>('normal')
@@ -540,7 +572,7 @@ export function EmailCompose({
           </div>
 
           {isRichText && (
-            <div className="flex items-center space-x-1 rounded-lg border bg-gray-50 p-2 dark:bg-gray-800">
+            <div className="flex items-center space-x-1 rounded-lg border bg-muted p-2">
               <Button
                 variant="ghost"
                 size="sm"
@@ -631,7 +663,7 @@ export function EmailCompose({
               <div
                 ref={editorRef}
                 contentEditable
-                className="min-h-[200px] rounded-lg border p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="min-h-[200px] rounded-lg border border-input p-3 focus:border-ring focus:outline-none"
                 style={{ whiteSpace: 'pre-wrap' }}
                 dangerouslySetInnerHTML={{ __html: emailData.body }}
                 onInput={e => {
@@ -666,7 +698,7 @@ export function EmailCompose({
                   {attachments.map(attachment => (
                     <div
                       key={attachment.id}
-                      className="flex items-center justify-between rounded-lg bg-gray-50 p-2 dark:bg-gray-800"
+                      className="flex items-center justify-between rounded-lg bg-muted p-2"
                     >
                       <div className="flex items-center space-x-2">
                         <FileText className="h-4 w-4" />
@@ -734,6 +766,18 @@ export function EmailCompose({
             </div>
 
             <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={handleAIGenerate}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="mr-2 h-4 w-4" />
+                )}
+                AI Draft
+              </Button>
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>

@@ -12,14 +12,14 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
 
 export const metadata: Metadata = {
   title: {
-    default: 'CRM Pro — AI-Powered CRM That Replaces 6 Tools',
-    template: '%s | CRM Pro',
+    default: 'ClearCRM — AI-Powered CRM That Replaces 6 Tools',
+    template: '%s | ClearCRM',
   },
   description: 'Professional CRM system with role management and lead tracking',
   metadataBase: APP_URL ? new URL(APP_URL) : undefined,
   alternates: {
     types: {
-      'application/rss+xml': [{ url: '/feed.xml', title: 'CRM Pro Blog RSS Feed' }],
+      'application/rss+xml': [{ url: '/feed.xml', title: 'ClearCRM Blog RSS Feed' }],
     },
   },
 }

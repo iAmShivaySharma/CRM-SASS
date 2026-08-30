@@ -253,7 +253,7 @@ export function BlockEditor({
 
   const insertDivider = useCallback(() => {
     const hr = document.createElement('hr')
-    hr.className = 'my-6 border-t border-gray-300'
+    hr.className = 'my-6 border-t border-border'
     const selection = window.getSelection()
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0)
@@ -282,15 +282,15 @@ export function BlockEditor({
 
   const insertTable = useCallback(() => {
     const table = document.createElement('table')
-    table.className = 'border-collapse border border-gray-300 w-full my-4'
+    table.className = 'border-collapse border border-border w-full my-4'
 
     for (let i = 0; i < 3; i++) {
       const row = document.createElement('tr')
       for (let j = 0; j < 3; j++) {
         const cell = document.createElement(i === 0 ? 'th' : 'td')
-        cell.className = 'border border-gray-300 px-4 py-2'
+        cell.className = 'border border-border px-4 py-2'
         cell.textContent = i === 0 ? `Header ${j + 1}` : `Cell ${i}-${j + 1}`
-        if (i === 0) cell.className += ' bg-gray-50 font-semibold'
+        if (i === 0) cell.className += ' bg-muted/50 font-semibold'
         row.appendChild(cell)
       }
       table.appendChild(row)
@@ -457,7 +457,7 @@ export function BlockEditor({
                 {colors.map(color => (
                   <button
                     key={color}
-                    className="h-6 w-6 rounded border border-gray-200 transition-transform hover:scale-110"
+                    className="h-6 w-6 rounded border border-border transition-transform hover:scale-110"
                     style={{ backgroundColor: color }}
                     onClick={() => applyTextColor(color)}
                     title={color}
@@ -483,7 +483,7 @@ export function BlockEditor({
                 {colors.map(color => (
                   <button
                     key={color}
-                    className="h-6 w-6 rounded border border-gray-200 transition-transform hover:scale-110"
+                    className="h-6 w-6 rounded border border-border transition-transform hover:scale-110"
                     style={{ backgroundColor: color }}
                     onClick={() => applyBackgroundColor(color)}
                     title={color}
@@ -628,7 +628,7 @@ export function BlockEditor({
       <div
         ref={editorRef}
         contentEditable={editable}
-        className="min-h-[500px] w-full max-w-none bg-white p-6 text-gray-900 focus:outline-none dark:bg-gray-900 dark:text-gray-100"
+        className="min-h-[500px] w-full max-w-none bg-card p-6 text-foreground focus:outline-none"
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         data-placeholder={placeholder}

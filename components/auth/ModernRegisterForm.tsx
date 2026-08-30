@@ -363,7 +363,7 @@ export function ModernRegisterForm() {
             <h1 className="mb-4 text-4xl font-bold leading-tight">
               Start your CRM journey today
             </h1>
-            <p className="mb-8 text-xl text-green-100">
+            <p className="mb-8 text-xl text-primary">
               Join thousands of businesses that trust CRM Pro to manage their
               customer relationships and drive growth.
             </p>
@@ -376,7 +376,7 @@ export function ModernRegisterForm() {
               </div>
               <div>
                 <h3 className="font-semibold">Quick Setup</h3>
-                <p className="text-sm text-green-100">
+                <p className="text-sm text-primary">
                   Get started in under 5 minutes
                 </p>
               </div>
@@ -387,7 +387,7 @@ export function ModernRegisterForm() {
               </div>
               <div>
                 <h3 className="font-semibold">Secure & Reliable</h3>
-                <p className="text-sm text-green-100">
+                <p className="text-sm text-primary">
                   Your data is protected with enterprise security
                 </p>
               </div>
@@ -398,7 +398,7 @@ export function ModernRegisterForm() {
               </div>
               <div>
                 <h3 className="font-semibold">Global Access</h3>
-                <p className="text-sm text-green-100">
+                <p className="text-sm text-primary">
                   Access your CRM from anywhere
                 </p>
               </div>
@@ -428,7 +428,7 @@ export function ModernRegisterForm() {
               <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white">
                 Create your account
               </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
+              <CardDescription className="text-muted-foreground dark:text-muted-foreground">
                 Start managing your business relationships today
               </CardDescription>
             </CardHeader>
@@ -437,8 +437,8 @@ export function ModernRegisterForm() {
               {showOtpInput ? (
                 <div className="space-y-6 py-4">
                   <div className="text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                      <Mail className="h-8 w-8 text-green-600" />
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                      <Mail className="h-8 w-8 text-primary" />
                     </div>
                     <h3 className="text-lg font-semibold">Verify your email</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -527,17 +527,17 @@ export function ModernRegisterForm() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="fullName"
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        className="text-sm font-medium text-foreground"
                       >
                         Full Name
                       </Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                        <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
                         <Input
                           id="fullName"
                           type="text"
                           placeholder="Enter your full name"
-                          className="h-12 rounded-lg border-gray-300 pl-11 focus:border-green-500 focus:ring-green-500 dark:border-gray-600"
+                          className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
                           {...register('fullName', {
                             required: 'Full name is required',
                             minLength: {
@@ -557,17 +557,17 @@ export function ModernRegisterForm() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="email"
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        className="text-sm font-medium text-foreground"
                       >
                         Email Address
                       </Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                        <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
                           placeholder="Enter your email address"
-                          className="h-12 rounded-lg border-gray-300 pl-11 focus:border-green-500 focus:ring-green-500 dark:border-gray-600"
+                          className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
                           {...register('email', {
                             required: 'Email is required',
                             pattern: {
@@ -588,17 +588,17 @@ export function ModernRegisterForm() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="workspaceName"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="text-sm font-medium text-foreground"
                     >
                       Workspace Name
                     </Label>
                     <div className="relative">
-                      <Building className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                      <Building className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
                       <Input
                         id="workspaceName"
                         type="text"
                         placeholder="Enter your company or workspace name"
-                        className="h-12 rounded-lg border-gray-300 pl-11 focus:border-green-500 focus:ring-green-500 dark:border-gray-600"
+                        className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
                         {...register('workspaceName', {
                           required: 'Workspace name is required',
                           minLength: {
@@ -620,17 +620,17 @@ export function ModernRegisterForm() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="password"
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        className="text-sm font-medium text-foreground"
                       >
                         Password
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
                         <Input
                           id="password"
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Create a strong password"
-                          className="h-12 rounded-lg border-gray-300 pl-11 pr-12 focus:border-green-500 focus:ring-green-500 dark:border-gray-600"
+                          className="h-12 rounded-lg border-border pl-11 pr-12 focus:border-ring focus:ring-1 focus:ring-ring"
                           {...register('password', {
                             required: 'Password is required',
                             minLength: {
@@ -647,9 +647,9 @@ export function ModernRegisterForm() {
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-400" />
+                            <EyeOff className="h-5 w-5 text-muted-foreground" />
                           ) : (
-                            <Eye className="h-5 w-5 text-gray-400" />
+                            <Eye className="h-5 w-5 text-muted-foreground" />
                           )}
                         </Button>
                       </div>
@@ -663,17 +663,17 @@ export function ModernRegisterForm() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="confirmPassword"
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        className="text-sm font-medium text-foreground"
                       >
                         Confirm Password
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
                         <Input
                           id="confirmPassword"
                           type={showConfirmPassword ? 'text' : 'password'}
                           placeholder="Confirm your password"
-                          className="h-12 rounded-lg border-gray-300 pl-11 pr-12 focus:border-green-500 focus:ring-green-500 dark:border-gray-600"
+                          className="h-12 rounded-lg border-border pl-11 pr-12 focus:border-ring focus:ring-1 focus:ring-ring"
                           {...register('confirmPassword', {
                             required: 'Please confirm your password',
                             validate: value =>
@@ -691,9 +691,9 @@ export function ModernRegisterForm() {
                           }
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-400" />
+                            <EyeOff className="h-5 w-5 text-muted-foreground" />
                           ) : (
-                            <Eye className="h-5 w-5 text-gray-400" />
+                            <Eye className="h-5 w-5 text-muted-foreground" />
                           )}
                         </Button>
                       </div>
@@ -708,7 +708,7 @@ export function ModernRegisterForm() {
                   {watchedPassword && (
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <div className="h-2 flex-1 rounded-full bg-gray-200">
+                        <div className="h-2 flex-1 rounded-full bg-muted">
                           <div
                             className={`h-2 rounded-full transition-all duration-300 ${currentPasswordStrength.color}`}
                             style={{
@@ -716,7 +716,7 @@ export function ModernRegisterForm() {
                             }}
                           />
                         </div>
-                        <span className="text-xs text-gray-600">
+                        <span className="text-xs text-muted-foreground">
                           {currentPasswordStrength.label}
                         </span>
                       </div>
@@ -737,19 +737,19 @@ export function ModernRegisterForm() {
                     />
                     <Label
                       htmlFor="agreeToTerms"
-                      className="text-sm text-gray-600 dark:text-gray-400"
+                      className="text-sm text-muted-foreground dark:text-muted-foreground"
                     >
                       I agree to the{' '}
                       <Link
                         href="/terms"
-                        className="text-green-600 hover:text-green-700"
+                        className="text-primary hover:text-primary/80"
                       >
                         Terms of Service
                       </Link>{' '}
                       and{' '}
                       <Link
                         href="/privacy"
-                        className="text-green-600 hover:text-green-700"
+                        className="text-primary hover:text-primary/80"
                       >
                         Privacy Policy
                       </Link>
@@ -791,7 +791,7 @@ export function ModernRegisterForm() {
                   <span className="w-full border-t border-gray-300 dark:border-gray-600" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-muted-foreground">
                     Or continue with
                   </span>
                 </div>
@@ -838,12 +838,12 @@ export function ModernRegisterForm() {
               </Button>
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                   Already have an account?{' '}
                   <Link href="/login">
                     <Button
                       variant="link"
-                      className="h-auto p-0 font-medium text-green-600 hover:text-green-700"
+                      className="h-auto p-0 font-medium text-primary hover:text-primary/80"
                     >
                       Sign in
                     </Button>

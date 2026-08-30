@@ -110,11 +110,11 @@ export default function EmailPage() {
   )
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900">
-      <div className="flex w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div className="border-b border-gray-200 p-4 dark:border-gray-700">
+    <div className="flex h-[calc(100vh-4rem)] bg-muted">
+      <div className="flex w-64 flex-col border-r border-border bg-background">
+        <div className="border-b border-border p-4">
           <div className="mb-4 flex items-center justify-between">
-            <h1 className="flex items-center text-xl font-semibold text-gray-900 dark:text-white">
+            <h1 className="flex items-center text-xl font-semibold text-foreground">
               <Mail className="mr-2 h-5 w-5" />
               Email
             </h1>
@@ -162,8 +162,8 @@ export default function EmailPage() {
           />
 
           {activeAccount && (
-            <div className="border-t border-gray-200 p-3 dark:border-gray-700">
-              <h3 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className="border-t border-border p-3">
+              <h3 className="mb-2 text-sm font-medium text-foreground">
                 Folders
               </h3>
               <div className="space-y-1">
@@ -244,7 +244,7 @@ export default function EmailPage() {
                       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                         currentFolder === folder.id
                           ? 'bg-primary/10 text-primary'
-                          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+                          : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
                       <div className="flex items-center">
@@ -268,10 +268,10 @@ export default function EmailPage() {
       <div className="flex flex-1">
         {activeAccount ? (
           <>
-            <div className="flex w-96 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-              <div className="space-y-2 border-b border-gray-200 p-3 dark:border-gray-700">
+            <div className="flex w-96 flex-col border-r border-border bg-background">
+              <div className="space-y-2 border-b border-border p-3">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-medium text-gray-900 dark:text-white">
+                  <h2 className="text-sm font-medium text-foreground">
                     {providerFolders.find(f => f.id === currentFolder)?.name ||
                       currentFolder}
                   </h2>
@@ -318,7 +318,7 @@ export default function EmailPage() {
               </div>
             </div>
 
-            <div className="flex-1 bg-white dark:bg-gray-800">
+            <div className="flex-1 bg-background">
               {selectedEmailId ? (
                 <EmailDetails
                   emailId={selectedEmailId}
@@ -329,7 +329,7 @@ export default function EmailPage() {
                   onDelete={() => setSelectedEmailId(null)}
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-gray-500 dark:text-gray-400">
+                <div className="flex h-full items-center justify-center text-muted-foreground">
                   <div className="text-center">
                     <Mail className="mx-auto mb-4 h-12 w-12 opacity-50" />
                     <p className="mb-2 text-lg font-medium">
@@ -344,13 +344,13 @@ export default function EmailPage() {
             </div>
           </>
         ) : (
-          <div className="flex flex-1 items-center justify-center bg-white dark:bg-gray-800">
+          <div className="flex flex-1 items-center justify-center bg-background">
             <div className="max-w-md text-center">
-              <Mail className="mx-auto mb-6 h-16 w-16 text-gray-400" />
-              <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">
+              <Mail className="mx-auto mb-6 h-16 w-16 text-muted-foreground" />
+              <h2 className="mb-4 text-2xl font-semibold text-foreground">
                 Welcome to Email
               </h2>
-              <p className="mb-6 text-gray-600 dark:text-gray-400">
+              <p className="mb-6 text-muted-foreground">
                 Connect your email accounts to start managing your emails
                 directly from your CRM. Support for Gmail, Outlook, and custom
                 SMTP/IMAP servers.

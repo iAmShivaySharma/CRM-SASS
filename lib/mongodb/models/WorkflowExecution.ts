@@ -515,7 +515,6 @@ const WorkflowExecution = (mongoose.models.WorkflowExecution ||
     WorkflowExecutionSchema
   )) as IWorkflowExecutionModel
 
-// Drop the old unique index on n8nExecutionId that blocks null values
 if (typeof window === 'undefined') {
   mongoose.connection.on('connected', () => {
     WorkflowExecution.collection.dropIndex('n8nExecutionId_1').catch(() => {})

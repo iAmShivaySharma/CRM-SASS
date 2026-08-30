@@ -16,6 +16,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
+import { NotificationService } from '@/lib/services/notificationService'
 
 const createProjectSchema = z.object({
   name: z.string().min(1).max(100),
@@ -259,6 +260,18 @@ export const POST = withSecurityLogging(
         })
 
         await projectMember.save()
+
+        NotificationService.createNotification({
+          workspaceId,
+          title: 'Project Created',
+          message: `${auth.user.fullName || auth.user.email} created project: ${project.name}`,
+          type: 'success',
+          entityType: 'project',
+          entityId: project._id.toString(),
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
 
         await logUserActivity(
           auth.user.id,

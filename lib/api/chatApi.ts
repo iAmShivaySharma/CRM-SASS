@@ -213,6 +213,23 @@ export const chatApi = createApi({
       },
     }),
 
+    editMessage: builder.mutation<
+      { success: boolean; message: any },
+      { messageId: string; chatRoomId: string; content: string }
+    >({
+      query: ({ messageId, content }) => ({
+        url: `messages/${messageId}`,
+        method: 'PATCH',
+        body: { content },
+      }),
+      async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(
+          chatApi.util.invalidateTags([{ type: 'Message', id: chatRoomId }])
+        )
+      },
+    }),
+
     deleteMessage: builder.mutation<
       void,
       { messageId: string; chatRoomId: string }
@@ -320,6 +337,7 @@ export const {
   useDeleteChatRoomMutation,
   useGetMessagesQuery,
   useCreateMessageMutation,
+  useEditMessageMutation,
   useDeleteMessageMutation,
   useMarkMessagesAsReadMutation,
   useAddReactionMutation,

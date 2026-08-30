@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { LeaveRequest } from '@/lib/mongodb/models'
 import { log } from '@/lib/logging/logger'
+import { NotificationService } from '@/lib/services/notificationService'
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,7 +30,6 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
 
-    // Build query
     const query: any = { workspaceId }
 
     if (status) {
@@ -40,10 +40,8 @@ export async function GET(request: NextRequest) {
       query.employeeId = employeeId
     }
 
-    // Get total count
     const total = await LeaveRequest.countDocuments(query)
 
-    // Get leave requests
     const leaveRequests = await LeaveRequest.find(query)
       .populate('employeeId', 'fullName email')
       .populate('approvedBy', 'fullName')
@@ -119,7 +117,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for overlapping requests
     const overlapping = await (LeaveRequest as any).getOverlappingRequests(
       auth.user._id,
       new Date(startDate),
@@ -136,7 +133,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create leave request
     const leaveRequest = new LeaveRequest({
       workspaceId,
       employeeId: auth.user._id,
@@ -152,6 +148,18 @@ export async function POST(request: NextRequest) {
     })
 
     await leaveRequest.save()
+
+    await NotificationService.createNotification({
+      workspaceId,
+      title: 'Leave Request',
+      message: `${auth.user.fullName || auth.user.email} requested leave`,
+      type: 'info',
+      entityType: 'leave',
+      entityId: leaveRequest._id.toString(),
+      createdBy: auth.user._id,
+      notificationLevel: 'workspace',
+      excludeUserIds: [auth.user._id],
+    }).catch(() => {})
 
     log.info('Leave request created', {
       userId: auth.user._id,

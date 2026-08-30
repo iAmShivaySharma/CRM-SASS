@@ -305,7 +305,7 @@ export function LeadDetailsSheet({
       case 'low':
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+        return 'bg-muted text-foreground'
     }
   }
   return (
@@ -575,6 +575,29 @@ export function LeadDetailsSheet({
                 </Badge>
               </div>
 
+              {(lead as any).leadScore != null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Lead Score</span>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-20 rounded-full bg-gray-200">
+                      <div
+                        className={`h-2 rounded-full ${
+                          (lead as any).leadScore >= 60
+                            ? 'bg-green-500'
+                            : (lead as any).leadScore >= 30
+                              ? 'bg-yellow-500'
+                              : 'bg-gray-400'
+                        }`}
+                        style={{ width: `${(lead as any).leadScore}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium">
+                      {(lead as any).leadScore}/100
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Source</span>
                 <Badge variant="outline">{lead.source}</Badge>
@@ -748,7 +771,7 @@ export function LeadDetailsSheet({
                               href={String(value)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex max-w-[60%] items-center gap-1 truncate text-sm text-blue-600 hover:underline dark:text-blue-400"
+                              className="flex max-w-[60%] items-center gap-1 truncate text-sm text-primary hover:underline"
                             >
                               {String(value)
                                 .replace(/^https?:\/\/(www\.)?/, '')

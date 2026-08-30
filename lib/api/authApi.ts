@@ -1,4 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { logout } from '@/lib/slices/authSlice'
+import { clearPersistedData } from '@/lib/middleware/persistenceMiddleware'
 
 export interface AuthResponse {
   success: boolean
@@ -67,8 +69,14 @@ export const authApi = createApi({
         method: 'POST',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        await queryFulfilled
+        try {
+          await queryFulfilled
+        } catch {
+          // Clear state even if API call fails
+        }
+        dispatch(logout())
         dispatch(authApi.util.invalidateTags(['Auth']))
+        clearPersistedData()
       },
     }),
     verify: builder.query<VerifyResponse, void>({

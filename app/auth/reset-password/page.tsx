@@ -14,6 +14,6 @@ export default function ResetPasswordPage() {
 }
 
 export const metadata = {
-  title: 'Reset Password - CRM Pro',
+  title: 'Reset Password - ClearCRM',
   description: 'Create a new password for your CRM account',
 }

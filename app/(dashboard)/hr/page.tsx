@@ -8,10 +8,8 @@ import {
   UserCheck,
   UserX,
   Plus,
-  Download,
   Laptop,
   User,
-  ArrowRight,
   Building,
   ChevronRight,
   Loader2,
@@ -21,6 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AttendanceWidget } from '@/components/attendance/AttendanceWidget'
 import { useAppSelector } from '@/lib/hooks'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 interface HRStats {
   totalEmployees: number
@@ -82,7 +82,7 @@ export default function HRPage() {
             ? 'text-yellow-600'
             : 'text-red-600'
       default:
-        return 'text-gray-600'
+        return 'text-muted-foreground'
     }
   }
 
@@ -172,6 +172,12 @@ export default function HRPage() {
     },
   ]
 
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.MEMBERS_VIEW)) {
+    return <AccessDenied />
+  }
+
   if (!currentWorkspace) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -196,16 +202,10 @@ export default function HRPage() {
             Comprehensive HR management system for {currentWorkspace.name}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
-          <Button size="sm" onClick={() => router.push('/employees')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
-        </div>
+        <Button size="sm" onClick={() => router.push('/employees')}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Employee
+        </Button>
       </div>
 
       <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
@@ -338,7 +338,7 @@ export default function HRPage() {
                       {displayStats.attendanceRate}%
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-gray-200">
+                  <div className="h-2 w-full rounded-full bg-muted">
                     <div
                       className="h-2 rounded-full bg-primary transition-all duration-300"
                       style={{ width: `${displayStats.attendanceRate}%` }}
@@ -381,7 +381,7 @@ export default function HRPage() {
                     {module.stats.map((stat, index) => (
                       <div
                         key={index}
-                        className="rounded-lg bg-gray-50 p-3 text-center dark:bg-gray-800"
+                        className="rounded-lg bg-muted p-3 text-center"
                       >
                         <div className={`text-xl font-bold ${stat.color}`}>
                           {stat.value}
@@ -401,21 +401,13 @@ export default function HRPage() {
                       {module.actions.map(action => (
                         <span
                           key={action}
-                          className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                          className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground"
                         >
                           {action}
                         </span>
                       ))}
                     </div>
                   </div>
-
-                  <Button
-                    className="w-full transition-colors group-hover:bg-primary group-hover:text-white"
-                    variant="outline"
-                  >
-                    <ArrowRight className="mr-2 h-4 w-4" />
-                    Open {module.name}
-                  </Button>
                 </CardContent>
               </Card>
             )

@@ -58,14 +58,14 @@ export function ForgotPasswordForm() {
 
   if (emailSent) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-background dark:to-card">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="space-y-1 text-center">
             <div className="mb-4 flex items-center justify-center">
               <div className="flex items-center space-x-2">
                 <Briefcase className="h-8 w-8 text-blue-600" />
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                  CRM Pro
+                <span className="text-2xl font-bold text-foreground">
+                  ClearCRM
                 </span>
               </div>
             </div>
@@ -82,11 +82,11 @@ export function ForgotPasswordForm() {
             </div>
 
             <div className="space-y-2 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Click the link in the email to reset your password. The link
                 will expire in 1 hour.
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Didn&apos;t receive the email? Check your spam folder or try
                 again.
               </p>
@@ -118,14 +118,14 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-background dark:to-card">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1 text-center">
           <div className="mb-4 flex items-center justify-center">
             <div className="flex items-center space-x-2">
               <Briefcase className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                CRM Pro
+              <span className="text-2xl font-bold text-foreground">
+                ClearCRM
               </span>
             </div>
           </div>

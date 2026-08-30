@@ -180,7 +180,7 @@ export function ProjectAnalytics({
             <p className="text-xs text-muted-foreground">
               {taskStats.completed} of {taskStats.total} tasks completed
             </p>
-            <div className="mt-2 h-2 rounded-full bg-gray-200">
+            <div className="mt-2 h-2 rounded-full bg-muted">
               <div
                 className="h-2 rounded-full bg-green-500 transition-all"
                 style={{ width: `${taskStats.completionRate}%` }}
