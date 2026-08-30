@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/security/auth-middleware'
-import { WorkspaceMember, Activity } from '@/lib/mongodb/models'
+import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { WorkspaceMember, Workspace, Activity } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
 import {
@@ -10,6 +11,73 @@ import {
   withSecurityLogging,
 } from '@/lib/logging/middleware'
 import { NotificationService } from '@/lib/services/notificationService'
+import { checkPermission } from '@/lib/security/check-permission'
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; memberId: string }> }
+) {
+  try {
+    await connectToMongoDB()
+
+    const auth = await verifyAuthToken(request)
+    if (!auth) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id: workspaceId, memberId: targetUserId } = await params
+    const { roleId } = await request.json()
+
+    if (!roleId) {
+      return NextResponse.json(
+        { message: 'roleId is required' },
+        { status: 400 }
+      )
+    }
+
+    const permError = await checkPermission(
+      auth.user.id,
+      workspaceId,
+      'members:edit'
+    )
+    if (permError) return permError
+
+    const workspace = await Workspace.findById(workspaceId)
+    if (!workspace) {
+      return NextResponse.json(
+        { message: 'Workspace not found' },
+        { status: 404 }
+      )
+    }
+
+    if (workspace.ownerId === targetUserId) {
+      return NextResponse.json(
+        { message: 'Cannot change the role of the workspace owner' },
+        { status: 400 }
+      )
+    }
+
+    const member = await WorkspaceMember.findOne({
+      workspaceId,
+      userId: targetUserId,
+      status: 'active',
+    })
+
+    if (!member) {
+      return NextResponse.json({ message: 'Member not found' }, { status: 404 })
+    }
+
+    member.roleId = roleId
+    await member.save()
+
+    return NextResponse.json({ success: true, message: 'Member role updated' })
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Failed to update member role' },
+      { status: 500 }
+    )
+  }
+}
 
 export const DELETE = withSecurityLogging(
   withLogging(
