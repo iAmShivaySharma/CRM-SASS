@@ -59,8 +59,10 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const filePath = generateSecureFilePath(
-      `users/${auth.user.id}/avatar`,
-      file.name
+      'users',
+      auth.user.id,
+      file.name,
+      file.type
     )
 
     const uploadResult = await uploadFile(filePath, buffer, file.type, {
