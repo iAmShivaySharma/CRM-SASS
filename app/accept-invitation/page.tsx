@@ -160,6 +160,29 @@ function AcceptInvitationContent() {
     }
   }
 
+  const handleDecline = async () => {
+    if (!token) return
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/invitations/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      if (response.ok) {
+        setError('Invitation declined.')
+        setUserState('error')
+      } else {
+        const data = await response.json()
+        setError(data.message || 'Failed to decline')
+      }
+    } catch {
+      setError('Failed to decline invitation')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleRegistrationAndAccept = async () => {
     if (!token || !fullName || !password) return
 
@@ -168,8 +191,8 @@ function AcceptInvitationContent() {
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long')
       return
     }
 
@@ -194,10 +217,7 @@ function AcceptInvitationContent() {
 
       if (response.ok) {
         setResult(data)
-        setTimeout(
-          () => router.push('/auth/login?message=account-created'),
-          3000
-        )
+        setTimeout(() => router.push('/login?message=account-created'), 3000)
       } else {
         if (data.requireLogin) {
           setError(
@@ -246,7 +266,7 @@ function AcceptInvitationContent() {
           </CardHeader>
           <CardContent>
             <Button
-              onClick={() => router.push('/auth/login')}
+              onClick={() => router.push('/login')}
               className="w-full"
               variant="outline"
             >
@@ -333,12 +353,15 @@ function AcceptInvitationContent() {
 
             <div className="space-y-2">
               <Button
-                onClick={() =>
-                  router.push(
-                    '/auth/logout?redirect=' +
-                      encodeURIComponent(window.location.href)
-                  )
-                }
+                onClick={() => {
+                  fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                  }).then(() => {
+                    localStorage.removeItem('crm_auth_state')
+                    window.location.href = window.location.href
+                  })
+                }}
                 className="w-full"
                 variant="outline"
               >
@@ -411,11 +434,12 @@ function AcceptInvitationContent() {
 
             <div className="text-center">
               <Button
-                onClick={() => router.push('/dashboard')}
+                onClick={handleDecline}
                 variant="ghost"
-                className="text-sm"
+                className="text-sm text-destructive"
+                disabled={isLoading}
               >
-                Cancel
+                Decline Invitation
               </Button>
             </div>
           </CardContent>
@@ -515,14 +539,14 @@ function AcceptInvitationContent() {
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link
-                href={`/auth/login?redirect=${encodeURIComponent(window.location.href)}`}
+                href={`/login?redirect=${encodeURIComponent(window.location.href)}`}
                 className="text-blue-600 hover:underline"
               >
                 Log in instead
               </Link>
             </p>
             <Button
-              onClick={() => router.push('/auth/login')}
+              onClick={() => router.push('/login')}
               variant="ghost"
               className="text-sm"
             >

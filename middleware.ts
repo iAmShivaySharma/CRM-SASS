@@ -25,6 +25,14 @@ const PROTECTED_ROUTES = [
   '/leaves',
   '/notifications',
   '/plans',
+  '/invoices',
+  '/pipelines',
+  '/deals',
+  '/referrals',
+  '/email-sequences',
+  '/calendar',
+  '/meetings',
+  '/fmcg',
 ]
 
 const PUBLIC_ROUTES = [
@@ -35,6 +43,7 @@ const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/auth/signup',
   '/api/auth/google',
+  '/api/auth/logout',
   '/api/webhooks',
   '/api/whatsapp/webhook',
   '/shared',

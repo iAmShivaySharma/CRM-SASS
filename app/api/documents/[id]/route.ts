@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { ProjectDocument, Project, ProjectMember } from '@/lib/mongodb/client'
+import { DocumentVersion } from '@/lib/mongodb/models/Document'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
   withLogging,
@@ -244,12 +245,29 @@ export const PUT = withSecurityLogging(
 
         const updateData = validationResult.data
 
+        if (updateData.content && document.content) {
+          try {
+            await DocumentVersion.create({
+              documentId,
+              version: document.version || 1,
+              title: document.title,
+              content: document.content,
+              createdBy: document.lastEditedBy || document.createdBy,
+            })
+          } catch {}
+        }
+
+        const newVersion = updateData.content
+          ? (document.version || 1) + 1
+          : document.version || 1
+
         const updatedDocument = await ProjectDocument.findByIdAndUpdate(
           documentId,
           {
             ...updateData,
             lastEditedBy: auth.user.id,
             lastEditedAt: new Date(),
+            version: newVersion,
           },
           { new: true }
         )

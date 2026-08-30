@@ -1,0 +1,26 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": [
+    "app/**/{page,layout,route,loading,error,not-found,template,default}.{ts,tsx}",
+    "next.config.{js,mjs,ts}",
+    "lib/store.ts",
+    "components/providers/**/*.{ts,tsx}"
+  ],
+  "project": [
+    "app/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "lib/**/*.{ts,tsx}",
+    "hooks/**/*.{ts,tsx}",
+    "middleware.ts"
+  ],
+  "ignore": [
+    "**/*.d.ts",
+    ".next/**",
+    "node_modules/**",
+    "public/**"
+  ],
+  "ignoreDependencies": [
+    "@types/*"
+  ],
+  "ignoreExportsUsedInFile": true
+}

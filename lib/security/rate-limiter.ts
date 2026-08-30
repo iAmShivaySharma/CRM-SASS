@@ -1,5 +1,6 @@
 import { log } from '../logging/logger'
 import { logRateLimitEvent } from '../logging/middleware'
+import { getRedisClient, isRedisReady } from '../redis/client'
 
 interface RateLimitConfig {
   windowMs: number
@@ -24,6 +25,35 @@ const rateLimitStore = new Map<
     blockedUntil?: number
   }
 >()
+
+async function redisRateLimit(
+  key: string,
+  windowMs: number,
+  maxRequests: number
+): Promise<{ count: number; blocked: boolean } | null> {
+  try {
+    const redis = getRedisClient()
+    if (!redis || !isRedisReady()) return null
+
+    const redisKey = `rl:${key}`
+    const now = Date.now()
+    const windowStart = now - windowMs
+
+    const pipeline = redis.pipeline()
+    pipeline.zremrangebyscore(redisKey, 0, windowStart)
+    pipeline.zadd(redisKey, now, `${now}:${Math.random()}`)
+    pipeline.zcard(redisKey)
+    pipeline.pexpire(redisKey, windowMs)
+
+    const results = await pipeline.exec()
+    if (!results) return null
+
+    const count = (results[2]?.[1] as number) || 0
+    return { count, blocked: count > maxRequests }
+  } catch {
+    return null
+  }
+}
 
 const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
   auth: {
@@ -78,21 +108,55 @@ export async function rateLimit(
     : `${endpoint}:${identifier}`
 
   const now = Date.now()
+
+  const redisResult = await redisRateLimit(
+    key,
+    config.windowMs,
+    config.maxRequests
+  )
+
+  if (redisResult) {
+    const remaining = Math.max(0, config.maxRequests - redisResult.count)
+    const exceeded = redisResult.count > config.maxRequests
+
+    if (exceeded) {
+      const retryAfter = Math.ceil(config.windowMs / 1000)
+
+      logRateLimitEvent(identifier, endpoint, true, {
+        reason: 'limit_exceeded',
+        requestCount: redisResult.count,
+        maxRequests: config.maxRequests,
+        store: 'redis',
+      })
+
+      return {
+        success: false,
+        remaining: 0,
+        resetTime: now + config.windowMs,
+        retryAfter,
+      }
+    }
+
+    logRateLimitEvent(identifier, endpoint, false, {
+      remaining,
+      requestCount: redisResult.count,
+      maxRequests: config.maxRequests,
+      store: 'redis',
+    })
+
+    return {
+      success: true,
+      remaining,
+      resetTime: now + config.windowMs,
+    }
+  }
+
   const windowStart = now - config.windowMs
 
   let rateLimitData = rateLimitStore.get(key)
   if (!rateLimitData) {
     rateLimitData = { requests: [], blocked: false }
     rateLimitStore.set(key, rateLimitData)
-
-    log.debug(`Created new rate limit entry for ${key}`, {
-      endpoint,
-      identifier,
-      config: {
-        windowMs: config.windowMs,
-        maxRequests: config.maxRequests,
-      },
-    })
   }
 
   if (
@@ -106,6 +170,7 @@ export async function rateLimit(
       reason: 'currently_blocked',
       blockedUntil: new Date(rateLimitData.blockedUntil).toISOString(),
       retryAfter,
+      store: 'memory',
     })
 
     return {
@@ -116,41 +181,21 @@ export async function rateLimit(
     }
   }
 
-  const oldRequestCount = rateLimitData.requests.length
   rateLimitData.requests = rateLimitData.requests.filter(
     timestamp => timestamp > windowStart
   )
-  const cleanedRequests = oldRequestCount - rateLimitData.requests.length
-
-  if (cleanedRequests > 0) {
-    log.debug(`Cleaned ${cleanedRequests} old requests for ${key}`)
-  }
 
   if (rateLimitData.requests.length >= config.maxRequests) {
     const blockDuration = Math.min(config.windowMs * 2, 60 * 60 * 1000)
     rateLimitData.blocked = true
     rateLimitData.blockedUntil = now + blockDuration
 
-    log.security(
-      'Rate limit exceeded - potential DDoS attempt',
-      {
-        identifier,
-        endpoint,
-        requests: rateLimitData.requests.length,
-        maxRequests: config.maxRequests,
-        windowMs: config.windowMs,
-        blockDuration,
-        blockedUntil: new Date(rateLimitData.blockedUntil).toISOString(),
-      },
-      'high'
-    )
-
     logRateLimitEvent(identifier, endpoint, true, {
       reason: 'limit_exceeded',
       requestCount: rateLimitData.requests.length,
       maxRequests: config.maxRequests,
       blockDuration,
-      blockedUntil: new Date(rateLimitData.blockedUntil).toISOString(),
+      store: 'memory',
     })
 
     return {
@@ -173,15 +218,8 @@ export async function rateLimit(
     requestCount: rateLimitData.requests.length,
     maxRequests: config.maxRequests,
     processingTime,
+    store: 'memory',
   })
-
-  if (processingTime > 10) {
-    log.performance(`Rate limiting check for ${endpoint}`, processingTime, {
-      identifier,
-      endpoint,
-      requestCount: rateLimitData.requests.length,
-    })
-  }
 
   return {
     success: true,
