@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { dispatchWebhookEvent } from '@/lib/services/webhookDispatcher'
 import { Lead, WorkspaceMember, Activity } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import {
@@ -286,6 +287,12 @@ export const PUT = withSecurityLogging(
             })
           } catch (leadActivityError) {}
         }
+
+        dispatchWebhookEvent(workspaceId!, 'lead.updated', {
+          id: leadId,
+          name: lead.name,
+          updatedFields: Object.keys(updateData),
+        }).catch(() => {})
 
         logUserActivity(auth.user.id, 'lead_updated', 'lead', {
           leadId,

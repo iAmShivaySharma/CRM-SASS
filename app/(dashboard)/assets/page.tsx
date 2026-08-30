@@ -19,6 +19,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { AssetManagement } from '@/components/hr/AssetManagement'
 import { useAppSelector } from '@/lib/hooks'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 interface AssetStats {
   totalAssets: number
@@ -70,6 +72,12 @@ export default function AssetsPage() {
   const retiredAssets = stats?.byStatus?.retired || 0
   const totalAssets = stats?.totalAssets || 0
   const totalValue = stats?.totalPortfolioValue || 0
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.MEMBERS_VIEW)) {
+    return <AccessDenied />
+  }
 
   if (!currentWorkspace) {
     return (

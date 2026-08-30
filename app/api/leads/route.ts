@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { calculateLeadScore } from '@/lib/services/leadScoringService'
+import { dispatchWebhookEvent } from '@/lib/services/webhookDispatcher'
 import {
   Lead,
   WorkspaceMember,
@@ -132,7 +134,7 @@ export const GET = withSecurityLogging(
         const [leads, total] = await Promise.all([
           Lead.find(query)
             .select(
-              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt notes customData'
+              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt notes customData leadScore leadScoreFactors'
             )
             .populate('statusId', 'name color')
             .populate('tagIds', 'name color')
@@ -326,7 +328,15 @@ export const POST = withSecurityLogging(
             : undefined,
         }
 
-        const lead = await Lead.create(leadData)
+        const scoreResult = calculateLeadScore(leadData as any)
+        const scoredLeadData = {
+          ...leadData,
+          leadScore: scoreResult.score,
+          leadScoreFactors: scoreResult.factors,
+          priority: scoreResult.priority,
+        }
+
+        const lead = await Lead.create(scoredLeadData)
 
         const populatedLead = await Lead.findById(lead._id)
           .populate('tagIds', 'name color')
@@ -359,6 +369,14 @@ export const POST = withSecurityLogging(
           createdBy: auth.user.id,
           notificationLevel: 'team',
           excludeUserIds: [auth.user.id],
+        }).catch(() => {})
+
+        dispatchWebhookEvent(workspaceId, 'lead.created', {
+          id: lead._id,
+          name: leadData.name,
+          email: leadData.email,
+          company: leadData.company,
+          source: leadData.source,
         }).catch(() => {})
 
         logUserActivity(auth.user.id, 'lead_created', 'lead', {

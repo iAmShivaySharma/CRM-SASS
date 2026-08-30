@@ -43,6 +43,28 @@ import { MessageRead, type IMessageRead } from './models/MessageRead'
 import { Comment, type IComment } from './models/Comment'
 import { Sprint, type ISprint } from './models/Sprint'
 import { Quotation, type IQuotation } from './models/Quotation'
+import { Service, type IService } from './models/Service'
+import { Appointment, type IAppointment } from './models/Appointment'
+import {
+  WhatsAppAccount,
+  type IWhatsAppAccount,
+} from './models/WhatsAppAccount'
+import {
+  WhatsAppTemplate,
+  type IWhatsAppTemplate,
+} from './models/WhatsAppTemplate'
+import {
+  WhatsAppMessage,
+  type IWhatsAppMessage,
+} from './models/WhatsAppMessage'
+import { SmsTemplate, type ISmsTemplate } from './models/SmsTemplate'
+import { SmsLog, type ISmsLog } from './models/SmsLog'
+import { Invoice, type IInvoice } from './models/Invoice'
+import { PaymentRecord, type IPaymentRecord } from './models/Payment'
+import { Pipeline, type IPipeline } from './models/Pipeline'
+import { PipelineStage, type IPipelineStage } from './models/PipelineStage'
+import { Deal, type IDeal } from './models/Deal'
+import { DealActivity, type IDealActivity } from './models/DealActivity'
 
 export class MongoDBClient {
   constructor() {
@@ -417,4 +439,17 @@ export {
   Comment,
   Sprint,
   Quotation,
+  Service,
+  Appointment,
+  WhatsAppAccount,
+  WhatsAppTemplate,
+  WhatsAppMessage,
+  SmsTemplate,
+  SmsLog,
+  Invoice,
+  PaymentRecord,
+  Pipeline,
+  PipelineStage,
+  Deal,
+  DealActivity,
 }
