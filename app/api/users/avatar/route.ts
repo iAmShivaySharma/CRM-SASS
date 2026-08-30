@@ -7,7 +7,6 @@ import {
   generateSecureFilePath,
   validateFile,
   initializeBucket,
-  ALLOWED_FILE_TYPES,
 } from '@/lib/storage'
 
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024
@@ -31,9 +30,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'No file provided' }, { status: 400 })
     }
 
-    const validation = validateFile(file, ALLOWED_FILE_TYPES, MAX_AVATAR_SIZE)
-    if (!validation.valid) {
-      return NextResponse.json({ message: validation.error }, { status: 400 })
+    if (file.size > MAX_AVATAR_SIZE) {
+      return NextResponse.json(
+        { message: 'File too large. Maximum 5MB allowed.' },
+        { status: 400 }
+      )
+    }
+    const validation = validateFile({
+      mimetype: file.type,
+      size: file.size,
+      name: file.name,
+    })
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { message: validation.errors[0] },
+        { status: 400 }
+      )
     }
 
     try {
