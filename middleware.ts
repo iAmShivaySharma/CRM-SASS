@@ -45,6 +45,7 @@ const PUBLIC_ROUTES = [
   '/api/auth/google',
   '/api/auth/logout',
   '/api/webhooks',
+  '/api/whatsapp/webhook',
   '/shared',
   '/api/shared',
   '/blog',
