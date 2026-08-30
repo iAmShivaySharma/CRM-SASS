@@ -219,8 +219,9 @@ const FY_2025_26_TASKS = [
 ]
 
 function categoryBadgeClass(category: string) {
-  if (category === 'llp_mca' || category === 'fssai')
+  if (category === 'llp_mca' || category === 'fssai') {
     return 'bg-primary/10 text-primary hover:bg-primary/10'
+  }
   return 'bg-muted text-muted-foreground hover:bg-muted'
 }
 
@@ -231,8 +232,9 @@ function taskStatusClass(status: string) {
 }
 
 function docStatusBadgeClass(status: string) {
-  if (status === 'valid')
+  if (status === 'valid') {
     return 'bg-primary/10 text-primary hover:bg-primary/10'
+  }
   if (status === 'expired') return 'text-destructive bg-muted hover:bg-muted'
   return 'bg-muted text-muted-foreground hover:bg-muted'
 }

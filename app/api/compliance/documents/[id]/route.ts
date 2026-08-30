@@ -114,10 +114,12 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData: any = { ...validation.data }
-        if (updateData.issueDate)
+        if (updateData.issueDate) {
           updateData.issueDate = new Date(updateData.issueDate)
-        if (updateData.expiryDate)
+        }
+        if (updateData.expiryDate) {
           updateData.expiryDate = new Date(updateData.expiryDate)
+        }
 
         const document = await ComplianceDocument.findOneAndUpdate(
           { _id: id, workspaceId },

@@ -119,10 +119,12 @@ export const PUT = withSecurityLogging(
         }
 
         const updateData: any = { ...validation.data }
-        if (updateData.dueDate)
+        if (updateData.dueDate) {
           updateData.dueDate = new Date(updateData.dueDate)
-        if (updateData.completedDate)
+        }
+        if (updateData.completedDate) {
           updateData.completedDate = new Date(updateData.completedDate)
+        }
 
         const task = await ComplianceTask.findOneAndUpdate(
           { _id: id, workspaceId },
