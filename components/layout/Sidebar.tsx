@@ -92,6 +92,14 @@ const navigation = [
     permission: Permission.CONTACTS_VIEW,
   },
   {
+    name: 'Invoices',
+    href: '/invoices',
+    icon: FileText,
+    category: 'sales',
+    parent: 'sales',
+    permission: Permission.LEADS_VIEW,
+  },
+  {
     name: 'Deals',
     href: '/deals',
     icon: Handshake,
