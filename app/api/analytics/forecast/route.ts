@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
 
     const data = await cached(
       cacheKey,
+      300,
       async () => {
         const now = new Date()
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
@@ -157,8 +158,7 @@ export async function GET(request: NextRequest) {
             priorityBreakdown,
           },
         }
-      },
-      300
+      }
     )
 
     return NextResponse.json({ success: true, data })
