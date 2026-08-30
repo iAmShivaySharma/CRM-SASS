@@ -228,30 +228,13 @@ const navigation = [
     name: 'Appointments',
     href: '/appointments',
     icon: CalendarCheck,
-    category: 'section',
-    id: 'appointments',
-  },
-  {
-    name: 'Appointments',
-    href: '/appointments',
-    icon: CalendarCheck,
-    category: 'appointments',
-    parent: 'appointments',
-  },
-
-  {
-    name: 'Commerce',
-    href: '/commerce',
-    icon: Boxes,
-    category: 'section',
-    id: 'commerce',
+    category: 'main',
   },
   {
     name: 'Inventory',
     href: '/inventory',
     icon: Boxes,
-    category: 'commerce',
-    parent: 'commerce',
+    category: 'main',
   },
 
   {
@@ -411,8 +394,6 @@ export function Sidebar({
     engines: false,
     fmcg: false,
     communication: false,
-    appointments: false,
-    commerce: false,
   })
 
   const toggleSection = (sectionId: string) => {
@@ -435,7 +416,7 @@ export function Sidebar({
 
     if (isSection) {
       return (
-        <div key={item.name} className="mb-2">
+        <div key={item.id || item.name} className="mb-2">
           <button
             onClick={() => hasSubItems && toggleSection(item.id)}
             className={cn(
@@ -474,7 +455,7 @@ export function Sidebar({
 
     return (
       <Link
-        key={item.name}
+        key={item.href + item.name}
         href={item.href}
         className={cn(
           'group relative flex items-center overflow-hidden rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300',
