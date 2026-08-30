@@ -94,10 +94,8 @@ export default function BlogsManagementPage() {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      published:
-        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-      draft:
-        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+      published: 'bg-primary/10 text-primary',
+      draft: 'bg-muted text-muted-foreground',
       archived: 'bg-muted text-foreground',
     }
     return (

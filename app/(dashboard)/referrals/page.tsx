@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Copy, Gift, Users, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -14,42 +14,26 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useAppSelector } from '@/lib/hooks'
+import { useGetReferralsQuery } from '@/lib/api/referralsApi'
 
 export default function ReferralsPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
-  const [loading, setLoading] = useState(true)
-  const [referralLink, setReferralLink] = useState('')
-  const [referralCode, setReferralCode] = useState('')
-  const [referrals, setReferrals] = useState<any[]>([])
-  const [stats, setStats] = useState({
+  const [copied, setCopied] = useState(false)
+
+  const { data, isLoading } = useGetReferralsQuery(
+    { workspaceId: currentWorkspace?.id || '' },
+    { skip: !currentWorkspace?.id }
+  )
+
+  const referralLink = data?.referralLink || ''
+  const referralCode = data?.referralCode || ''
+  const referrals = data?.referrals || []
+  const stats = data?.stats || {
     totalReferred: 0,
     signedUp: 0,
     converted: 0,
     rewarded: 0,
-  })
-  const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    if (!currentWorkspace?.id) return
-
-    const fetchReferrals = async () => {
-      try {
-        const res = await fetch(
-          `/api/referrals?workspaceId=${currentWorkspace.id}`
-        )
-        const data = await res.json()
-        if (data.success) {
-          setReferralLink(data.referralLink)
-          setReferralCode(data.referralCode)
-          setReferrals(data.referrals)
-          setStats(data.stats)
-        }
-      } catch {}
-      setLoading(false)
-    }
-
-    fetchReferrals()
-  }, [currentWorkspace?.id])
+  }
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink)
@@ -58,7 +42,20 @@ export default function ReferralsPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (loading) {
+  if (!currentWorkspace) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">No Workspace Selected</h3>
+          <p className="text-muted-foreground">
+            Please select a workspace to view referrals.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -116,13 +113,13 @@ export default function ReferralsPage() {
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-blue-600">{stats.signedUp}</p>
+            <p className="text-3xl font-bold text-primary">{stats.signedUp}</p>
             <p className="text-sm text-muted-foreground">Signed Up</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-primary">
               {stats.converted}
             </p>
             <p className="text-sm text-muted-foreground">Converted</p>
@@ -130,7 +127,7 @@ export default function ReferralsPage() {
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-yellow-600">
+            <p className="text-3xl font-bold text-muted-foreground">
               {stats.rewarded}
             </p>
             <p className="text-sm text-muted-foreground">Rewarded</p>
@@ -150,7 +147,7 @@ export default function ReferralsPage() {
             <div className="space-y-3">
               {referrals.map((ref: any) => (
                 <div
-                  key={ref.id}
+                  key={ref.id || ref._id}
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div>

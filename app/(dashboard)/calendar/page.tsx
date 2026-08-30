@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   CalendarDays,
   Phone,
@@ -14,43 +14,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAppSelector } from '@/lib/hooks'
-
-interface CalendarEvent {
-  id: string
-  title: string
-  start: string
-  type: 'follow-up' | 'task' | 'meeting'
-  entityType: string
-  entityId: string
-  assignedTo?: string
-  priority?: string
-  status?: string
-}
+import { useGetCalendarEventsQuery } from '@/lib/api/calendarApi'
 
 export default function CalendarPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
-  const [events, setEvents] = useState<CalendarEvent[]>([])
-  const [loading, setLoading] = useState(true)
   const [currentDate, setCurrentDate] = useState(new Date())
 
-  useEffect(() => {
-    if (!currentWorkspace?.id) return
+  const { data, isLoading } = useGetCalendarEventsQuery(
+    { workspaceId: currentWorkspace?.id || '' },
+    { skip: !currentWorkspace?.id }
+  )
 
-    const fetchEvents = async () => {
-      try {
-        const res = await fetch(
-          `/api/calendar/events?workspaceId=${currentWorkspace.id}`
-        )
-        const data = await res.json()
-        if (data.success) {
-          setEvents(data.events)
-        }
-      } catch {}
-      setLoading(false)
-    }
-
-    fetchEvents()
-  }, [currentWorkspace?.id])
+  const events = data?.events || []
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -99,13 +74,13 @@ export default function CalendarPage() {
   const getEventColor = (type: string) => {
     switch (type) {
       case 'follow-up':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+        return 'bg-primary/10 text-primary'
       case 'task':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+        return 'bg-muted text-foreground'
       case 'meeting':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+        return 'bg-primary/10 text-primary'
       default:
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -122,7 +97,20 @@ export default function CalendarPage() {
     currentDate.getMonth() === today.getMonth() &&
     currentDate.getFullYear() === today.getFullYear()
 
-  if (loading) {
+  if (!currentWorkspace) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">No Workspace Selected</h3>
+          <p className="text-muted-foreground">
+            Please select a workspace to view your calendar.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

@@ -146,11 +146,11 @@ export default function ProjectDocumentsPage() {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'template':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+        return 'bg-muted text-foreground'
       case 'note':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+        return 'bg-muted text-muted-foreground'
       default:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+        return 'bg-primary/10 text-primary'
     }
   }
 
@@ -396,7 +396,7 @@ export default function ProjectDocumentsPage() {
         )
       ) : documentsError ? (
         <div className="flex h-32 items-center justify-center">
-          <div className="text-sm text-red-500">Error loading documents</div>
+          <div className="text-sm text-destructive">Error loading documents</div>
         </div>
       ) : filteredDocuments.length === 0 ? (
         <Card className="border-dashed">
@@ -485,7 +485,7 @@ export default function ProjectDocumentsPage() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        className="text-red-600"
+                        className="text-destructive"
                         onClick={() => handleDeleteDocument(document.id)}
                       >
                         Delete
@@ -594,7 +594,7 @@ export default function ProjectDocumentsPage() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-red-600"
+                          className="text-destructive"
                           onClick={() => handleDeleteDocument(document.id)}
                         >
                           Delete

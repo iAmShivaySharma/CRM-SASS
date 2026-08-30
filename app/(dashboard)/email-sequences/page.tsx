@@ -1,16 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Plus,
   Mail,
   Play,
   Pause,
   Trash2,
-  Edit,
-  Users,
   Loader2,
-  Clock,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -33,6 +30,12 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { useAppSelector } from '@/lib/hooks'
+import {
+  useGetSequencesQuery,
+  useCreateSequenceMutation,
+  useUpdateSequenceMutation,
+  useDeleteSequenceMutation,
+} from '@/lib/api/emailSequencesApi'
 
 interface SequenceStep {
   order: number
@@ -42,96 +45,52 @@ interface SequenceStep {
   delayHours: number
 }
 
-interface Sequence {
-  id: string
-  name: string
-  description?: string
-  steps: SequenceStep[]
-  status: 'draft' | 'active' | 'paused'
-  enrolledCount: number
-  completedCount: number
-  createdAt: string
-}
-
 export default function EmailSequencesPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
-  const [sequences, setSequences] = useState<Sequence[]>([])
-  const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
-  const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [steps, setSteps] = useState<SequenceStep[]>([
     { order: 0, subject: '', body: '', delayDays: 1, delayHours: 0 },
   ])
 
-  const fetchSequences = async () => {
-    if (!currentWorkspace?.id) return
-    try {
-      const res = await fetch(
-        `/api/email-sequences?workspaceId=${currentWorkspace.id}`
-      )
-      const data = await res.json()
-      if (data.success) {
-        setSequences(data.sequences)
-      }
-    } catch {}
-    setLoading(false)
-  }
+  const { data, isLoading } = useGetSequencesQuery(
+    { workspaceId: currentWorkspace?.id || '' },
+    { skip: !currentWorkspace?.id }
+  )
 
-  useEffect(() => {
-    fetchSequences()
-  }, [currentWorkspace?.id])
+  const [createSequence, { isLoading: creating }] = useCreateSequenceMutation()
+  const [updateSequence] = useUpdateSequenceMutation()
+  const [deleteSequence] = useDeleteSequenceMutation()
+
+  const sequences = data?.sequences || []
 
   const handleCreate = async () => {
     if (!name || steps.some(s => !s.subject || !s.body)) {
       toast.error('Fill in all step subjects and bodies')
       return
     }
-    setCreating(true)
     try {
-      const res = await fetch('/api/email-sequences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          workspaceId: currentWorkspace?.id,
-          name,
-          description,
-          steps,
-        }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        toast.success('Sequence created')
-        setCreateOpen(false)
-        setName('')
-        setDescription('')
-        setSteps([
-          { order: 0, subject: '', body: '', delayDays: 1, delayHours: 0 },
-        ])
-        fetchSequences()
-      } else {
-        toast.error(data.message || 'Failed to create')
-      }
+      await createSequence({
+        workspaceId: currentWorkspace?.id || '',
+        name,
+        description,
+        steps,
+      }).unwrap()
+      toast.success('Sequence created')
+      setCreateOpen(false)
+      setName('')
+      setDescription('')
+      setSteps([{ order: 0, subject: '', body: '', delayDays: 1, delayHours: 0 }])
     } catch {
       toast.error('Failed to create sequence')
-    } finally {
-      setCreating(false)
     }
   }
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
-      const res = await fetch(`/api/email-sequences/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        toast.success(`Sequence ${status}`)
-        fetchSequences()
-      }
+      await updateSequence({ id, status }).unwrap()
+      toast.success(`Sequence ${status}`)
     } catch {
       toast.error('Failed to update')
     }
@@ -139,9 +98,8 @@ export default function EmailSequencesPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`/api/email-sequences/${id}`, { method: 'DELETE' })
+      await deleteSequence(id).unwrap()
       toast.success('Sequence deleted')
-      fetchSequences()
     } catch {
       toast.error('Failed to delete')
     }
@@ -150,13 +108,7 @@ export default function EmailSequencesPage() {
   const addStep = () => {
     setSteps(prev => [
       ...prev,
-      {
-        order: prev.length,
-        subject: '',
-        body: '',
-        delayDays: 1,
-        delayHours: 0,
-      },
+      { order: prev.length, subject: '', body: '', delayDays: 1, delayHours: 0 },
     ])
   }
 
@@ -176,15 +128,28 @@ export default function EmailSequencesPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800'
+        return 'bg-primary/10 text-primary'
       case 'paused':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-muted text-muted-foreground'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted text-muted-foreground'
     }
   }
 
-  if (loading) {
+  if (!currentWorkspace) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">No Workspace Selected</h3>
+          <p className="text-muted-foreground">
+            Please select a workspace to view email sequences.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -220,7 +185,7 @@ export default function EmailSequencesPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {sequences.map(seq => (
-            <Card key={seq.id}>
+            <Card key={seq._id}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-base">{seq.name}</CardTitle>
@@ -240,17 +205,13 @@ export default function EmailSequencesPage() {
                     <Mail className="h-3.5 w-3.5" />
                     {seq.steps?.length || 0} steps
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3.5 w-3.5" />
-                    {seq.enrolledCount} enrolled
-                  </span>
                 </div>
                 <div className="flex gap-2">
                   {seq.status === 'draft' || seq.status === 'paused' ? (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleStatusChange(seq.id, 'active')}
+                      onClick={() => handleStatusChange(seq._id, 'active')}
                     >
                       <Play className="mr-1 h-3 w-3" />
                       Activate
@@ -259,7 +220,7 @@ export default function EmailSequencesPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleStatusChange(seq.id, 'paused')}
+                      onClick={() => handleStatusChange(seq._id, 'paused')}
                     >
                       <Pause className="mr-1 h-3 w-3" />
                       Pause
@@ -269,7 +230,7 @@ export default function EmailSequencesPage() {
                     size="sm"
                     variant="ghost"
                     className="text-destructive"
-                    onClick={() => handleDelete(seq.id)}
+                    onClick={() => handleDelete(seq._id)}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -335,11 +296,7 @@ export default function EmailSequencesPage() {
                           min={0}
                           value={step.delayDays}
                           onChange={e =>
-                            updateStep(
-                              i,
-                              'delayDays',
-                              parseInt(e.target.value) || 0
-                            )
+                            updateStep(i, 'delayDays', parseInt(e.target.value) || 0)
                           }
                           className="h-8"
                         />
@@ -352,11 +309,7 @@ export default function EmailSequencesPage() {
                           max={23}
                           value={step.delayHours}
                           onChange={e =>
-                            updateStep(
-                              i,
-                              'delayHours',
-                              parseInt(e.target.value) || 0
-                            )
+                            updateStep(i, 'delayHours', parseInt(e.target.value) || 0)
                           }
                           className="h-8"
                         />
