@@ -273,7 +273,7 @@ export function WebhookForm({ open, onClose, webhook }: WebhookFormProps) {
                   </SelectContent>
                 </Select>
                 {selectedConfig && (
-                  <p className="mt-1 text-sm text-gray-600">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {selectedConfig.description}
                   </p>
                 )}
@@ -304,7 +304,7 @@ export function WebhookForm({ open, onClose, webhook }: WebhookFormProps) {
                       <Label htmlFor={event.value} className="font-medium">
                         {event.label}
                       </Label>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {event.description}
                       </p>
                     </div>
@@ -390,7 +390,7 @@ export function WebhookForm({ open, onClose, webhook }: WebhookFormProps) {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                <p className="mt-2 text-sm text-gray-600">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Use this URL as the webhook endpoint in your external service
                 </p>
               </CardContent>

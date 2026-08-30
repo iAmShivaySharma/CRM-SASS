@@ -4,7 +4,7 @@ import { Lead } from '@/lib/mongodb/client'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 export async function GET(request: NextRequest) {
   try {
@@ -70,29 +70,21 @@ export async function GET(request: NextRequest) {
         : '',
     }))
 
-    const worksheet = XLSX.utils.json_to_sheet(rows)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads')
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Leads')
 
-    const colWidths = [
-      { wch: 25 },
-      { wch: 30 },
-      { wch: 15 },
-      { wch: 25 },
-      { wch: 15 },
-      { wch: 12 },
-      { wch: 10 },
-      { wch: 12 },
-      { wch: 20 },
-      { wch: 25 },
-      { wch: 40 },
-      { wch: 12 },
-    ]
-    worksheet['!cols'] = colWidths
+    if (rows.length > 0) {
+      worksheet.columns = Object.keys(rows[0]).map(key => ({
+        header: key,
+        key,
+        width: 20,
+      }))
+      rows.forEach(row => worksheet.addRow(row))
+    }
 
     if (format === 'csv') {
-      const csv = XLSX.utils.sheet_to_csv(worksheet)
-      return new NextResponse(csv, {
+      const csvBuffer = await workbook.csv.writeBuffer()
+      return new NextResponse(csvBuffer, {
         headers: {
           'Content-Type': 'text/csv',
           'Content-Disposition': `attachment; filename="leads-${Date.now()}.csv"`,
@@ -100,7 +92,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+    const buffer = await workbook.xlsx.writeBuffer()
 
     return new NextResponse(buffer, {
       headers: {

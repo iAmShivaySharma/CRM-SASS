@@ -10,6 +10,7 @@ import {
   Shield,
   User,
   MoreVertical,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
@@ -73,7 +74,8 @@ export default function ProjectMembersPage() {
   )
 
   const [addProjectMember] = useAddProjectMemberMutation()
-  const [removeProjectMember] = useRemoveProjectMemberMutation()
+  const [removeProjectMember, { isLoading: isRemovingMember }] =
+    useRemoveProjectMemberMutation()
 
   const members = membersData?.members || []
 
@@ -103,7 +105,7 @@ export default function ProjectMembersPage() {
       case 'admin':
         return <Shield className="h-4 w-4 text-blue-600" />
       default:
-        return <User className="h-4 w-4 text-gray-600" />
+        return <User className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -114,7 +116,7 @@ export default function ProjectMembersPage() {
       case 'admin':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -336,9 +338,13 @@ export default function ProjectMembersPage() {
                         <DropdownMenuItem>Send Message</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
+                          disabled={isRemovingMember}
                           className="text-red-600"
                           onClick={() => handleRemoveMember(member.id)}
                         >
+                          {isRemovingMember ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : null}
                           Remove from Project
                         </DropdownMenuItem>
                       </DropdownMenuContent>

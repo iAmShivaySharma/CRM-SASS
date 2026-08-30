@@ -72,6 +72,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement
+    const isDark = root.classList.contains('dark')
 
     const effectivePrimaryColor = primaryColor || customTheme.colors.primary
     if (effectivePrimaryColor) {
@@ -80,37 +81,62 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.style.setProperty('--theme-primary', primaryHsl)
       root.style.setProperty('--ring', primaryHsl)
     }
-    if (customTheme.colors.secondary) {
-      const secondaryHsl = hexToHsl(customTheme.colors.secondary)
-      root.style.setProperty('--secondary', secondaryHsl)
-      root.style.setProperty('--theme-secondary', secondaryHsl)
+
+    if (!isDark) {
+      if (customTheme.colors.secondary) {
+        const secondaryHsl = hexToHsl(customTheme.colors.secondary)
+        root.style.setProperty('--secondary', secondaryHsl)
+        root.style.setProperty('--theme-secondary', secondaryHsl)
+      }
+      if (customTheme.colors.accent) {
+        const accentHsl = hexToHsl(customTheme.colors.accent)
+        root.style.setProperty('--accent', accentHsl)
+        root.style.setProperty('--theme-accent', accentHsl)
+      }
+      if (customTheme.colors.background) {
+        const backgroundHsl = hexToHsl(customTheme.colors.background)
+        root.style.setProperty('--background', backgroundHsl)
+        root.style.setProperty('--theme-background', backgroundHsl)
+      }
+      if (customTheme.colors.surface) {
+        const surfaceHsl = hexToHsl(customTheme.colors.surface)
+        root.style.setProperty('--card', surfaceHsl)
+        root.style.setProperty('--theme-surface', surfaceHsl)
+      }
+      if (customTheme.colors.text) {
+        const textHsl = hexToHsl(customTheme.colors.text)
+        root.style.setProperty('--foreground', textHsl)
+        root.style.setProperty('--theme-text', textHsl)
+      }
+      if (customTheme.colors.border) {
+        const borderHsl = hexToHsl(customTheme.colors.border)
+        root.style.setProperty('--border', borderHsl)
+        root.style.setProperty('--theme-border', borderHsl)
+        root.style.setProperty('--input', borderHsl)
+      }
+    } else {
+      root.style.removeProperty('--secondary')
+      root.style.removeProperty('--accent')
+      root.style.removeProperty('--background')
+      root.style.removeProperty('--card')
+      root.style.removeProperty('--foreground')
+      root.style.removeProperty('--border')
+      root.style.removeProperty('--input')
+      root.style.removeProperty('--popover')
+      root.style.removeProperty('--popover-foreground')
+      root.style.removeProperty('--card-foreground')
+      root.style.removeProperty('--secondary-foreground')
+      root.style.removeProperty('--muted')
+      root.style.removeProperty('--muted-foreground')
+      root.style.removeProperty('--accent-foreground')
+      root.style.removeProperty('--theme-secondary')
+      root.style.removeProperty('--theme-accent')
+      root.style.removeProperty('--theme-background')
+      root.style.removeProperty('--theme-surface')
+      root.style.removeProperty('--theme-text')
+      root.style.removeProperty('--theme-border')
     }
-    if (customTheme.colors.accent) {
-      const accentHsl = hexToHsl(customTheme.colors.accent)
-      root.style.setProperty('--accent', accentHsl)
-      root.style.setProperty('--theme-accent', accentHsl)
-    }
-    if (customTheme.colors.background) {
-      const backgroundHsl = hexToHsl(customTheme.colors.background)
-      root.style.setProperty('--background', backgroundHsl)
-      root.style.setProperty('--theme-background', backgroundHsl)
-    }
-    if (customTheme.colors.surface) {
-      const surfaceHsl = hexToHsl(customTheme.colors.surface)
-      root.style.setProperty('--card', surfaceHsl)
-      root.style.setProperty('--theme-surface', surfaceHsl)
-    }
-    if (customTheme.colors.text) {
-      const textHsl = hexToHsl(customTheme.colors.text)
-      root.style.setProperty('--foreground', textHsl)
-      root.style.setProperty('--theme-text', textHsl)
-    }
-    if (customTheme.colors.border) {
-      const borderHsl = hexToHsl(customTheme.colors.border)
-      root.style.setProperty('--border', borderHsl)
-      root.style.setProperty('--theme-border', borderHsl)
-      root.style.setProperty('--input', borderHsl)
-    }
+
     if (customTheme.colors.success) {
       root.style.setProperty(
         '--theme-success',
@@ -176,7 +202,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.add(`density-${customTheme.spacing.density}`)
 
     root.classList.toggle('animations-disabled', !customTheme.animations)
-  }, [customTheme, primaryColor])
+  }, [customTheme, primaryColor, mode])
 
   return <>{children}</>
 }

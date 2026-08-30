@@ -62,7 +62,7 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
   }
 
   const priorityColors = {
-    low: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+    low: 'bg-muted text-foreground',
     medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
     urgent: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
@@ -80,7 +80,7 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
     // Status-based colors matching the column system
     switch (task.status?.toLowerCase()) {
       case 'todo':
-        return 'bg-gray-50/50 border-gray-200 dark:bg-gray-950/20 dark:border-gray-800'
+        return 'bg-muted/50 border-border'
       case 'in-progress':
         return 'bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800'
       case 'review':
@@ -150,7 +150,7 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
               {task.completed ? (
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
               ) : (
-                <Circle className="h-4 w-4 text-gray-400" />
+                <Circle className="h-4 w-4 text-muted-foreground" />
               )}
             </Button>
             <h4

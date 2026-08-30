@@ -1,8 +1,15 @@
 import mongoose from 'mongoose'
+import { validateEnv } from '@/lib/env'
 
 let connectionPromise: Promise<void> | null = null
+let envValidated = false
 
 async function connectToMongoDB(): Promise<void> {
+  if (!envValidated) {
+    validateEnv()
+    envValidated = true
+  }
+
   if (
     process.env.NODE_ENV === 'production' &&
     process.env.MONGODB_URI?.includes('placeholder')
@@ -33,7 +40,6 @@ async function connectToMongoDB(): Promise<void> {
       socketTimeoutMS: 45000,
       connectTimeoutMS: 30000,
       family: 4,
-      directConnection: true,
       retryWrites: true,
       retryReads: true,
     })

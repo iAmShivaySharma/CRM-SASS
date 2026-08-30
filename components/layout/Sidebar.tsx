@@ -34,6 +34,13 @@ import {
   Laptop,
   User,
   PenSquare,
+  Package,
+  ShoppingBag,
+  Layers,
+  Shield,
+  FlaskConical,
+  Truck,
+  MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -196,6 +203,56 @@ const navigation = [
   },
 
   { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
+
+  {
+    name: 'FMCG',
+    href: '/fmcg',
+    icon: Package,
+    category: 'section',
+    id: 'fmcg',
+  },
+  {
+    name: 'Products',
+    href: '/fmcg',
+    icon: ShoppingBag,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Batches',
+    href: '/fmcg/batches',
+    icon: Layers,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'FSSAI Licenses',
+    href: '/fmcg/licenses',
+    icon: Shield,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Test Reports',
+    href: '/fmcg/test-reports',
+    icon: FlaskConical,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Suppliers',
+    href: '/fmcg/suppliers',
+    icon: Truck,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Distribution',
+    href: '/fmcg/distribution',
+    icon: MapPin,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
   // {
   //   name: 'Analytics',
   //   href: '/analytics',
@@ -233,16 +290,12 @@ export function Sidebar({
   onMobileMenuToggle,
 }: SidebarProps) {
   const pathname = usePathname()
-  const { userPermissions } = usePermissions()
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
 
   const hasNavPermission = (permission?: Permission) => {
     if (!permission) return true
-    if (userPermissions.length === 0) return true
-    const permStr = permission as string
-    if (userPermissions.includes('*:*' as Permission)) return true
-    const [resource] = permStr.split('.')
-    if (userPermissions.includes(`${resource}.*` as Permission)) return true
-    return userPermissions.includes(permission)
+    if (permissionsLoading) return true
+    return hasPermission(permission)
   }
 
   const filteredNavigation = navigation.filter(item => {
@@ -263,6 +316,7 @@ export function Sidebar({
     projects: false,
     hr: false,
     engines: false,
+    fmcg: false,
   })
 
   const toggleSection = (sectionId: string) => {
@@ -291,16 +345,16 @@ export function Sidebar({
             className={cn(
               'group mb-2 mt-4 flex w-full items-center rounded-xl px-3 py-3 text-sm font-semibold transition-all duration-300',
               hasSubItems
-                ? 'cursor-pointer hover:scale-[1.01] hover:transform hover:bg-primary/30 hover:text-white hover:shadow-md dark:hover:bg-primary/40 dark:hover:text-white'
+                ? 'cursor-pointer hover:scale-[1.01] hover:transform hover:bg-primary-foreground/10 hover:text-primary-foreground'
                 : 'cursor-default',
-              'text-xs uppercase tracking-wider text-gray-600 dark:text-gray-400'
+              'text-xs uppercase tracking-wider text-primary-foreground/60'
             )}
           >
             <item.icon
               className={cn(
                 'h-5 w-5 shrink-0 transition-all duration-300',
                 collapsed ? 'mx-auto' : 'mr-3',
-                'text-gray-500 group-hover:text-white dark:text-gray-500 dark:group-hover:text-white'
+                'text-primary-foreground/70 group-hover:text-primary-foreground'
               )}
             />
             {!collapsed && (
@@ -309,9 +363,9 @@ export function Sidebar({
                 {hasSubItems && (
                   <span className="ml-auto transition-all duration-300 group-hover:scale-110">
                     {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-gray-500 group-hover:text-white dark:text-gray-500 dark:group-hover:text-white" />
+                      <ChevronDown className="h-4 w-4 text-primary-foreground/70" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-gray-500 group-hover:text-white dark:text-gray-500 dark:group-hover:text-white" />
+                      <ChevronRight className="h-4 w-4 text-primary-foreground/70" />
                     )}
                   </span>
                 )}
@@ -330,13 +384,13 @@ export function Sidebar({
           'group relative flex items-center overflow-hidden rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300',
           isSubItem && 'ml-6 rounded-lg py-2.5',
           isActive
-            ? 'scale-[1.02] transform bg-gradient-to-r from-primary to-primary/90 text-white shadow-lg shadow-primary/25'
-            : 'text-gray-700 hover:scale-[1.01] hover:transform hover:bg-primary/30 hover:text-white hover:shadow-md dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white'
+            ? 'bg-primary-foreground/20 font-semibold text-primary-foreground dark:bg-secondary dark:text-foreground'
+            : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-muted-foreground dark:hover:bg-secondary dark:hover:text-foreground'
         )}
       >
         {isSubItem && !collapsed && (
           <div className="mr-2 flex items-center">
-            <div className="h-3 w-3 rounded-bl-sm border-b-2 border-l-2 border-gray-400 group-hover:border-white dark:border-gray-500"></div>
+            <div className="h-3 w-3 rounded-bl-sm border-b-2 border-l-2 border-primary-foreground/50 group-hover:border-primary-foreground"></div>
           </div>
         )}
         <item.icon
@@ -344,8 +398,8 @@ export function Sidebar({
             'h-5 w-5 shrink-0 transition-all duration-300',
             collapsed ? 'mx-auto' : isSubItem ? 'mr-3' : 'mr-3',
             isActive
-              ? 'text-white drop-shadow-sm'
-              : 'text-gray-500 group-hover:text-white dark:text-gray-400 dark:group-hover:text-white'
+              ? 'text-primary-foreground'
+              : 'text-primary-foreground/70 group-hover:text-primary-foreground'
           )}
         />
         {!collapsed && (
@@ -361,7 +415,7 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        'fixed inset-y-0 left-0 z-50 bg-white shadow-xl transition-all duration-300 dark:bg-gray-950',
+        'fixed inset-y-0 left-0 z-50 bg-primary text-primary-foreground transition-all duration-300 dark:bg-muted dark:text-foreground',
         'hidden flex-col lg:flex',
         collapsed ? 'lg:w-16' : 'lg:w-64',
         mobileMenuOpen && 'flex w-64 flex-col',
@@ -371,7 +425,7 @@ export function Sidebar({
       <div className="flex h-full flex-col">
         <div
           className={cn(
-            'flex shrink-0 items-center bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10',
+            'flex shrink-0 items-center bg-primary text-primary-foreground dark:bg-muted',
             collapsed
               ? 'h-16 flex-col justify-center gap-1 px-2 py-2'
               : 'h-16 justify-between px-4'
@@ -379,11 +433,11 @@ export function Sidebar({
         >
           {!collapsed && (
             <div className="flex items-center space-x-3">
-              <div className="rounded-lg bg-primary p-1.5 shadow-lg">
-                <Briefcase className="h-6 w-6 text-white" />
+              <div className="rounded-lg bg-primary-foreground/20 p-1.5">
+                <Briefcase className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-xl font-bold text-transparent">
-                CRM Pro
+              <span className="text-xl font-bold text-primary-foreground">
+                ClearCRM
               </span>
             </div>
           )}
@@ -392,24 +446,24 @@ export function Sidebar({
             size="sm"
             onClick={onToggle}
             className={cn(
-              'hidden rounded-lg p-0 transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 lg:flex',
-              collapsed ? 'h-8 w-8' : 'h-9 w-9'
+              'hidden items-center justify-center rounded-lg bg-primary-foreground/20 text-primary-foreground transition-all duration-200 hover:!bg-primary-foreground/30 hover:!text-primary-foreground dark:bg-secondary dark:text-foreground dark:hover:!bg-secondary/80 lg:flex',
+              collapsed ? 'h-9 w-9' : 'h-9 w-9'
             )}
           >
             {collapsed ? (
-              <Briefcase className="h-5 w-5 text-primary" />
+              <ChevronRight className="!h-7 !w-7 text-primary-foreground" />
             ) : (
-              <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              <ChevronLeft className="!h-7 !w-7 text-primary-foreground" />
             )}
           </Button>
         </div>
 
         {/* Workspace Switcher */}
         {!collapsed && (
-          <div className="bg-gray-50/50 px-3 py-3 dark:bg-gray-900/30">
-            <div className="group rounded-lg px-2 py-1 transition-all duration-200 hover:bg-primary/30 hover:text-white dark:hover:bg-primary/40">
+          <div className="px-3 py-3">
+            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200 hover:[&_*]:text-primary-foreground">
               <WorkspaceSwitcher
-                className="[&_*]:group-hover:text-white [&_svg]:group-hover:text-white"
+                className="text-primary-foreground [&_*]:text-primary-foreground/80 [&_svg]:text-primary-foreground/60"
                 showCreateButton={true}
                 compact={false}
               />
@@ -417,12 +471,11 @@ export function Sidebar({
           </div>
         )}
 
-        {/* Collapsed workspace indicator */}
         {collapsed && (
-          <div className="bg-gray-50/50 px-2 py-3 dark:bg-gray-900/30">
-            <div className="group rounded-lg px-2 py-1 transition-all duration-200 hover:bg-primary/30 hover:text-white dark:hover:bg-primary/40">
+          <div className="px-2 py-3">
+            <div className="hover:bg-primary-foreground/15 group rounded-lg bg-primary-foreground/10 px-2 py-1 transition-all duration-200 hover:[&_*]:text-primary-foreground">
               <WorkspaceSwitcher
-                className="[&_*]:group-hover:text-white [&_svg]:group-hover:text-white"
+                className="text-primary-foreground [&_*]:text-primary-foreground/80 [&_svg]:text-primary-foreground/60"
                 showCreateButton={false}
                 compact={true}
               />
@@ -439,7 +492,7 @@ export function Sidebar({
         {/* User Profile - Bottom of sidebar */}
         <div
           className={cn(
-            'mt-auto bg-gradient-to-t from-gray-50/80 to-transparent dark:from-gray-900/50',
+            'mt-auto',
             collapsed ? 'flex justify-center px-1 py-3' : 'p-3'
           )}
         >

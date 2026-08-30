@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 
 export default function CTA() {
   return (
-    <section className="mx-auto max-w-6xl px-5 py-24 lg:py-32">
+    <section className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
       <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-16 text-center sm:px-16 lg:py-20">
         {/* circles */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/40 blur-3xl" />
@@ -15,16 +15,25 @@ export default function CTA() {
             Ready to consolidate your tool stack?
           </h2>
           <p className="mx-auto mt-4 max-w-md text-base text-primary-foreground/70">
-            Join 10,000+ teams who replaced 6 subscriptions with one.
-            Start free today — upgrade only when you&apos;re ready.
+            Join 10,000+ teams who replaced 6 subscriptions with one. Start free
+            today — upgrade only when you&apos;re ready.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Button asChild size="lg" className="h-12 rounded-lg bg-background px-7 text-[15px] font-semibold text-primary hover:bg-primary/10">
+            <Button
+              asChild
+              size="lg"
+              className="h-12 rounded-lg bg-background px-7 text-[15px] font-semibold text-primary hover:bg-primary/10"
+            >
               <Link href="/register">
                 Get started free <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="ghost" size="lg" className="h-12 rounded-lg border border-white/20 px-7 text-[15px] font-semibold text-white hover:bg-white/10">
+            <Button
+              asChild
+              variant="ghost"
+              size="lg"
+              className="h-12 rounded-lg border border-white/20 px-7 text-[15px] font-semibold text-white hover:bg-white/10"
+            >
               <a href="#calculator">See pricing</a>
             </Button>
           </div>

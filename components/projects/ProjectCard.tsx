@@ -35,7 +35,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const statusColors = {
     active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    archived: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+    archived: 'bg-muted text-foreground',
   }
 
   const visibilityColors = {
@@ -159,7 +159,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <span className="text-muted-foreground">Progress</span>
               <span className="font-medium">{completionPercentage}%</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+            <div className="h-2 w-full rounded-full bg-muted">
               <div
                 className="h-2 rounded-full bg-primary transition-all"
                 style={{ width: `${completionPercentage}%` }}

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { Message, ChatRoom, WorkspaceMember } from '@/lib/mongodb/models'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
+import { NotificationService } from '@/lib/services/notificationService'
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,7 +27,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verify user has access to chat room
     const chatRoom = await ChatRoom.findById(chatRoomId)
 
     if (!chatRoom) {
@@ -43,7 +43,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get messages with pagination
     const skip = (page - 1) * limit
     const messages = await Message.find({ chatRoomId })
       .populate('replyTo', 'content senderName createdAt')
@@ -55,7 +54,7 @@ export async function GET(request: NextRequest) {
     const hasMore = skip + messages.length < totalMessages
 
     return NextResponse.json({
-      messages: messages.reverse(), // Reverse to show oldest first
+      messages: messages.reverse(),
       pagination: {
         page,
         limit,
@@ -92,7 +91,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user has access to chat room
     const chatRoom = await ChatRoom.findById(chatRoomId)
 
     if (!chatRoom) {
@@ -109,7 +107,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create new message
     const message = new Message({
       content,
       type: type || 'text',
@@ -120,12 +117,11 @@ export async function POST(request: NextRequest) {
       fileName,
       fileSize,
       replyTo,
-      readBy: [{ userId: auth.user._id, readAt: new Date() }], // Mark as read by sender
+      readBy: [{ userId: auth.user._id, readAt: new Date() }],
     })
 
     await message.save()
 
-    // Update chat room's last message
     await ChatRoom.findByIdAndUpdate(chatRoomId, {
       lastMessage: {
         content:
@@ -136,6 +132,23 @@ export async function POST(request: NextRequest) {
         type: type || 'text',
       },
     })
+
+    const targetUserIds = chatRoom.participants
+      .map((id: any) => id.toString())
+      .filter((id: string) => id !== auth.user._id.toString())
+
+    await NotificationService.createNotification({
+      workspaceId: chatRoom.workspaceId,
+      title: 'New Message',
+      message: `${auth.user.fullName}: ${content.substring(0, 50)}`,
+      type: 'info',
+      entityType: 'message',
+      entityId: message._id.toString(),
+      createdBy: auth.user._id,
+      notificationLevel: 'team',
+      targetUserIds,
+      excludeUserIds: [auth.user._id],
+    }).catch(() => {})
 
     const populatedMessage = await Message.findById(message._id).populate(
       'replyTo',

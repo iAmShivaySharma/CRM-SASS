@@ -10,6 +10,7 @@ import {
   MoreVertical,
   MessageSquare,
   UserMinus,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -42,9 +43,12 @@ export function ProjectMembers({
   isLoading,
 }: ProjectMembersProps) {
   const [showInviteDialog, setShowInviteDialog] = useState(false)
-  const [removeProjectMember] = useRemoveProjectMemberMutation()
+  const [removeProjectMember, { isLoading: isRemovingMember }] =
+    useRemoveProjectMemberMutation()
 
-  const existingMemberIds = members.map(member => member.userId).filter(Boolean)
+  const existingMemberIds = members.flatMap(member =>
+    member.userId ? [member.userId] : []
+  )
 
   const handleRemoveMember = async (memberId: string, memberName: string) => {
     if (
@@ -87,7 +91,7 @@ export function ProjectMembers({
       case 'administrator':
         return <Shield className="h-4 w-4 text-blue-600" />
       default:
-        return <User className="h-4 w-4 text-gray-600" />
+        return <User className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -99,7 +103,7 @@ export function ProjectMembers({
       case 'administrator':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -242,6 +246,7 @@ export function ProjectMembers({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-600"
+                          disabled={isRemovingMember}
                           onClick={() =>
                             handleRemoveMember(
                               member.id,
@@ -249,7 +254,11 @@ export function ProjectMembers({
                             )
                           }
                         >
-                          <UserMinus className="mr-2 h-4 w-4" />
+                          {isRemovingMember ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <UserMinus className="mr-2 h-4 w-4" />
+                          )}
                           Remove from Project
                         </DropdownMenuItem>
                       </DropdownMenuContent>

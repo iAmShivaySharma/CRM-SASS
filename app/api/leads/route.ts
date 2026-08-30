@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
+import { calculateLeadScore } from '@/lib/services/leadScoringService'
+import { dispatchWebhookEvent } from '@/lib/services/webhookDispatcher'
 import {
   Lead,
   WorkspaceMember,
@@ -17,8 +19,9 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { NotificationService } from '@/lib/services/notificationService'
-import { activityQueue, notificationQueue } from '@/lib/queue/queues'
+import { activityQueue } from '@/lib/queue/queues'
 import { checkPermission } from '@/lib/security/check-permission'
+import { checkLeadLimit } from '@/lib/billing/plan-limits'
 
 const createLeadSchema = z.object({
   name: z.string().min(1).max(100),
@@ -74,6 +77,11 @@ export const GET = withSecurityLogging(
         const priority = url.searchParams.get('priority')
         const search = url.searchParams.get('search')
         const tags = url.searchParams.get('tags')?.split(',').filter(Boolean)
+        const source = url.searchParams.get('source')
+        const dateFrom = url.searchParams.get('dateFrom')
+        const dateTo = url.searchParams.get('dateTo')
+        const sortBy = url.searchParams.get('sortBy') || 'createdAt'
+        const sortOrder = url.searchParams.get('sortOrder') || 'desc'
         const skip = (page - 1) * limit
 
         if (!workspaceId) {
@@ -96,22 +104,42 @@ export const GET = withSecurityLogging(
         if (assignedTo) query.assignedTo = assignedTo
         if (priority) query.priority = priority
         if (tags && tags.length > 0) query.tagIds = { $in: tags }
+        if (source) query.source = source
+
+        if (dateFrom || dateTo) {
+          query.createdAt = {}
+          if (dateFrom) query.createdAt.$gte = new Date(dateFrom)
+          if (dateTo) {
+            const end = new Date(dateTo)
+            end.setHours(23, 59, 59, 999)
+            query.createdAt.$lte = end
+          }
+        }
 
         if (search) {
           query.$text = { $search: search }
         }
 
+        const sortMap: Record<string, any> = {
+          createdAt: { createdAt: sortOrder === 'asc' ? 1 : -1 },
+          name: { name: sortOrder === 'asc' ? 1 : -1 },
+          value: { value: sortOrder === 'asc' ? 1 : -1 },
+          priority: { priority: sortOrder === 'asc' ? 1 : -1 },
+          nextFollowUpAt: { nextFollowUpAt: sortOrder === 'asc' ? 1 : -1 },
+        }
+        const sortOption = search
+          ? { score: { $meta: 'textScore' } }
+          : sortMap[sortBy] || { createdAt: -1 }
+
         const [leads, total] = await Promise.all([
           Lead.find(query)
             .select(
-              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt notes customData'
+              'name email phone company status statusId source value assignedTo tagIds priority createdBy createdAt nextFollowUpAt notes customData leadScore leadScoreFactors'
             )
             .populate('statusId', 'name color')
             .populate('tagIds', 'name color')
             .populate('assignedTo', 'fullName email')
-            .sort(
-              search ? { score: { $meta: 'textScore' } } : { createdAt: -1 }
-            )
+            .sort(sortOption)
             .skip(skip)
             .limit(limit)
             .lean(),
@@ -229,6 +257,9 @@ export const POST = withSecurityLogging(
         )
         if (permError) return permError
 
+        const limitError = await checkLeadLimit(workspaceId)
+        if (limitError) return limitError
+
         const member = await WorkspaceMember.findOne({
           userId: auth.user.id,
           workspaceId,
@@ -297,7 +328,15 @@ export const POST = withSecurityLogging(
             : undefined,
         }
 
-        const lead = await Lead.create(leadData)
+        const scoreResult = calculateLeadScore(leadData as any)
+        const scoredLeadData = {
+          ...leadData,
+          leadScore: scoreResult.score,
+          leadScoreFactors: scoreResult.factors,
+          priority: scoreResult.priority,
+        }
+
+        const lead = await Lead.create(scoredLeadData)
 
         const populatedLead = await Lead.findById(lead._id)
           .populate('tagIds', 'name color')
@@ -320,7 +359,7 @@ export const POST = withSecurityLogging(
           },
         })
 
-        await notificationQueue.add('lead-created', {
+        await NotificationService.createNotification({
           workspaceId,
           title: 'New Lead Created',
           message: `${auth.user.fullName || auth.user.email} created a new lead: ${leadData.name}`,
@@ -330,13 +369,15 @@ export const POST = withSecurityLogging(
           createdBy: auth.user.id,
           notificationLevel: 'team',
           excludeUserIds: [auth.user.id],
-          metadata: {
-            leadName: leadData.name,
-            source: finalSource,
-            value: leadData.value || 0,
-            company: leadData.company,
-          },
-        })
+        }).catch(() => {})
+
+        dispatchWebhookEvent(workspaceId, 'lead.created', {
+          id: lead._id,
+          name: leadData.name,
+          email: leadData.email,
+          company: leadData.company,
+          source: leadData.source,
+        }).catch(() => {})
 
         logUserActivity(auth.user.id, 'lead_created', 'lead', {
           leadId: lead._id,
