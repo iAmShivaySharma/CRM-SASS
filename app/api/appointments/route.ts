@@ -284,7 +284,7 @@ export const POST = withSecurityLogging(
           entityType: 'appointment',
           entityId: appointment._id.toString(),
           createdBy: auth.user.id,
-          notificationLevel: data.assignedTo ? 'user' : 'team',
+          notificationLevel: data.assignedTo ? 'personal' : 'team',
           targetUserId: data.assignedTo,
           excludeUserIds: [auth.user.id],
         }).catch(() => {})
