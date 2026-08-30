@@ -61,8 +61,9 @@ interface RmLotListProps {
 const TEST_STATUSES = ['accepted', 'rejected', 'under_test']
 
 function testStatusBadgeClass(status: string) {
-  if (status === 'accepted')
+  if (status === 'accepted') {
     return 'bg-primary/10 text-primary hover:bg-primary/10'
+  }
   if (status === 'rejected') return 'bg-muted text-destructive hover:bg-muted'
   return 'bg-muted text-muted-foreground hover:bg-muted'
 }

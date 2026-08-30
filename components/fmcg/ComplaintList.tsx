@@ -85,8 +85,9 @@ const ACTIONS = [
 
 function severityBadgeClass(severity: string) {
   if (severity === 'critical') return 'bg-muted text-destructive hover:bg-muted'
-  if (severity === 'high')
+  if (severity === 'high') {
     return 'bg-muted text-muted-foreground hover:bg-muted'
+  }
   return 'bg-muted text-muted-foreground hover:bg-muted'
 }
 

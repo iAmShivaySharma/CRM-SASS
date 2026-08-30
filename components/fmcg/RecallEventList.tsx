@@ -70,10 +70,12 @@ const TRIGGERS = [
 ]
 
 function statusBadgeClass(status: string) {
-  if (status === 'initiated')
+  if (status === 'initiated') {
     return 'bg-muted text-muted-foreground hover:bg-muted'
-  if (status === 'in_progress')
+  }
+  if (status === 'in_progress') {
     return 'bg-primary/10 text-primary hover:bg-primary/10'
+  }
   return 'text-primary hover:bg-primary/10 bg-primary/10'
 }
 
