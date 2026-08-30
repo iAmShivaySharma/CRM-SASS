@@ -18,8 +18,9 @@ build/
 .gitignore
 .github
 
-# Docker (don't copy docker into itself)
-docker/
+# Docker
+Dockerfile.*
+docker/Dockerfile.dev
 docker-compose*.yml
 .dockerignore
 

@@ -69,6 +69,8 @@ export interface N8nExecuteWorkflowResponse {
   stoppedAt?: string
 }
 
+import log from '@/lib/logging/logger'
+
 export class N8nApiClient {
   private baseUrl: string
   private apiKey: string
@@ -258,7 +260,7 @@ export class N8nApiClient {
     const workflow = await this.getWorkflow(workflowId)
     const trigger = this.getTriggerInfo(workflow)
 
-    console.log(
+    log.debug(
       `[n8n] executeWorkflowAuto: "${workflow.name}" (id: ${workflowId}, active: ${workflow.active}, trigger: ${trigger.type}, path: ${trigger.webhookPath})`
     )
 
@@ -278,7 +280,7 @@ export class N8nApiClient {
         data
       )
       if (result) return result
-      console.log(`[n8n] Existing CRM webhook failed, will re-add...`)
+      log.debug(`[n8n] Existing CRM webhook failed, will re-add...`)
     }
 
     if (trigger.webhookPath && trigger.type === 'webhook') {
@@ -296,7 +298,7 @@ export class N8nApiClient {
       if (result) return result
     }
 
-    console.log(
+    log.debug(
       `[n8n] Workflow "${workflow.name}" — adding CRM API Trigger webhook...`
     )
     return this.addWebhookAndExecute(workflow, trigger, data)
@@ -344,7 +346,7 @@ export class N8nApiClient {
     const webhookPath = `crm-execute-${workflow.id}`
     const triggerNodeName = trigger.node?.name || 'Manual Trigger'
 
-    console.log(
+    log.debug(
       `[n8n] Adding CRM API Trigger to "${workflow.name}" (trigger: "${triggerNodeName}")`
     )
 
@@ -403,7 +405,7 @@ export class N8nApiClient {
               assignments: { assignments: updatedAssignments },
             },
           }
-          console.log(
+          log.debug(
             `[n8n] Modified Set node "${setNode.name}" to accept webhook input with defaults`
           )
         }
@@ -418,9 +420,9 @@ export class N8nApiClient {
 
     try {
       await this.activateWorkflow(workflow.id)
-      console.log(`[n8n] Workflow "${workflow.name}" activated`)
+      log.debug(`[n8n] Workflow "${workflow.name}" activated`)
     } catch (err) {
-      console.warn(
+      log.warn(
         `[n8n] Activation warning for "${workflow.name}":`,
         err instanceof Error ? err.message : err
       )
@@ -451,7 +453,7 @@ export class N8nApiClient {
 
     for (const url of uniqueUrls) {
       try {
-        console.log(`[n8n] Calling webhook: ${url}`)
+        log.debug(`[n8n] Calling webhook: ${url}`)
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -460,15 +462,15 @@ export class N8nApiClient {
         if (response.ok) {
           const text = await response.text()
           const result = text ? JSON.parse(text) : {}
-          console.log(`[n8n] Webhook responded OK from: ${url}`)
+          log.debug(`[n8n] Webhook responded OK from: ${url}`)
           return this.normalizeWebhookResponse(result)
         }
         const errBody = await response.text().catch(() => '')
-        console.log(
+        log.debug(
           `[n8n] Webhook ${url} returned ${response.status}: ${errBody}`
         )
       } catch (err) {
-        console.error(
+        log.error(
           `[n8n] Webhook ${url} fetch error:`,
           err instanceof Error ? err.message : err
         )

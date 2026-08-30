@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  Download,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
@@ -116,7 +117,7 @@ export function ContactList({
       case 'low':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -125,11 +126,11 @@ export function ContactList({
       case 'active':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
       case 'inactive':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-muted text-foreground'
       case 'archived':
         return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -144,7 +145,7 @@ export function ContactList({
       case 'vendor':
         return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -189,8 +190,21 @@ export function ContactList({
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Contacts ({contactsData.pagination.total})</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              window.open(
+                `/api/contacts/export?workspaceId=${workspaceId}&format=xlsx`,
+                '_blank'
+              )
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

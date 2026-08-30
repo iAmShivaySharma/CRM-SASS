@@ -54,7 +54,7 @@ export function KanbanColumn({
       ref={setNodeRef}
       className={cn(
         'flex h-full flex-col transition-colors',
-        isOver && 'ring-2 ring-primary ring-offset-2'
+        isOver && 'ring-1 ring-primary'
       )}
     >
       <CardHeader className="pb-3">

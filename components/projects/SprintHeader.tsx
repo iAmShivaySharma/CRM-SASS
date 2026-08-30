@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   MoreHorizontal,
   Pencil,
+  Loader2,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ interface SprintHeaderProps {
   onStart: () => void
   onComplete: () => void
   onEdit: () => void
+  isStarting?: boolean
 }
 
 export function SprintHeader({
@@ -31,6 +33,7 @@ export function SprintHeader({
   onStart,
   onComplete,
   onEdit,
+  isStarting,
 }: SprintHeaderProps) {
   const progress =
     sprint.taskCount > 0
@@ -49,7 +52,7 @@ export function SprintHeader({
   )
 
   const statusColors = {
-    planning: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+    planning: 'bg-muted text-foreground',
     active: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     completed:
       'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -99,8 +102,12 @@ export function SprintHeader({
 
         <div className="flex items-center gap-2">
           {sprint.status === 'planning' && (
-            <Button size="sm" onClick={onStart}>
-              <Play className="mr-1.5 h-3.5 w-3.5" />
+            <Button size="sm" disabled={isStarting} onClick={onStart}>
+              {isStarting ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Play className="mr-1.5 h-3.5 w-3.5" />
+              )}
               Start Sprint
             </Button>
           )}

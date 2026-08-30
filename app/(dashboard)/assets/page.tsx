@@ -5,12 +5,11 @@ import {
   Laptop,
   Users,
   Settings,
-  Plus,
-  Download,
   Package,
   AlertTriangle,
   TrendingUp,
   DollarSign,
+  Download,
   Calendar,
   Wrench,
   Loader2,
@@ -20,6 +19,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { AssetManagement } from '@/components/hr/AssetManagement'
 import { useAppSelector } from '@/lib/hooks'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 interface AssetStats {
   totalAssets: number
@@ -72,6 +73,12 @@ export default function AssetsPage() {
   const totalAssets = stats?.totalAssets || 0
   const totalValue = stats?.totalPortfolioValue || 0
 
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.MEMBERS_VIEW)) {
+    return <AccessDenied />
+  }
+
   if (!currentWorkspace) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -86,7 +93,7 @@ export default function AssetsPage() {
   }
 
   const getUtilizationColor = (allocated: number, total: number) => {
-    if (total === 0) return 'text-gray-600'
+    if (total === 0) return 'text-muted-foreground'
     const percentage = (allocated / total) * 100
     if (percentage > 80) return 'text-red-600'
     if (percentage > 60) return 'text-yellow-600'
@@ -104,16 +111,54 @@ export default function AssetsPage() {
             Manage company assets and allocations for {currentWorkspace.name}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Inventory
-          </Button>
-          <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Asset
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const rows = [
+              ['Status', 'Count', 'Percentage'],
+              [
+                'Available',
+                availableAssets,
+                totalAssets > 0
+                  ? `${Math.round((availableAssets / totalAssets) * 100)}%`
+                  : '0%',
+              ],
+              [
+                'Allocated',
+                allocatedAssets,
+                totalAssets > 0
+                  ? `${Math.round((allocatedAssets / totalAssets) * 100)}%`
+                  : '0%',
+              ],
+              [
+                'Maintenance',
+                maintenanceAssets,
+                totalAssets > 0
+                  ? `${Math.round((maintenanceAssets / totalAssets) * 100)}%`
+                  : '0%',
+              ],
+              [
+                'Retired',
+                retiredAssets,
+                totalAssets > 0
+                  ? `${Math.round((retiredAssets / totalAssets) * 100)}%`
+                  : '0%',
+              ],
+            ]
+            const csv = rows.map(r => r.join(',')).join('\n')
+            const blob = new Blob([csv], { type: 'text/csv' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `assets-${new Date().toISOString().split('T')[0]}.csv`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Export Inventory
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -269,7 +314,7 @@ export default function AssetsPage() {
                       Value: ${(category.totalValue / 1000).toFixed(0)}K
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-gray-200">
+                  <div className="h-2 w-full rounded-full bg-muted">
                     <div
                       className="h-2 rounded-full bg-primary transition-all duration-300"
                       style={{

@@ -29,6 +29,7 @@ const PROTECTED_ROUTES = [
   '/email-sequences',
   '/calendar',
   '/meetings',
+  '/fmcg',
 ]
 
 const PUBLIC_ROUTES = [
@@ -39,10 +40,12 @@ const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/auth/signup',
   '/api/auth/google',
+  '/api/auth/logout',
   '/api/webhooks',
   '/shared',
   '/api/shared',
   '/blog',
+  '/home',
   '/feed.xml',
 ]
 
@@ -54,10 +57,9 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 async function verifyToken(token: string): Promise<boolean> {
+  if (!process.env.JWT_SECRET) return false
   try {
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET || 'fallback-secret'
-    )
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
     const { payload } = await jwtVerify(token, secret)
     return !!(payload.userId && payload.exp && payload.exp > Date.now() / 1000)
   } catch {
@@ -214,8 +216,6 @@ export async function middleware(request: NextRequest) {
     const isAuthenticated = await verifyAuthFromRequest(request)
     if (isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
-    } else {
-      return NextResponse.redirect(new URL('/login', request.url))
     }
   }
 
@@ -239,11 +239,13 @@ export async function middleware(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.chatwoot.com https://checkout.razorpay.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
-    "font-src 'self'",
-    "connect-src 'self'",
+    "font-src 'self' https://app.chatwoot.com",
+    "connect-src 'self' https://app.chatwoot.com wss://app.chatwoot.com https://lumberjack.razorpay.com https://api.razorpay.com",
+    "frame-src 'self' https://app.chatwoot.com https://api.razorpay.com https://checkout.razorpay.com",
+    "child-src 'self' https://app.chatwoot.com https://checkout.razorpay.com",
     "frame-ancestors 'none'",
   ].join('; ')
 

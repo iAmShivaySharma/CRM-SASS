@@ -10,6 +10,7 @@ import {
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
+import { NotificationService } from '@/lib/services/notificationService'
 
 const createTaskSchema = z.object({
   title: z.string().min(1).max(200),
@@ -265,6 +266,22 @@ export const POST = withSecurityLogging(
         await task.save()
 
         await task.populate('assigneeId', 'fullName email avatarUrl')
+
+        const taskNotificationData: any = {
+          workspaceId: project.workspaceId.toString(),
+          title: 'Task Created',
+          message: `${auth.user.fullName || auth.user.email} created task: ${task.title}`,
+          type: 'success',
+          entityType: 'task',
+          entityId: task._id.toString(),
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }
+        if (validationResult.data.assigneeId) {
+          taskNotificationData.targetUserIds = [validationResult.data.assigneeId]
+        }
+        NotificationService.createNotification(taskNotificationData).catch(() => {})
 
         await logUserActivity(
           auth.user.id,

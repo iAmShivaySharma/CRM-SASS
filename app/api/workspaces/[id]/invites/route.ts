@@ -22,6 +22,7 @@ import { rateLimit } from '@/lib/security/rate-limiter'
 import { getClientIP } from '@/lib/utils/ip-utils'
 import { NotificationService } from '@/lib/services/notificationService'
 import { emailService } from '@/lib/services/emailService'
+import { checkMemberLimit } from '@/lib/billing/plan-limits'
 
 const inviteUserSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase(),
@@ -292,6 +293,9 @@ export const POST = withSecurityLogging(
           )
         }
 
+        const memberLimitError = await checkMemberLimit(workspaceId)
+        if (memberLimitError) return memberLimitError
+
         const inviteToken = generateInviteToken()
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
@@ -321,23 +325,37 @@ export const POST = withSecurityLogging(
           })
 
           if (!emailResult.success) {
-            log.warn(
-              'Failed to send invitation email, but continuing with invitation creation',
-              {
-                email,
-                workspaceId,
-                error: emailResult.error,
-              }
-            )
-          } else {
-            log.info('Invitation email sent successfully', {
+            log.warn('Failed to send invitation email', {
               email,
               workspaceId,
-              messageId: emailResult.messageId,
+              error: emailResult.error,
             })
+            await Invitation.findByIdAndDelete(invitation._id)
+            return NextResponse.json(
+              {
+                success: false,
+                message:
+                  'Failed to send invitation email. Please check the email address and try again.',
+              },
+              { status: 502 }
+            )
           }
+
+          log.info('Invitation email sent successfully', {
+            email,
+            workspaceId,
+            messageId: emailResult.messageId,
+          })
         } catch (emailError) {
           log.error('Error sending invitation email:', emailError)
+          await Invitation.findByIdAndDelete(invitation._id)
+          return NextResponse.json(
+            {
+              success: false,
+              message: 'Failed to send invitation email. Please try again.',
+            },
+            { status: 502 }
+          )
         }
 
         logUserActivity(userId, 'member_invited', 'workspace', {

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { NotificationService } from '@/lib/services/notificationService'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
+import { Notification } from '@/lib/mongodb/models'
 
 export async function GET(request: NextRequest) {
   try {
@@ -124,6 +125,56 @@ export async function PATCH(request: NextRequest) {
           : result
             ? 'Notification marked as read'
             : 'Notification not found or already read',
+    })
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const authResult = await verifyAuthToken(request)
+    if (!authResult || !authResult.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    await connectToMongoDB()
+
+    const { searchParams } = new URL(request.url)
+    const notificationId = searchParams.get('id')
+    const workspaceId = searchParams.get('workspaceId')
+
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: 'workspaceId is required' },
+        { status: 400 }
+      )
+    }
+
+    if (notificationId) {
+      await Notification.findOneAndDelete({
+        _id: notificationId,
+        'recipients.userId': authResult.user.id,
+      })
+      return NextResponse.json({
+        success: true,
+        message: 'Notification deleted',
+      })
+    }
+
+    const result = await Notification.deleteMany({
+      workspaceId,
+      'recipients.userId': authResult.user.id,
+      'recipients.readAt': { $ne: null },
+    })
+
+    return NextResponse.json({
+      success: true,
+      deletedCount: result.deletedCount,
+      message: `Deleted ${result.deletedCount} read notifications`,
     })
   } catch (error) {
     return NextResponse.json(

@@ -16,6 +16,8 @@ export interface ILead extends Omit<Document, '_id'> {
   tagIds: string[]
   notes?: string
   customData: Record<string, any>
+  leadScore: number
+  leadScoreFactors: string[]
   priority: 'low' | 'medium' | 'high'
   lastContactedAt?: Date
   nextFollowUpAt?: Date
@@ -99,6 +101,16 @@ const LeadSchema = new Schema<ILead>(
     customData: {
       type: Schema.Types.Mixed,
       default: {},
+    },
+    leadScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    leadScoreFactors: {
+      type: [String],
+      default: [],
     },
     priority: {
       type: String,

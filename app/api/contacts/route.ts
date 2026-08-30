@@ -12,6 +12,7 @@ import {
 import { log } from '@/lib/logging/logger'
 import { activityQueue } from '@/lib/queue/queues'
 import { checkPermission } from '@/lib/security/check-permission'
+import { NotificationService } from '@/lib/services/notificationService'
 
 const createContactSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
@@ -270,6 +271,18 @@ export const POST = withSecurityLogging(
             convertedFromLead: contactData.convertedFromLead || false,
           },
         })
+
+        NotificationService.createNotification({
+          workspaceId,
+          title: 'New Contact Created',
+          message: `${auth.user.fullName || auth.user.email} created contact: ${contactData.name}`,
+          type: 'success',
+          entityType: 'contact',
+          entityId: contact._id.toString(),
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
 
         logUserActivity(auth.user.id, 'contact_created', 'contact', {
           contactId: contact._id,

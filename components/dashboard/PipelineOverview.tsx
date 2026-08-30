@@ -38,10 +38,10 @@ export function PipelineOverview() {
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i}>
                 <div className="mb-2 flex items-center justify-between">
-                  <div className="h-4 w-20 rounded bg-gray-200"></div>
-                  <div className="h-4 w-16 rounded bg-gray-200"></div>
+                  <div className="h-4 w-20 rounded bg-muted"></div>
+                  <div className="h-4 w-16 rounded bg-muted"></div>
                 </div>
-                <div className="h-2 rounded bg-gray-200"></div>
+                <div className="h-2 rounded bg-muted"></div>
               </div>
             ))}
           </div>
@@ -64,7 +64,7 @@ export function PipelineOverview() {
             </div>
             <div className="h-2 w-full rounded-full bg-muted">
               <div
-                className="h-2 rounded-full bg-gray-300"
+                className="h-2 rounded-full bg-muted"
                 style={{ width: '0%' }}
               ></div>
             </div>
@@ -107,7 +107,7 @@ export function PipelineOverview() {
               </div>
               <div className="h-2 w-full rounded-full bg-muted">
                 <div
-                  className="h-2 rounded-full bg-gray-300"
+                  className="h-2 rounded-full bg-muted"
                   style={{ width: '0%' }}
                 ></div>
               </div>
