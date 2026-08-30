@@ -20,6 +20,8 @@ import { leaveApi } from './api/leaveApi'
 import { assetApi } from './api/assetApi'
 import { commentsApi } from './api/commentsApi'
 import { invoiceApi } from './api/invoiceApi'
+import { dealsApi } from './api/dealsApi'
+import { fmcgApi } from './api/fmcgApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -55,6 +57,8 @@ export const store = configureStore({
     [emailApi.reducerPath]: emailApi.reducer,
     [commentsApi.reducerPath]: commentsApi.reducer,
     [invoiceApi.reducerPath]: invoiceApi.reducer,
+    [dealsApi.reducerPath]: dealsApi.reducer,
+    [fmcgApi.reducerPath]: fmcgApi.reducer,
   } as any,
   preloadedState,
   middleware: getDefaultMiddleware =>
@@ -79,7 +83,9 @@ export const store = configureStore({
       assetApi.middleware,
       emailApi.middleware,
       commentsApi.middleware,
-      invoiceApi.middleware
+      invoiceApi.middleware,
+      dealsApi.middleware,
+      fmcgApi.middleware
     ),
 })
 
