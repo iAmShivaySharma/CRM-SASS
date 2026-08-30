@@ -76,6 +76,8 @@ import {
 } from '@/components/ui/skeleton'
 import { RoleForm } from '@/components/roles/RoleForm'
 import { getPermissionsForAPI } from '@/lib/permissions/constants'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 interface WorkspaceMember {
   id: string
@@ -294,6 +296,12 @@ export default function WorkspaceSettingsPage() {
       default:
         return 'text-muted-foreground'
     }
+  }
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.WORKSPACE_VIEW)) {
+    return <AccessDenied />
   }
 
   if (!currentWorkspace) {

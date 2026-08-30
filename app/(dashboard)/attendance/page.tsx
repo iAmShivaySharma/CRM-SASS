@@ -34,6 +34,8 @@ const AttendanceReports = dynamic(
 )
 import { ShiftManagement } from '@/components/hr/ShiftManagement'
 import { useAppSelector } from '@/lib/hooks'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 export default function AttendancePage() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -91,6 +93,12 @@ export default function AttendancePage() {
       default:
         return 'text-muted-foreground'
     }
+  }
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.MEMBERS_VIEW)) {
+    return <AccessDenied />
   }
 
   if (!currentWorkspace) {
