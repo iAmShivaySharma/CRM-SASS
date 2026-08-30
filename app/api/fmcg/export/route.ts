@@ -1,12 +1,18 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { withLogging, withSecurityLogging, logUserActivity } from '@/lib/logging/middleware'
+import {
+  withLogging,
+  withSecurityLogging,
+  logUserActivity,
+} from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
 import { FmcgProduct } from '@/lib/mongodb/models/FmcgProduct'
 import { FmcgBatch } from '@/lib/mongodb/models/FmcgBatch'
 import { FmcgFssaiLicense } from '@/lib/mongodb/models/FmcgFssaiLicense'
 import { FmcgTestReport } from '@/lib/mongodb/models/FmcgTestReport'
+import { FmcgDistribution } from '@/lib/mongodb/models/FmcgDistribution'
+import { buildFmcgWorkbook } from '@/lib/excel/fmcgExport'
 
 export const GET = withSecurityLogging(
   withLogging(
@@ -16,7 +22,10 @@ export const GET = withSecurityLogging(
 
         const auth = await verifyAuthToken(request)
         if (!auth) {
-          return NextResponse.json({ message: 'Authentication required' }, { status: 401 })
+          return NextResponse.json(
+            { message: 'Authentication required' },
+            { status: 401 }
+          )
         }
 
         const url = new URL(request.url)
@@ -27,7 +36,10 @@ export const GET = withSecurityLogging(
         const dateTo = url.searchParams.get('dateTo')
 
         if (!workspaceId) {
-          return NextResponse.json({ message: 'Workspace ID is required' }, { status: 400 })
+          return NextResponse.json(
+            { message: 'Workspace ID is required' },
+            { status: 400 }
+          )
         }
 
         const productQuery: any = { workspaceId }
@@ -46,12 +58,14 @@ export const GET = withSecurityLogging(
         if (batchIdFilter) reportQuery.batchId = batchIdFilter
         if (productIdFilter) reportQuery.productId = productIdFilter
 
-        const [products, batches, licenses, reports] = await Promise.all([
-          FmcgProduct.find(productQuery).lean(),
-          FmcgBatch.find(batchQuery).lean(),
-          FmcgFssaiLicense.find({ workspaceId }).lean(),
-          FmcgTestReport.find(reportQuery).lean(),
-        ])
+        const [products, batches, licenses, reports, distributions] =
+          await Promise.all([
+            FmcgProduct.find(productQuery).lean(),
+            FmcgBatch.find(batchQuery).lean(),
+            FmcgFssaiLicense.find({ workspaceId }).lean(),
+            FmcgTestReport.find(reportQuery).lean(),
+            FmcgDistribution.find({ workspaceId }).lean(),
+          ])
 
         const batchIds = batches.map((b: any) => b._id.toString())
 
@@ -59,51 +73,36 @@ export const GET = withSecurityLogging(
           ? reports
           : reports.filter((r: any) => batchIds.includes(r.batchId?.toString()))
 
-        const enrichedBatches = batches.map((batch: any) => ({
-          ...batch,
-          id: batch._id,
-          testReports: reportsForBatches
-            .filter((r: any) => r.batchId?.toString() === batch._id.toString())
-            .map((r: any) => ({ ...r, id: r._id })),
-        }))
-
-        const enrichedProducts = products.map((product: any) => ({
-          ...product,
-          id: product._id,
-          batches: enrichedBatches.filter(
-            (b: any) => b.productId?.toString() === product._id.toString()
-          ),
-        }))
-
         logUserActivity(auth.user.id, 'fmcg_export', 'fmcg_export', {
           workspaceId,
           productCount: products.length,
           batchCount: batches.length,
           reportCount: reportsForBatches.length,
+          distributionCount: distributions.length,
         })
 
-        return NextResponse.json({
-          success: true,
-          exportedAt: new Date().toISOString(),
-          workspaceId,
-          summary: {
-            totalProducts: products.length,
-            totalBatches: batches.length,
-            totalLicenses: licenses.length,
-            totalTestReports: reportsForBatches.length,
-          },
-          products: enrichedProducts,
-          licenses: licenses.map((l: any) => ({ ...l, id: l._id })),
-          filters: {
-            productId: productIdFilter,
-            batchId: batchIdFilter,
-            dateFrom,
-            dateTo,
+        const buffer = buildFmcgWorkbook({
+          products,
+          batches,
+          licenses,
+          testReports: reportsForBatches,
+          distributions,
+        })
+
+        return new NextResponse(buffer, {
+          status: 200,
+          headers: {
+            'Content-Type':
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition': `attachment; filename="fssai-export-${workspaceId}-${new Date().toISOString().split('T')[0]}.xlsx"`,
           },
         })
       } catch (error) {
         log.error('FMCG export error:', error)
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
+        return NextResponse.json(
+          { message: 'Internal server error' },
+          { status: 500 }
+        )
       }
     },
     { logBody: false, logHeaders: true }

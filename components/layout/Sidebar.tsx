@@ -50,6 +50,7 @@ import {
   ClipboardList,
   CalendarCheck,
   Boxes,
+  ClipboardCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -279,6 +280,13 @@ const navigation = [
   },
 
   { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
+
+  {
+    name: 'Compliance',
+    href: '/compliance',
+    icon: ClipboardCheck,
+    category: 'main',
+  },
 
   {
     name: 'FMCG',

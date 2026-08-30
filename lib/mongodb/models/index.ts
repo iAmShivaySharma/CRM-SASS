@@ -180,3 +180,9 @@ export {
   type IFmcgRecallEvent,
   type IDistributorNotification,
 } from './FmcgRecallEvent'
+
+export { ComplianceTask, type IComplianceTask } from './ComplianceTask'
+export {
+  ComplianceDocument,
+  type IComplianceDocument,
+} from './ComplianceDocument'

@@ -31,7 +31,6 @@ import {
   useGetTestReportsQuery,
   useGetSuppliersQuery,
   useGetDistributionsQuery,
-  useLazyExportFssaiDataQuery,
 } from '@/lib/api/fmcgApi'
 import { ProductList } from '@/components/fmcg/ProductList'
 import { BatchList } from '@/components/fmcg/BatchList'
@@ -78,8 +77,7 @@ export default function FmcgPage() {
     { skip: !workspaceId }
   )
 
-  const [triggerExport, { isFetching: exporting }] =
-    useLazyExportFssaiDataQuery()
+  const [exporting, setExporting] = useState(false)
 
   if (!currentWorkspace) {
     return (
@@ -96,19 +94,22 @@ export default function FmcgPage() {
 
   async function handleExport() {
     try {
-      const result = await triggerExport({ workspaceId }).unwrap()
-      const blob = new Blob([JSON.stringify(result, null, 2)], {
-        type: 'application/json',
-      })
+      setExporting(true)
+      const params = new URLSearchParams({ workspaceId })
+      const res = await fetch(`/api/fmcg/export?${params}`)
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `fssai-export-${currentWorkspace.name}-${new Date().toISOString().split('T')[0]}.json`
+      a.download = `fssai-export-${currentWorkspace.name}-${new Date().toISOString().split('T')[0]}.xlsx`
       a.click()
       URL.revokeObjectURL(url)
-      toast.success('FSSAI data exported successfully')
+      toast.success('FSSAI data exported as Excel')
     } catch {
       toast.error('Failed to export FSSAI data')
+    } finally {
+      setExporting(false)
     }
   }
 

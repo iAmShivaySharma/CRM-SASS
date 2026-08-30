@@ -34,6 +34,7 @@ import { referralsApi } from './api/referralsApi'
 import { blogApi } from './api/blogApi'
 import { projectMembersApi } from './api/projectMembersApi'
 import { documentsApi } from './api/documentsApi'
+import { complianceApi } from './api/complianceApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -83,6 +84,7 @@ export const store = configureStore({
     [blogApi.reducerPath]: blogApi.reducer,
     [projectMembersApi.reducerPath]: projectMembersApi.reducer,
     [documentsApi.reducerPath]: documentsApi.reducer,
+    [complianceApi.reducerPath]: complianceApi.reducer,
   } as any,
   preloadedState,
   middleware: getDefaultMiddleware =>
@@ -121,7 +123,8 @@ export const store = configureStore({
       referralsApi.middleware,
       blogApi.middleware,
       projectMembersApi.middleware,
-      documentsApi.middleware
+      documentsApi.middleware,
+      complianceApi.middleware
     ),
 })
 
