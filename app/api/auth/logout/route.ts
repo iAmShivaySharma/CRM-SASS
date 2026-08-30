@@ -3,64 +3,73 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { WorkspaceMember, Activity } from '@/lib/mongodb/client'
+import { log } from '@/lib/logging/logger'
+
+const COOKIE_NAME = 'auth_token'
 
 export async function POST(request: NextRequest) {
   try {
     await connectToMongoDB()
 
-    // Verify the user is authenticated
     const auth = await verifyAuthToken(request)
-    if (!auth) {
-      return NextResponse.json(
-        { message: 'Not authenticated' },
-        { status: 401 }
-      )
+
+    if (auth) {
+      try {
+        const userMemberships = await WorkspaceMember.find({
+          userId: auth.user._id,
+          status: 'active',
+        })
+
+        for (const membership of userMemberships) {
+          await Activity.create({
+            workspaceId: membership.workspaceId,
+            performedBy: auth.user.id,
+            activityType: 'deleted',
+            entityType: 'user',
+            entityId: auth.user.id,
+            description: `${auth.user.fullName} signed out`,
+            metadata: {
+              userEmail: auth.user.email,
+              signOutTime: new Date().toISOString(),
+              activitySubType: 'user_signed_out',
+            },
+          })
+        }
+      } catch (activityError) {
+        log.warn('Failed to log sign-out activity:', activityError)
+      }
     }
 
-    // Log sign-out activity for all user's workspaces
-    try {
-      const userMemberships = await WorkspaceMember.find({
-        userId: auth.user._id,
-        status: 'active',
-      })
-
-      for (const membership of userMemberships) {
-        await Activity.create({
-          workspaceId: membership.workspaceId,
-          performedBy: auth.user.id,
-          activityType: 'deleted', // Using 'deleted' as closest match for sign-out
-          entityType: 'user',
-          entityId: auth.user.id,
-          description: `${auth.user.fullName} signed out`,
-          metadata: {
-            userEmail: auth.user.email,
-            signOutTime: new Date().toISOString(),
-            activitySubType: 'user_signed_out',
-          },
-        })
-      }
-    } catch (activityError) {}
-
-    // Create response
     const response = NextResponse.json({
       success: true,
       message: 'Signed out successfully',
     })
 
-    // Clear the auth cookie
-    response.cookies.set('auth_token', '', {
+    response.cookies.set(COOKIE_NAME, '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.COOKIE_SECURE === 'true',
       sameSite: 'lax',
-      maxAge: 0, // Expire immediately
+      maxAge: 0,
       path: '/',
     })
 
     return response
   } catch (error) {
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    log.error('Logout error:', error)
+
+    const response = NextResponse.json({
+      success: true,
+      message: 'Signed out',
+    })
+
+    response.cookies.set(COOKIE_NAME, '', {
+      httpOnly: true,
+      secure: process.env.COOKIE_SECURE === 'true',
+      sameSite: 'lax',
+      maxAge: 0,
+      path: '/',
+    })
+
+    return response
   }
 }

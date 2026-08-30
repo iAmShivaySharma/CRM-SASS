@@ -58,6 +58,8 @@ import {
   getSupportedCurrencies,
   getSupportedTimezones,
 } from '@/lib/utils/workspace-formatting'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 const colorOptions = [
   { name: 'Blue', value: '#3b82f6' },
@@ -86,6 +88,7 @@ export default function SettingsPage() {
   const [updateWorkspace, { isLoading: isSavingWorkspace }] =
     useUpdateWorkspaceMutation()
 
+  const [avatarUrl, setAvatarUrl] = useState('')
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [notifications, setNotifications] = useState({
@@ -95,6 +98,8 @@ export default function SettingsPage() {
     teamActivity: true,
     weeklyReports: false,
   })
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
 
   const [workspaceForm, setWorkspaceForm] = useState({
     name: '',
@@ -149,6 +154,10 @@ export default function SettingsPage() {
       })
     }
   }, [workspaceData])
+
+  if (!permissionsLoading && !hasPermission(Permission.SETTINGS_VIEW)) {
+    return <AccessDenied />
+  }
 
   const handleSaveProfile = () => {
     toast.success('Profile updated successfully')
@@ -253,6 +262,63 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xl font-bold text-primary">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      user?.name?.charAt(0)?.toUpperCase() || '?'
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    id="avatar-upload"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async e => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const formData = new FormData()
+                      formData.append('file', file)
+                      try {
+                        const res = await fetch('/api/users/avatar', {
+                          method: 'POST',
+                          body: formData,
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          setAvatarUrl(data.avatarUrl)
+                          toast.success('Avatar updated')
+                        } else {
+                          toast.error(data.message || 'Upload failed')
+                        }
+                      } catch {
+                        toast.error('Upload failed')
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      document.getElementById('avatar-upload')?.click()
+                    }
+                  >
+                    Change Avatar
+                  </Button>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    JPG, PNG up to 5MB
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
