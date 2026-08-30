@@ -35,6 +35,16 @@ import {
   Laptop,
   User,
   PenSquare,
+  CalendarDays,
+  Gift,
+  MailPlus,
+  Package,
+  ShoppingBag,
+  Layers,
+  Shield,
+  FlaskConical,
+  Truck,
+  MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -162,6 +172,14 @@ const navigation = [
     permission: Permission.CHAT_VIEW,
   },
   { name: 'Email', href: '/email', icon: Mail, category: 'main' },
+  {
+    name: 'Sequences',
+    href: '/email-sequences',
+    icon: MailPlus,
+    category: 'main',
+  },
+  { name: 'Calendar', href: '/calendar', icon: CalendarDays, category: 'main' },
+  { name: 'Referrals', href: '/referrals', icon: Gift, category: 'main' },
 
   {
     name: 'Project',
@@ -205,6 +223,56 @@ const navigation = [
   },
 
   { name: 'Blog', href: '/blogs', icon: PenSquare, category: 'main' },
+
+  {
+    name: 'FMCG',
+    href: '/fmcg',
+    icon: Package,
+    category: 'section',
+    id: 'fmcg',
+  },
+  {
+    name: 'Products',
+    href: '/fmcg',
+    icon: ShoppingBag,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Batches',
+    href: '/fmcg/batches',
+    icon: Layers,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'FSSAI Licenses',
+    href: '/fmcg/licenses',
+    icon: Shield,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Test Reports',
+    href: '/fmcg/test-reports',
+    icon: FlaskConical,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Suppliers',
+    href: '/fmcg/suppliers',
+    icon: Truck,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
+  {
+    name: 'Distribution',
+    href: '/fmcg/distribution',
+    icon: MapPin,
+    category: 'fmcg',
+    parent: 'fmcg',
+  },
   // {
   //   name: 'Analytics',
   //   href: '/analytics',
@@ -242,16 +310,12 @@ export function Sidebar({
   onMobileMenuToggle,
 }: SidebarProps) {
   const pathname = usePathname()
-  const { userPermissions } = usePermissions()
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
 
   const hasNavPermission = (permission?: Permission) => {
     if (!permission) return true
-    if (userPermissions.length === 0) return true
-    const permStr = permission as string
-    if (userPermissions.includes('*:*' as Permission)) return true
-    const [resource] = permStr.split('.')
-    if (userPermissions.includes(`${resource}.*` as Permission)) return true
-    return userPermissions.includes(permission)
+    if (permissionsLoading) return true
+    return hasPermission(permission)
   }
 
   const filteredNavigation = navigation.filter(item => {
@@ -272,6 +336,7 @@ export function Sidebar({
     projects: false,
     hr: false,
     engines: false,
+    fmcg: false,
   })
 
   const toggleSection = (sectionId: string) => {

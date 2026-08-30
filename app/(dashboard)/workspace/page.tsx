@@ -26,6 +26,9 @@ import {
   useGetWorkspaceQuery,
   useGetWorkspaceRolesQuery,
   useInviteToWorkspaceMutation,
+  useResendInvitationMutation,
+  useCancelInvitationMutation,
+  useRemoveMemberMutation,
   useUpdateWorkspaceMutation,
 } from '@/lib/api/mongoApi'
 import {
@@ -73,6 +76,8 @@ import {
 } from '@/components/ui/skeleton'
 import { RoleForm } from '@/components/roles/RoleForm'
 import { getPermissionsForAPI } from '@/lib/permissions/constants'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 interface WorkspaceMember {
   id: string
@@ -124,6 +129,9 @@ export default function WorkspaceSettingsPage() {
   const permissionsData = getPermissionsForAPI()
   const [inviteToWorkspace, { isLoading: inviteLoading }] =
     useInviteToWorkspaceMutation()
+  const [resendInvitation] = useResendInvitationMutation()
+  const [cancelInvitation] = useCancelInvitationMutation()
+  const [removeMember] = useRemoveMemberMutation()
   const [updateWorkspace, { isLoading: updateLoading }] =
     useUpdateWorkspaceMutation()
 
@@ -288,6 +296,12 @@ export default function WorkspaceSettingsPage() {
       default:
         return 'text-muted-foreground'
     }
+  }
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.WORKSPACE_VIEW)) {
+    return <AccessDenied />
   }
 
   if (!currentWorkspace) {
@@ -596,18 +610,77 @@ export default function WorkspaceSettingsPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Role
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Resend Invitation
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Remove Member
-                              </DropdownMenuItem>
+                              {member.status === 'active' && (
+                                <>
+                                  <DropdownMenuItem>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit Role
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={async () => {
+                                      try {
+                                        await removeMember({
+                                          workspaceId: currentWorkspace?.id,
+                                          memberId: member.id || member._id,
+                                        }).unwrap()
+                                        toast.success('Member removed')
+                                      } catch (err: any) {
+                                        toast.error(
+                                          err?.data?.message ||
+                                            'Failed to remove'
+                                        )
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Remove Member
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              {member.status === 'pending' && (
+                                <>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      try {
+                                        await resendInvitation({
+                                          workspaceId: currentWorkspace?.id,
+                                          inviteId: member.id || member._id,
+                                        }).unwrap()
+                                        toast.success('Invitation resent')
+                                      } catch (err: any) {
+                                        toast.error(
+                                          err?.data?.message ||
+                                            'Failed to resend'
+                                        )
+                                      }
+                                    }}
+                                  >
+                                    <Mail className="mr-2 h-4 w-4" />
+                                    Resend Invitation
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={async () => {
+                                      try {
+                                        await cancelInvitation({
+                                          workspaceId: currentWorkspace?.id,
+                                          inviteId: member.id || member._id,
+                                        }).unwrap()
+                                        toast.success('Invitation cancelled')
+                                      } catch (err: any) {
+                                        toast.error(
+                                          err?.data?.message ||
+                                            'Failed to cancel'
+                                        )
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Cancel Invitation
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}

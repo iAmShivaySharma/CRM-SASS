@@ -88,3 +88,11 @@ export { Pipeline, type IPipeline } from './Pipeline'
 export { PipelineStage, type IPipelineStage } from './PipelineStage'
 export { Deal, type IDeal } from './Deal'
 export { DealActivity, type IDealActivity } from './DealActivity'
+
+// FMCG Brand Management Models
+export { FmcgProduct, type IFmcgProduct } from './FmcgProduct'
+export { FmcgBatch, type IFmcgBatch } from './FmcgBatch'
+export { FmcgFssaiLicense, type IFmcgFssaiLicense } from './FmcgFssaiLicense'
+export { FmcgTestReport, type IFmcgTestReport } from './FmcgTestReport'
+export { FmcgSupplier, type IFmcgSupplier } from './FmcgSupplier'
+export { FmcgDistribution, type IFmcgDistribution } from './FmcgDistribution'

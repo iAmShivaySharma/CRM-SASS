@@ -12,6 +12,8 @@ import {
   useGetWorkspaceMembersQuery,
   useGetRolesQuery,
 } from '@/lib/api/mongoApi'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 export default function EmployeesPage() {
   const [activeTab, setActiveTab] = useState('list')
@@ -33,6 +35,12 @@ export default function EmployeesPage() {
   const activeEmployees = members.filter(
     (m: any) => m.status === 'active'
   ).length
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.MEMBERS_VIEW)) {
+    return <AccessDenied />
+  }
 
   if (!currentWorkspace) {
     return (

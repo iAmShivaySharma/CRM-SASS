@@ -23,7 +23,7 @@ const acceptWithRegistrationSchema = z.object({
     .max(100, 'Name too long'),
   password: z
     .string()
-    .min(6, 'Password must be at least 6 characters')
+    .min(8, 'Password must be at least 8 characters')
     .max(100, 'Password too long'),
 })
 
@@ -108,7 +108,8 @@ export const POST = withSecurityLogging(
         fullName,
         email: invitation.email,
         password: hashedPassword,
-        emailVerified: true, // Consider email verified since they received the invitation
+        emailConfirmed: true,
+        emailConfirmedAt: new Date(),
         createdAt: new Date(),
       })
 
@@ -121,6 +122,8 @@ export const POST = withSecurityLogging(
         roleId: invitation.roleId._id,
         status: 'active',
         joinedAt: new Date(),
+        invitedBy: invitation.invitedBy._id,
+        invitedAt: invitation.createdAt,
       })
 
       await membership.save()
