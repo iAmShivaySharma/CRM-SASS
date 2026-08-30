@@ -83,8 +83,7 @@ export async function signUp({
       email,
       password: hashedPassword,
       fullName,
-      emailConfirmed: true,
-      emailConfirmedAt: new Date(),
+      emailConfirmed: false,
     })
 
     await user.save()

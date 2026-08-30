@@ -515,8 +515,10 @@ const WorkflowExecution = (mongoose.models.WorkflowExecution ||
     WorkflowExecutionSchema
   )) as IWorkflowExecutionModel
 
-mongoose.connection.on('connected', () => {
-  WorkflowExecution.collection.dropIndex('n8nExecutionId_1').catch(() => {})
-})
+if (typeof window === 'undefined') {
+  mongoose.connection.on('connected', () => {
+    WorkflowExecution.collection.dropIndex('n8nExecutionId_1').catch(() => {})
+  })
+}
 
 export default WorkflowExecution

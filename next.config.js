@@ -19,6 +19,7 @@ const nextConfig = {
     'web-push',
     'exceljs',
     'bullmq',
+    'speakeasy',
   ],
   async headers() {
     return [

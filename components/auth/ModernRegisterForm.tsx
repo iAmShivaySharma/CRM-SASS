@@ -102,6 +102,10 @@ export function ModernRegisterForm() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showOtpInput, setShowOtpInput] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
   const [attemptCount, setAttemptCount] = useState(0)
   const [isBlocked, setIsBlocked] = useState(false)
   const [blockTimeRemaining, setBlockTimeRemaining] = useState(0)
@@ -217,6 +221,14 @@ export function ModernRegisterForm() {
           workspaceName: data.workspaceName.trim(),
         }).unwrap()
 
+        if (result.requiresVerification) {
+          setRegisteredEmail(data.email.toLowerCase().trim())
+          setShowOtpInput(true)
+          setLoading(false)
+          toast.success('Verification code sent to your email!')
+          return
+        }
+
         dispatch(
           loginSuccess({
             user: {
@@ -299,7 +311,7 @@ export function ModernRegisterForm() {
         return {
           strength: 0,
           label: 'Enter password',
-          color: 'bg-muted',
+          color: 'bg-gray-300',
           percentage: 0,
         }
       }
@@ -346,13 +358,13 @@ export function ModernRegisterForm() {
               <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm">
                 <Briefcase className="h-8 w-8" />
               </div>
-              <span className="text-3xl font-bold">ClearCRM</span>
+              <span className="text-3xl font-bold">CRM Pro</span>
             </div>
             <h1 className="mb-4 text-4xl font-bold leading-tight">
               Start your CRM journey today
             </h1>
-            <p className="mb-8 text-xl text-green-100">
-              Join thousands of businesses that trust ClearCRM to manage their
+            <p className="mb-8 text-xl text-primary">
+              Join thousands of businesses that trust CRM Pro to manage their
               customer relationships and drive growth.
             </p>
           </div>
@@ -364,7 +376,7 @@ export function ModernRegisterForm() {
               </div>
               <div>
                 <h3 className="font-semibold">Quick Setup</h3>
-                <p className="text-sm text-green-100">
+                <p className="text-sm text-primary">
                   Get started in under 5 minutes
                 </p>
               </div>
@@ -375,7 +387,7 @@ export function ModernRegisterForm() {
               </div>
               <div>
                 <h3 className="font-semibold">Secure & Reliable</h3>
-                <p className="text-sm text-green-100">
+                <p className="text-sm text-primary">
                   Your data is protected with enterprise security
                 </p>
               </div>
@@ -386,7 +398,7 @@ export function ModernRegisterForm() {
               </div>
               <div>
                 <h3 className="font-semibold">Global Access</h3>
-                <p className="text-sm text-green-100">
+                <p className="text-sm text-primary">
                   Access your CRM from anywhere
                 </p>
               </div>
@@ -398,299 +410,388 @@ export function ModernRegisterForm() {
         <div className="absolute bottom-0 left-0 h-48 w-48 -translate-x-24 translate-y-24 rounded-full bg-white/5"></div>
       </div>
 
-      <div className="flex flex-1 items-center justify-center bg-muted/50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="flex flex-1 items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:hidden">
             <div className="mb-4 flex items-center justify-center space-x-2">
               <div className="rounded-lg bg-green-600 p-2">
                 <Briefcase className="h-6 w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-foreground">
-                ClearCRM
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                CRM Pro
               </span>
             </div>
           </div>
 
-          <Card className="border-0 bg-card shadow-2xl">
+          <Card className="border-0 bg-white shadow-2xl dark:bg-gray-800">
             <CardHeader className="space-y-1 pb-6 text-center">
-              <CardTitle className="text-3xl font-bold text-foreground">
+              <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white">
                 Create your account
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
+              <CardDescription className="text-muted-foreground dark:text-muted-foreground">
                 Start managing your business relationships today
               </CardDescription>
             </CardHeader>
 
             <CardContent className="px-6 pb-6">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="fullName"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Full Name
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
-                      <Input
-                        id="fullName"
-                        type="text"
-                        placeholder="Enter your full name"
-                        className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
-                        {...register('fullName', {
-                          required: 'Full name is required',
-                          minLength: {
-                            value: 2,
-                            message: 'Name must be at least 2 characters',
-                          },
-                        })}
-                      />
+              {showOtpInput ? (
+                <div className="space-y-6 py-4">
+                  <div className="text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                      <Mail className="h-8 w-8 text-primary" />
                     </div>
-                    {errors.fullName && (
-                      <p className="text-sm text-red-600">
-                        {errors.fullName.message}
-                      </p>
-                    )}
+                    <h3 className="text-lg font-semibold">Verify your email</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      We sent a 6-digit code to{' '}
+                      <strong>{registeredEmail}</strong>
+                    </p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="email"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Email Address
-                    </Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email address"
-                        className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
-                        {...register('email', {
-                          required: 'Email is required',
-                          pattern: {
-                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: 'Invalid email address',
-                          },
-                        })}
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="text-sm text-red-600">
-                        {errors.email.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="workspaceName"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Workspace Name
-                  </Label>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
-                    <Input
-                      id="workspaceName"
+                  <div className="flex justify-center">
+                    <input
                       type="text"
-                      placeholder="Enter your company or workspace name"
-                      className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
-                      {...register('workspaceName', {
-                        required: 'Workspace name is required',
-                        minLength: {
-                          value: 2,
-                          message:
-                            'Workspace name must be at least 2 characters',
-                        },
-                      })}
+                      value={otpCode}
+                      onChange={e =>
+                        setOtpCode(
+                          e.target.value.replace(/\D/g, '').slice(0, 6)
+                        )
+                      }
+                      placeholder="000000"
+                      maxLength={6}
+                      className="w-48 rounded-lg border px-4 py-3 text-center text-2xl tracking-[0.5em] focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
                     />
                   </div>
-                  {errors.workspaceName && (
-                    <p className="text-sm text-red-600">
-                      {errors.workspaceName.message}
-                    </p>
-                  )}
+                  <Button
+                    className="w-full"
+                    disabled={otpCode.length !== 6 || verifyingOtp}
+                    onClick={async () => {
+                      setVerifyingOtp(true)
+                      try {
+                        const res = await fetch('/api/auth/verify-email', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            email: registeredEmail,
+                            otp: otpCode,
+                          }),
+                        })
+                        const data = await res.json()
+                        if (!res.ok) {
+                          toast.error(data.message || 'Invalid code')
+                          setVerifyingOtp(false)
+                          return
+                        }
+                        dispatch(
+                          loginSuccess({
+                            user: {
+                              id: data.user.id,
+                              email: data.user.email,
+                              name: data.user.fullName || data.user.email,
+                              role: data.user.role || 'Owner',
+                              roleId: data.user.roleId || '',
+                              workspaceId:
+                                data.workspace?.id || data.workspace?._id || '',
+                              permissions: data.user.permissions || ['*:*'],
+                            },
+                          })
+                        )
+                        if (data.workspace) {
+                          dispatch(
+                            setCurrentWorkspace({
+                              id: data.workspace.id || data.workspace._id,
+                              name: data.workspace.name,
+                              plan: data.workspace.planId || 'free',
+                              memberCount: 1,
+                              createdAt: data.workspace.createdAt,
+                            })
+                          )
+                        }
+                        toast.success('Email verified! Welcome to CRM Pro!')
+                        setTimeout(() => {
+                          window.location.href = '/dashboard'
+                        }, 1000)
+                      } catch {
+                        toast.error('Verification failed')
+                        setVerifyingOtp(false)
+                      }
+                    }}
+                  >
+                    {verifyingOtp ? 'Verifying...' : 'Verify & Continue'}
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Didn&apos;t receive the code? Check your spam folder.
+                  </p>
                 </div>
+              ) : (
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="fullName"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Full Name
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
+                        <Input
+                          id="fullName"
+                          type="text"
+                          placeholder="Enter your full name"
+                          className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
+                          {...register('fullName', {
+                            required: 'Full name is required',
+                            minLength: {
+                              value: 2,
+                              message: 'Name must be at least 2 characters',
+                            },
+                          })}
+                        />
+                      </div>
+                      {errors.fullName && (
+                        <p className="text-sm text-red-600">
+                          {errors.fullName.message}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="email"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Email Address
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="Enter your email address"
+                          className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
+                          {...register('email', {
+                            required: 'Email is required',
+                            pattern: {
+                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                              message: 'Invalid email address',
+                            },
+                          })}
+                        />
+                      </div>
+                      {errors.email && (
+                        <p className="text-sm text-red-600">
+                          {errors.email.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label
-                      htmlFor="password"
+                      htmlFor="workspaceName"
                       className="text-sm font-medium text-foreground"
                     >
-                      Password
+                      Workspace Name
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
+                      <Building className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
                       <Input
-                        id="password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Create a strong password"
-                        className="h-12 rounded-lg border-border pl-11 pr-12 focus:border-ring focus:ring-1 focus:ring-ring"
-                        {...register('password', {
-                          required: 'Password is required',
+                        id="workspaceName"
+                        type="text"
+                        placeholder="Enter your company or workspace name"
+                        className="h-12 rounded-lg border-border pl-11 focus:border-ring focus:ring-1 focus:ring-ring"
+                        {...register('workspaceName', {
+                          required: 'Workspace name is required',
                           minLength: {
-                            value: 8,
-                            message: 'Password must be at least 8 characters',
+                            value: 2,
+                            message:
+                              'Workspace name must be at least 2 characters',
                           },
                         })}
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-5 w-5 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </Button>
                     </div>
-                    {errors.password && (
+                    {errors.workspaceName && (
                       <p className="text-sm text-red-600">
-                        {errors.password.message}
+                        {errors.workspaceName.message}
                       </p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="confirmPassword"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Confirm Password
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        placeholder="Confirm your password"
-                        className="h-12 rounded-lg border-border pl-11 pr-12 focus:border-ring focus:ring-1 focus:ring-ring"
-                        {...register('confirmPassword', {
-                          required: 'Please confirm your password',
-                          validate: value =>
-                            value === watchedPassword ||
-                            'Passwords do not match',
-                        })}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="password"
+                        className="text-sm font-medium text-foreground"
                       >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-5 w-5 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                    {errors.confirmPassword && (
-                      <p className="text-sm text-red-600">
-                        {errors.confirmPassword.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {watchedPassword && (
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-2 flex-1 rounded-full bg-muted">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-300 ${currentPasswordStrength.color}`}
-                          style={{
-                            width: `${currentPasswordStrength.percentage}%`,
-                          }}
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
+                        <Input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Create a strong password"
+                          className="h-12 rounded-lg border-border pl-11 pr-12 focus:border-ring focus:ring-1 focus:ring-ring"
+                          {...register('password', {
+                            required: 'Password is required',
+                            minLength: {
+                              value: 8,
+                              message: 'Password must be at least 8 characters',
+                            },
+                          })}
                         />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </Button>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {currentPasswordStrength.label}
-                      </span>
+                      {errors.password && (
+                        <p className="text-sm text-red-600">
+                          {errors.password.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="confirmPassword"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Confirm Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-muted-foreground" />
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          placeholder="Confirm your password"
+                          className="h-12 rounded-lg border-border pl-11 pr-12 focus:border-ring focus:ring-1 focus:ring-ring"
+                          {...register('confirmPassword', {
+                            required: 'Please confirm your password',
+                            validate: value =>
+                              value === watchedPassword ||
+                              'Passwords do not match',
+                          })}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
+                      {errors.confirmPassword && (
+                        <p className="text-sm text-red-600">
+                          {errors.confirmPassword.message}
+                        </p>
+                      )}
                     </div>
                   </div>
-                )}
 
-                <div className="flex items-center space-x-2">
-                  <Controller
-                    name="agreeToTerms"
-                    control={control}
-                    render={({ field }) => (
-                      <Checkbox
-                        id="agreeToTerms"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    )}
-                  />
-                  <Label
-                    htmlFor="agreeToTerms"
-                    className="text-sm text-muted-foreground"
-                  >
-                    I agree to the{' '}
-                    <Link
-                      href="/terms"
-                      className="text-green-600 hover:text-green-700"
-                    >
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link
-                      href="/privacy"
-                      className="text-green-600 hover:text-green-700"
-                    >
-                      Privacy Policy
-                    </Link>
-                  </Label>
-                </div>
-                {errors.agreeToTerms && (
-                  <p className="text-sm text-red-600">
-                    You must agree to the terms and conditions
-                  </p>
-                )}
-
-                <Button
-                  type="submit"
-                  className="h-12 w-full rounded-lg bg-green-600 font-medium text-white shadow-lg transition-all duration-200 hover:bg-green-700 hover:shadow-xl disabled:cursor-not-allowed disabled:bg-muted"
-                  disabled={
-                    loading ||
-                    currentPasswordStrength.strength < 2 ||
-                    isBlocked ||
-                    !isValid
-                  }
-                >
-                  {loading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-white"></div>
-                      <span>Creating account...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <span>Create Account</span>
-                      <ArrowRight className="h-5 w-5" />
+                  {watchedPassword && (
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="h-2 flex-1 rounded-full bg-muted">
+                          <div
+                            className={`h-2 rounded-full transition-all duration-300 ${currentPasswordStrength.color}`}
+                            style={{
+                              width: `${currentPasswordStrength.percentage}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {currentPasswordStrength.label}
+                        </span>
+                      </div>
                     </div>
                   )}
-                </Button>
-              </form>
+
+                  <div className="flex items-center space-x-2">
+                    <Controller
+                      name="agreeToTerms"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="agreeToTerms"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Label
+                      htmlFor="agreeToTerms"
+                      className="text-sm text-muted-foreground dark:text-muted-foreground"
+                    >
+                      I agree to the{' '}
+                      <Link
+                        href="/terms"
+                        className="text-primary hover:text-primary/80"
+                      >
+                        Terms of Service
+                      </Link>{' '}
+                      and{' '}
+                      <Link
+                        href="/privacy"
+                        className="text-primary hover:text-primary/80"
+                      >
+                        Privacy Policy
+                      </Link>
+                    </Label>
+                  </div>
+                  {errors.agreeToTerms && (
+                    <p className="text-sm text-red-600">
+                      You must agree to the terms and conditions
+                    </p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    className="h-12 w-full rounded-lg bg-green-600 font-medium text-white shadow-lg transition-all duration-200 hover:bg-green-700 hover:shadow-xl disabled:cursor-not-allowed disabled:bg-gray-400"
+                    disabled={
+                      loading ||
+                      currentPasswordStrength.strength < 2 ||
+                      isBlocked ||
+                      !isValid
+                    }
+                  >
+                    {loading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-white"></div>
+                        <span>Creating account...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span>Create Account</span>
+                        <ArrowRight className="h-5 w-5" />
+                      </div>
+                    )}
+                  </Button>
+                </form>
+              )}
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
+                  <span className="w-full border-t border-gray-300 dark:border-gray-600" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
+                  <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-muted-foreground">
                     Or continue with
                   </span>
                 </div>
@@ -699,7 +800,7 @@ export function ModernRegisterForm() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-12 w-full rounded-lg border-border font-medium"
+                className="h-12 w-full rounded-lg border-gray-300 font-medium dark:border-gray-600"
                 disabled={loading}
                 onClick={async () => {
                   try {
@@ -737,12 +838,12 @@ export function ModernRegisterForm() {
               </Button>
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                   Already have an account?{' '}
                   <Link href="/login">
                     <Button
                       variant="link"
-                      className="h-auto p-0 font-medium text-green-600 hover:text-green-700"
+                      className="h-auto p-0 font-medium text-primary hover:text-primary/80"
                     >
                       Sign in
                     </Button>

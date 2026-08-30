@@ -5,6 +5,7 @@ import { clearPersistedData } from '@/lib/middleware/persistenceMiddleware'
 export interface AuthResponse {
   success: boolean
   message: string
+  requiresTwoFactor?: boolean
   user?: any
   workspace?: any
 }
@@ -12,6 +13,7 @@ export interface AuthResponse {
 export interface LoginRequest {
   email: string
   password: string
+  twoFactorToken?: string
 }
 
 export interface SignupRequest {
