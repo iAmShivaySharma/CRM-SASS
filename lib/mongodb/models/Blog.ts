@@ -32,13 +32,7 @@ export interface IBlog extends Omit<Document, '_id'> {
   jsonLd: Record<string, any>
   priority: number
   changeFrequency:
-    | 'always'
-    | 'hourly'
-    | 'daily'
-    | 'weekly'
-    | 'monthly'
-    | 'yearly'
-    | 'never'
+    'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
   views: number
   isFeatured: boolean
   relatedSlugs: string[]

@@ -142,6 +142,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         if (currentAuth.user && currentWorkspace.currentWorkspace?.id) {
           newSocket.emit('identify-user', {
             userId: currentAuth.user.id,
+            userName: currentAuth.user.name,
             workspaceId: currentWorkspace.currentWorkspace.id,
           })
         }

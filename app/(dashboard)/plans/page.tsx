@@ -35,20 +35,14 @@ declare global {
   }
 }
 
-interface PlanFeature {
-  name: string
-  included: boolean
-}
-
 interface PlanData {
   id: string
   name: string
   price: number
   interval: string
   description: string
-  features: PlanFeature[]
+  features: string[]
   limits: Record<string, string | number>
-  popular: boolean
 }
 
 interface SubscriptionData {
@@ -62,80 +56,7 @@ interface SubscriptionData {
   metadata: Record<string, any>
 }
 
-const PLANS: PlanData[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    interval: 'month',
-    description: 'Perfect for getting started',
-    features: [
-      { name: 'Up to 100 leads', included: true },
-      { name: '2 team members', included: true },
-      { name: 'Basic analytics', included: true },
-      { name: 'Email support', included: true },
-      { name: 'Advanced reporting', included: false },
-      { name: 'API access', included: false },
-      { name: 'Custom integrations', included: false },
-      { name: 'Priority support', included: false },
-    ],
-    limits: {
-      leads: 100,
-      users: 2,
-      storage: '1 GB',
-      apiCalls: 1000,
-    },
-    popular: false,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 29,
-    interval: 'month',
-    description: 'Best for growing teams',
-    features: [
-      { name: 'Up to 1,000 leads', included: true },
-      { name: '10 team members', included: true },
-      { name: 'Advanced analytics', included: true },
-      { name: 'Email & chat support', included: true },
-      { name: 'Advanced reporting', included: true },
-      { name: 'API access', included: true },
-      { name: 'Custom integrations', included: false },
-      { name: 'Priority support', included: false },
-    ],
-    limits: {
-      leads: 1000,
-      users: 10,
-      storage: '10 GB',
-      apiCalls: 10000,
-    },
-    popular: true,
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 99,
-    interval: 'month',
-    description: 'For large organizations',
-    features: [
-      { name: 'Unlimited leads', included: true },
-      { name: 'Unlimited team members', included: true },
-      { name: 'Advanced analytics', included: true },
-      { name: 'Priority support', included: true },
-      { name: 'Advanced reporting', included: true },
-      { name: 'API access', included: true },
-      { name: 'Custom integrations', included: true },
-      { name: 'Dedicated account manager', included: true },
-    ],
-    limits: {
-      leads: 'Unlimited',
-      users: 'Unlimited',
-      storage: '100 GB',
-      apiCalls: 100000,
-    },
-    popular: false,
-  },
-]
+const POPULAR_PLAN_ID = 'pro'
 
 function loadRazorpayScript(): Promise<boolean> {
   return new Promise(resolve => {
@@ -156,10 +77,16 @@ export default function PlansPage() {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(
     null
   )
+  const [plans, setPlans] = useState<any[]>([])
   const [currentPlanId, setCurrentPlanId] = useState<string>('free')
   const [workspaceName, setWorkspaceName] = useState<string>('')
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null)
+  const [isCancelling, setIsCancelling] = useState(false)
   const [billingTab, setBillingTab] = useState('plans')
+  const [usage, setUsage] = useState<{
+    leads: { used: number; limit: number }
+    members: { used: number; limit: number }
+  } | null>(null)
 
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
@@ -182,6 +109,9 @@ export default function PlansPage() {
         setCurrentPlanId(data.workspace.planId || 'free')
         setWorkspaceName(data.workspace.name || '')
       }
+      if (data.availablePlans?.length > 0) {
+        setPlans(data.availablePlans)
+      }
     } catch (error) {
       console.error('Error fetching subscription:', error)
     } finally {
@@ -189,9 +119,49 @@ export default function PlansPage() {
     }
   }, [])
 
+  const fetchUsage = useCallback(async () => {
+    try {
+      const response = await fetch('/api/payments/usage', {
+        credentials: 'include',
+      })
+      if (response.ok) {
+        setUsage(await response.json())
+      }
+    } catch {}
+  }, [])
+
   useEffect(() => {
     fetchSubscription()
-  }, [fetchSubscription])
+    fetchUsage()
+  }, [fetchSubscription, fetchUsage])
+
+  const handleCancel = async () => {
+    if (
+      !confirm(
+        'Are you sure you want to cancel your subscription? Your plan will remain active until the end of the billing period.'
+      )
+    ) {
+      return
+    }
+    setIsCancelling(true)
+    try {
+      const response = await fetch('/api/payments/cancel', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (response.ok) {
+        toast.success('Subscription cancelled successfully')
+        fetchSubscription()
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Failed to cancel subscription')
+      }
+    } catch {
+      toast.error('Failed to cancel subscription')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   const handleUpgrade = async (planId: string) => {
     if (planId === 'free') {
@@ -230,13 +200,13 @@ export default function PlansPage() {
 
       const orderData = await orderResponse.json()
 
-      const plan = PLANS.find(p => p.id === planId)
+      const plan = plans.find(p => p.id === planId)
 
       const options = {
         key: orderData.key,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'CRM SaaS',
+        name: 'ClearCRM',
         description: `${plan?.name || planId} Plan - Monthly Subscription`,
         order_id: orderData.orderId,
         handler: async function (response: any) {
@@ -333,7 +303,7 @@ export default function PlansPage() {
     return Math.min(Math.round((current / limit) * 100), 100)
   }
 
-  const currentPlan = PLANS.find(p => p.id === currentPlanId)
+  const currentPlan = plans.find(p => p.id === currentPlanId)
 
   if (isLoading) {
     return (
@@ -352,10 +322,10 @@ export default function PlansPage() {
   return (
     <div className="w-full space-y-6">
       <div className="w-full">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
           Plans & Billing
         </h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <p className="mt-1 text-muted-foreground">
           Manage your subscription and view usage statistics
         </p>
       </div>
@@ -388,23 +358,38 @@ export default function PlansPage() {
                   </CardDescription>
                 </div>
               </div>
-              {subscription.currentPeriodEnd && (
-                <div className="text-right text-sm text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      Renews{' '}
-                      {new Date(
-                        subscription.currentPeriodEnd
-                      ).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
+              <div className="flex items-center gap-3">
+                {subscription.currentPeriodEnd && (
+                  <div className="text-right text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {subscription.status === 'cancelled'
+                          ? 'Active until'
+                          : 'Renews'}{' '}
+                        {new Date(
+                          subscription.currentPeriodEnd
+                        ).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+                {currentPlanId !== 'free' &&
+                  subscription.status === 'active' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancel}
+                      disabled={isCancelling}
+                    >
+                      {isCancelling ? 'Cancelling...' : 'Cancel Plan'}
+                    </Button>
+                  )}
+              </div>
             </div>
           </CardHeader>
         </Card>
@@ -418,22 +403,22 @@ export default function PlansPage() {
         </TabsList>
 
         <TabsContent value="plans" className="mt-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {PLANS.map(plan => {
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {plans.map(plan => {
               const isCurrent = plan.id === currentPlanId
               const isDowngrade =
-                PLANS.findIndex(p => p.id === plan.id) <
-                PLANS.findIndex(p => p.id === currentPlanId)
+                plans.findIndex(p => p.id === plan.id) <
+                plans.findIndex(p => p.id === currentPlanId)
               const isUpgrading = upgradingPlanId === plan.id
 
               return (
                 <Card
                   key={plan.id}
                   className={`relative flex flex-col ${
-                    plan.popular ? 'border-2 border-indigo-500 shadow-lg' : ''
-                  } ${isCurrent ? 'ring-2 ring-green-500' : ''}`}
+                    plan.id === POPULAR_PLAN_ID ? 'border-2 border-primary shadow-lg' : ''
+                  } ${isCurrent ? 'ring-1 ring-green-500' : ''}`}
                 >
-                  {plan.popular && (
+                  {plan.id === POPULAR_PLAN_ID && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <Badge className="bg-indigo-500 text-white">
                         Most Popular
@@ -451,11 +436,11 @@ export default function PlansPage() {
                     <CardTitle className="text-xl">{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="mt-4">
-                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                      <span className="text-4xl font-bold text-foreground">
                         {plan.price === 0 ? 'Free' : `$${plan.price}`}
                       </span>
                       {plan.price > 0 && (
-                        <span className="text-gray-500 dark:text-gray-400">
+                        <span className="text-muted-foreground">
                           /{plan.interval}
                         </span>
                       )}
@@ -463,21 +448,11 @@ export default function PlansPage() {
                   </CardHeader>
                   <CardContent className="flex flex-1 flex-col">
                     <ul className="mb-6 flex-1 space-y-3">
-                      {plan.features.map((feature, index) => (
+                      {(plan.features || []).map((feature: string, index: number) => (
                         <li key={index} className="flex items-center gap-2">
-                          {feature.included ? (
-                            <Check className="h-4 w-4 flex-shrink-0 text-green-500" />
-                          ) : (
-                            <X className="h-4 w-4 flex-shrink-0 text-gray-300 dark:text-gray-600" />
-                          )}
-                          <span
-                            className={`text-sm ${
-                              feature.included
-                                ? 'text-gray-700 dark:text-gray-300'
-                                : 'text-gray-400 dark:text-gray-600'
-                            }`}
-                          >
-                            {feature.name}
+                          <Check className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                          <span className="text-sm text-foreground">
+                            {feature}
                           </span>
                         </li>
                       ))}
@@ -487,7 +462,7 @@ export default function PlansPage() {
                       variant={
                         isCurrent
                           ? 'outline'
-                          : plan.popular
+                          : plan.id === POPULAR_PLAN_ID
                             ? 'default'
                             : 'outline'
                       }
@@ -529,19 +504,21 @@ export default function PlansPage() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Used
-                    </span>
+                    <span className="text-muted-foreground">Used</span>
                     <span className="font-medium">
-                      {currentPlan?.limits.leads === 'Unlimited'
+                      {usage?.leads.limit === -1
                         ? 'Unlimited'
-                        : `0 / ${currentPlan?.limits.leads || 100}`}
+                        : `${usage?.leads.used ?? 0} / ${usage?.leads.limit ?? currentPlan?.limits.leads ?? 100}`}
                     </span>
                   </div>
                   <Progress
                     value={getUsagePercentage(
-                      0,
-                      currentPlan?.limits.leads || 100
+                      usage?.leads.used ?? 0,
+                      usage?.leads.limit === -1
+                        ? 1
+                        : (usage?.leads.limit ??
+                            currentPlan?.limits.leads ??
+                            100)
                     )}
                     className="h-2"
                   />
@@ -559,21 +536,21 @@ export default function PlansPage() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Used
-                    </span>
+                    <span className="text-muted-foreground">Used</span>
                     <span className="font-medium">
-                      {currentPlan?.limits.users === 'Unlimited'
+                      {usage?.members.limit === -1
                         ? 'Unlimited'
-                        : `${currentWorkspace?.memberCount || 1} / ${
-                            currentPlan?.limits.users || 2
-                          }`}
+                        : `${usage?.members.used ?? 1} / ${usage?.members.limit ?? currentPlan?.limits.users ?? 2}`}
                     </span>
                   </div>
                   <Progress
                     value={getUsagePercentage(
-                      currentWorkspace?.memberCount || 1,
-                      currentPlan?.limits.users || 2
+                      usage?.members.used ?? 1,
+                      usage?.members.limit === -1
+                        ? 1
+                        : (usage?.members.limit ??
+                            currentPlan?.limits.users ??
+                            2)
                     )}
                     className="h-2"
                   />
@@ -591,9 +568,7 @@ export default function PlansPage() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      This month
-                    </span>
+                    <span className="text-muted-foreground">This month</span>
                     <span className="font-medium">
                       0 /{' '}
                       {currentPlan?.limits.apiCalls?.toLocaleString() ||
@@ -621,9 +596,7 @@ export default function PlansPage() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Used
-                    </span>
+                    <span className="text-muted-foreground">Used</span>
                     <span className="font-medium">
                       0 GB / {currentPlan?.limits.storage || '1 GB'}
                     </span>
@@ -649,54 +622,68 @@ export default function PlansPage() {
             <CardContent>
               {subscription && subscription.metadata?.razorpayPaymentId ? (
                 <div className="rounded-lg border">
-                  <div className="grid grid-cols-4 gap-4 border-b bg-gray-50 p-3 text-sm font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  <div className="grid grid-cols-5 gap-4 border-b bg-muted p-3 text-sm font-medium text-muted-foreground">
                     <span>Date</span>
                     <span>Plan</span>
                     <span>Amount</span>
+                    <span>Payment ID</span>
                     <span>Status</span>
                   </div>
-                  <div className="grid grid-cols-4 gap-4 p-3 text-sm">
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {subscription.currentPeriodStart
+                  <div className="grid grid-cols-5 gap-4 border-b p-3 text-sm last:border-0">
+                    <span className="text-foreground">
+                      {subscription.metadata?.lastPaymentAt
                         ? new Date(
-                            subscription.currentPeriodStart
+                            subscription.metadata.lastPaymentAt
                           ).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
                           })
-                        : '-'}
+                        : subscription.currentPeriodStart
+                          ? new Date(
+                              subscription.currentPeriodStart
+                            ).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })
+                          : '-'}
                     </span>
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {PLANS.find(p => p.id === subscription.planId)?.name ||
+                    <span className="text-foreground">
+                      {plans.find(p => p.id === subscription.planId)?.name ||
                         subscription.planId}
                     </span>
-                    <span className="text-gray-700 dark:text-gray-300">
-                      $
-                      {PLANS.find(p => p.id === subscription.planId)?.price ||
-                        0}
+                    <span className="font-medium text-foreground">
+                      ${((subscription.metadata?.amountPaid || 0) / 100).toFixed(2) !== '0.00'
+                        ? ((subscription.metadata?.amountPaid || 0) / 100).toFixed(2)
+                        : plans.find(p => p.id === subscription.planId)?.price || 0}
+                    </span>
+                    <span className="truncate font-mono text-xs text-muted-foreground">
+                      {subscription.metadata?.razorpayPaymentId || '-'}
                     </span>
                     <Badge
                       variant={
                         subscription.status === 'active'
                           ? 'default'
-                          : 'secondary'
+                          : subscription.status === 'cancelled'
+                            ? 'secondary'
+                            : 'destructive'
                       }
                       className={
-                        subscription.status === 'active' ? 'bg-green-600' : ''
+                        subscription.status === 'active' ? 'bg-emerald-600' : ''
                       }
                     >
-                      Paid
+                      {subscription.status === 'active' ? 'Paid' : subscription.status === 'cancelled' ? 'Cancelled' : subscription.status}
                     </Badge>
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <CreditCard className="mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" />
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <CreditCard className="mb-4 h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">
                     No billing history yet
                   </p>
-                  <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Your transaction history will appear here after your first
                     payment
                   </p>

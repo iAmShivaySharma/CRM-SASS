@@ -13,6 +13,8 @@ import { CreateProjectDialog } from '@/components/projects/CreateProjectDialog'
 import { ProjectsGrid } from '@/components/projects/ProjectsGrid'
 import { ProjectsList } from '@/components/projects/ProjectsList'
 import { CardSkeleton, StatsCardSkeleton } from '@/components/ui/skeleton'
+import { usePermissions, Permission } from '@/hooks/usePermissions'
+import { AccessDenied } from '@/components/ui/access-denied'
 
 export default function ProjectsPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
@@ -35,6 +37,12 @@ export default function ProjectsPage() {
       skip: !currentWorkspace?.id,
     }
   )
+
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions()
+
+  if (!permissionsLoading && !hasPermission(Permission.PROJECTS_VIEW)) {
+    return <AccessDenied />
+  }
 
   if (!currentWorkspace) {
     return (

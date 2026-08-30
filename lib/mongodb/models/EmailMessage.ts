@@ -94,7 +94,6 @@ const EmailMessageSchema = new Schema<IEmailMessage>(
       type: Schema.Types.ObjectId,
       ref: 'Workspace',
       required: true,
-      index: true,
     },
     emailAccountId: {
       type: Schema.Types.ObjectId,

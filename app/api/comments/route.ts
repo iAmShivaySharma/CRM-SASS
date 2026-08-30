@@ -15,6 +15,7 @@ import {
   logUserActivity,
 } from '@/lib/logging/middleware'
 import { log } from '@/lib/logging/logger'
+import { NotificationService } from '@/lib/services/notificationService'
 
 const createCommentSchema = z.object({
   content: z.string().min(1).max(10000),
@@ -226,6 +227,18 @@ export const POST = withSecurityLogging(
 
         await comment.save()
         await comment.populate('createdBy', 'fullName email avatarUrl')
+
+        await NotificationService.createNotification({
+          workspaceId: access.workspaceId,
+          title: 'New Comment',
+          message: `${auth.user.fullName || auth.user.email} commented: ${content.substring(0, 50)}`,
+          type: 'info',
+          entityType: 'comment',
+          entityId: comment._id.toString(),
+          createdBy: auth.user.id,
+          notificationLevel: 'team',
+          excludeUserIds: [auth.user.id],
+        }).catch(() => {})
 
         await logUserActivity(
           auth.user.id,
