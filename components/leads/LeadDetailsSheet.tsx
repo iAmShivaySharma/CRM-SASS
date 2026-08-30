@@ -575,6 +575,29 @@ export function LeadDetailsSheet({
                 </Badge>
               </div>
 
+              {(lead as any).leadScore != null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Lead Score</span>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-20 rounded-full bg-gray-200">
+                      <div
+                        className={`h-2 rounded-full ${
+                          (lead as any).leadScore >= 60
+                            ? 'bg-green-500'
+                            : (lead as any).leadScore >= 30
+                              ? 'bg-yellow-500'
+                              : 'bg-gray-400'
+                        }`}
+                        style={{ width: `${(lead as any).leadScore}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium">
+                      {(lead as any).leadScore}/100
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Source</span>
                 <Badge variant="outline">{lead.source}</Badge>
