@@ -27,6 +27,13 @@ import { whatsappApi } from './api/whatsappApi'
 import { appointmentApi } from './api/appointmentApi'
 import { quotationApi } from './api/quotationApi'
 import { inventoryApi } from './api/inventoryApi'
+import { employeesApi } from './api/employeesApi'
+import { emailSequencesApi } from './api/emailSequencesApi'
+import { calendarApi } from './api/calendarApi'
+import { referralsApi } from './api/referralsApi'
+import { blogApi } from './api/blogApi'
+import { projectMembersApi } from './api/projectMembersApi'
+import { documentsApi } from './api/documentsApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -69,6 +76,13 @@ export const store = configureStore({
     [appointmentApi.reducerPath]: appointmentApi.reducer,
     [quotationApi.reducerPath]: quotationApi.reducer,
     [inventoryApi.reducerPath]: inventoryApi.reducer,
+    [employeesApi.reducerPath]: employeesApi.reducer,
+    [emailSequencesApi.reducerPath]: emailSequencesApi.reducer,
+    [calendarApi.reducerPath]: calendarApi.reducer,
+    [referralsApi.reducerPath]: referralsApi.reducer,
+    [blogApi.reducerPath]: blogApi.reducer,
+    [projectMembersApi.reducerPath]: projectMembersApi.reducer,
+    [documentsApi.reducerPath]: documentsApi.reducer,
   } as any,
   preloadedState,
   middleware: getDefaultMiddleware =>
@@ -100,7 +114,14 @@ export const store = configureStore({
       whatsappApi.middleware,
       appointmentApi.middleware,
       quotationApi.middleware,
-      inventoryApi.middleware
+      inventoryApi.middleware,
+      employeesApi.middleware,
+      emailSequencesApi.middleware,
+      calendarApi.middleware,
+      referralsApi.middleware,
+      blogApi.middleware,
+      projectMembersApi.middleware,
+      documentsApi.middleware
     ),
 })
 
