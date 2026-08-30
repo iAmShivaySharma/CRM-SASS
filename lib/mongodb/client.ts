@@ -42,6 +42,8 @@ import { Column, type IColumn } from './models/Column'
 import { MessageRead, type IMessageRead } from './models/MessageRead'
 import { Comment, type IComment } from './models/Comment'
 import { Sprint, type ISprint } from './models/Sprint'
+import { SmsTemplate, type ISmsTemplate } from './models/SmsTemplate'
+import { SmsLog, type ISmsLog } from './models/SmsLog'
 import { Invoice, type IInvoice } from './models/Invoice'
 import { PaymentRecord, type IPaymentRecord } from './models/Payment'
 import { Pipeline, type IPipeline } from './models/Pipeline'
@@ -421,6 +423,8 @@ export {
   MessageRead,
   Comment,
   Sprint,
+  SmsTemplate,
+  SmsLog,
   Invoice,
   PaymentRecord,
   Pipeline,

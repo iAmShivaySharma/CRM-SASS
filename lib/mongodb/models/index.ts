@@ -83,6 +83,10 @@ export { Comment, type IComment, type ICommentEditHistory } from './Comment'
 // Sprint Planning
 export { Sprint, type ISprint } from './Sprint'
 
+// SMS Module
+export { SmsTemplate, type ISmsTemplate } from './SmsTemplate'
+export { SmsLog, type ISmsLog } from './SmsLog'
+
 // Invoice & Billing
 export { Invoice, type IInvoice } from './Invoice'
 export { PaymentRecord, type IPaymentRecord } from './Payment'
