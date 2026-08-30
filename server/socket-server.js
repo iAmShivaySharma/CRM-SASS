@@ -225,6 +225,45 @@ function handleConnection(io, socket) {
     })
   })
 
+  socket.on('doc-join', data => {
+    if (!isIdentified(socket) || !data.documentId) return
+    const room = `doc:${data.documentId}`
+    socket.join(room)
+    socket.to(room).emit('doc-user-joined', {
+      userId: socket.data.userId,
+      userName: socket.data.userName,
+    })
+  })
+
+  socket.on('doc-leave', data => {
+    if (!data.documentId) return
+    const room = `doc:${data.documentId}`
+    socket.leave(room)
+    if (socket.data?.userId) {
+      socket.to(room).emit('doc-user-left', {
+        userId: socket.data.userId,
+        userName: socket.data.userName,
+      })
+    }
+  })
+
+  socket.on('doc-update', data => {
+    if (!isIdentified(socket) || !data.documentId || !data.update) return
+    socket.to(`doc:${data.documentId}`).emit('doc-update', {
+      update: data.update,
+      userId: socket.data.userId,
+    })
+  })
+
+  socket.on('doc-awareness', data => {
+    if (!isIdentified(socket) || !data.documentId) return
+    socket.to(`doc:${data.documentId}`).emit('doc-awareness', {
+      state: data.state,
+      userId: socket.data.userId,
+      userName: socket.data.userName,
+    })
+  })
+
   socket.on('disconnect', () => {
     if (!socket.data?.rooms || !socket.data?.userName) return
     socket.data.rooms.forEach(chatRoomId => {
