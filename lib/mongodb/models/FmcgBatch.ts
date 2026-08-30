@@ -37,6 +37,36 @@ export interface IFmcgBatch extends Omit<Document, '_id'> {
   recallReason?: string
   recallDate?: Date
   status: 'active' | 'consumed' | 'recalled' | 'expired' | 'destroyed'
+  dryingStartTime?: Date
+  dryingEndTime?: Date
+  dryingTargetTemp?: number
+  dryingLog?: Array<{ time: Date; temperature: number; notes?: string }>
+  ccp1Passed?: boolean
+  ccp1Action?: string
+  moistureSample1?: number
+  moistureSample2?: number
+  moistureSample3?: number
+  moistureAverage?: number
+  moistureLimit?: number
+  ccp2Passed?: boolean
+  ccp2Action?: string
+  sealCheckFirst3?: 'pass' | 'fail'
+  sealCheckLast3?: 'pass' | 'fail'
+  sealCheckMid?: 'pass' | 'fail'
+  ccp3Passed?: boolean
+  ccp3Action?: string
+  packsProduced?: number
+  packSize?: string
+  labelCheckVerified?: boolean
+  labelCheckBy?: string
+  finalDisposition?: 'released' | 'quarantined' | 'rejected'
+  dispositionReason?: string
+  rmLots?: Array<{
+    rmLotNumber: string
+    materialName: string
+    quantityUsed: number
+    unit: string
+  }>
   createdBy: string
   createdAt: Date
   updatedAt: Date
@@ -94,6 +124,41 @@ const FmcgBatchSchema = new Schema<IFmcgBatch>(
       enum: ['active', 'consumed', 'recalled', 'expired', 'destroyed'],
       default: 'active',
     },
+    dryingStartTime: { type: Date },
+    dryingEndTime: { type: Date },
+    dryingTargetTemp: { type: Number },
+    dryingLog: [{ time: Date, temperature: Number, notes: String }],
+    ccp1Passed: { type: Boolean },
+    ccp1Action: { type: String, trim: true },
+    moistureSample1: { type: Number },
+    moistureSample2: { type: Number },
+    moistureSample3: { type: Number },
+    moistureAverage: { type: Number },
+    moistureLimit: { type: Number },
+    ccp2Passed: { type: Boolean },
+    ccp2Action: { type: String, trim: true },
+    sealCheckFirst3: { type: String, enum: ['pass', 'fail'] },
+    sealCheckLast3: { type: String, enum: ['pass', 'fail'] },
+    sealCheckMid: { type: String, enum: ['pass', 'fail'] },
+    ccp3Passed: { type: Boolean },
+    ccp3Action: { type: String, trim: true },
+    packsProduced: { type: Number },
+    packSize: { type: String, trim: true },
+    labelCheckVerified: { type: Boolean },
+    labelCheckBy: { type: String, trim: true },
+    finalDisposition: {
+      type: String,
+      enum: ['released', 'quarantined', 'rejected'],
+    },
+    dispositionReason: { type: String, trim: true },
+    rmLots: [
+      {
+        rmLotNumber: String,
+        materialName: String,
+        quantityUsed: Number,
+        unit: String,
+      },
+    ],
     createdBy: { type: String, required: true },
   },
   {
