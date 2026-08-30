@@ -83,6 +83,10 @@ export { Comment, type IComment, type ICommentEditHistory } from './Comment'
 // Sprint Planning
 export { Sprint, type ISprint } from './Sprint'
 
+// Appointment & Booking
+export { Service, type IService } from './Service'
+export { Appointment, type IAppointment } from './Appointment'
+
 // WhatsApp Integration
 export { WhatsAppAccount, type IWhatsAppAccount } from './WhatsAppAccount'
 export { WhatsAppTemplate, type IWhatsAppTemplate } from './WhatsAppTemplate'
