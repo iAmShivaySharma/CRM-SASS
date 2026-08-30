@@ -113,6 +113,27 @@ export { PipelineStage, type IPipelineStage } from './PipelineStage'
 export { Deal, type IDeal } from './Deal'
 export { DealActivity, type IDealActivity } from './DealActivity'
 
+// Contact Management
+export { Contact, type IContact } from './Contact'
+
+// Email Sequences
+export { EmailSequence, SequenceEnrollment, type IEmailSequence, type IEmailSequenceStep, type ISequenceEnrollment } from './EmailSequence'
+
+// Lead Activity
+export { LeadActivity, type ILeadActivity } from './LeadActivity'
+
+// Meetings
+export { Meeting, type IMeeting } from './Meeting'
+
+// Message Read Receipts
+export { MessageRead, type IMessageRead } from './MessageRead'
+
+// Push Subscriptions
+export { PushSubscription, type IPushSubscription } from './PushSubscription'
+
+// Referrals
+export { Referral, type IReferral } from './Referral'
+
 // FMCG Brand Management Models
 export { FmcgProduct, type IFmcgProduct } from './FmcgProduct'
 export { FmcgBatch, type IFmcgBatch } from './FmcgBatch'

@@ -45,6 +45,11 @@ import {
   FlaskConical,
   Truck,
   MapPin,
+  Smartphone,
+  MessageCircle,
+  ClipboardList,
+  CalendarCheck,
+  Boxes,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -95,6 +100,14 @@ const navigation = [
     name: 'Invoices',
     href: '/invoices',
     icon: FileText,
+    category: 'sales',
+    parent: 'sales',
+    permission: Permission.LEADS_VIEW,
+  },
+  {
+    name: 'Quotations',
+    href: '/quotations',
+    icon: ClipboardList,
     category: 'sales',
     parent: 'sales',
     permission: Permission.LEADS_VIEW,
@@ -188,6 +201,58 @@ const navigation = [
   },
   { name: 'Calendar', href: '/calendar', icon: CalendarDays, category: 'main' },
   { name: 'Referrals', href: '/referrals', icon: Gift, category: 'main' },
+
+  {
+    name: 'Communication',
+    href: '/communication',
+    icon: MessageCircle,
+    category: 'section',
+    id: 'communication',
+  },
+  {
+    name: 'SMS',
+    href: '/sms',
+    icon: Smartphone,
+    category: 'communication',
+    parent: 'communication',
+  },
+  {
+    name: 'WhatsApp',
+    href: '/whatsapp',
+    icon: MessageCircle,
+    category: 'communication',
+    parent: 'communication',
+  },
+
+  {
+    name: 'Appointments',
+    href: '/appointments',
+    icon: CalendarCheck,
+    category: 'section',
+    id: 'appointments',
+  },
+  {
+    name: 'Appointments',
+    href: '/appointments',
+    icon: CalendarCheck,
+    category: 'appointments',
+    parent: 'appointments',
+  },
+
+  {
+    name: 'Commerce',
+    href: '/commerce',
+    icon: Boxes,
+    category: 'section',
+    id: 'commerce',
+  },
+  {
+    name: 'Inventory',
+    href: '/inventory',
+    icon: Boxes,
+    category: 'commerce',
+    parent: 'commerce',
+  },
 
   {
     name: 'Project',
@@ -345,6 +410,9 @@ export function Sidebar({
     hr: false,
     engines: false,
     fmcg: false,
+    communication: false,
+    appointments: false,
+    commerce: false,
   })
 
   const toggleSection = (sectionId: string) => {

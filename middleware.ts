@@ -34,6 +34,11 @@ const PROTECTED_ROUTES = [
   '/calendar',
   '/meetings',
   '/fmcg',
+  '/sms',
+  '/whatsapp',
+  '/quotations',
+  '/appointments',
+  '/inventory',
 ]
 
 const PUBLIC_ROUTES = [
