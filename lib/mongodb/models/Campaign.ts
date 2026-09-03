@@ -1,8 +1,10 @@
 import mongoose, { Schema } from 'mongoose'
 
-export interface IEmailSequenceStep {
+export type CampaignChannel = 'email' | 'whatsapp' | 'sms' | 'ai_reply'
+
+export interface ICampaignStep {
   order: number
-  channel: 'email' | 'whatsapp' | 'sms' | 'ai_reply'
+  channel: CampaignChannel
   subject?: string
   body: string
   delayDays: number
@@ -12,12 +14,12 @@ export interface IEmailSequenceStep {
   replyViaChannel?: 'email' | 'whatsapp' | 'sms'
 }
 
-export interface IEmailSequence {
+export interface ICampaign {
   workspaceId: string
   name: string
   description?: string
-  steps: IEmailSequenceStep[]
-  status: 'draft' | 'active' | 'paused'
+  steps: ICampaignStep[]
+  status: 'draft' | 'active' | 'paused' | 'completed'
   createdBy: string
   enrolledCount: number
   completedCount: number
@@ -25,27 +27,27 @@ export interface IEmailSequence {
   updatedAt: Date
 }
 
-export interface ISequenceEnrollment {
+export interface ICampaignEnrollment {
   workspaceId: string
-  sequenceId: string
+  campaignId: string
   leadId?: string
   contactId?: string
   email?: string
   phone?: string
   currentStep: number
-  status: 'active' | 'completed' | 'paused' | 'bounced' | 'unsubscribed'
+  status: 'active' | 'completed' | 'paused' | 'failed' | 'unsubscribed'
   nextSendAt?: Date
   completedAt?: Date
   createdAt: Date
 }
 
-const EmailSequenceStepSchema = new Schema<IEmailSequenceStep>(
+const CampaignStepSchema = new Schema<ICampaignStep>(
   {
     order: { type: Number, required: true },
     channel: {
       type: String,
       enum: ['email', 'whatsapp', 'sms', 'ai_reply'],
-      default: 'email',
+      required: true,
     },
     subject: { type: String, maxlength: 200 },
     body: { type: String, required: true },
@@ -58,15 +60,15 @@ const EmailSequenceStepSchema = new Schema<IEmailSequenceStep>(
   { _id: false }
 )
 
-const EmailSequenceSchema = new Schema<IEmailSequence>(
+const CampaignSchema = new Schema<ICampaign>(
   {
     workspaceId: { type: String, required: true, index: true },
     name: { type: String, required: true, maxlength: 100 },
     description: { type: String, maxlength: 500 },
-    steps: [EmailSequenceStepSchema],
+    steps: [CampaignStepSchema],
     status: {
       type: String,
-      enum: ['draft', 'active', 'paused'],
+      enum: ['draft', 'active', 'paused', 'completed'],
       default: 'draft',
     },
     createdBy: { type: String, ref: 'User', required: true },
@@ -86,10 +88,10 @@ const EmailSequenceSchema = new Schema<IEmailSequence>(
   }
 )
 
-const SequenceEnrollmentSchema = new Schema<ISequenceEnrollment>(
+const CampaignEnrollmentSchema = new Schema<ICampaignEnrollment>(
   {
     workspaceId: { type: String, required: true, index: true },
-    sequenceId: { type: String, ref: 'EmailSequence', required: true },
+    campaignId: { type: String, ref: 'Campaign', required: true },
     leadId: { type: String, ref: 'Lead' },
     contactId: { type: String, ref: 'Contact' },
     email: { type: String },
@@ -97,7 +99,7 @@ const SequenceEnrollmentSchema = new Schema<ISequenceEnrollment>(
     currentStep: { type: Number, default: 0 },
     status: {
       type: String,
-      enum: ['active', 'completed', 'paused', 'bounced', 'unsubscribed'],
+      enum: ['active', 'completed', 'paused', 'failed', 'unsubscribed'],
       default: 'active',
     },
     nextSendAt: { type: Date },
@@ -117,18 +119,17 @@ const SequenceEnrollmentSchema = new Schema<ISequenceEnrollment>(
 )
 
 if (typeof window === 'undefined') {
-  SequenceEnrollmentSchema.index({ sequenceId: 1, status: 1 })
-  SequenceEnrollmentSchema.index({ nextSendAt: 1, status: 1 })
-  SequenceEnrollmentSchema.index({ sequenceId: 1, email: 1 }, { unique: true })
+  CampaignEnrollmentSchema.index({ campaignId: 1, status: 1 })
+  CampaignEnrollmentSchema.index({ nextSendAt: 1, status: 1 })
 }
 
-export const EmailSequence =
-  mongoose.models?.EmailSequence ||
-  mongoose.model<IEmailSequence>('EmailSequence', EmailSequenceSchema)
+export const Campaign =
+  mongoose.models?.Campaign ||
+  mongoose.model<ICampaign>('Campaign', CampaignSchema)
 
-export const SequenceEnrollment =
-  mongoose.models?.SequenceEnrollment ||
-  mongoose.model<ISequenceEnrollment>(
-    'SequenceEnrollment',
-    SequenceEnrollmentSchema
+export const CampaignEnrollment =
+  mongoose.models?.CampaignEnrollment ||
+  mongoose.model<ICampaignEnrollment>(
+    'CampaignEnrollment',
+    CampaignEnrollmentSchema
   )

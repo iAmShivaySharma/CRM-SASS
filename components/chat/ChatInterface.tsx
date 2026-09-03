@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useMemo } from 'react'
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import {
   MessageSquare,
@@ -31,7 +31,7 @@ import { ListItemSkeleton, InputSkeleton } from '@/components/ui/skeleton'
 import { ChatRoomList } from './ChatRoomList'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
-import { ChatHeader } from './ChatHeader'
+import { ChatHeader, CallPanel } from './ChatHeader'
 import { CreateChatRoomDialog } from './CreateChatRoomDialog'
 import { StartDirectChatDialog } from './StartDirectChatDialog'
 
@@ -45,6 +45,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [showArchived, setShowArchived] = useState(false)
+  const [activeCall, setActiveCall] = useState<{
+    type: 'video' | 'voice'
+    roomId: string
+    chatName: string
+  } | null>(null)
+  const [sidebarWidth, setSidebarWidth] = useState(320)
+  const isResizing = useRef(false)
 
   const workspace = useSelector((state: RootState) => state.workspace)
   const { isConnected, joinChatRoom, leaveChatRoom } = useSocket()
@@ -90,6 +97,40 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     setSelectedChatRoom(chatRoomId)
     setIsMobileOpen(false)
   }
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      isResizing.current = true
+      const startX = e.clientX
+      const startWidth = sidebarWidth
+
+      const onMouseMove = (ev: MouseEvent) => {
+        if (!isResizing.current) {
+          return
+        }
+        const newWidth = Math.min(
+          Math.max(startWidth + (ev.clientX - startX), 200),
+          500
+        )
+        setSidebarWidth(newWidth)
+      }
+
+      const onMouseUp = () => {
+        isResizing.current = false
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    },
+    [sidebarWidth]
+  )
 
   const selectedRoom = chatRooms.find(room => room.id === selectedChatRoom)
 
@@ -166,7 +207,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   return (
     <div className={cn('flex h-full bg-background', className)}>
       {/* Desktop Sidebar */}
-      <div className="hidden border-r md:flex md:w-80 md:flex-col">
+      <div
+        className="hidden overflow-hidden border-r md:flex md:flex-col"
+        style={{ width: sidebarWidth, minWidth: 200, maxWidth: 500 }}
+      >
         <div className="flex items-center justify-between border-b p-4">
           <h2 className="text-lg font-semibold">Chat Rooms</h2>
           <div className="flex items-center gap-2">
@@ -227,6 +271,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           </div>
         </div>
       </div>
+
+      <div
+        onMouseDown={handleMouseDown}
+        className="hidden w-1 shrink-0 cursor-col-resize transition-colors hover:bg-primary/20 active:bg-primary/40 md:block"
+      />
 
       {/* Mobile Sidebar */}
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
@@ -296,6 +345,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
             <ChatHeader
               chatRoom={selectedRoom}
               onMobileMenuClick={() => setIsMobileOpen(true)}
+              onCallChange={call => {
+                if (call) {
+                  setActiveCall({ ...call, chatName: selectedRoom.name })
+                } else {
+                  setActiveCall(null)
+                }
+              }}
             />
 
             <div className="flex min-h-0 flex-1 flex-col">
@@ -329,6 +385,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           </div>
         )}
       </div>
+
+      {activeCall && (
+        <CallPanel
+          callType={activeCall.type}
+          roomName={activeCall.roomId}
+          chatName={activeCall.chatName}
+          onEnd={() => setActiveCall(null)}
+        />
+      )}
     </div>
   )
 }

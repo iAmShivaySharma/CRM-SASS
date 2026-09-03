@@ -37,14 +37,14 @@ interface ColumnManagementDialogProps {
 }
 
 const colorOptions = [
-  { value: 'bg-gray-100', label: 'Gray', color: '#f3f4f6' },
-  { value: 'bg-blue-100', label: 'Blue', color: '#dbeafe' },
-  { value: 'bg-green-100', label: 'Green', color: '#dcfce7' },
-  { value: 'bg-yellow-100', label: 'Yellow', color: '#fef3c7' },
-  { value: 'bg-red-100', label: 'Red', color: '#fee2e2' },
-  { value: 'bg-purple-100', label: 'Purple', color: '#f3e8ff' },
-  { value: 'bg-pink-100', label: 'Pink', color: '#fce7f3' },
-  { value: 'bg-indigo-100', label: 'Indigo', color: '#e0e7ff' },
+  { value: '#f3f4f6', label: 'Gray' },
+  { value: '#dbeafe', label: 'Blue' },
+  { value: '#dcfce7', label: 'Green' },
+  { value: '#fef3c7', label: 'Yellow' },
+  { value: '#fee2e2', label: 'Red' },
+  { value: '#f3e8ff', label: 'Purple' },
+  { value: '#fce7f3', label: 'Pink' },
+  { value: '#e0e7ff', label: 'Indigo' },
 ]
 
 export function ColumnManagementDialog({
@@ -56,7 +56,7 @@ export function ColumnManagementDialog({
 }: ColumnManagementDialogProps) {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [name, setName] = useState(column?.name || '')
-  const [color, setColor] = useState(column?.color || 'bg-gray-100')
+  const [color, setColor] = useState(column?.color || '#f3f4f6')
   const [slug, setSlug] = useState(column?.slug || '')
 
   const [createColumn, { isLoading: isCreating }] = useCreateColumnMutation()
@@ -199,8 +199,12 @@ export function ColumnManagementDialog({
                 <SelectTrigger>
                   <SelectValue>
                     <div className="flex items-center gap-2">
-                      <div className={`h-4 w-4 rounded ${color}`} />
-                      {colorOptions.find(opt => opt.value === color)?.label}
+                      <div
+                        className="h-4 w-4 rounded"
+                        style={{ backgroundColor: color }}
+                      />
+                      {colorOptions.find(opt => opt.value === color)?.label ||
+                        'Custom'}
                     </div>
                   </SelectValue>
                 </SelectTrigger>
@@ -208,7 +212,10 @@ export function ColumnManagementDialog({
                   {colorOptions.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       <div className="flex items-center gap-2">
-                        <div className={`h-4 w-4 rounded ${option.value}`} />
+                        <div
+                          className="h-4 w-4 rounded"
+                          style={{ backgroundColor: option.value }}
+                        />
                         {option.label}
                       </div>
                     </SelectItem>

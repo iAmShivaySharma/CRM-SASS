@@ -15,6 +15,9 @@ export interface IWhatsAppAccount extends Omit<Document, '_id'> {
   messagingLimit?: number
   dailyMessageCount: number
   lastResetDate: Date
+  botEnabled: boolean
+  botContext?: string
+  botTone?: 'professional' | 'friendly' | 'casual'
   createdBy: string
   createdAt: Date
   updatedAt: Date
@@ -80,6 +83,19 @@ const WhatsAppAccountSchema = new Schema<IWhatsAppAccount>(
     lastResetDate: {
       type: Date,
       default: Date.now,
+    },
+    botEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    botContext: {
+      type: String,
+      maxlength: 2000,
+    },
+    botTone: {
+      type: String,
+      enum: ['professional', 'friendly', 'casual'],
+      default: 'professional',
     },
     createdBy: {
       type: String,

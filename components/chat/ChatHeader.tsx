@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useSelector } from 'react-redux'
 import {
   Menu,
@@ -62,9 +63,286 @@ import { ChatSettingsDialog } from './ChatSettingsDialog'
 import { AddParticipantsDialog } from './AddParticipantsDialog'
 import { ChatDetailsDialog } from './ChatDetailsDialog'
 
+const JAAS_APP_ID = 'vpaas-magic-cookie-bd1c173591be4119889c472ab01f8874'
+
+function JaaSMeeting({
+  appId,
+  roomName,
+  chatName,
+  callType,
+  onEnd,
+}: {
+  appId: string
+  roomName: string
+  chatName: string
+  callType: 'video' | 'voice'
+  onEnd: () => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const apiRef = useRef<any>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const scriptId = 'jaas-external-api'
+    const scriptSrc = `https://8x8.vc/${appId}/external_api.js`
+
+    const loadScript = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        const oldScript = document.getElementById('jitsi-script')
+        if (oldScript) {
+          oldScript.remove()
+        }
+
+        const existing = document.getElementById(scriptId)
+        if (existing && existing.getAttribute('src') === scriptSrc) {
+          if ((window as any).JitsiMeetExternalAPI) {
+            resolve()
+            return
+          }
+          existing.addEventListener('load', () => resolve(), { once: true })
+          return
+        }
+
+        if (existing) {
+          existing.remove()
+        }
+        ;(window as any).JitsiMeetExternalAPI = undefined
+
+        const s = document.createElement('script')
+        s.id = scriptId
+        s.src = scriptSrc
+        s.async = true
+        s.onload = () => resolve()
+        s.onerror = () => reject(new Error('Failed to load JaaS script'))
+        document.head.appendChild(s)
+      })
+    }
+
+    const init = async () => {
+      try {
+        await loadScript()
+        if (cancelled || !containerRef.current) {
+          return
+        }
+
+        apiRef.current = new (window as any).JitsiMeetExternalAPI('8x8.vc', {
+          roomName: `${appId}/${roomName}`,
+          parentNode: containerRef.current,
+          width: '100%',
+          height: '100%',
+          configOverwrite: {
+            startWithAudioMuted: false,
+            startWithVideoMuted: callType === 'voice',
+            prejoinConfig: { enabled: false },
+            disableDeepLinking: true,
+            hideConferenceSubject: true,
+            enableWelcomePage: false,
+            enableClosePage: false,
+            toolbarButtons: [
+              'microphone',
+              'camera',
+              'hangup',
+              'chat',
+              'participants-pane',
+              'raisehand',
+              'tileview',
+              'desktop',
+              'settings',
+              'fullscreen',
+              'select-background',
+              'shareaudio',
+            ],
+          },
+          interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            SHOW_BRAND_WATERMARK: false,
+            SHOW_POWERED_BY: false,
+            MOBILE_APP_PROMO: false,
+            SHOW_CHROME_EXTENSION_BANNER: false,
+            SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+          },
+          userInfo: {
+            displayName: chatName,
+          },
+        })
+
+        apiRef.current.addListener('readyToClose', () => {
+          if (!cancelled) {
+            onEnd()
+          }
+        })
+      } catch {
+        // fallback ignored
+      }
+    }
+
+    init()
+
+    return () => {
+      cancelled = true
+      if (apiRef.current) {
+        try {
+          apiRef.current.dispose()
+        } catch {}
+        apiRef.current = null
+      }
+    }
+  }, [appId, roomName, chatName, callType, onEnd])
+
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+}
+
+function CallPanel({
+  callType,
+  roomName,
+  chatName,
+  onEnd,
+}: {
+  callType: 'video' | 'voice'
+  roomName: string
+  chatName: string
+  onEnd: () => void
+}) {
+  const [maximized, setMaximized] = useState(true)
+
+  const content = (
+    <div
+      style={
+        maximized
+          ? {
+              position: 'fixed',
+              inset: 0,
+              zIndex: 99999,
+              display: 'flex',
+              flexDirection: 'column',
+              background: '#000',
+            }
+          : {
+              flex: '1 1 0%',
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              position: 'relative',
+            }
+      }
+    >
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '6px 12px',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--card)',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {callType === 'video' ? (
+            <Video className="h-4 w-4 text-primary" />
+          ) : (
+            <Phone className="h-4 w-4 text-primary" />
+          )}
+          <span style={{ fontSize: 12, fontWeight: 500 }}>
+            CRM Meet — {chatName}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={() => setMaximized(prev => !prev)}
+            title={maximized ? 'Minimize' : 'Maximize'}
+          >
+            {maximized ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="4 14 10 14 10 20" />
+                <polyline points="20 10 14 10 14 4" />
+                <line x1="14" y1="10" x2="21" y2="3" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            )}
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={onEnd}
+          >
+            End
+          </Button>
+        </div>
+      </div>
+      <div
+        style={{
+          position: 'relative',
+          flex: '1 1 0%',
+          minHeight: 0,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        >
+          <JaaSMeeting
+            appId={JAAS_APP_ID}
+            roomName={roomName}
+            chatName={chatName}
+            callType={callType}
+            onEnd={onEnd}
+          />
+        </div>
+      </div>
+    </div>
+  )
+
+  if (maximized) {
+    return createPortal(content, document.body)
+  }
+  return content
+}
+
+export { CallPanel }
+
 interface ChatHeaderProps {
   chatRoom: ChatRoom
   onMobileMenuClick: () => void
+  onCallChange?: (
+    call: { type: 'video' | 'voice'; roomId: string } | null
+  ) => void
 }
 
 function getChatRoomIcon(type: ChatRoom['type']) {
@@ -90,7 +368,18 @@ function getChatRoomInitials(name: string) {
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   chatRoom,
   onMobileMenuClick,
+  onCallChange,
 }) => {
+  const [callType, setCallType] = useState<'video' | 'voice' | null>(null)
+  const callRoomIdRef = useRef<string | null>(null)
+
+  const startCall = (type: 'video' | 'voice') => {
+    const roomId = `crm-${chatRoom.id}-${Date.now()}`
+    callRoomIdRef.current = roomId
+    setCallType(type)
+    onCallChange?.({ type, roomId })
+  }
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
   const [scheduleMeetingOpen, setScheduleMeetingOpen] = useState(false)
@@ -247,50 +536,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={async () => {
-              try {
-                const workspace = (window as any).__WORKSPACE_ID
-                const res = await fetch('/api/meetings', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    workspaceId: workspace || '',
-                    chatRoomId: chatRoom.id,
-                    title: `Voice call in ${chatRoom.name}`,
-                    type: 'voice',
-                  }),
-                })
-                const data = await res.json()
-                if (data.success) {
-                  const { socket } = (await import(
-                    '@/lib/context/SocketContext'
-                  ).then(() => ({}))) as any
-                }
-              } catch {}
-            }}
-            title="Voice call"
-          >
-            <Phone className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={async () => {
-              try {
-                const workspace = (window as any).__WORKSPACE_ID
-                await fetch('/api/meetings', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    workspaceId: workspace || '',
-                    chatRoomId: chatRoom.id,
-                    title: `Video call in ${chatRoom.name}`,
-                    type: 'video',
-                  }),
-                })
-              } catch {}
-            }}
-            title="Video call"
+            onClick={() => startCall('video')}
+            title="Start meeting"
           >
             <Video className="h-4 w-4" />
           </Button>
@@ -433,6 +680,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* CallPanel is rendered by ChatInterface, not here */}
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

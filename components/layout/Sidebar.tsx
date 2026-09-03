@@ -51,6 +51,9 @@ import {
   CalendarCheck,
   Boxes,
   ClipboardCheck,
+  Megaphone,
+  GitBranch,
+  Linkedin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -193,36 +196,57 @@ const navigation = [
     category: 'main',
     permission: Permission.CHAT_VIEW,
   },
-  { name: 'Email', href: '/email', icon: Mail, category: 'main' },
-  {
-    name: 'Sequences',
-    href: '/email-sequences',
-    icon: MailPlus,
-    category: 'main',
-  },
   { name: 'Calendar', href: '/calendar', icon: CalendarDays, category: 'main' },
   { name: 'Referrals', href: '/referrals', icon: Gift, category: 'main' },
 
   {
-    name: 'Communication',
-    href: '/communication',
-    icon: MessageCircle,
+    name: 'Marketing',
+    href: '/marketing',
+    icon: Megaphone,
     category: 'section',
-    id: 'communication',
+    id: 'marketing',
   },
   {
     name: 'SMS',
     href: '/sms',
     icon: Smartphone,
-    category: 'communication',
-    parent: 'communication',
+    category: 'marketing',
+    parent: 'marketing',
   },
   {
     name: 'WhatsApp',
     href: '/whatsapp',
     icon: MessageCircle,
-    category: 'communication',
-    parent: 'communication',
+    category: 'marketing',
+    parent: 'marketing',
+  },
+  {
+    name: 'Email',
+    href: '/email',
+    icon: Mail,
+    category: 'marketing',
+    parent: 'marketing',
+  },
+  {
+    name: 'Sequences',
+    href: '/email-sequences',
+    icon: GitBranch,
+    category: 'marketing',
+    parent: 'marketing',
+  },
+  {
+    name: 'Campaigns',
+    href: '/campaigns',
+    icon: Megaphone,
+    category: 'marketing',
+    parent: 'marketing',
+  },
+  {
+    name: 'LinkedIn',
+    href: '/linkedin',
+    icon: Linkedin,
+    category: 'marketing',
+    parent: 'marketing',
   },
 
   {
@@ -401,7 +425,7 @@ export function Sidebar({
     hr: false,
     engines: false,
     fmcg: false,
-    communication: false,
+    marketing: false,
   })
 
   const toggleSection = (sectionId: string) => {

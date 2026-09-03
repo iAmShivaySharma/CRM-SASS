@@ -93,11 +93,8 @@ export async function POST(request: NextRequest) {
               timestamp: parseInt(msg.timestamp),
             })
 
-            // Auto-create lead from unknown number
             if (message) {
-              const account = await WhatsAppAccount.findOne({
-                phoneNumberId,
-              })
+              const account = await WhatsAppAccount.findOne({ phoneNumberId })
               if (account) {
                 await NotificationService.createNotification({
                   workspaceId: account.workspaceId,
@@ -109,6 +106,35 @@ export async function POST(request: NextRequest) {
                   createdBy: 'system',
                   notificationLevel: 'team',
                 }).catch(() => {})
+
+                if (account.botEnabled && content && msg.type === 'text') {
+                  const appUrl =
+                    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+                  const aiRes = await fetch(`${appUrl}/api/ai/auto-reply`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      message: content,
+                      senderName: msg.from,
+                      businessName: account.displayName,
+                      channel: 'whatsapp',
+                      tone: account.botTone || 'professional',
+                      businessContext: account.botContext || '',
+                    }),
+                  }).catch(() => null)
+
+                  if (aiRes?.ok) {
+                    const { reply } = await aiRes.json().catch(() => ({}))
+                    if (reply) {
+                      await WhatsAppService.sendTextMessage({
+                        workspaceId: account.workspaceId,
+                        accountId: account._id.toString(),
+                        to: msg.from,
+                        text: reply,
+                      }).catch(() => {})
+                    }
+                  }
+                }
               }
             }
           }

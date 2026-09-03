@@ -241,7 +241,10 @@ export const chatApi = createApi({
       async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          chatApi.util.invalidateTags([{ type: 'Message', id: chatRoomId }])
+          chatApi.util.invalidateTags([
+            { type: 'Message', id: chatRoomId },
+            'ChatRoom',
+          ])
         )
       },
     }),

@@ -3,32 +3,25 @@ import { z } from 'zod'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { checkPermission } from '@/lib/security/check-permission'
-import {
-  EmailSequence,
-  SequenceEnrollment,
-} from '@/lib/mongodb/models/EmailSequence'
+import { Campaign } from '@/lib/mongodb/models/Campaign'
 
-const createSequenceSchema = z.object({
+const stepSchema = z.object({
+  order: z.number().min(0),
+  channel: z.enum(['email', 'whatsapp', 'sms', 'ai_reply']),
+  subject: z.string().max(200).optional(),
+  body: z.string().min(1),
+  delayDays: z.number().min(0).default(1),
+  delayHours: z.number().min(0).max(23).default(0),
+  aiTone: z.enum(['professional', 'friendly', 'casual']).optional(),
+  aiContext: z.string().max(2000).optional(),
+  replyViaChannel: z.enum(['email', 'whatsapp', 'sms']).optional(),
+})
+
+const createSchema = z.object({
   workspaceId: z.string().min(1),
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
-  steps: z
-    .array(
-      z.object({
-        order: z.number().min(0),
-        channel: z
-          .enum(['email', 'whatsapp', 'sms', 'ai_reply'])
-          .default('email'),
-        subject: z.string().max(200).optional(),
-        body: z.string().min(1),
-        delayDays: z.number().min(0).default(1),
-        delayHours: z.number().min(0).max(23).default(0),
-        aiTone: z.enum(['professional', 'friendly', 'casual']).optional(),
-        aiContext: z.string().max(2000).optional(),
-        replyViaChannel: z.enum(['email', 'whatsapp', 'sms']).optional(),
-      })
-    )
-    .min(1),
+  steps: z.array(stepSchema).min(1),
 })
 
 export async function GET(request: NextRequest) {
@@ -53,14 +46,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const sequences = await EmailSequence.find({ workspaceId })
+    const campaigns = await Campaign.find({ workspaceId })
       .sort({ createdAt: -1 })
       .lean()
 
-    return NextResponse.json({ success: true, sequences })
+    return NextResponse.json({ success: true, campaigns })
   } catch (error) {
     return NextResponse.json(
-      { message: 'Failed to fetch sequences' },
+      { message: 'Failed to fetch campaigns' },
       { status: 500 }
     )
   }
@@ -79,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const validation = createSequenceSchema.safeParse(body)
+    const validation = createSchema.safeParse(body)
 
     if (!validation.success) {
       return NextResponse.json(
@@ -95,9 +88,11 @@ export async function POST(request: NextRequest) {
       workspaceId,
       'leads.edit'
     )
-    if (permError) return permError
+    if (permError) {
+      return permError
+    }
 
-    const sequence = await EmailSequence.create({
+    const campaign = await Campaign.create({
       workspaceId,
       name,
       description,
@@ -105,10 +100,10 @@ export async function POST(request: NextRequest) {
       createdBy: auth.user.id,
     })
 
-    return NextResponse.json({ success: true, sequence }, { status: 201 })
+    return NextResponse.json({ success: true, campaign }, { status: 201 })
   } catch (error) {
     return NextResponse.json(
-      { message: 'Failed to create sequence' },
+      { message: 'Failed to create campaign' },
       { status: 500 }
     )
   }

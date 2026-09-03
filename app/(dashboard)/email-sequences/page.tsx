@@ -8,6 +8,10 @@ import {
   Pause,
   Trash2,
   Loader2,
+  ArrowLeft,
+  MessageCircle,
+  Smartphone,
+  Bot,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -22,13 +26,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetSequencesQuery,
@@ -36,23 +33,23 @@ import {
   useUpdateSequenceMutation,
   useDeleteSequenceMutation,
 } from '@/lib/api/emailSequencesApi'
+import { CampaignFlowBuilder } from '@/components/marketing/CampaignFlowBuilder'
+import { type CampaignStep } from '@/lib/api/campaignApi'
 
-interface SequenceStep {
-  order: number
-  subject: string
-  body: string
-  delayDays: number
-  delayHours: number
+type ViewMode = 'list' | 'create'
+
+const channelIcons: Record<string, typeof Mail> = {
+  email: Mail,
+  whatsapp: MessageCircle,
+  sms: Smartphone,
+  ai_reply: Bot,
 }
 
 export default function EmailSequencesPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
-  const [createOpen, setCreateOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [steps, setSteps] = useState<SequenceStep[]>([
-    { order: 0, subject: '', body: '', delayDays: 1, delayHours: 0 },
-  ])
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
+  const [sequenceName, setSequenceName] = useState('')
+  const [sequenceDescription, setSequenceDescription] = useState('')
 
   const { data, isLoading } = useGetSequencesQuery(
     { workspaceId: currentWorkspace?.id || '' },
@@ -65,26 +62,53 @@ export default function EmailSequencesPage() {
 
   const sequences = data?.sequences || []
 
-  const handleCreate = async () => {
-    if (!name || steps.some(s => !s.subject || !s.body)) {
-      toast.error('Fill in all step subjects and bodies')
+  const handleSave = async (steps: CampaignStep[]) => {
+    if (!sequenceName.trim()) {
+      toast.error('Sequence name is required')
+      return
+    }
+    const invalid = steps.some(s => {
+      if (s.channel === 'email') {
+        return !s.subject || !s.body
+      }
+      return !s.body
+    })
+    if (invalid) {
+      toast.error(
+        'Email steps need subject + body. Other steps need a message body.'
+      )
       return
     }
     try {
       await createSequence({
         workspaceId: currentWorkspace?.id || '',
-        name,
-        description,
-        steps,
+        name: sequenceName.trim(),
+        description: sequenceDescription.trim() || undefined,
+        steps: steps.map((s, i) => ({
+          order: i,
+          channel: s.channel,
+          subject: s.subject,
+          body: s.body,
+          delayDays: s.delayDays,
+          delayHours: s.delayHours,
+          aiTone: s.aiTone,
+          aiContext: s.aiContext,
+          replyViaChannel: s.replyViaChannel,
+        })),
       }).unwrap()
       toast.success('Sequence created')
-      setCreateOpen(false)
-      setName('')
-      setDescription('')
-      setSteps([{ order: 0, subject: '', body: '', delayDays: 1, delayHours: 0 }])
+      setViewMode('list')
+      setSequenceName('')
+      setSequenceDescription('')
     } catch {
       toast.error('Failed to create sequence')
     }
+  }
+
+  const handleCancel = () => {
+    setViewMode('list')
+    setSequenceName('')
+    setSequenceDescription('')
   }
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -105,35 +129,11 @@ export default function EmailSequencesPage() {
     }
   }
 
-  const addStep = () => {
-    setSteps(prev => [
-      ...prev,
-      { order: prev.length, subject: '', body: '', delayDays: 1, delayHours: 0 },
-    ])
-  }
-
-  const updateStep = (index: number, field: string, value: any) => {
-    setSteps(prev =>
-      prev.map((s, i) => (i === index ? { ...s, [field]: value } : s))
-    )
-  }
-
-  const removeStep = (index: number) => {
-    if (steps.length <= 1) return
-    setSteps(prev =>
-      prev.filter((_, i) => i !== index).map((s, i) => ({ ...s, order: i }))
-    )
-  }
-
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-primary/10 text-primary'
-      case 'paused':
-        return 'bg-muted text-muted-foreground'
-      default:
-        return 'bg-muted text-muted-foreground'
+    if (status === 'active') {
+      return 'bg-primary/10 text-primary'
     }
+    return 'bg-muted text-muted-foreground'
   }
 
   if (!currentWorkspace) {
@@ -142,9 +142,77 @@ export default function EmailSequencesPage() {
         <div className="text-center">
           <h3 className="text-lg font-semibold">No Workspace Selected</h3>
           <p className="text-muted-foreground">
-            Please select a workspace to view email sequences.
+            Please select a workspace to view sequences.
           </p>
         </div>
+      </div>
+    )
+  }
+
+  if (viewMode === 'create') {
+    return (
+      <div className="flex h-full flex-col space-y-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="gap-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">New Sequence</h1>
+            <p className="text-sm text-muted-foreground">
+              Build your multi-channel sequence visually
+            </p>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Sequence Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Sequence Name</Label>
+                <Input
+                  value={sequenceName}
+                  onChange={e => setSequenceName(e.target.value)}
+                  placeholder="e.g., Welcome Series"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  value={sequenceDescription}
+                  onChange={e => setSequenceDescription(e.target.value)}
+                  placeholder="Optional description"
+                  rows={1}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="flex-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Sequence Flow</CardTitle>
+            <CardDescription>
+              Add steps with any channel — Email, WhatsApp, SMS, or AI Reply
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <CampaignFlowBuilder
+              onSave={handleSave}
+              onCancel={handleCancel}
+              saving={creating}
+            />
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -161,12 +229,12 @@ export default function EmailSequencesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Email Sequences</h1>
+          <h1 className="text-2xl font-bold">Sequences</h1>
           <p className="text-muted-foreground">
-            Automated drip email campaigns for your leads.
+            Multi-channel automated sequences for your leads.
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button onClick={() => setViewMode('create')}>
           <Plus className="mr-2 h-4 w-4" />
           Create Sequence
         </Button>
@@ -178,177 +246,76 @@ export default function EmailSequencesPage() {
             <Mail className="mb-4 h-12 w-12 text-muted-foreground" />
             <p className="text-lg font-medium">No sequences yet</p>
             <p className="text-sm text-muted-foreground">
-              Create your first email sequence to automate follow-ups.
+              Create your first sequence to automate outreach across channels.
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {sequences.map(seq => (
-            <Card key={seq._id}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-base">{seq.name}</CardTitle>
-                  <Badge className={getStatusColor(seq.status)}>
-                    {seq.status}
-                  </Badge>
-                </div>
-                {seq.description && (
-                  <CardDescription className="line-clamp-2">
-                    {seq.description}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Mail className="h-3.5 w-3.5" />
-                    {seq.steps?.length || 0} steps
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  {seq.status === 'draft' || seq.status === 'paused' ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleStatusChange(seq._id, 'active')}
-                    >
-                      <Play className="mr-1 h-3 w-3" />
-                      Activate
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleStatusChange(seq._id, 'paused')}
-                    >
-                      <Pause className="mr-1 h-3 w-3" />
-                      Pause
-                    </Button>
+          {sequences.map(seq => {
+            const channels = [
+              ...new Set((seq.steps || []).map(s => s.channel || 'email')),
+            ]
+            return (
+              <Card key={seq._id}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-base">{seq.name}</CardTitle>
+                    <Badge className={getStatusColor(seq.status)}>
+                      {seq.status}
+                    </Badge>
+                  </div>
+                  {seq.description && (
+                    <CardDescription className="line-clamp-2">
+                      {seq.description}
+                    </CardDescription>
                   )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive"
-                    onClick={() => handleDelete(seq._id)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create Email Sequence</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Sequence Name</Label>
-              <Input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="e.g., Welcome Series"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Input
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Optional description"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Steps</Label>
-                <Button variant="outline" size="sm" onClick={addStep}>
-                  <Plus className="mr-1 h-3 w-3" />
-                  Add Step
-                </Button>
-              </div>
-
-              {steps.map((step, i) => (
-                <Card key={i} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Step {i + 1}</span>
-                      {steps.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeStep(i)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="flex-1 space-y-1">
-                        <Label className="text-xs">Delay (days)</Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={step.delayDays}
-                          onChange={e =>
-                            updateStep(i, 'delayDays', parseInt(e.target.value) || 0)
-                          }
-                          className="h-8"
-                        />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <Label className="text-xs">Hours</Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          max={23}
-                          value={step.delayHours}
-                          onChange={e =>
-                            updateStep(i, 'delayHours', parseInt(e.target.value) || 0)
-                          }
-                          className="h-8"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Subject</Label>
-                      <Input
-                        value={step.subject}
-                        onChange={e => updateStep(i, 'subject', e.target.value)}
-                        placeholder="Email subject line"
-                        className="h-8"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Body</Label>
-                      <Textarea
-                        value={step.body}
-                        onChange={e => updateStep(i, 'body', e.target.value)}
-                        placeholder="Email body..."
-                        rows={3}
-                      />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span>{seq.steps?.length || 0} steps</span>
+                    <div className="flex gap-1">
+                      {channels.map(ch => {
+                        const Icon = channelIcons[ch] || Mail
+                        return <Icon key={ch} className="h-3.5 w-3.5" />
+                      })}
                     </div>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreate} disabled={creating}>
-              {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Sequence
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                  <div className="flex gap-2">
+                    {seq.status === 'draft' || seq.status === 'paused' ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleStatusChange(seq._id, 'active')}
+                      >
+                        <Play className="mr-1 h-3 w-3" />
+                        Activate
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleStatusChange(seq._id, 'paused')}
+                      >
+                        <Pause className="mr-1 h-3 w-3" />
+                        Pause
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive"
+                      onClick={() => handleDelete(seq._id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

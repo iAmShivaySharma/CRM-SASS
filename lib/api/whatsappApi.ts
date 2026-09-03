@@ -10,6 +10,9 @@ export interface WhatsAppAccount {
   businessAccountId?: string
   webhookVerifyToken?: string
   isActive: boolean
+  botEnabled: boolean
+  botContext?: string
+  botTone?: 'professional' | 'friendly' | 'casual'
   createdAt: string
   updatedAt: string
 }
@@ -25,6 +28,20 @@ export interface WhatsAppTemplate {
   components: object[]
   createdAt: string
   updatedAt: string
+}
+
+export interface WhatsAppMessage {
+  _id: string
+  direction: 'inbound' | 'outbound'
+  from: string
+  to: string
+  content: string
+  messageType: string
+  status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
+  waMessageId?: string
+  templateName?: string
+  createdAt: string
+  sentAt?: string
 }
 
 export interface WhatsAppConversation {
@@ -89,10 +106,14 @@ export const whatsappApi = createApi({
   tagTypes: ['WhatsAppAccount', 'WhatsAppTemplate', 'WhatsAppConversation'],
   endpoints: builder => ({
     getAccounts: builder.query<AccountsResponse, { workspaceId: string }>({
-      query: ({ workspaceId }) => `api/whatsapp/accounts?workspaceId=${workspaceId}`,
+      query: ({ workspaceId }) =>
+        `api/whatsapp/accounts?workspaceId=${workspaceId}`,
       providesTags: ['WhatsAppAccount'],
     }),
-    createAccount: builder.mutation<{ success: boolean; account: WhatsAppAccount }, Partial<WhatsAppAccount> & { workspaceId: string }>({
+    createAccount: builder.mutation<
+      { success: boolean; account: WhatsAppAccount },
+      Partial<WhatsAppAccount> & { workspaceId: string }
+    >({
       query: body => ({
         url: 'api/whatsapp/accounts',
         method: 'POST',
@@ -100,7 +121,10 @@ export const whatsappApi = createApi({
       }),
       invalidatesTags: ['WhatsAppAccount'],
     }),
-    updateAccount: builder.mutation<{ success: boolean; account: WhatsAppAccount }, { id: string } & Partial<WhatsAppAccount>>({
+    updateAccount: builder.mutation<
+      { success: boolean; account: WhatsAppAccount },
+      { id: string } & Partial<WhatsAppAccount>
+    >({
       query: ({ id, ...body }) => ({
         url: `api/whatsapp/accounts/${id}`,
         method: 'PUT',
@@ -108,7 +132,10 @@ export const whatsappApi = createApi({
       }),
       invalidatesTags: ['WhatsAppAccount'],
     }),
-    deleteAccount: builder.mutation<{ success: boolean; message: string }, { id: string; workspaceId: string }>({
+    deleteAccount: builder.mutation<
+      { success: boolean; message: string },
+      { id: string; workspaceId: string }
+    >({
       query: ({ id, workspaceId }) => ({
         url: `api/whatsapp/accounts/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
@@ -116,10 +143,14 @@ export const whatsappApi = createApi({
       invalidatesTags: ['WhatsAppAccount'],
     }),
     getTemplates: builder.query<TemplatesResponse, { workspaceId: string }>({
-      query: ({ workspaceId }) => `api/whatsapp/templates?workspaceId=${workspaceId}`,
+      query: ({ workspaceId }) =>
+        `api/whatsapp/templates?workspaceId=${workspaceId}`,
       providesTags: ['WhatsAppTemplate'],
     }),
-    createTemplate: builder.mutation<{ success: boolean; template: WhatsAppTemplate }, Partial<WhatsAppTemplate> & { workspaceId: string }>({
+    createTemplate: builder.mutation<
+      { success: boolean; template: WhatsAppTemplate },
+      Partial<WhatsAppTemplate> & { workspaceId: string }
+    >({
       query: body => ({
         url: 'api/whatsapp/templates',
         method: 'POST',
@@ -127,8 +158,12 @@ export const whatsappApi = createApi({
       }),
       invalidatesTags: ['WhatsAppTemplate'],
     }),
-    getConversations: builder.query<ConversationsResponse, { workspaceId: string }>({
-      query: ({ workspaceId }) => `api/whatsapp/conversations?workspaceId=${workspaceId}`,
+    getConversations: builder.query<
+      ConversationsResponse,
+      { workspaceId: string }
+    >({
+      query: ({ workspaceId }) =>
+        `api/whatsapp/conversations?workspaceId=${workspaceId}`,
       providesTags: ['WhatsAppConversation'],
     }),
     sendMessage: builder.mutation<{ success: boolean }, SendMessageBody>({
@@ -146,12 +181,55 @@ export const whatsappApi = createApi({
         body,
       }),
     }),
-    broadcast: builder.mutation<{ success: boolean; count: number }, BroadcastBody>({
+    broadcast: builder.mutation<
+      { success: boolean; count: number },
+      BroadcastBody
+    >({
       query: body => ({
         url: 'api/whatsapp/broadcast',
         method: 'POST',
         body,
       }),
+    }),
+    deleteTemplate: builder.mutation<
+      { success: boolean },
+      { id: string; workspaceId: string }
+    >({
+      query: ({ id, workspaceId }) => ({
+        url: `api/whatsapp/templates/${id}?workspaceId=${workspaceId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['WhatsAppTemplate'],
+    }),
+    submitTemplate: builder.mutation<
+      { success: boolean; metaTemplateId?: string },
+      { id: string; workspaceId: string }
+    >({
+      query: ({ id, workspaceId }) => ({
+        url: `api/whatsapp/templates/${id}/submit`,
+        method: 'POST',
+        body: { workspaceId },
+      }),
+      invalidatesTags: ['WhatsAppTemplate'],
+    }),
+    syncTemplates: builder.mutation<
+      { success: boolean; synced: number },
+      { workspaceId: string; accountId: string }
+    >({
+      query: body => ({
+        url: 'api/whatsapp/templates/sync',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['WhatsAppTemplate'],
+    }),
+    getMessages: builder.query<
+      { success: boolean; messages: WhatsAppMessage[] },
+      { workspaceId: string; phone: string; page?: number }
+    >({
+      query: ({ workspaceId, phone, page = 1 }) =>
+        `api/whatsapp/conversations?workspaceId=${workspaceId}&phone=${encodeURIComponent(phone)}&page=${page}`,
+      providesTags: ['WhatsAppConversation'],
     }),
   }),
 })
@@ -167,4 +245,8 @@ export const {
   useSendMessageMutation,
   useSendTemplateMutation,
   useBroadcastMutation,
+  useDeleteTemplateMutation,
+  useSubmitTemplateMutation,
+  useSyncTemplatesMutation,
+  useGetMessagesQuery,
 } = whatsappApi

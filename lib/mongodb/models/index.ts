@@ -186,3 +186,17 @@ export {
   ComplianceDocument,
   type IComplianceDocument,
 } from './ComplianceDocument'
+
+export {
+  SocialOAuthConnection,
+  type ISocialOAuthConnection,
+} from './SocialOAuthConnection'
+
+export {
+  Campaign,
+  CampaignEnrollment,
+  type ICampaign,
+  type ICampaignStep,
+  type ICampaignEnrollment,
+  type CampaignChannel,
+} from './Campaign'
