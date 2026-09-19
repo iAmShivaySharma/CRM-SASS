@@ -2,10 +2,13 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { WhatsAppAccount } from '@/lib/mongodb/models/WhatsAppAccount'
 import { WhatsAppMessage } from '@/lib/mongodb/models/WhatsAppMessage'
 import { WhatsAppConversation } from '@/lib/mongodb/models/WhatsAppConversation'
+import { Lead } from '@/lib/mongodb/models/Lead'
+import { Contact } from '@/lib/mongodb/models/Contact'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { log } from '@/lib/logging/logger'
 import { WhatsAppService } from '@/lib/services/whatsappService'
 import { NotificationService } from '@/lib/services/notificationService'
+import { BotFlowEngine } from '@/lib/services/botFlowEngine'
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
@@ -27,6 +30,77 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
+}
+
+async function linkMessageToLeadOrContact(
+  workspaceId: string,
+  phone: string,
+  messageId: string,
+  conversationId: string
+) {
+  const normalizedPhone = WhatsAppService.formatPhone(phone)
+
+  const phoneVariants = [
+    normalizedPhone,
+    `+${normalizedPhone}`,
+    normalizedPhone.replace(/^91/, ''),
+    normalizedPhone.replace(/^91/, '0'),
+  ]
+
+  const lead = await Lead.findOne({
+    workspaceId,
+    phone: { $in: phoneVariants },
+  }).lean()
+
+  if (lead) {
+    await WhatsAppMessage.findByIdAndUpdate(messageId, {
+      $set: { leadId: (lead as any)._id.toString() },
+    })
+    await WhatsAppConversation.findByIdAndUpdate(conversationId, {
+      $set: { contactName: (lead as any).name },
+    })
+    return
+  }
+
+  const contact = await Contact.findOne({
+    workspaceId,
+    phone: { $in: phoneVariants },
+  }).lean()
+
+  if (contact) {
+    await WhatsAppMessage.findByIdAndUpdate(messageId, {
+      $set: { contactId: (contact as any)._id.toString() },
+    })
+    await WhatsAppConversation.findByIdAndUpdate(conversationId, {
+      $set: { contactName: (contact as any).name },
+    })
+  }
+}
+
+async function buildConversationHistory(
+  workspaceId: string,
+  phone: string,
+  accountPhone: string
+): Promise<Array<{ role: 'user' | 'assistant'; content: string }>> {
+  const recentMessages = await WhatsAppMessage.find({
+    workspaceId,
+    $or: [
+      { from: phone, to: accountPhone },
+      { from: accountPhone, to: phone },
+    ],
+  })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean()
+
+  return recentMessages
+    .reverse()
+    .map((m: any) => ({
+      role:
+        m.direction === 'inbound' ? ('user' as const) : ('assistant' as const),
+      content: m.content || '',
+    }))
+    .filter(m => m.content)
 }
 
 export async function POST(request: NextRequest) {
@@ -80,6 +154,13 @@ export async function POST(request: NextRequest) {
               case 'document':
                 content = msg[msg.type]?.caption || `[${msg.type}]`
                 break
+              case 'interactive':
+                content =
+                  msg.interactive?.button_reply?.title ||
+                  msg.interactive?.list_reply?.title ||
+                  msg.interactive?.list_reply?.id ||
+                  '[interactive]'
+                break
               case 'location':
                 content = `Location: ${msg.location?.latitude}, ${msg.location?.longitude}`
                 break
@@ -129,6 +210,27 @@ export async function POST(request: NextRequest) {
                 { upsert: true, new: true }
               )
 
+              linkMessageToLeadOrContact(
+                account.workspaceId,
+                msg.from,
+                message._id.toString(),
+                conversation._id.toString()
+              ).catch(() => {})
+
+              const { CampaignEnrollment } =
+                await import('@/lib/mongodb/models/Campaign')
+              const normalizedPhone = WhatsAppService.formatPhone(msg.from)
+              await CampaignEnrollment.updateMany(
+                {
+                  workspaceId: account.workspaceId,
+                  phone: {
+                    $in: [msg.from, normalizedPhone, `+${normalizedPhone}`],
+                  },
+                  status: 'active',
+                },
+                { $set: { status: 'completed', completedAt: new Date() } }
+              ).catch(() => {})
+
               await NotificationService.createNotification({
                 workspaceId: account.workspaceId,
                 title: 'New WhatsApp Message',
@@ -155,34 +257,68 @@ export async function POST(request: NextRequest) {
                   }).catch(() => {})
                 }
               } else if (
-                conversation.mode === 'ai' &&
-                content &&
-                msg.type === 'text'
+                conversation.mode === 'workflow' ||
+                conversation.mode === 'ai' ||
+                conversation.mode === 'idle'
               ) {
-                const appUrl =
-                  process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-                const aiRes = await fetch(`${appUrl}/api/ai/auto-reply`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    message: content,
-                    senderName: contactName || msg.from,
-                    businessName: account.displayName,
-                    channel: 'whatsapp',
-                    tone: account.botTone || 'professional',
-                    businessContext: account.botContext || '',
-                  }),
-                }).catch(() => null)
+                if (
+                  content &&
+                  (msg.type === 'text' || msg.type === 'interactive')
+                ) {
+                  const botResult = await BotFlowEngine.processMessage({
+                    workspaceId: account.workspaceId,
+                    accountId: account._id.toString(),
+                    contactPhone: msg.from,
+                    messageContent: content,
+                    conversation,
+                  }).catch(err => {
+                    log.error('Bot flow engine error:', err)
+                    return { handled: false } as {
+                      handled: boolean
+                      response?: string
+                    }
+                  })
 
-                if (aiRes?.ok) {
-                  const { reply } = await aiRes.json().catch(() => ({}))
-                  if (reply) {
-                    await WhatsAppService.sendTextMessage({
-                      workspaceId: account.workspaceId,
-                      accountId: account._id.toString(),
-                      to: msg.from,
-                      text: reply,
-                    }).catch(() => {})
+                  if (
+                    !botResult.handled &&
+                    conversation.mode !== 'idle' &&
+                    msg.type === 'text'
+                  ) {
+                    const conversationHistory = await buildConversationHistory(
+                      account.workspaceId,
+                      msg.from,
+                      account.phoneNumber
+                    )
+
+                    const appUrl =
+                      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+                    const aiRes = await fetch(`${appUrl}/api/ai/auto-reply`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        workspaceId: account.workspaceId,
+                        incomingMessage: content,
+                        senderName: contactName || msg.from,
+                        businessName: account.displayName,
+                        channel: 'whatsapp',
+                        tone: account.botTone || 'professional',
+                        businessContext:
+                          botResult.response || account.botContext || '',
+                        conversationHistory,
+                      }),
+                    }).catch(() => null)
+
+                    if (aiRes?.ok) {
+                      const { reply } = await aiRes.json().catch(() => ({}))
+                      if (reply) {
+                        await WhatsAppService.sendTextMessage({
+                          workspaceId: account.workspaceId,
+                          accountId: account._id.toString(),
+                          to: msg.from,
+                          text: reply,
+                        }).catch(() => {})
+                      }
+                    }
                   }
                 }
               }

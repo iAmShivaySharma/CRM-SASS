@@ -146,7 +146,6 @@ export class WhatsAppService {
 
     const phone = this.formatPhone(params.to)
 
-    // Build template components
     const components: any[] = []
     if (params.variables && params.variables.length > 0) {
       components.push({
@@ -271,7 +270,6 @@ export class WhatsAppService {
       if (result.success) sent++
       else failed++
 
-      // Rate limiting: 80 messages per second max for Meta API
       if ((sent + failed) % 50 === 0) {
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
@@ -541,6 +539,229 @@ export class WhatsAppService {
 
     await WhatsAppTemplate.findByIdAndDelete(params.templateId)
     return { success: true }
+  }
+
+  static async sendInteractiveButtons(params: {
+    workspaceId: string
+    accountId: string
+    to: string
+    bodyText: string
+    buttons: Array<{ id: string; title: string }>
+    contactId?: string
+    leadId?: string
+  }): Promise<SendMessageResult> {
+    const account = await WhatsAppAccount.findOne({
+      _id: params.accountId,
+      workspaceId: params.workspaceId,
+      isActive: true,
+    })
+
+    if (!account) {
+      return { success: false, error: 'WhatsApp account not found or inactive' }
+    }
+
+    const phone = this.formatPhone(params.to)
+
+    const msgDoc = await WhatsAppMessage.create({
+      workspaceId: params.workspaceId,
+      accountId: params.accountId,
+      direction: 'outbound',
+      from: account.phoneNumber,
+      to: phone,
+      messageType: 'interactive',
+      content: params.bodyText,
+      status: 'pending',
+      contactId: params.contactId,
+      leadId: params.leadId,
+      metadata: { interactiveType: 'button', buttons: params.buttons },
+      sentAt: new Date(),
+    })
+
+    try {
+      const response = await fetch(
+        `${META_API_BASE}/${account.phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${account.accessToken}`,
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: phone,
+            type: 'interactive',
+            interactive: {
+              type: 'button',
+              body: { text: params.bodyText },
+              action: {
+                buttons: params.buttons.slice(0, 3).map(b => ({
+                  type: 'reply',
+                  reply: { id: b.id, title: b.title.substring(0, 20) },
+                })),
+              },
+            },
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (data.messages?.[0]?.id) {
+        msgDoc.status = 'sent'
+        msgDoc.waMessageId = data.messages[0].id
+        await msgDoc.save()
+
+        account.dailyMessageCount += 1
+        await account.save()
+
+        return {
+          success: true,
+          messageId: msgDoc._id.toString(),
+          waMessageId: data.messages[0].id,
+        }
+      }
+
+      const errorMsg = data.error?.message || 'Unknown error'
+      msgDoc.status = 'failed'
+      msgDoc.errorCode = data.error?.code?.toString()
+      msgDoc.errorMessage = errorMsg
+      await msgDoc.save()
+
+      return {
+        success: false,
+        messageId: msgDoc._id.toString(),
+        error: errorMsg,
+      }
+    } catch (error: any) {
+      msgDoc.status = 'failed'
+      msgDoc.errorMessage = error.message
+      await msgDoc.save()
+
+      log.error('WhatsApp interactive buttons send error:', error)
+      return {
+        success: false,
+        messageId: msgDoc._id.toString(),
+        error: error.message,
+      }
+    }
+  }
+
+  static async sendInteractiveList(params: {
+    workspaceId: string
+    accountId: string
+    to: string
+    bodyText: string
+    buttonText: string
+    sections: Array<{
+      title: string
+      rows: Array<{ id: string; title: string; description?: string }>
+    }>
+    contactId?: string
+    leadId?: string
+  }): Promise<SendMessageResult> {
+    const account = await WhatsAppAccount.findOne({
+      _id: params.accountId,
+      workspaceId: params.workspaceId,
+      isActive: true,
+    })
+
+    if (!account) {
+      return { success: false, error: 'WhatsApp account not found or inactive' }
+    }
+
+    const phone = this.formatPhone(params.to)
+
+    const msgDoc = await WhatsAppMessage.create({
+      workspaceId: params.workspaceId,
+      accountId: params.accountId,
+      direction: 'outbound',
+      from: account.phoneNumber,
+      to: phone,
+      messageType: 'interactive',
+      content: params.bodyText,
+      status: 'pending',
+      contactId: params.contactId,
+      leadId: params.leadId,
+      metadata: { interactiveType: 'list', sections: params.sections },
+      sentAt: new Date(),
+    })
+
+    try {
+      const response = await fetch(
+        `${META_API_BASE}/${account.phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${account.accessToken}`,
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: phone,
+            type: 'interactive',
+            interactive: {
+              type: 'list',
+              body: { text: params.bodyText },
+              action: {
+                button: params.buttonText.substring(0, 20),
+                sections: params.sections.map(s => ({
+                  title: s.title.substring(0, 24),
+                  rows: s.rows.slice(0, 10).map(r => ({
+                    id: r.id,
+                    title: r.title.substring(0, 24),
+                    ...(r.description
+                      ? { description: r.description.substring(0, 72) }
+                      : {}),
+                  })),
+                })),
+              },
+            },
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (data.messages?.[0]?.id) {
+        msgDoc.status = 'sent'
+        msgDoc.waMessageId = data.messages[0].id
+        await msgDoc.save()
+
+        account.dailyMessageCount += 1
+        await account.save()
+
+        return {
+          success: true,
+          messageId: msgDoc._id.toString(),
+          waMessageId: data.messages[0].id,
+        }
+      }
+
+      const errorMsg = data.error?.message || 'Unknown error'
+      msgDoc.status = 'failed'
+      msgDoc.errorCode = data.error?.code?.toString()
+      msgDoc.errorMessage = errorMsg
+      await msgDoc.save()
+
+      return {
+        success: false,
+        messageId: msgDoc._id.toString(),
+        error: errorMsg,
+      }
+    } catch (error: any) {
+      msgDoc.status = 'failed'
+      msgDoc.errorMessage = error.message
+      await msgDoc.save()
+
+      log.error('WhatsApp interactive list send error:', error)
+      return {
+        success: false,
+        messageId: msgDoc._id.toString(),
+        error: error.message,
+      }
+    }
   }
 
   static formatPhone(phone: string): string {
