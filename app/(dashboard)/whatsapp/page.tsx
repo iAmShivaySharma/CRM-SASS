@@ -325,7 +325,7 @@ export default function WhatsAppPage() {
   function openEditAccount(account: (typeof accounts)[0]) {
     setEditingAccountId(account._id)
     setAccountForm({
-      name: account.name,
+      name: account.displayName || account.name,
       phoneNumber: account.phoneNumber,
       phoneNumberId: account.phoneNumberId,
       businessAccountId: account.businessAccountId ?? '',
@@ -499,9 +499,21 @@ export default function WhatsAppPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b bg-card px-6 py-4">
-        <MessageCircle className="h-6 w-6 text-primary" />
-        <h1 className="text-xl font-bold">WhatsApp</h1>
+      <div className="flex items-center justify-between border-b bg-card px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <MessageCircle className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold">WhatsApp</h1>
+            <p className="text-xs text-muted-foreground">
+              {accounts.length} account{accounts.length !== 1 ? 's' : ''} ·{' '}
+              {conversations.length} conversation
+              {conversations.length !== 1 ? 's' : ''} · {templates.length}{' '}
+              template{templates.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+        </div>
       </div>
 
       <Tabs
@@ -524,8 +536,13 @@ export default function WhatsAppPage() {
         >
           <div className="flex h-full w-full">
             <div className="flex w-[300px] shrink-0 flex-col border-r">
-              <div className="border-b px-4 py-3">
-                <p className="text-sm font-semibold">Conversations</p>
+              <div className="space-y-2 border-b px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Conversations</p>
+                  <Badge variant="secondary" className="text-xs">
+                    {conversations.length}
+                  </Badge>
+                </div>
               </div>
               <ScrollArea className="flex-1">
                 {conversationsLoading ? (
@@ -533,9 +550,20 @@ export default function WhatsAppPage() {
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>
                 ) : conversations.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    No conversations yet.
-                  </p>
+                  <div className="flex flex-col items-center justify-center gap-3 px-4 py-12">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                      <MessageCircle className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">
+                        No conversations yet
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Conversations appear when customers message your
+                        WhatsApp number
+                      </p>
+                    </div>
+                  </div>
                 ) : (
                   <div className="space-y-1 p-2">
                     {conversations.map(conv => {
@@ -551,30 +579,47 @@ export default function WhatsAppPage() {
                             )
                             setSelectedAccountPhone(account?.phoneNumber ?? '')
                           }}
-                          className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors ${isSelected ? 'bg-primary/10' : 'hover:bg-muted'}`}
+                          className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors ${isSelected ? 'border border-primary/20 bg-primary/10' : 'hover:bg-muted'}`}
                         >
                           <div className="mb-0.5 flex items-center justify-between">
                             <span className="max-w-[160px] truncate text-sm font-medium">
                               {conv.contactName ?? conv.contactPhone}
                             </span>
-                            <span className="ml-1 shrink-0 text-xs text-muted-foreground">
-                              {formatRelativeTime(conv.lastMessageAt)}
-                            </span>
+                            <div className="ml-1 flex shrink-0 items-center gap-1.5">
+                              {conv.unreadCount > 0 && (
+                                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+                                  {conv.unreadCount > 99
+                                    ? '99+'
+                                    : conv.unreadCount}
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground">
+                                {formatRelativeTime(conv.lastMessageAt)}
+                              </span>
+                            </div>
                           </div>
                           {conv.lastMessage && (
                             <p className="truncate text-xs text-muted-foreground">
                               {conv.lastMessage}
                             </p>
                           )}
-                          <span
-                            className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-xs ${
-                              conv.status === 'open'
-                                ? 'bg-primary/10 text-primary'
-                                : 'bg-muted text-muted-foreground'
-                            }`}
-                          >
-                            {conv.status}
-                          </span>
+                          {conv.mode && conv.mode !== 'idle' && (
+                            <span
+                              className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] ${
+                                conv.mode === 'ai'
+                                  ? 'bg-primary/10 text-primary'
+                                  : conv.mode === 'human'
+                                    ? 'bg-destructive/10 text-destructive'
+                                    : 'bg-muted text-muted-foreground'
+                              }`}
+                            >
+                              {conv.mode === 'ai'
+                                ? 'AI Bot'
+                                : conv.mode === 'human'
+                                  ? 'Human Agent'
+                                  : conv.mode}
+                            </span>
+                          )}
                         </button>
                       )
                     })}
@@ -592,11 +637,18 @@ export default function WhatsAppPage() {
                   accountPhone={selectedAccountPhone}
                 />
               ) : (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
-                  <MessageCircle className="h-12 w-12 opacity-30" />
-                  <p className="text-sm">
-                    Select a conversation to start messaging
-                  </p>
+                <div className="flex flex-1 flex-col items-center justify-center gap-4 text-muted-foreground">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                    <MessageCircle className="h-8 w-8" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-foreground">
+                      No conversation selected
+                    </p>
+                    <p className="mt-1 text-xs">
+                      Select a conversation from the sidebar to start messaging
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -632,11 +684,31 @@ export default function WhatsAppPage() {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : templates.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground">
-              <MessageCircle className="mx-auto mb-3 h-12 w-12 opacity-30" />
-              <p className="text-sm">
-                No templates yet. Create one or sync from Meta.
-              </p>
+            <div className="flex flex-col items-center justify-center gap-4 py-16">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <Send className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium">No templates yet</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Create a template or sync existing ones from Meta
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSyncTemplates}
+                  disabled={syncing || accounts.length === 0}
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Sync from Meta
+                </Button>
+                <Button size="sm" onClick={() => setTemplateSheetOpen(true)}>
+                  <Plus className="mr-2 h-3 w-3" />
+                  New Template
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -721,9 +793,26 @@ export default function WhatsAppPage() {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : accounts.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground">
-              <MessageCircle className="mx-auto mb-3 h-12 w-12 opacity-30" />
-              <p className="text-sm">No WhatsApp accounts connected yet.</p>
+            <div className="flex flex-col items-center justify-center gap-4 py-16">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <MessageCircle className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium">No accounts connected</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Connect your WhatsApp Business account to start messaging
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <WhatsAppFBSignup
+                  workspaceId={workspaceId}
+                  onSuccess={() => accountsRefetch()}
+                />
+                <Button size="sm" onClick={openNewAccount}>
+                  <Plus className="mr-2 h-3 w-3" />
+                  Connect Manually
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="space-y-3">
@@ -732,7 +821,11 @@ export default function WhatsAppPage() {
                   <CardContent className="flex items-center justify-between py-4">
                     <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">{account.name}</p>
+                        <p className="text-sm font-medium">
+                          {account.displayName ||
+                            account.name ||
+                            account.phoneNumber}
+                        </p>
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs ${account.isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
                         >
@@ -796,7 +889,7 @@ export default function WhatsAppPage() {
                   <SelectContent>
                     {accounts.map(a => (
                       <SelectItem key={a._id} value={a._id}>
-                        {a.name} — {a.phoneNumber}
+                        {a.displayName || a.name || a.phoneNumber}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -905,12 +998,31 @@ export default function WhatsAppPage() {
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : botFlows.length === 0 ? (
-                <div className="py-16 text-center text-muted-foreground">
-                  <Bot className="mx-auto mb-3 h-12 w-12 opacity-30" />
-                  <p className="text-sm">
-                    No bot flows yet. Create one to automate WhatsApp
-                    conversations.
-                  </p>
+                <div className="flex flex-col items-center justify-center gap-4 py-16">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                    <Bot className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium">No bot flows yet</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Create automated conversation flows for your WhatsApp
+                      business
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setBotFlowForm({
+                        name: '',
+                        description: '',
+                        accountId: '',
+                      })
+                      setBotFlowView('create')
+                    }}
+                  >
+                    <Plus className="mr-2 h-3 w-3" />
+                    Create Bot Flow
+                  </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -1048,7 +1160,7 @@ export default function WhatsAppPage() {
                       <SelectContent>
                         {accounts.map(a => (
                           <SelectItem key={a._id} value={a._id}>
-                            {a.name} — {a.phoneNumber}
+                            {a.displayName || a.name || a.phoneNumber}
                           </SelectItem>
                         ))}
                       </SelectContent>

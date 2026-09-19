@@ -4,6 +4,7 @@ export interface WhatsAppAccount {
   _id: string
   workspaceId: string
   name: string
+  displayName?: string
   phoneNumber: string
   phoneNumberId: string
   accessToken: string
