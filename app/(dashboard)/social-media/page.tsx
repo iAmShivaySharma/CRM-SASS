@@ -344,20 +344,22 @@ function ComposeTab({
           <div className="mt-2 flex flex-wrap gap-3">
             {PLATFORMS.map(p => {
               const platformAccounts = accountsByPlatform[p.value] || []
-              if (platformAccounts.length === 0) {
-                return null
-              }
+              const hasAccounts = platformAccounts.length > 0
               const Icon = p.icon
               const isSelected = selectedPlatforms[p.value]?.checked
               return (
-                <div key={p.value} className="flex flex-col gap-1">
+                <div key={p.value} className="flex flex-col gap-1.5">
                   <button
                     type="button"
-                    onClick={() =>
-                      togglePlatform(p.value, platformAccounts[0].id)
-                    }
+                    disabled={!hasAccounts}
+                    onClick={() => {
+                      if (hasAccounts) {
+                        togglePlatform(p.value, platformAccounts[0].id)
+                      }
+                    }}
                     className={cn(
                       'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors',
+                      !hasAccounts && 'cursor-not-allowed opacity-40',
                       isSelected
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'border-border bg-background text-muted-foreground hover:bg-muted'
@@ -365,8 +367,11 @@ function ComposeTab({
                   >
                     <Icon className="h-4 w-4" />
                     {p.label}
+                    {!hasAccounts && (
+                      <span className="text-[10px]">(no account)</span>
+                    )}
                   </button>
-                  {isSelected && platformAccounts.length > 1 && (
+                  {isSelected && platformAccounts.length >= 1 && (
                     <Select
                       value={selectedPlatforms[p.value]?.accountId}
                       onValueChange={v =>
@@ -377,7 +382,7 @@ function ComposeTab({
                       }
                     >
                       <SelectTrigger className="h-8 text-xs">
-                        <SelectValue />
+                        <SelectValue placeholder="Select account..." />
                       </SelectTrigger>
                       <SelectContent>
                         {platformAccounts.map(a => (
