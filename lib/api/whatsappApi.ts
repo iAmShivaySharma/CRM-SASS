@@ -53,7 +53,11 @@ export interface WhatsAppConversation {
   contactName?: string
   lastMessage?: string
   lastMessageAt?: string
-  status: 'open' | 'closed' | 'pending'
+  messageCount?: number
+  unreadCount?: number
+  status: string
+  mode?: string
+  humanAssignedTo?: string
   createdAt: string
   updatedAt: string
 }

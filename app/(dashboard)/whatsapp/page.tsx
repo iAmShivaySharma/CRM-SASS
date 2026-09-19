@@ -536,13 +536,10 @@ export default function WhatsAppPage() {
         >
           <div className="flex h-full w-full">
             <div className="flex w-[300px] shrink-0 flex-col border-r">
-              <div className="space-y-2 border-b px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">Conversations</p>
-                  <Badge variant="secondary" className="text-xs">
-                    {conversations.length}
-                  </Badge>
-                </div>
+              <div className="flex items-center justify-between border-b px-4 py-2.5">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {conversations.length} chats
+                </p>
               </div>
               <ScrollArea className="flex-1">
                 {conversationsLoading ? (
@@ -586,9 +583,9 @@ export default function WhatsAppPage() {
                               {conv.contactName ?? conv.contactPhone}
                             </span>
                             <div className="ml-1 flex shrink-0 items-center gap-1.5">
-                              {conv.unreadCount > 0 && (
+                              {(conv.unreadCount ?? 0) > 0 && (
                                 <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
-                                  {conv.unreadCount > 99
+                                  {(conv.unreadCount ?? 0) > 99
                                     ? '99+'
                                     : conv.unreadCount}
                                 </span>
