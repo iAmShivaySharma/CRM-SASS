@@ -1,32 +1,26 @@
-import { type NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { Campaign, CampaignEnrollment } from '@/lib/mongodb/models/Campaign'
-import {
-  EmailSequence,
-  SequenceEnrollment,
-} from '@/lib/mongodb/models/EmailSequence'
-import { WhatsAppService } from '@/lib/services/whatsappService'
-import { WhatsAppAccount } from '@/lib/mongodb/models/WhatsAppAccount'
-import { SmsService } from '@/lib/services/smsService'
 import { log } from '@/lib/logging/logger'
 
-export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const runtime = 'nodejs'
 
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-  }
-
+export async function GET() {
   try {
     await connectToMongoDB()
+
+    const { Campaign, CampaignEnrollment } =
+      await import('@/lib/mongodb/models/Campaign')
+    const { EmailSequence, SequenceEnrollment } =
+      await import('@/lib/mongodb/models/EmailSequence')
+    const { WhatsAppService } = await import('@/lib/services/whatsappService')
+    const { WhatsAppAccount } =
+      await import('@/lib/mongodb/models/WhatsAppAccount')
+    const { SmsService } = await import('@/lib/services/smsService')
 
     const now = new Date()
     let campaignProcessed = 0
     let sequenceProcessed = 0
+    const errors: string[] = []
 
     const dueEnrollments = await CampaignEnrollment.find({
       status: 'active',
@@ -37,8 +31,9 @@ export async function GET(request: NextRequest) {
       try {
         const campaign = await Campaign.findById(enrollment.campaignId)
         if (!campaign || campaign.status !== 'active') {
-          enrollment.status = 'paused'
-          await enrollment.save()
+          await CampaignEnrollment.findByIdAndUpdate(enrollment._id, {
+            $set: { status: 'paused' },
+          })
           continue
         }
 
@@ -46,9 +41,9 @@ export async function GET(request: NextRequest) {
         const step = steps[enrollment.currentStep]
 
         if (!step) {
-          enrollment.status = 'completed'
-          enrollment.completedAt = now
-          await enrollment.save()
+          await CampaignEnrollment.findByIdAndUpdate(enrollment._id, {
+            $set: { status: 'completed', completedAt: now },
+          })
           await Campaign.findByIdAndUpdate(enrollment.campaignId, {
             $inc: { completedCount: 1 },
           })
@@ -67,10 +62,7 @@ export async function GET(request: NextRequest) {
             })
             sent = true
           } catch (err) {
-            log.error('Campaign email send failed', {
-              err,
-              enrollmentId: enrollment._id,
-            })
+            log.error('Campaign email failed', { err })
           }
         } else if (step.channel === 'whatsapp' && enrollment.phone) {
           try {
@@ -79,19 +71,40 @@ export async function GET(request: NextRequest) {
               isActive: true,
             })
             if (account) {
-              await WhatsAppService.sendTextMessage({
+              const { WhatsAppTemplate } =
+                await import('@/lib/mongodb/models/WhatsAppTemplate')
+              const tmpl = await WhatsAppTemplate.findOne({
                 workspaceId: enrollment.workspaceId,
-                accountId: account._id.toString(),
-                to: enrollment.phone,
-                text: step.body,
+                name: step.body,
+                status: 'APPROVED',
               })
-              sent = true
+              if (tmpl) {
+                const result = await WhatsAppService.sendTemplateMessage({
+                  workspaceId: enrollment.workspaceId,
+                  accountId: account._id.toString(),
+                  to: enrollment.phone,
+                  templateName: step.body,
+                  language: tmpl.language,
+                })
+                sent = result.success
+                if (!result.success) {
+                  errors.push(
+                    `WA template to ${enrollment.phone}: ${result.error}`
+                  )
+                }
+              } else {
+                await WhatsAppService.sendTextMessage({
+                  workspaceId: enrollment.workspaceId,
+                  accountId: account._id.toString(),
+                  to: enrollment.phone,
+                  text: step.body,
+                })
+                sent = true
+              }
             }
-          } catch (err) {
-            log.error('Campaign whatsapp send failed', {
-              err,
-              enrollmentId: enrollment._id,
-            })
+          } catch (err: any) {
+            log.error('Campaign whatsapp failed', { err })
+            errors.push(`WA: ${err?.message || 'unknown'}`)
           }
         } else if (step.channel === 'sms' && enrollment.phone) {
           try {
@@ -103,10 +116,7 @@ export async function GET(request: NextRequest) {
             })
             sent = true
           } catch (err) {
-            log.error('Campaign sms send failed', {
-              err,
-              enrollmentId: enrollment._id,
-            })
+            log.error('Campaign sms failed', { err })
           }
         } else if (step.channel === 'ai_reply' && enrollment.phone) {
           try {
@@ -151,18 +161,16 @@ export async function GET(request: NextRequest) {
               }
             }
           } catch (err) {
-            log.error('Campaign ai_reply send failed', {
-              err,
-              enrollmentId: enrollment._id,
-            })
+            log.error('Campaign ai_reply failed', { err })
           }
         }
 
         if (sent) {
           const nextStepIndex = enrollment.currentStep + 1
           if (nextStepIndex >= steps.length) {
-            enrollment.status = 'completed'
-            enrollment.completedAt = now
+            await CampaignEnrollment.findByIdAndUpdate(enrollment._id, {
+              $set: { status: 'completed', completedAt: now },
+            })
             await Campaign.findByIdAndUpdate(enrollment.campaignId, {
               $inc: { completedCount: 1 },
             })
@@ -171,17 +179,17 @@ export async function GET(request: NextRequest) {
             const delayMs =
               (nextStep.delayDays || 0) * 86400000 +
               (nextStep.delayHours || 0) * 3600000
-            enrollment.currentStep = nextStepIndex
-            enrollment.nextSendAt = new Date(Date.now() + delayMs)
+            await CampaignEnrollment.findByIdAndUpdate(enrollment._id, {
+              $set: {
+                currentStep: nextStepIndex,
+                nextSendAt: new Date(Date.now() + delayMs),
+              },
+            })
           }
-          await enrollment.save()
           campaignProcessed++
         }
       } catch (err) {
-        log.error('Campaign enrollment processing error', {
-          err,
-          enrollmentId: enrollment._id,
-        })
+        log.error('Campaign enrollment error', { err })
       }
     }
 
@@ -194,18 +202,18 @@ export async function GET(request: NextRequest) {
       try {
         const sequence = await EmailSequence.findById(enrollment.sequenceId)
         if (!sequence || sequence.status !== 'active') {
-          enrollment.status = 'paused'
-          await enrollment.save()
+          await SequenceEnrollment.findByIdAndUpdate(enrollment._id, {
+            $set: { status: 'paused' },
+          })
           continue
         }
 
         const steps = sequence.steps.sort((a: any, b: any) => a.order - b.order)
         const step = steps[enrollment.currentStep]
-
         if (!step) {
-          enrollment.status = 'completed'
-          enrollment.completedAt = now
-          await enrollment.save()
+          await SequenceEnrollment.findByIdAndUpdate(enrollment._id, {
+            $set: { status: 'completed', completedAt: now },
+          })
           continue
         }
 
@@ -222,7 +230,7 @@ export async function GET(request: NextRequest) {
             })
             sent = true
           } catch (err) {
-            log.error('Sequence email send failed', { err })
+            log.error('Sequence email failed', { err })
           }
         } else if (channel === 'whatsapp' && enrollment.phone) {
           try {
@@ -231,16 +239,39 @@ export async function GET(request: NextRequest) {
               isActive: true,
             })
             if (account) {
-              await WhatsAppService.sendTextMessage({
+              const { WhatsAppTemplate } =
+                await import('@/lib/mongodb/models/WhatsAppTemplate')
+              const tmpl = await WhatsAppTemplate.findOne({
                 workspaceId: enrollment.workspaceId,
-                accountId: account._id.toString(),
-                to: enrollment.phone,
-                text: step.body,
+                name: step.body,
+                status: 'APPROVED',
               })
-              sent = true
+              if (tmpl) {
+                const result = await WhatsAppService.sendTemplateMessage({
+                  workspaceId: enrollment.workspaceId,
+                  accountId: account._id.toString(),
+                  to: enrollment.phone,
+                  templateName: step.body,
+                  language: tmpl.language,
+                })
+                sent = result.success
+                if (!result.success) {
+                  errors.push(
+                    `WA template to ${enrollment.phone}: ${result.error}`
+                  )
+                }
+              } else {
+                await WhatsAppService.sendTextMessage({
+                  workspaceId: enrollment.workspaceId,
+                  accountId: account._id.toString(),
+                  to: enrollment.phone,
+                  text: step.body,
+                })
+                sent = true
+              }
             }
           } catch (err) {
-            log.error('Sequence whatsapp send failed', { err })
+            log.error('Sequence whatsapp failed', { err })
           }
         } else if (channel === 'sms' && enrollment.phone) {
           try {
@@ -252,38 +283,50 @@ export async function GET(request: NextRequest) {
             })
             sent = true
           } catch (err) {
-            log.error('Sequence sms send failed', { err })
+            log.error('Sequence sms failed', { err })
           }
         }
 
         if (sent) {
           const nextStepIndex = enrollment.currentStep + 1
           if (nextStepIndex >= steps.length) {
-            enrollment.status = 'completed'
-            enrollment.completedAt = now
+            await SequenceEnrollment.findByIdAndUpdate(enrollment._id, {
+              $set: { status: 'completed', completedAt: now },
+            })
           } else {
             const nextStep = steps[nextStepIndex]
             const delayMs =
               (nextStep.delayDays || 0) * 86400000 +
               (nextStep.delayHours || 0) * 3600000
-            enrollment.currentStep = nextStepIndex
-            enrollment.nextSendAt = new Date(Date.now() + delayMs)
+            await SequenceEnrollment.findByIdAndUpdate(enrollment._id, {
+              $set: {
+                currentStep: nextStepIndex,
+                nextSendAt: new Date(Date.now() + delayMs),
+              },
+            })
           }
-          await enrollment.save()
           sequenceProcessed++
         }
       } catch (err) {
-        log.error('Sequence enrollment processing error', { err })
+        log.error('Sequence enrollment error', { err })
       }
     }
 
     return NextResponse.json({
       success: true,
       processed: { campaigns: campaignProcessed, sequences: sequenceProcessed },
+      found: {
+        campaigns: dueEnrollments.length,
+        sequences: dueSequences.length,
+      },
+      errors,
       timestamp: now.toISOString(),
     })
-  } catch (err) {
-    log.error('Cron process-campaigns error', { err })
-    return NextResponse.json({ message: 'Processing failed' }, { status: 500 })
+  } catch (err: any) {
+    log.error('Cron error', { err })
+    return NextResponse.json(
+      { message: 'Processing failed', error: err?.message },
+      { status: 500 }
+    )
   }
 }

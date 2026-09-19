@@ -6,8 +6,7 @@ import {
   useSendMessageMutation,
 } from '@/lib/api/whatsappApi'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
 import {
   Sheet,
   SheetContent,
@@ -23,6 +22,9 @@ import {
   AlertCircle,
   Clock,
   Phone,
+  Bot,
+  User,
+  Hand,
 } from 'lucide-react'
 import { WhatsAppTemplateSelector } from './WhatsAppTemplateSelector'
 import { toast } from 'sonner'
@@ -88,6 +90,41 @@ function StatusIcon({ status }: { status: string }) {
   return null
 }
 
+function SenderBadge({ msg }: { msg: any }) {
+  if (msg.direction === 'inbound') {
+    return null
+  }
+  if (msg.templateName) {
+    return (
+      <span className="mb-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Bot className="h-3 w-3" /> Auto · Template
+      </span>
+    )
+  }
+  if (msg.metadata?.sentBy === 'bot' || msg.metadata?.sentBy === 'ai') {
+    return (
+      <span className="mb-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Bot className="h-3 w-3" /> AI Bot
+      </span>
+    )
+  }
+  if (
+    msg.metadata?.sentBy === 'campaign' ||
+    msg.metadata?.sentBy === 'sequence'
+  ) {
+    return (
+      <span className="mb-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Bot className="h-3 w-3" /> Campaign
+      </span>
+    )
+  }
+  return (
+    <span className="mb-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+      <User className="h-3 w-3" /> Agent
+    </span>
+  )
+}
+
 function shouldShowDate(current: string, previous?: string): boolean {
   if (!previous) {
     return true
@@ -103,7 +140,7 @@ export function WhatsAppChatThread({
 }: Props) {
   const [message, setMessage] = useState('')
   const [templateSheetOpen, setTemplateSheetOpen] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const { data, isLoading } = useGetMessagesQuery(
     { workspaceId, phone },
@@ -114,7 +151,9 @@ export function WhatsAppChatThread({
   const messages = data?.messages ?? []
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
   }, [messages.length])
 
   async function handleSend() {
@@ -135,7 +174,7 @@ export function WhatsAppChatThread({
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -143,8 +182,8 @@ export function WhatsAppChatThread({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b bg-card px-4 py-2.5">
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center justify-between border-b bg-card px-4 py-2">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
             <Phone className="h-4 w-4 text-primary" />
@@ -156,18 +195,37 @@ export function WhatsAppChatThread({
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setTemplateSheetOpen(true)}
-          className="h-8 text-xs"
-        >
-          <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
-          Template
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => {
+              fetch(`/api/whatsapp/conversations/${phone}/handoff`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'take_over' }),
+              })
+                .then(() => toast.success('You took over this conversation'))
+                .catch(() => toast.error('Handoff failed'))
+            }}
+          >
+            <Hand className="h-3 w-3" />
+            Intervene
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => setTemplateSheetOpen(true)}
+          >
+            <MessageCircle className="h-3 w-3" />
+            Template
+          </Button>
+        </div>
       </div>
 
-      <ScrollArea className="flex-1 bg-muted/20">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto bg-muted/20">
         <div className="mx-auto max-w-2xl px-4 py-3">
           {isLoading ? (
             <div className="flex h-32 items-center justify-center">
@@ -183,7 +241,7 @@ export function WhatsAppChatThread({
               </p>
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {messages.map((msg, idx) => {
                 const isOut = msg.direction === 'outbound'
                 const prevMsg = idx > 0 ? messages[idx - 1] : undefined
@@ -204,15 +262,21 @@ export function WhatsAppChatThread({
                     <div
                       className={`flex ${isOut ? 'justify-end' : 'justify-start'} mb-1`}
                     >
+                      {!isOut && (
+                        <div className="mr-1.5 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
+                          <User className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                      )}
                       <div
-                        className={`relative max-w-[75%] rounded-2xl px-3 py-2 shadow-sm ${
+                        className={`relative max-w-[70%] rounded-2xl px-3 py-2 shadow-sm ${
                           isOut
-                            ? 'rounded-br-md bg-primary/10'
-                            : 'rounded-bl-md border bg-card'
+                            ? 'rounded-br-sm bg-primary/10'
+                            : 'rounded-bl-sm border bg-card'
                         } ${msg.status === 'failed' ? 'border border-destructive/30' : ''}`}
                       >
+                        <SenderBadge msg={msg} />
                         {msg.templateName && (
-                          <div className="mb-1.5 flex items-center gap-1.5 rounded bg-muted/50 px-2 py-0.5">
+                          <div className="mb-1.5 flex items-center gap-1.5 rounded bg-muted/60 px-2 py-0.5">
                             <MessageCircle className="h-3 w-3 text-muted-foreground" />
                             <span className="text-[10px] font-medium text-muted-foreground">
                               {msg.templateName}
@@ -236,29 +300,38 @@ export function WhatsAppChatThread({
                           {isOut && <StatusIcon status={msg.status} />}
                         </div>
                       </div>
+                      {isOut && (
+                        <div className="ml-1.5 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          {msg.templateName ||
+                          (msg as any).metadata?.sentBy === 'bot' ||
+                          (msg as any).metadata?.sentBy === 'ai' ? (
+                            <Bot className="h-3 w-3 text-primary" />
+                          ) : (
+                            <User className="h-3 w-3 text-primary" />
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )
               })}
-              <div ref={bottomRef} />
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
-      <div className="border-t bg-card px-4 py-2.5">
-        <div className="mx-auto flex max-w-2xl items-end gap-2">
-          <Textarea
+      <div className="shrink-0 border-t bg-card px-4 py-2">
+        <div className="mx-auto flex max-w-2xl items-center gap-2">
+          <Input
             placeholder="Type a message..."
             value={message}
             onChange={e => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            rows={1}
-            className="min-h-[40px] flex-1 resize-none text-sm"
+            className="h-9 flex-1 text-sm"
           />
           <Button
             size="icon"
-            className="h-10 w-10 shrink-0"
+            className="h-9 w-9 shrink-0"
             onClick={handleSend}
             disabled={isSending || !message.trim()}
           >

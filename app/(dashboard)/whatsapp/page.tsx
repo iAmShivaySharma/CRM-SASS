@@ -522,8 +522,8 @@ export default function WhatsAppPage() {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b bg-card px-6 py-4">
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center justify-between border-b bg-card px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <MessageCircle className="h-5 w-5 text-primary" />
@@ -544,7 +544,7 @@ export default function WhatsAppPage() {
         defaultValue="conversations"
         className="flex flex-1 flex-col overflow-hidden"
       >
-        <div className="border-b bg-card px-6">
+        <div className="shrink-0 border-b bg-card px-6">
           <TabsList className="mt-2">
             <TabsTrigger value="conversations">Conversations</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
@@ -558,8 +558,8 @@ export default function WhatsAppPage() {
           value="conversations"
           className="m-0 flex-1 overflow-hidden data-[state=active]:flex"
         >
-          <div className="flex h-full w-full">
-            <div className="flex w-[300px] shrink-0 flex-col border-r">
+          <div className="flex h-full w-full overflow-hidden">
+            <div className="flex w-[300px] shrink-0 flex-col overflow-hidden border-r">
               <div className="flex items-center justify-between border-b px-4 py-2.5">
                 <p className="text-xs font-medium text-muted-foreground">
                   {conversations.length} chats

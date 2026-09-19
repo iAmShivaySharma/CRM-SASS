@@ -44,11 +44,11 @@ export function WhatsAppTemplateSelector({
   const selected = approved.find(t => t._id === selectedId)
 
   const bodyComponent = selected
-    ? (selected.components as { type: string; text?: string }[]).find(
+    ? ((selected.components || []) as { type: string; text?: string }[]).find(
         c => c.type === 'BODY'
       )
     : null
-  const bodyText = bodyComponent?.text ?? ''
+  const bodyText = selected?.bodyText || bodyComponent?.text || ''
   const varKeys = extractVariables(bodyText)
 
   function handleSelect(id: string) {
@@ -108,7 +108,7 @@ export function WhatsAppTemplateSelector({
         <div className="space-y-2 p-2">
           {approved.map(t => {
             const body = (
-              t.components as { type: string; text?: string }[]
+              (t.components || []) as { type: string; text?: string }[]
             ).find(c => c.type === 'BODY')
             return (
               <button
