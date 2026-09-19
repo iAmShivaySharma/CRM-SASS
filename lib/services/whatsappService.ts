@@ -252,9 +252,15 @@ export class WhatsAppService {
     }>
     templateName: string
     language?: string
-  }): Promise<{ total: number; sent: number; failed: number }> {
+  }): Promise<{
+    total: number
+    sent: number
+    failed: number
+    errors: Array<{ phone: string; error: string }>
+  }> {
     let sent = 0
     let failed = 0
+    const errors: Array<{ phone: string; error: string }> = []
 
     for (const recipient of params.recipients) {
       const result = await this.sendTemplateMessage({
@@ -267,15 +273,22 @@ export class WhatsAppService {
         contactId: recipient.contactId,
       })
 
-      if (result.success) sent++
-      else failed++
+      if (result.success) {
+        sent++
+      } else {
+        failed++
+        errors.push({
+          phone: recipient.phone,
+          error: result.error || 'Unknown error',
+        })
+      }
 
       if ((sent + failed) % 50 === 0) {
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
     }
 
-    return { total: params.recipients.length, sent, failed }
+    return { total: params.recipients.length, sent, failed, errors }
   }
 
   static async handleWebhookStatus(payload: {

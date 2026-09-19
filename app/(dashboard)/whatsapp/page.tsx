@@ -162,6 +162,7 @@ export default function WhatsAppPage() {
   const [broadcastResult, setBroadcastResult] = useState<{
     sent?: number
     failed?: number
+    errors?: Array<{ phone: string; error: string }>
   } | null>(null)
   const [botFlowView, setBotFlowView] = useState<'list' | 'create' | 'edit'>(
     'list'
@@ -393,12 +394,23 @@ export default function WhatsAppPage() {
         templateName: broadcastForm.templateName,
         language: broadcastForm.language,
       }).unwrap()
-      setBroadcastResult({ sent: result.result?.sent ?? phones.length })
-      toast.success(
-        `Broadcast sent to ${result.result?.sent ?? phones.length} recipients`
-      )
-    } catch {
-      toast.error('Broadcast failed')
+      setBroadcastResult({
+        sent: result.result?.sent ?? 0,
+        failed: result.result?.failed ?? 0,
+        errors: result.result?.errors,
+      })
+      if (result.result?.failed > 0) {
+        toast.error(
+          `${result.result.failed} failed, ${result.result.sent} sent`
+        )
+      } else {
+        toast.success(
+          `Broadcast sent to ${result.result?.sent ?? phones.length} recipients`
+        )
+      }
+    } catch (err: any) {
+      const msg = err?.data?.message || err?.message || 'Broadcast failed'
+      toast.error(msg)
     }
   }
 
@@ -1006,14 +1018,30 @@ export default function WhatsAppPage() {
               </Button>
 
               {broadcastResult && (
-                <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+                <div className="space-y-2 rounded-lg border px-4 py-3 text-sm">
                   <p className="font-medium">Broadcast complete</p>
-                  <p>Sent: {broadcastResult.sent ?? 0}</p>
-                  {broadcastResult.failed !== undefined &&
-                    broadcastResult.failed > 0 && (
-                      <p className="text-destructive">
+                  <div className="flex gap-4">
+                    <span className="text-primary">
+                      Sent: {broadcastResult.sent ?? 0}
+                    </span>
+                    {(broadcastResult.failed ?? 0) > 0 && (
+                      <span className="text-destructive">
                         Failed: {broadcastResult.failed}
-                      </p>
+                      </span>
+                    )}
+                  </div>
+                  {broadcastResult.errors &&
+                    broadcastResult.errors.length > 0 && (
+                      <div className="mt-2 space-y-1 rounded bg-destructive/5 p-2">
+                        <p className="text-xs font-medium text-destructive">
+                          Errors:
+                        </p>
+                        {broadcastResult.errors.map((e, i) => (
+                          <p key={i} className="text-xs text-destructive/80">
+                            {e.phone}: {e.error}
+                          </p>
+                        ))}
+                      </div>
                     )}
                 </div>
               )}

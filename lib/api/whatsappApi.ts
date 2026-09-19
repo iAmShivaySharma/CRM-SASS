@@ -237,7 +237,12 @@ export const whatsappApi = createApi({
       {
         success: boolean
         message: string
-        result: { total: number; sent: number; failed: number }
+        result: {
+          total: number
+          sent: number
+          failed: number
+          errors?: Array<{ phone: string; error: string }>
+        }
       },
       BroadcastBody
     >({
