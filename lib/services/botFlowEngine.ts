@@ -76,7 +76,51 @@ export class BotFlowEngine {
         continue
       }
 
-      const firstStep = steps[0]
+      let firstStep = steps[0]
+
+      const directMatch = steps.find(
+        s =>
+          s.type === 'keyword_match' &&
+          s.data.keywords?.some(
+            (k: string) => k.toLowerCase().trim() === lowerContent
+          )
+      )
+      if (directMatch) {
+        const matchedKeyword = lowerContent
+        const conn = directMatch.connections?.find(
+          c => c.label?.toLowerCase().trim() === matchedKeyword
+        )
+        if (conn) {
+          const targetStep = steps.find(s => s.id === conn.targetStepId)
+          if (targetStep) {
+            firstStep = targetStep
+          }
+        }
+      }
+
+      const namedStep = steps.find(s => {
+        if (s.id === `step-${lowerContent.replace(/[^a-z0-9]/g, '')}`) {
+          return true
+        }
+        if (
+          s.type === 'send_message' &&
+          lowerContent === 'view plans' &&
+          s.id === 'step-viewplans'
+        ) {
+          return true
+        }
+        if (
+          s.type === 'send_message' &&
+          lowerContent === 'call us' &&
+          s.id === 'step-callus'
+        ) {
+          return true
+        }
+        return false
+      })
+      if (namedStep) {
+        firstStep = namedStep
+      }
 
       await WhatsAppConversation.findByIdAndUpdate(conversation._id, {
         $set: {
