@@ -522,7 +522,7 @@ export default function WhatsAppPage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="-m-4 flex h-[calc(100vh-4rem)] flex-col overflow-hidden sm:-m-6 lg:-m-8">
       <div className="flex shrink-0 items-center justify-between border-b bg-card px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
