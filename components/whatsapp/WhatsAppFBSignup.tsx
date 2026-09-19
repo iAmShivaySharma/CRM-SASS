@@ -17,10 +17,10 @@ declare global {
       }) => void
       login: (
         callback: (response: {
-          authResponse?: { accessToken: string }
+          authResponse?: { accessToken: string; code?: string }
           status: string
         }) => void,
-        options: { scope: string; extras?: { setup?: object } }
+        options: { scope: string; extras?: Record<string, unknown> }
       ) => void
     }
     fbAsyncInit: () => void
@@ -41,6 +41,11 @@ export function WhatsAppFBSignup({
   const [connectFacebook] = useConnectFacebookMutation()
 
   useEffect(() => {
+    const appId = process.env.NEXT_PUBLIC_META_APP_ID
+    if (!appId) {
+      return
+    }
+
     if (window.FB) {
       setSdkReady(true)
       return
@@ -48,10 +53,10 @@ export function WhatsAppFBSignup({
 
     window.fbAsyncInit = () => {
       window.FB.init({
-        appId: process.env.NEXT_PUBLIC_META_APP_ID!,
+        appId,
         cookie: true,
         xfbml: true,
-        version: 'v18.0',
+        version: 'v21.0',
       })
       setSdkReady(true)
     }
@@ -78,7 +83,7 @@ export function WhatsAppFBSignup({
       response => {
         if (!response.authResponse) {
           setLoading(false)
-          toast.error('Facebook login was cancelled or failed.')
+          toast.error('Facebook login was cancelled.')
           return
         }
 
@@ -87,13 +92,25 @@ export function WhatsAppFBSignup({
         connectFacebook({ workspaceId, accessToken })
           .unwrap()
           .then(result => {
-            toast.success(
-              `Connected ${result.accounts.length} WhatsApp account(s) via Facebook`
-            )
+            if (result.accounts && result.accounts.length > 0) {
+              toast.success(
+                `Connected ${result.accounts.length} WhatsApp account(s)`
+              )
+            } else {
+              toast.info(
+                'Facebook connected but no WhatsApp Business accounts found. Use "Connect Manually" instead.'
+              )
+            }
             onSuccess?.()
           })
-          .catch(() => {
-            toast.error('Failed to connect WhatsApp accounts from Facebook.')
+          .catch((err: { data?: { message?: string; debug?: string } }) => {
+            const msg =
+              err?.data?.message ||
+              'Failed to connect. Check console for details.'
+            toast.error(msg)
+            if (err?.data?.debug) {
+              console.error('WhatsApp FB Connect debug:', err.data.debug)
+            }
           })
           .finally(() => {
             setLoading(false)
@@ -105,6 +122,10 @@ export function WhatsAppFBSignup({
       }
     )
   }, [sdkReady, workspaceId, connectFacebook, onSuccess])
+
+  if (!process.env.NEXT_PUBLIC_META_APP_ID) {
+    return null
+  }
 
   return (
     <Button

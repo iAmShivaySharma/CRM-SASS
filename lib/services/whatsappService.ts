@@ -378,6 +378,171 @@ export class WhatsAppService {
     }
   }
 
+  static async submitTemplateToMeta(params: {
+    accountId: string
+    templateId: string
+  }) {
+    const template = await WhatsAppTemplate.findById(params.templateId)
+    if (!template) {
+      throw new Error('Template not found')
+    }
+    const account = await WhatsAppAccount.findById(
+      params.accountId || template.accountId
+    )
+    if (!account) {
+      throw new Error('Account not found')
+    }
+
+    const components: object[] = []
+    if (template.headerType && template.headerType !== 'NONE') {
+      if (template.headerType === 'TEXT') {
+        components.push({
+          type: 'HEADER',
+          format: 'TEXT',
+          text: template.headerContent || '',
+        })
+      } else {
+        components.push({ type: 'HEADER', format: template.headerType })
+      }
+    }
+    if (template.bodyText) {
+      components.push({ type: 'BODY', text: template.bodyText })
+    }
+    if (template.footerText) {
+      components.push({ type: 'FOOTER', text: template.footerText })
+    }
+    if (template.buttons && template.buttons.length > 0) {
+      components.push({
+        type: 'BUTTONS',
+        buttons: template.buttons.map((b: any) => {
+          if (b.type === 'QUICK_REPLY') {
+            return { type: 'QUICK_REPLY', text: b.text }
+          }
+          if (b.type === 'URL') {
+            return { type: 'URL', text: b.text, url: b.url }
+          }
+          return {
+            type: 'PHONE_NUMBER',
+            text: b.text,
+            phone_number: b.phoneNumber,
+          }
+        }),
+      })
+    }
+
+    const res = await fetch(
+      `${META_API_BASE}/${account.businessAccountId}/message_templates`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${account.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: template.name,
+          language: template.language,
+          category: template.category,
+          components,
+        }),
+      }
+    )
+    const data = await res.json()
+    if (!res.ok) {
+      throw new Error(
+        data?.error?.message || 'Failed to submit template to Meta'
+      )
+    }
+
+    template.metaTemplateId = data.id
+    template.status = 'PENDING'
+    await template.save()
+
+    return { success: true, metaTemplateId: data.id }
+  }
+
+  static async syncTemplatesFromMeta(params: {
+    workspaceId: string
+    accountId: string
+  }) {
+    const account = await WhatsAppAccount.findById(params.accountId)
+    if (!account) {
+      throw new Error('Account not found')
+    }
+    if (!account.businessAccountId) {
+      throw new Error('Account has no Business Account ID')
+    }
+
+    const res = await fetch(
+      `${META_API_BASE}/${account.businessAccountId}/message_templates?limit=100`,
+      { headers: { Authorization: `Bearer ${account.accessToken}` } }
+    )
+    const data = await res.json()
+    if (!res.ok) {
+      throw new Error(
+        data?.error?.message || 'Failed to fetch templates from Meta'
+      )
+    }
+
+    let synced = 0
+    for (const mt of data.data || []) {
+      const bodyComp = (mt.components || []).find((c: any) => c.type === 'BODY')
+      const headerComp = (mt.components || []).find(
+        (c: any) => c.type === 'HEADER'
+      )
+      const footerComp = (mt.components || []).find(
+        (c: any) => c.type === 'FOOTER'
+      )
+
+      await WhatsAppTemplate.findOneAndUpdate(
+        { accountId: params.accountId, name: mt.name, language: mt.language },
+        {
+          $set: {
+            workspaceId: params.workspaceId,
+            accountId: params.accountId,
+            status: mt.status,
+            category: mt.category,
+            metaTemplateId: mt.id,
+            bodyText: bodyComp?.text || '',
+            headerType: headerComp?.format || 'NONE',
+            headerContent: headerComp?.text || '',
+            footerText: footerComp?.text || '',
+            isActive: true,
+          },
+          $setOnInsert: {
+            createdBy: 'system',
+          },
+        },
+        { upsert: true }
+      )
+      synced++
+    }
+
+    return { success: true, synced }
+  }
+
+  static async deleteTemplateFromMeta(params: { templateId: string }) {
+    const template = await WhatsAppTemplate.findById(params.templateId)
+    if (!template) {
+      throw new Error('Template not found')
+    }
+
+    if (template.metaTemplateId) {
+      const account = await WhatsAppAccount.findById(template.accountId)
+      if (account && account.businessAccountId) {
+        await fetch(
+          `${META_API_BASE}/${account.businessAccountId}/message_templates?name=${template.name}`,
+          {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${account.accessToken}` },
+          }
+        ).catch(() => {})
+      }
+    }
+
+    await WhatsAppTemplate.findByIdAndDelete(params.templateId)
+    return { success: true }
+  }
+
   static formatPhone(phone: string): string {
     let cleaned = phone.replace(/[\s\-\(\)]/g, '')
     if (!cleaned.startsWith('+')) {
