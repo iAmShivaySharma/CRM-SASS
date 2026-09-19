@@ -51,6 +51,8 @@ export interface WhatsAppMessage {
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
   waMessageId?: string
   templateName?: string
+  errorMessage?: string
+  errorCode?: string
   createdAt: string
   sentAt?: string
 }
