@@ -32,14 +32,13 @@ export class BotFlowEngine {
     } = params
 
     if (conversation.mode === 'workflow' && conversation.activeWorkflowId) {
-      return this.continueWorkflow(params)
+      const continued = await this.continueWorkflow(params)
+      if (continued.handled) {
+        return continued
+      }
     }
 
-    if (conversation.mode === 'ai' || conversation.mode === 'idle') {
-      return this.checkTriggers(params)
-    }
-
-    return { handled: false }
+    return this.checkTriggers(params)
   }
 
   private static async checkTriggers(
@@ -258,7 +257,7 @@ export class BotFlowEngine {
         }
 
         if (!nextStepId) {
-          nextStepId = currentStep.connections?.[0]?.targetStepId
+          return { handled: false }
         }
         break
       }

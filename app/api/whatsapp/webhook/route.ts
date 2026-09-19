@@ -154,6 +154,9 @@ export async function POST(request: NextRequest) {
               case 'document':
                 content = msg[msg.type]?.caption || `[${msg.type}]`
                 break
+              case 'button':
+                content = msg.button?.text || msg.button?.payload || ''
+                break
               case 'interactive':
                 content =
                   msg.interactive?.button_reply?.title ||
@@ -263,7 +266,9 @@ export async function POST(request: NextRequest) {
               ) {
                 if (
                   content &&
-                  (msg.type === 'text' || msg.type === 'interactive')
+                  (msg.type === 'text' ||
+                    msg.type === 'interactive' ||
+                    msg.type === 'button')
                 ) {
                   const botResult = await BotFlowEngine.processMessage({
                     workspaceId: account.workspaceId,

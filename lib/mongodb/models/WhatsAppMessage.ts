@@ -16,6 +16,7 @@ export interface IWhatsAppMessage extends Omit<Document, '_id'> {
     | 'audio'
     | 'template'
     | 'interactive'
+    | 'button'
     | 'location'
     | 'contacts'
   content: string
@@ -84,6 +85,7 @@ const WhatsAppMessageSchema = new Schema<IWhatsAppMessage>(
         'audio',
         'template',
         'interactive',
+        'button',
         'location',
         'contacts',
       ],
