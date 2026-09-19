@@ -98,6 +98,10 @@ export { Appointment, type IAppointment } from './Appointment'
 export { WhatsAppAccount, type IWhatsAppAccount } from './WhatsAppAccount'
 export { WhatsAppTemplate, type IWhatsAppTemplate } from './WhatsAppTemplate'
 export { WhatsAppMessage, type IWhatsAppMessage } from './WhatsAppMessage'
+export {
+  WhatsAppConversation,
+  type IWhatsAppConversation,
+} from './WhatsAppConversation'
 
 // SMS Module
 export { SmsTemplate, type ISmsTemplate } from './SmsTemplate'

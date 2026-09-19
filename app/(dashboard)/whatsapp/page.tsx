@@ -48,6 +48,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { WhatsAppChatThread } from '@/components/whatsapp/WhatsAppChatThread'
+import { WhatsAppFBSignup } from '@/components/whatsapp/WhatsAppFBSignup'
 
 interface ButtonField {
   type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER'
@@ -145,8 +146,11 @@ export default function WhatsAppPage() {
     failed?: number
   } | null>(null)
 
-  const { data: accountsData, isLoading: accountsLoading } =
-    useGetAccountsQuery({ workspaceId }, { skip: !currentWorkspace })
+  const {
+    data: accountsData,
+    isLoading: accountsLoading,
+    refetch: accountsRefetch,
+  } = useGetAccountsQuery({ workspaceId }, { skip: !currentWorkspace })
   const { data: templatesData, isLoading: templatesLoading } =
     useGetTemplatesQuery({ workspaceId }, { skip: !currentWorkspace })
   const { data: conversationsData, isLoading: conversationsLoading } =
@@ -581,10 +585,16 @@ export default function WhatsAppPage() {
         <TabsContent value="accounts" className="m-0 flex-1 overflow-auto p-6">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Connected Accounts</h2>
-            <Button size="sm" onClick={openNewAccount}>
-              <Plus className="mr-2 h-4 w-4" />
-              Connect Account
-            </Button>
+            <div className="flex gap-2">
+              <WhatsAppFBSignup
+                workspaceId={workspaceId}
+                onSuccess={() => accountsRefetch()}
+              />
+              <Button size="sm" onClick={openNewAccount}>
+                <Plus className="mr-2 h-4 w-4" />
+                Connect Manually
+              </Button>
+            </div>
           </div>
 
           {accountsLoading ? (

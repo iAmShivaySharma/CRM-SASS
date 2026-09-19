@@ -231,6 +231,17 @@ export const whatsappApi = createApi({
         `api/whatsapp/conversations?workspaceId=${workspaceId}&phone=${encodeURIComponent(phone)}&page=${page}`,
       providesTags: ['WhatsAppConversation'],
     }),
+    connectFacebook: builder.mutation<
+      { success: boolean; accounts: WhatsAppAccount[] },
+      { workspaceId: string; accessToken: string }
+    >({
+      query: body => ({
+        url: 'api/whatsapp/connect-facebook',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['WhatsAppAccount'],
+    }),
   }),
 })
 
@@ -249,4 +260,5 @@ export const {
   useSubmitTemplateMutation,
   useSyncTemplatesMutation,
   useGetMessagesQuery,
+  useConnectFacebookMutation,
 } = whatsappApi
