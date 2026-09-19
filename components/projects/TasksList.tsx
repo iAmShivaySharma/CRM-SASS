@@ -1,13 +1,6 @@
 'use client'
 
-import {
-  Calendar,
-  Clock,
-  User,
-  MessageSquare,
-  Paperclip,
-  MoreVertical,
-} from 'lucide-react'
+import { Calendar, Clock, User, Paperclip, MoreVertical } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -38,19 +31,24 @@ export function TasksList({
   onEditTask,
 }: TasksListProps) {
   const priorityColors = {
-    low: 'bg-muted text-foreground',
-    medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    urgent: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    low: 'bg-muted text-muted-foreground',
+    medium: 'bg-primary/10 text-primary',
+    high: 'bg-destructive/10 text-destructive',
+    urgent: 'bg-destructive text-destructive-foreground',
   }
 
   const statusColors = {
-    todo: 'bg-muted text-foreground',
-    'in-progress':
-      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    review:
-      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    done: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    todo: 'bg-muted text-muted-foreground',
+    'in-progress': 'bg-primary/10 text-primary',
+    review: 'bg-primary/20 text-primary',
+    done: 'bg-muted text-muted-foreground',
+  }
+
+  const priorityBorderColors = {
+    low: 'border-l-muted-foreground/30',
+    medium: 'border-l-primary/50',
+    high: 'border-l-destructive/50',
+    urgent: 'border-l-destructive',
   }
 
   const getStatusLabel = (status: string) => {
@@ -87,8 +85,9 @@ export function TasksList({
           <Card
             key={task.id}
             className={cn(
-              'cursor-pointer transition-all hover:shadow-md',
-              isOverdue && 'border-red-300 bg-red-50/50'
+              'cursor-pointer border-l-4 transition-all hover:shadow-md',
+              priorityBorderColors[task.priority] || 'border-l-border',
+              isOverdue && 'border-destructive/30'
             )}
             onDoubleClick={handleDoubleClick(task)}
           >
@@ -114,7 +113,7 @@ export function TasksList({
                           Edit Task
                         </DropdownMenuItem>
                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem className="text-destructive">
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -136,33 +135,15 @@ export function TasksList({
                   {/* Tags */}
                   {task.tags && task.tags.length > 0 && (
                     <div className="mb-3 flex flex-wrap gap-1">
-                      {task.tags.slice(0, 4).map((tag, index) => {
-                        const colors = [
-                          'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-                          'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-                          'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-                          'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-                          'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
-                          'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
-                        ]
-                        const colorIndex =
-                          tag
-                            .split('')
-                            .reduce((acc, c) => acc + c.charCodeAt(0), 0) %
-                          colors.length
-                        return (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className={cn(
-                              'px-2 py-0.5 text-xs',
-                              colors[colorIndex]
-                            )}
-                          >
-                            {tag}
-                          </Badge>
-                        )
-                      })}
+                      {task.tags.slice(0, 4).map((tag, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="bg-primary/10 px-2 py-0.5 text-xs text-primary"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
                       {task.tags.length > 4 && (
                         <Badge
                           variant="secondary"
@@ -203,7 +184,9 @@ export function TasksList({
                         <div
                           className={cn(
                             'flex items-center text-xs',
-                            isOverdue ? 'text-red-600' : 'text-muted-foreground'
+                            isOverdue
+                              ? 'text-destructive'
+                              : 'text-muted-foreground'
                           )}
                         >
                           <Calendar className="mr-1 h-3 w-3" />
@@ -232,9 +215,6 @@ export function TasksList({
                             {task.dependencies.length}
                           </div>
                         )}
-                        <div className="flex items-center">
-                          <MessageSquare className="mr-1 h-3 w-3" />0
-                        </div>
                       </div>
 
                       {/* Assignee */}

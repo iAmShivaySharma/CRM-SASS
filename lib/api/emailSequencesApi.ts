@@ -1,11 +1,17 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
+export type SequenceChannel = 'email' | 'whatsapp' | 'sms' | 'ai_reply'
+
 export interface SequenceStep {
   order: number
-  subject: string
+  channel: SequenceChannel
+  subject?: string
   body: string
   delayDays: number
   delayHours: number
+  aiTone?: 'professional' | 'friendly' | 'casual'
+  aiContext?: string
+  replyViaChannel?: 'email' | 'whatsapp' | 'sms'
 }
 
 export interface EmailSequence {
@@ -47,7 +53,8 @@ export const emailSequencesApi = createApi({
   tagTypes: ['EmailSequence', 'SequenceEnrollment'],
   endpoints: builder => ({
     getSequences: builder.query<SequencesResponse, { workspaceId: string }>({
-      query: ({ workspaceId }) => `api/email-sequences?workspaceId=${workspaceId}`,
+      query: ({ workspaceId }) =>
+        `api/email-sequences?workspaceId=${workspaceId}`,
       providesTags: ['EmailSequence'],
     }),
     getSequence: builder.query<SequenceDetailResponse, string>({
@@ -56,19 +63,40 @@ export const emailSequencesApi = createApi({
     }),
     createSequence: builder.mutation<
       { success: boolean; sequence: EmailSequence },
-      { workspaceId: string; name: string; description?: string; steps: SequenceStep[] }
+      {
+        workspaceId: string
+        name: string
+        description?: string
+        steps: SequenceStep[]
+      }
     >({
       query: body => ({ url: 'api/email-sequences', method: 'POST', body }),
       invalidatesTags: ['EmailSequence'],
     }),
     updateSequence: builder.mutation<
       { success: boolean; sequence: EmailSequence },
-      { id: string; name?: string; description?: string; steps?: SequenceStep[]; status?: string }
+      {
+        id: string
+        name?: string
+        description?: string
+        steps?: SequenceStep[]
+        status?: string
+      }
     >({
-      query: ({ id, ...body }) => ({ url: `api/email-sequences/${id}`, method: 'PUT', body }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'EmailSequence', id }, 'EmailSequence'],
+      query: ({ id, ...body }) => ({
+        url: `api/email-sequences/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'EmailSequence', id },
+        'EmailSequence',
+      ],
     }),
-    deleteSequence: builder.mutation<{ success: boolean; message: string }, string>({
+    deleteSequence: builder.mutation<
+      { success: boolean; message: string },
+      string
+    >({
       query: id => ({ url: `api/email-sequences/${id}`, method: 'DELETE' }),
       invalidatesTags: ['EmailSequence'],
     }),
@@ -76,7 +104,11 @@ export const emailSequencesApi = createApi({
       { success: boolean; enrollment: SequenceEnrollment },
       { id: string; leadId?: string; contactId?: string; workspaceId: string }
     >({
-      query: ({ id, ...body }) => ({ url: `api/email-sequences/${id}/enroll`, method: 'POST', body }),
+      query: ({ id, ...body }) => ({
+        url: `api/email-sequences/${id}/enroll`,
+        method: 'POST',
+        body,
+      }),
       invalidatesTags: ['SequenceEnrollment'],
     }),
   }),

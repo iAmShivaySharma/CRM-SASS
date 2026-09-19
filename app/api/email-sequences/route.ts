@@ -16,10 +16,16 @@ const createSequenceSchema = z.object({
     .array(
       z.object({
         order: z.number().min(0),
-        subject: z.string().min(1).max(200),
+        channel: z
+          .enum(['email', 'whatsapp', 'sms', 'ai_reply'])
+          .default('email'),
+        subject: z.string().max(200).optional(),
         body: z.string().min(1),
         delayDays: z.number().min(0).default(1),
         delayHours: z.number().min(0).max(23).default(0),
+        aiTone: z.enum(['professional', 'friendly', 'casual']).optional(),
+        aiContext: z.string().max(2000).optional(),
+        replyViaChannel: z.enum(['email', 'whatsapp', 'sms']).optional(),
       })
     )
     .min(1),

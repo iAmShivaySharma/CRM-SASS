@@ -2,10 +2,14 @@ import mongoose, { Schema } from 'mongoose'
 
 export interface IEmailSequenceStep {
   order: number
-  subject: string
+  channel: 'email' | 'whatsapp' | 'sms' | 'ai_reply'
+  subject?: string
   body: string
   delayDays: number
   delayHours: number
+  aiTone?: 'professional' | 'friendly' | 'casual'
+  aiContext?: string
+  replyViaChannel?: 'email' | 'whatsapp' | 'sms'
 }
 
 export interface IEmailSequence {
@@ -26,7 +30,8 @@ export interface ISequenceEnrollment {
   sequenceId: string
   leadId?: string
   contactId?: string
-  email: string
+  email?: string
+  phone?: string
   currentStep: number
   status: 'active' | 'completed' | 'paused' | 'bounced' | 'unsubscribed'
   nextSendAt?: Date
@@ -37,10 +42,18 @@ export interface ISequenceEnrollment {
 const EmailSequenceStepSchema = new Schema<IEmailSequenceStep>(
   {
     order: { type: Number, required: true },
-    subject: { type: String, required: true, maxlength: 200 },
+    channel: {
+      type: String,
+      enum: ['email', 'whatsapp', 'sms', 'ai_reply'],
+      default: 'email',
+    },
+    subject: { type: String, maxlength: 200 },
     body: { type: String, required: true },
     delayDays: { type: Number, default: 1, min: 0 },
     delayHours: { type: Number, default: 0, min: 0, max: 23 },
+    aiTone: { type: String, enum: ['professional', 'friendly', 'casual'] },
+    aiContext: { type: String, maxlength: 2000 },
+    replyViaChannel: { type: String, enum: ['email', 'whatsapp', 'sms'] },
   },
   { _id: false }
 )
@@ -79,7 +92,8 @@ const SequenceEnrollmentSchema = new Schema<ISequenceEnrollment>(
     sequenceId: { type: String, ref: 'EmailSequence', required: true },
     leadId: { type: String, ref: 'Lead' },
     contactId: { type: String, ref: 'Contact' },
-    email: { type: String, required: true },
+    email: { type: String },
+    phone: { type: String },
     currentStep: { type: Number, default: 0 },
     status: {
       type: String,

@@ -56,11 +56,15 @@ export function KanbanColumn({
         'flex h-full flex-col transition-colors',
         isOver && 'ring-1 ring-primary'
       )}
+      style={{ backgroundColor: color ? `${color}20` : undefined }}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className={cn('h-3 w-3 rounded-full', color)} />
+            <div
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: color }}
+            />
             <CardTitle className="text-sm font-medium">{title}</CardTitle>
             <Badge variant="secondary" className="text-xs">
               {taskCount}

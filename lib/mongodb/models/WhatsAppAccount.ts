@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose'
 export interface IWhatsAppAccount extends Omit<Document, '_id'> {
   _id: string
   workspaceId: string
-  provider: 'meta_cloud' | 'wati' | 'aisensy' | 'gupshup'
+  provider: 'meta_cloud' | 'wati' | 'gupshup'
   phoneNumberId: string
   businessAccountId?: string
   displayName: string
@@ -15,6 +15,9 @@ export interface IWhatsAppAccount extends Omit<Document, '_id'> {
   messagingLimit?: number
   dailyMessageCount: number
   lastResetDate: Date
+  botEnabled: boolean
+  botContext?: string
+  botTone?: 'professional' | 'friendly' | 'casual'
   createdBy: string
   createdAt: Date
   updatedAt: Date
@@ -29,7 +32,7 @@ const WhatsAppAccountSchema = new Schema<IWhatsAppAccount>(
     },
     provider: {
       type: String,
-      enum: ['meta_cloud', 'wati', 'aisensy', 'gupshup'],
+      enum: ['meta_cloud', 'wati', 'gupshup'],
       default: 'meta_cloud',
     },
     phoneNumberId: {
@@ -80,6 +83,19 @@ const WhatsAppAccountSchema = new Schema<IWhatsAppAccount>(
     lastResetDate: {
       type: Date,
       default: Date.now,
+    },
+    botEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    botContext: {
+      type: String,
+      maxlength: 2000,
+    },
+    botTone: {
+      type: String,
+      enum: ['professional', 'friendly', 'casual'],
+      default: 'professional',
     },
     createdBy: {
       type: String,

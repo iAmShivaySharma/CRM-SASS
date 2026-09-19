@@ -107,7 +107,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
               isSelected && '!bg-primary !text-primary-foreground'
             )}
           >
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 overflow-hidden">
               {/* Chat Room Avatar */}
               <div className="relative">
                 {chatRoom.type === 'direct' ? (
@@ -137,7 +137,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
               </div>
 
               {/* Chat Room Info */}
-              <div className="min-w-0 flex-1">
+              <div className="w-0 flex-1 overflow-hidden">
                 <div className="mb-1 flex items-center justify-between">
                   <h4
                     className={cn(
@@ -173,27 +173,25 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
 
                 {/* Last Message Preview */}
                 {chatRoom.lastMessage ? (
-                  <div className="flex min-w-0 items-center gap-1">
+                  <p
+                    className={cn(
+                      'truncate text-xs text-muted-foreground',
+                      hasUnreadMessages && 'font-medium text-foreground',
+                      isSelected && '!text-primary-foreground/70'
+                    )}
+                  >
                     <span
                       className={cn(
-                        'shrink-0 text-xs font-medium text-muted-foreground',
+                        'font-medium',
                         isSelected && 'text-primary-foreground/70'
                       )}
                     >
                       {chatRoom.lastMessage.senderName || 'Unknown'}:
-                    </span>
-                    <span
-                      className={cn(
-                        'min-w-0 truncate text-xs text-muted-foreground',
-                        hasUnreadMessages && 'font-medium text-foreground',
-                        isSelected && '!text-primary-foreground/70'
-                      )}
-                    >
-                      {chatRoom.lastMessage?.type === 'text'
-                        ? chatRoom.lastMessage?.content
-                        : `Sent a ${chatRoom.lastMessage?.type || 'file'}`}
-                    </span>
-                  </div>
+                    </span>{' '}
+                    {chatRoom.lastMessage?.type === 'text'
+                      ? chatRoom.lastMessage?.content
+                      : `Sent a ${chatRoom.lastMessage?.type || 'file'}`}
+                  </p>
                 ) : (
                   <span className="text-xs text-muted-foreground">
                     No messages yet

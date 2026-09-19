@@ -6,7 +6,6 @@ import {
   Calendar,
   Clock,
   User,
-  MessageSquare,
   Paperclip,
   MoreVertical,
   CheckCircle2,
@@ -62,34 +61,31 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
   }
 
   const priorityColors = {
-    low: 'bg-muted text-foreground',
-    medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    urgent: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    low: 'bg-muted text-muted-foreground',
+    medium: 'bg-primary/10 text-primary',
+    high: 'bg-destructive/10 text-destructive',
+    urgent: 'bg-destructive text-destructive-foreground',
   }
 
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date()
 
   // Define status-based colors based on the actual column system
   const getStatusColors = () => {
-    // Only use green for completed tasks with 'done' status
     if (task.completed && task.status === 'done') {
-      return 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+      return 'bg-muted/50 border-border'
     }
 
-    // Status-based colors matching the column system
     switch (task.status?.toLowerCase()) {
       case 'todo':
-        return 'bg-muted/50 border-border'
+        return 'bg-card border-border'
       case 'in-progress':
-        return 'bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800'
+        return 'border-primary/30'
       case 'review':
-        return 'bg-yellow-50/50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800'
+        return 'border-primary/50'
       case 'done':
-        return 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
+        return 'bg-muted/50 border-border'
       default:
-        // For any other status (including 'pending'), use neutral colors
-        return 'bg-slate-50/50 border-slate-200 dark:bg-slate-950/20 dark:border-slate-800'
+        return 'bg-card border-border'
     }
   }
 
@@ -126,16 +122,16 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        'cursor-grab transition-all hover:shadow-md active:cursor-grabbing',
+        'group cursor-grab transition-all hover:shadow-md active:cursor-grabbing',
         (isDragging || isSortableDragging) && 'rotate-3 opacity-50 shadow-lg',
-        isOverdue && 'border-red-300 bg-red-50/50',
+        isOverdue && 'border-destructive/30',
         getStatusColors()
       )}
       {...attributes}
       {...listeners}
       onDoubleClick={handleDoubleClick}
     >
-      <CardContent className="p-3">
+      <CardContent className="p-4">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex flex-1 items-start gap-2">
             <Button
@@ -148,7 +144,7 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
               }
             >
               {task.completed ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-primary" />
               ) : (
                 <Circle className="h-4 w-4 text-muted-foreground" />
               )}
@@ -178,7 +174,7 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
                 Edit Task
               </DropdownMenuItem>
               <DropdownMenuItem>Duplicate</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem className="text-destructive">
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -247,7 +243,7 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
           <div
             className={cn(
               'mb-3 flex items-center text-xs',
-              isOverdue ? 'text-red-600' : 'text-muted-foreground'
+              isOverdue ? 'text-destructive' : 'text-muted-foreground'
             )}
           >
             <Calendar className="mr-1 h-3 w-3" />
@@ -282,7 +278,7 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
             <div className="flex items-center space-x-2">
               {task.attachments && task.attachments.length > 0 && (
                 <div
-                  className="flex cursor-pointer items-center text-xs text-muted-foreground hover:text-blue-600"
+                  className="flex cursor-pointer items-center text-xs text-muted-foreground hover:text-foreground"
                   title={`${task.attachments.length} attachment(s) - Click to view`}
                   onClick={e => {
                     e.stopPropagation()
@@ -306,10 +302,6 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
                   <Paperclip className="h-3 w-3" />
                 </div>
               )}
-              {/* Add comment count when available */}
-              <div className="flex items-center text-xs text-muted-foreground">
-                <MessageSquare className="mr-1 h-3 w-3" />0
-              </div>
             </div>
           </div>
         )}

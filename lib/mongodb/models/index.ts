@@ -98,6 +98,15 @@ export { Appointment, type IAppointment } from './Appointment'
 export { WhatsAppAccount, type IWhatsAppAccount } from './WhatsAppAccount'
 export { WhatsAppTemplate, type IWhatsAppTemplate } from './WhatsAppTemplate'
 export { WhatsAppMessage, type IWhatsAppMessage } from './WhatsAppMessage'
+export {
+  WhatsAppConversation,
+  type IWhatsAppConversation,
+} from './WhatsAppConversation'
+export {
+  WhatsAppBotFlow,
+  type IWhatsAppBotFlow,
+  type IBotFlowStep,
+} from './WhatsAppBotFlow'
 
 // SMS Module
 export { SmsTemplate, type ISmsTemplate } from './SmsTemplate'
@@ -186,3 +195,24 @@ export {
   ComplianceDocument,
   type IComplianceDocument,
 } from './ComplianceDocument'
+
+export {
+  SocialOAuthConnection,
+  type ISocialOAuthConnection,
+} from './SocialOAuthConnection'
+
+export {
+  Campaign,
+  CampaignEnrollment,
+  type ICampaign,
+  type ICampaignStep,
+  type ICampaignEnrollment,
+  type CampaignChannel,
+} from './Campaign'
+
+export { SocialAccount, type ISocialAccount } from './SocialAccount'
+export {
+  SocialPost,
+  type ISocialPost,
+  type ISocialPostPlatform,
+} from './SocialPost'
