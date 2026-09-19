@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
                     entityId: message._id.toString(),
                     createdBy: 'system',
                     userId: conversation.humanAssignedTo,
-                    notificationLevel: 'user',
+                    notificationLevel: 'personal',
                   }).catch(() => {})
                 }
               } else if (
