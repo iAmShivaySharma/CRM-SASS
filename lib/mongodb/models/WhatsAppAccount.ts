@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose'
 export interface IWhatsAppAccount extends Omit<Document, '_id'> {
   _id: string
   workspaceId: string
-  provider: 'meta_cloud' | 'wati' | 'aisensy' | 'gupshup'
+  provider: 'meta_cloud' | 'wati' | 'gupshup'
   phoneNumberId: string
   businessAccountId?: string
   displayName: string
@@ -32,7 +32,7 @@ const WhatsAppAccountSchema = new Schema<IWhatsAppAccount>(
     },
     provider: {
       type: String,
-      enum: ['meta_cloud', 'wati', 'aisensy', 'gupshup'],
+      enum: ['meta_cloud', 'wati', 'gupshup'],
       default: 'meta_cloud',
     },
     phoneNumberId: {

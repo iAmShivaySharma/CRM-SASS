@@ -9,7 +9,7 @@ import { log } from '@/lib/logging/logger'
 import { checkPermission } from '@/lib/security/check-permission'
 
 const createAccountSchema = z.object({
-  provider: z.enum(['meta_cloud', 'wati', 'aisensy', 'gupshup']).optional(),
+  provider: z.enum(['meta_cloud', 'wati', 'gupshup']).optional(),
   phoneNumberId: z.string().min(1),
   businessAccountId: z.string().optional(),
   displayName: z.string().min(1).max(100),
