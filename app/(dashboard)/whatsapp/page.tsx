@@ -642,7 +642,7 @@ export default function WhatsAppPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {templates.map(t => {
                 const body = (
-                  t.components as { type: string; text?: string }[]
+                  (t.components || []) as { type: string; text?: string }[]
                 ).find(c => c.type === 'BODY')
                 return (
                   <Card key={t._id} className="flex flex-col">
