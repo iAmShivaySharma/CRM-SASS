@@ -14,6 +14,12 @@ import {
   useSyncTemplatesMutation,
   useGetConversationsQuery,
   useBroadcastMutation,
+  useGetBotFlowsQuery,
+  useCreateBotFlowMutation,
+  useUpdateBotFlowMutation,
+  useDeleteBotFlowMutation,
+  type WhatsAppBotFlowResponse,
+  type BotFlowStepPayload,
 } from '@/lib/api/whatsappApi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -45,10 +51,14 @@ import {
   RefreshCw,
   Trash2,
   Bot,
+  ArrowLeft,
+  Power,
+  Pencil,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { WhatsAppChatThread } from '@/components/whatsapp/WhatsAppChatThread'
 import { WhatsAppFBSignup } from '@/components/whatsapp/WhatsAppFBSignup'
+import { BotFlowBuilder } from '@/components/whatsapp/BotFlowBuilder'
 
 interface ButtonField {
   type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER'
@@ -145,6 +155,16 @@ export default function WhatsAppPage() {
     sent?: number
     failed?: number
   } | null>(null)
+  const [botFlowView, setBotFlowView] = useState<'list' | 'create' | 'edit'>(
+    'list'
+  )
+  const [editingBotFlow, setEditingBotFlow] =
+    useState<WhatsAppBotFlowResponse | null>(null)
+  const [botFlowForm, setBotFlowForm] = useState({
+    name: '',
+    description: '',
+    accountId: '',
+  })
 
   const {
     data: accountsData,
@@ -170,10 +190,18 @@ export default function WhatsAppPage() {
   const [submitTemplate] = useSubmitTemplateMutation()
   const [syncTemplates, { isLoading: syncing }] = useSyncTemplatesMutation()
   const [broadcast, { isLoading: broadcasting }] = useBroadcastMutation()
+  const { data: botFlowsData, isLoading: botFlowsLoading } =
+    useGetBotFlowsQuery({ workspaceId }, { skip: !currentWorkspace })
+  const [createBotFlow, { isLoading: creatingBotFlow }] =
+    useCreateBotFlowMutation()
+  const [updateBotFlow, { isLoading: updatingBotFlow }] =
+    useUpdateBotFlowMutation()
+  const [deleteBotFlow] = useDeleteBotFlowMutation()
 
   const accounts = accountsData?.accounts ?? []
   const templates = templatesData?.templates ?? []
   const conversations = conversationsData?.conversations ?? []
+  const botFlows = botFlowsData?.botFlows ?? []
 
   const selectedConversation = conversations.find(
     c => c.contactPhone === selectedPhone
@@ -379,6 +407,88 @@ export default function WhatsAppPage() {
     }))
   }
 
+  async function handleCreateBotFlow(
+    steps: BotFlowStepPayload[],
+    triggerKeywords: string[]
+  ) {
+    if (!botFlowForm.name || !botFlowForm.accountId) {
+      toast.error('Name and account are required')
+      return
+    }
+    try {
+      await createBotFlow({
+        workspaceId,
+        accountId: botFlowForm.accountId,
+        name: botFlowForm.name,
+        description: botFlowForm.description || undefined,
+        steps,
+        triggerKeywords,
+      }).unwrap()
+      toast.success('Bot flow created')
+      setBotFlowView('list')
+      setBotFlowForm({ name: '', description: '', accountId: '' })
+    } catch {
+      toast.error('Failed to create bot flow')
+    }
+  }
+
+  async function handleUpdateBotFlow(
+    steps: BotFlowStepPayload[],
+    triggerKeywords: string[]
+  ) {
+    if (!editingBotFlow) {
+      return
+    }
+    try {
+      await updateBotFlow({
+        id: editingBotFlow._id || editingBotFlow.id!,
+        steps,
+        triggerKeywords,
+        name: botFlowForm.name || editingBotFlow.name,
+        description: botFlowForm.description || editingBotFlow.description,
+      }).unwrap()
+      toast.success('Bot flow updated')
+      setBotFlowView('list')
+      setEditingBotFlow(null)
+      setBotFlowForm({ name: '', description: '', accountId: '' })
+    } catch {
+      toast.error('Failed to update bot flow')
+    }
+  }
+
+  async function handleDeleteBotFlow(id: string) {
+    try {
+      await deleteBotFlow({ id, workspaceId }).unwrap()
+      toast.success('Bot flow deleted')
+    } catch {
+      toast.error('Failed to delete bot flow')
+    }
+  }
+
+  async function handleToggleBotFlow(flow: WhatsAppBotFlowResponse) {
+    try {
+      await updateBotFlow({
+        id: flow._id || flow.id!,
+        isActive: !flow.isActive,
+      }).unwrap()
+      toast.success(
+        flow.isActive ? 'Bot flow deactivated' : 'Bot flow activated'
+      )
+    } catch {
+      toast.error('Failed to update bot flow')
+    }
+  }
+
+  function openEditBotFlow(flow: WhatsAppBotFlowResponse) {
+    setEditingBotFlow(flow)
+    setBotFlowForm({
+      name: flow.name,
+      description: flow.description || '',
+      accountId: flow.accountId,
+    })
+    setBotFlowView('edit')
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 border-b bg-card px-6 py-4">
@@ -396,6 +506,7 @@ export default function WhatsAppPage() {
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="accounts">Accounts</TabsTrigger>
             <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
+            <TabsTrigger value="bot-flows">Bot Flows</TabsTrigger>
           </TabsList>
         </div>
 
@@ -762,6 +873,199 @@ export default function WhatsAppPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="bot-flows" className="m-0 flex-1 overflow-auto p-6">
+          {botFlowView === 'list' && (
+            <>
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Bot Flows</h2>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setBotFlowForm({ name: '', description: '', accountId: '' })
+                    setBotFlowView('create')
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Bot Flow
+                </Button>
+              </div>
+
+              {botFlowsLoading ? (
+                <div className="flex h-32 items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : botFlows.length === 0 ? (
+                <div className="py-16 text-center text-muted-foreground">
+                  <Bot className="mx-auto mb-3 h-12 w-12 opacity-30" />
+                  <p className="text-sm">
+                    No bot flows yet. Create one to automate WhatsApp
+                    conversations.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {botFlows.map(flow => (
+                    <Card key={flow._id || flow.id}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="text-sm font-semibold">
+                            {flow.name}
+                          </CardTitle>
+                          <span
+                            className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                              flow.isActive
+                                ? 'bg-primary/10 text-primary'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            {flow.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        {flow.description && (
+                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                            {flow.description}
+                          </p>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="mb-3 flex flex-wrap gap-1.5">
+                          <Badge variant="outline" className="text-xs">
+                            {flow.steps?.length || 0} steps
+                          </Badge>
+                          {flow.triggerKeywords &&
+                            flow.triggerKeywords.length > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {flow.triggerKeywords.length} triggers
+                              </Badge>
+                            )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-xs"
+                            onClick={() => openEditBotFlow(flow)}
+                          >
+                            <Pencil className="mr-1 h-3 w-3" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                            onClick={() => handleToggleBotFlow(flow)}
+                          >
+                            <Power className="mr-1 h-3 w-3" />
+                            {flow.isActive ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() =>
+                              handleDeleteBotFlow(flow._id || flow.id!)
+                            }
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {(botFlowView === 'create' || botFlowView === 'edit') && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setBotFlowView('list')
+                    setEditingBotFlow(null)
+                    setBotFlowForm({ name: '', description: '', accountId: '' })
+                  }}
+                >
+                  <ArrowLeft className="mr-1 h-4 w-4" />
+                  Back
+                </Button>
+                <h2 className="text-lg font-semibold">
+                  {botFlowView === 'create'
+                    ? 'Create Bot Flow'
+                    : 'Edit Bot Flow'}
+                </h2>
+              </div>
+
+              <div className="grid max-w-2xl grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label>Name</Label>
+                  <Input
+                    value={botFlowForm.name}
+                    onChange={e =>
+                      setBotFlowForm(f => ({ ...f, name: e.target.value }))
+                    }
+                    placeholder="e.g. Welcome Flow"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Description</Label>
+                  <Input
+                    value={botFlowForm.description}
+                    onChange={e =>
+                      setBotFlowForm(f => ({
+                        ...f,
+                        description: e.target.value,
+                      }))
+                    }
+                    placeholder="Optional description"
+                  />
+                </div>
+                {botFlowView === 'create' && (
+                  <div className="space-y-1.5">
+                    <Label>Account</Label>
+                    <Select
+                      value={botFlowForm.accountId}
+                      onValueChange={v =>
+                        setBotFlowForm(f => ({ ...f, accountId: v }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select account..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {accounts.map(a => (
+                          <SelectItem key={a._id} value={a._id}>
+                            {a.name} — {a.phoneNumber}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              <BotFlowBuilder
+                initialSteps={editingBotFlow?.steps || []}
+                initialTriggerKeywords={editingBotFlow?.triggerKeywords || []}
+                onSave={
+                  botFlowView === 'create'
+                    ? handleCreateBotFlow
+                    : handleUpdateBotFlow
+                }
+                onCancel={() => {
+                  setBotFlowView('list')
+                  setEditingBotFlow(null)
+                  setBotFlowForm({ name: '', description: '', accountId: '' })
+                }}
+                saving={creatingBotFlow || updatingBotFlow}
+              />
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

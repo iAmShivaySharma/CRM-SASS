@@ -36,6 +36,7 @@ import { projectMembersApi } from './api/projectMembersApi'
 import { documentsApi } from './api/documentsApi'
 import { complianceApi } from './api/complianceApi'
 import { campaignApi } from './api/campaignApi'
+import { socialApi } from './api/socialApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -87,6 +88,7 @@ export const store = configureStore({
     [documentsApi.reducerPath]: documentsApi.reducer,
     [complianceApi.reducerPath]: complianceApi.reducer,
     [campaignApi.reducerPath]: campaignApi.reducer,
+    [socialApi.reducerPath]: socialApi.reducer,
   } as any,
   preloadedState,
   middleware: getDefaultMiddleware =>
@@ -127,7 +129,8 @@ export const store = configureStore({
       projectMembersApi.middleware,
       documentsApi.middleware,
       complianceApi.middleware,
-      campaignApi.middleware
+      campaignApi.middleware,
+      socialApi.middleware
     ),
 })
 

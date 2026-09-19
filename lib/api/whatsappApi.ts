@@ -97,13 +97,50 @@ export interface BroadcastBody {
   components?: object[]
 }
 
+export interface BotFlowStepPayload {
+  id: string
+  type:
+    | 'send_message'
+    | 'wait_for_reply'
+    | 'keyword_match'
+    | 'quick_reply'
+    | 'list_message'
+    | 'ai_reply'
+    | 'assign_human'
+    | 'delay'
+    | 'condition'
+  data: Record<string, unknown>
+  position: { x: number; y: number }
+  connections: Array<{ targetStepId: string; label?: string }>
+}
+
+export interface WhatsAppBotFlowResponse {
+  _id: string
+  id?: string
+  workspaceId: string
+  accountId: string
+  name: string
+  description?: string
+  steps: BotFlowStepPayload[]
+  triggerKeywords?: string[]
+  isActive: boolean
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
 export const whatsappApi = createApi({
   reducerPath: 'whatsappApi',
   baseQuery: fetchBaseQuery({
     baseUrl: '/',
     credentials: 'include',
   }),
-  tagTypes: ['WhatsAppAccount', 'WhatsAppTemplate', 'WhatsAppConversation'],
+  tagTypes: [
+    'WhatsAppAccount',
+    'WhatsAppTemplate',
+    'WhatsAppConversation',
+    'WhatsAppBotFlow',
+  ],
   endpoints: builder => ({
     getAccounts: builder.query<AccountsResponse, { workspaceId: string }>({
       query: ({ workspaceId }) =>
@@ -242,6 +279,66 @@ export const whatsappApi = createApi({
       }),
       invalidatesTags: ['WhatsAppAccount'],
     }),
+    getBotFlows: builder.query<
+      { success: boolean; botFlows: WhatsAppBotFlowResponse[] },
+      { workspaceId: string; accountId?: string }
+    >({
+      query: ({ workspaceId, accountId }) => {
+        let url = `api/whatsapp/bot-flows?workspaceId=${workspaceId}`
+        if (accountId) {
+          url += `&accountId=${accountId}`
+        }
+        return url
+      },
+      providesTags: ['WhatsAppBotFlow'],
+    }),
+    createBotFlow: builder.mutation<
+      { success: boolean; botFlow: WhatsAppBotFlowResponse },
+      {
+        workspaceId: string
+        accountId: string
+        name: string
+        description?: string
+        steps: BotFlowStepPayload[]
+        triggerKeywords?: string[]
+        isActive?: boolean
+      }
+    >({
+      query: body => ({
+        url: 'api/whatsapp/bot-flows',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['WhatsAppBotFlow'],
+    }),
+    updateBotFlow: builder.mutation<
+      { success: boolean; botFlow: WhatsAppBotFlowResponse },
+      {
+        id: string
+        name?: string
+        description?: string
+        steps?: BotFlowStepPayload[]
+        isActive?: boolean
+        triggerKeywords?: string[]
+      }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `api/whatsapp/bot-flows/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['WhatsAppBotFlow'],
+    }),
+    deleteBotFlow: builder.mutation<
+      { success: boolean; message: string },
+      { id: string; workspaceId: string }
+    >({
+      query: ({ id }) => ({
+        url: `api/whatsapp/bot-flows/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['WhatsAppBotFlow'],
+    }),
   }),
 })
 
@@ -261,4 +358,8 @@ export const {
   useSyncTemplatesMutation,
   useGetMessagesQuery,
   useConnectFacebookMutation,
+  useGetBotFlowsQuery,
+  useCreateBotFlowMutation,
+  useUpdateBotFlowMutation,
+  useDeleteBotFlowMutation,
 } = whatsappApi

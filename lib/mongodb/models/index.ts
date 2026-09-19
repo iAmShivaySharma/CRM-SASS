@@ -102,6 +102,11 @@ export {
   WhatsAppConversation,
   type IWhatsAppConversation,
 } from './WhatsAppConversation'
+export {
+  WhatsAppBotFlow,
+  type IWhatsAppBotFlow,
+  type IBotFlowStep,
+} from './WhatsAppBotFlow'
 
 // SMS Module
 export { SmsTemplate, type ISmsTemplate } from './SmsTemplate'
@@ -204,3 +209,10 @@ export {
   type ICampaignEnrollment,
   type CampaignChannel,
 } from './Campaign'
+
+export { SocialAccount, type ISocialAccount } from './SocialAccount'
+export {
+  SocialPost,
+  type ISocialPost,
+  type ISocialPostPlatform,
+} from './SocialPost'

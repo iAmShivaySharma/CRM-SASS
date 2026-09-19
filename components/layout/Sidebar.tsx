@@ -54,6 +54,7 @@ import {
   Megaphone,
   GitBranch,
   Linkedin,
+  Share2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -245,6 +246,13 @@ const navigation = [
     name: 'LinkedIn',
     href: '/linkedin',
     icon: Linkedin,
+    category: 'marketing',
+    parent: 'marketing',
+  },
+  {
+    name: 'Social Media',
+    href: '/social-media',
+    icon: Share2,
     category: 'marketing',
     parent: 'marketing',
   },
