@@ -3,19 +3,26 @@ export class LinkedInOAuthProvider {
   private clientSecret: string
   private redirectUri: string
 
-  constructor() {
+  constructor(redirectUri?: string) {
     this.clientId = process.env.LINKEDIN_CLIENT_ID!
     this.clientSecret = process.env.LINKEDIN_CLIENT_SECRET!
-    this.redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/oauth/linkedin/callback`
+    this.redirectUri =
+      redirectUri ||
+      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/oauth/linkedin/callback`
   }
 
-  getAuthUrl(state: string): string {
-    const scopes = ['openid', 'profile', 'email', 'w_member_social']
+  getAuthUrl(state: string, scopes?: string[]): string {
+    const finalScopes = scopes || [
+      'openid',
+      'profile',
+      'email',
+      'w_member_social',
+    ]
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
-      scope: scopes.join(' '),
+      scope: finalScopes.join(' '),
       state,
     })
     return `https://www.linkedin.com/oauth/v2/authorization?${params}`
@@ -79,14 +86,16 @@ export class MetaOAuthProvider {
   private clientSecret: string
   private redirectUri: string
 
-  constructor() {
+  constructor(redirectUri?: string) {
     this.clientId = process.env.META_APP_ID!
     this.clientSecret = process.env.META_APP_SECRET!
-    this.redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/oauth/meta/callback`
+    this.redirectUri =
+      redirectUri ||
+      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/oauth/meta/callback`
   }
 
-  getAuthUrl(state: string): string {
-    const scopes = [
+  getAuthUrl(state: string, scopes?: string[]): string {
+    const finalScopes = scopes || [
       'whatsapp_business_management',
       'whatsapp_business_messaging',
       'business_management',
@@ -94,7 +103,7 @@ export class MetaOAuthProvider {
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
-      scope: scopes.join(','),
+      scope: finalScopes.join(','),
       response_type: 'code',
       state,
     })

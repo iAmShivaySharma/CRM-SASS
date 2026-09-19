@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetSocialAccountsQuery,
@@ -31,7 +31,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   Popover,
@@ -44,7 +43,6 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
   Share2,
-  Plus,
   Trash2,
   Edit,
   Sparkles,
@@ -868,14 +866,99 @@ function PostsTab({
   )
 }
 
+function OAuthConnectButton({
+  platform,
+  label,
+  icon: Icon,
+  workspaceId,
+  onSuccess,
+}: {
+  platform: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  workspaceId: string
+  onSuccess: () => void
+}) {
+  const [loading, setLoading] = useState(false)
+
+  const handleConnect = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(
+        `/api/social/oauth/${platform}?workspaceId=${workspaceId}`
+      )
+      const data = await res.json()
+
+      if (!data.authUrl) {
+        toast.error('Failed to get authorization URL')
+        setLoading(false)
+        return
+      }
+
+      const popup = window.open(data.authUrl, '_blank', 'width=600,height=700')
+
+      const handleMessage = (event: MessageEvent) => {
+        if (
+          event.data?.type === 'SOCIAL_OAUTH_SUCCESS' &&
+          event.data?.platform === platform
+        ) {
+          window.removeEventListener('message', handleMessage)
+          toast.success(`${label} connected successfully`)
+          onSuccess()
+          setLoading(false)
+        }
+        if (
+          event.data?.type === 'SOCIAL_OAUTH_ERROR' &&
+          event.data?.platform === platform
+        ) {
+          window.removeEventListener('message', handleMessage)
+          toast.error(`Failed to connect ${label}`)
+          setLoading(false)
+        }
+      }
+
+      window.addEventListener('message', handleMessage)
+
+      const checkClosed = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(checkClosed)
+          window.removeEventListener('message', handleMessage)
+          setLoading(false)
+        }
+      }, 1000)
+    } catch {
+      toast.error('Failed to initiate connection')
+      setLoading(false)
+    }
+  }, [platform, workspaceId, label, onSuccess])
+
+  return (
+    <Button
+      variant="outline"
+      onClick={handleConnect}
+      disabled={loading}
+      className="justify-start gap-2"
+    >
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Icon className="h-4 w-4" />
+      )}
+      {label}
+    </Button>
+  )
+}
+
 function AccountsTab({
   accounts,
   workspaceId,
+  onRefetch,
 }: {
   accounts: SocialAccount[]
   workspaceId: string
+  onRefetch: () => void
 }) {
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [manualDialogOpen, setManualDialogOpen] = useState(false)
   const [platform, setPlatform] = useState<string>('facebook')
   const [accountName, setAccountName] = useState('')
   const [accountId, setAccountId] = useState('')
@@ -886,7 +969,7 @@ function AccountsTab({
     useConnectSocialAccountMutation()
   const [disconnectAccount] = useDisconnectSocialAccountMutation()
 
-  const handleConnect = async () => {
+  const handleManualConnect = async () => {
     if (!accountName.trim() || !accountId.trim() || !accessToken.trim()) {
       toast.error('All required fields must be filled')
       return
@@ -901,7 +984,7 @@ function AccountsTab({
         profileUrl: profileUrl || undefined,
       }).unwrap()
       toast.success('Account connected')
-      setDialogOpen(false)
+      setManualDialogOpen(false)
       setAccountName('')
       setAccountId('')
       setAccessToken('')
@@ -920,90 +1003,119 @@ function AccountsTab({
     }
   }
 
+  const oauthButtons = [
+    { platform: 'facebook', label: 'Connect Facebook Page', icon: Facebook },
+    { platform: 'instagram', label: 'Connect Instagram', icon: Instagram },
+    { platform: 'linkedin', label: 'Connect LinkedIn Page', icon: Linkedin },
+    { platform: 'twitter', label: 'Connect X/Twitter', icon: Twitter },
+  ]
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Connect Account
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Connect Social Account</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label className="text-muted-foreground">Platform</Label>
-                <Select value={platform} onValueChange={setPlatform}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PLATFORMS.map(p => (
-                      <SelectItem key={p.value} value={p.value}>
-                        {p.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Account Name</Label>
-                <Input
-                  value={accountName}
-                  onChange={e => setAccountName(e.target.value)}
-                  placeholder="e.g. My Business Page"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Account ID</Label>
-                <Input
-                  value={accountId}
-                  onChange={e => setAccountId(e.target.value)}
-                  placeholder="Platform account/page ID"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Access Token</Label>
-                <Input
-                  value={accessToken}
-                  onChange={e => setAccessToken(e.target.value)}
-                  placeholder="API access token"
-                  type="password"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-muted-foreground">
-                  Profile URL (optional)
-                </Label>
-                <Input
-                  value={profileUrl}
-                  onChange={e => setProfileUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleConnect} disabled={connecting}>
-                  {connecting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Connect
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+      <div className="rounded-lg border bg-card p-6">
+        <h3 className="mb-4 text-lg font-semibold text-foreground">
+          Connect a Social Account
+        </h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {oauthButtons.map(btn => (
+            <OAuthConnectButton
+              key={btn.platform}
+              platform={btn.platform}
+              label={btn.label}
+              icon={btn.icon}
+              workspaceId={workspaceId}
+              onSuccess={onRefetch}
+            />
+          ))}
+        </div>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setManualDialogOpen(true)}
+            className="text-sm text-muted-foreground underline hover:text-foreground"
+          >
+            Connect manually with access token
+          </button>
+        </div>
       </div>
+
+      <Dialog open={manualDialogOpen} onOpenChange={setManualDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Connect Manually</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-muted-foreground">Platform</Label>
+              <Select value={platform} onValueChange={setPlatform}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PLATFORMS.map(p => (
+                    <SelectItem key={p.value} value={p.value}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">Account Name</Label>
+              <Input
+                value={accountName}
+                onChange={e => setAccountName(e.target.value)}
+                placeholder="e.g. My Business Page"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-muted-foreground">Account ID</Label>
+              <Input
+                value={accountId}
+                onChange={e => setAccountId(e.target.value)}
+                placeholder="Platform account/page ID"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-muted-foreground">Access Token</Label>
+              <Input
+                value={accessToken}
+                onChange={e => setAccessToken(e.target.value)}
+                placeholder="API access token"
+                type="password"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-muted-foreground">
+                Profile URL (optional)
+              </Label>
+              <Input
+                value={profileUrl}
+                onChange={e => setProfileUrl(e.target.value)}
+                placeholder="https://..."
+                className="mt-1"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setManualDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleManualConnect} disabled={connecting}>
+                {connecting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Connect
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {accounts.length === 0 && (
         <div className="rounded-lg border bg-card py-12 text-center">
@@ -1064,8 +1176,11 @@ export default function SocialMediaPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const workspaceId = currentWorkspace?.id || ''
 
-  const { data: accountsData, isLoading: accountsLoading } =
-    useGetSocialAccountsQuery({ workspaceId }, { skip: !workspaceId })
+  const {
+    data: accountsData,
+    isLoading: accountsLoading,
+    refetch: refetchAccounts,
+  } = useGetSocialAccountsQuery({ workspaceId }, { skip: !workspaceId })
 
   const { data: postsData, isLoading: postsLoading } = useGetSocialPostsQuery(
     { workspaceId, limit: 100 },
@@ -1126,7 +1241,11 @@ export default function SocialMediaPage() {
         </TabsContent>
 
         <TabsContent value="accounts" className="mt-6">
-          <AccountsTab accounts={accounts} workspaceId={workspaceId} />
+          <AccountsTab
+            accounts={accounts}
+            workspaceId={workspaceId}
+            onRefetch={refetchAccounts}
+          />
         </TabsContent>
       </Tabs>
     </div>

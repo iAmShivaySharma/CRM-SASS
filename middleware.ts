@@ -253,8 +253,8 @@ export async function middleware(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' https://app.chatwoot.com",
-    "connect-src 'self' https://app.chatwoot.com wss://app.chatwoot.com https://lumberjack.razorpay.com https://api.razorpay.com https://meet.jit.si wss://meet.jit.si https://8x8.vc wss://8x8.vc https://connect.facebook.net https://www.facebook.com https://graph.facebook.com",
-    "frame-src 'self' https://app.chatwoot.com https://api.razorpay.com https://checkout.razorpay.com https://meet.jit.si https://8x8.vc https://www.facebook.com",
+    "connect-src 'self' https://app.chatwoot.com wss://app.chatwoot.com https://lumberjack.razorpay.com https://api.razorpay.com https://meet.jit.si wss://meet.jit.si https://8x8.vc wss://8x8.vc https://connect.facebook.net https://www.facebook.com https://graph.facebook.com https://twitter.com https://api.twitter.com",
+    "frame-src 'self' https://app.chatwoot.com https://api.razorpay.com https://checkout.razorpay.com https://meet.jit.si https://8x8.vc https://www.facebook.com https://twitter.com",
     "child-src 'self' https://app.chatwoot.com https://checkout.razorpay.com https://meet.jit.si https://8x8.vc",
     "frame-ancestors 'none'",
   ].join('; ')
