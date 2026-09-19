@@ -33,7 +33,15 @@ import {
   useDeleteCampaignMutation,
   type CampaignStep,
 } from '@/lib/api/campaignApi'
-import { CampaignFlowBuilder } from '@/components/marketing/CampaignFlowBuilder'
+import dynamic from 'next/dynamic'
+
+const CampaignFlowBuilder = dynamic(
+  () =>
+    import('@/components/marketing/CampaignFlowBuilder').then(
+      mod => mod.CampaignFlowBuilder
+    ),
+  { ssr: false }
+)
 
 type ViewMode = 'list' | 'create'
 

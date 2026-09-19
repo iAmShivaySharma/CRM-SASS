@@ -56,9 +56,17 @@ import {
   Pencil,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import dynamic from 'next/dynamic'
 import { WhatsAppChatThread } from '@/components/whatsapp/WhatsAppChatThread'
 import { WhatsAppFBSignup } from '@/components/whatsapp/WhatsAppFBSignup'
-import { BotFlowBuilder } from '@/components/whatsapp/BotFlowBuilder'
+
+const BotFlowBuilder = dynamic(
+  () =>
+    import('@/components/whatsapp/BotFlowBuilder').then(
+      mod => mod.BotFlowBuilder
+    ),
+  { ssr: false }
+)
 
 interface ButtonField {
   type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER'

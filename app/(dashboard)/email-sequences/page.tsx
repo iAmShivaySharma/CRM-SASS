@@ -33,7 +33,15 @@ import {
   useUpdateSequenceMutation,
   useDeleteSequenceMutation,
 } from '@/lib/api/emailSequencesApi'
-import { CampaignFlowBuilder } from '@/components/marketing/CampaignFlowBuilder'
+import dynamic from 'next/dynamic'
+
+const CampaignFlowBuilder = dynamic(
+  () =>
+    import('@/components/marketing/CampaignFlowBuilder').then(
+      mod => mod.CampaignFlowBuilder
+    ),
+  { ssr: false }
+)
 import { type CampaignStep } from '@/lib/api/campaignApi'
 
 type ViewMode = 'list' | 'create'
