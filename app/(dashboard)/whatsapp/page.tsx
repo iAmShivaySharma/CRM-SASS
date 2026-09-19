@@ -366,25 +366,37 @@ export default function WhatsAppPage() {
     }
   }
 
+  const approvedTemplates = templates.filter(t => t.status === 'APPROVED')
+
+  const selectedBroadcastTemplate = approvedTemplates.find(
+    t => t.name === broadcastForm.templateName
+  )
+
   async function handleBroadcast() {
-    const recipients = broadcastForm.recipients
+    const phones = broadcastForm.recipients
       .split('\n')
       .map(r => r.trim())
       .filter(Boolean)
-    if (recipients.length === 0) {
+    if (phones.length === 0) {
       toast.error('No recipients provided')
+      return
+    }
+    if (!broadcastForm.templateName) {
+      toast.error('Select a template')
       return
     }
     try {
       const result = await broadcast({
         workspaceId,
         accountId: broadcastForm.accountId,
-        recipients,
+        recipients: phones.map(phone => ({ phone })),
         templateName: broadcastForm.templateName,
         language: broadcastForm.language,
       }).unwrap()
-      setBroadcastResult({ sent: result.count })
-      toast.success(`Broadcast sent to ${result.count} recipients`)
+      setBroadcastResult({ sent: result.result?.sent ?? phones.length })
+      toast.success(
+        `Broadcast sent to ${result.result?.sent ?? phones.length} recipients`
+      )
     } catch {
       toast.error('Broadcast failed')
     }
@@ -894,29 +906,65 @@ export default function WhatsAppPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label>Template Name</Label>
-                <Input
-                  placeholder="e.g. order_confirmation"
-                  value={broadcastForm.templateName}
-                  onChange={e =>
-                    setBroadcastForm(f => ({
-                      ...f,
-                      templateName: e.target.value,
-                    }))
-                  }
-                />
+                <Label>Template</Label>
+                {approvedTemplates.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    No approved templates. Create and submit one in the
+                    Templates tab first.
+                  </p>
+                ) : (
+                  <Select
+                    value={broadcastForm.templateName}
+                    onValueChange={v => {
+                      const tmpl = approvedTemplates.find(t => t.name === v)
+                      setBroadcastForm(f => ({
+                        ...f,
+                        templateName: v,
+                        language: tmpl?.language || f.language,
+                      }))
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select template..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {approvedTemplates.map(t => (
+                        <SelectItem key={t._id} value={t.name}>
+                          {t.name} ({t.language})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
-              <div className="space-y-1.5">
-                <Label>Language</Label>
-                <Input
-                  placeholder="en"
-                  value={broadcastForm.language}
-                  onChange={e =>
-                    setBroadcastForm(f => ({ ...f, language: e.target.value }))
-                  }
-                />
-              </div>
+              {selectedBroadcastTemplate && (
+                <div className="space-y-1 rounded-lg border bg-muted/50 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Preview
+                  </p>
+                  <p className="text-sm">
+                    {selectedBroadcastTemplate.bodyText ||
+                      (
+                        (selectedBroadcastTemplate as any).components || []
+                      ).find((c: any) => c.type === 'BODY')?.text ||
+                      'No body'}
+                  </p>
+                  {selectedBroadcastTemplate.footerText && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedBroadcastTemplate.footerText}
+                    </p>
+                  )}
+                  <div className="flex gap-1 pt-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedBroadcastTemplate.category}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedBroadcastTemplate.language}
+                    </Badge>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <Label>Recipients</Label>

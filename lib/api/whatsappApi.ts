@@ -27,6 +27,16 @@ export interface WhatsAppTemplate {
   language: string
   status: string
   components: object[]
+  bodyText?: string
+  footerText?: string
+  headerType?: string
+  headerContent?: string
+  buttons?: Array<{
+    type: string
+    text: string
+    url?: string
+    phoneNumber?: string
+  }>
   createdAt: string
   updatedAt: string
 }
@@ -96,7 +106,7 @@ export interface SendTemplateBody {
 export interface BroadcastBody {
   workspaceId: string
   accountId: string
-  recipients: string[]
+  recipients: Array<{ phone: string; variables?: string[]; contactId?: string }>
   templateName: string
   language: string
   components?: object[]
@@ -224,7 +234,11 @@ export const whatsappApi = createApi({
       }),
     }),
     broadcast: builder.mutation<
-      { success: boolean; count: number },
+      {
+        success: boolean
+        message: string
+        result: { total: number; sent: number; failed: number }
+      },
       BroadcastBody
     >({
       query: body => ({
