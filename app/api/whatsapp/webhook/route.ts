@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
                     entityType: 'whatsapp_message',
                     entityId: message._id.toString(),
                     createdBy: 'system',
-                    userId: conversation.humanAssignedTo,
+                    targetUserIds: [conversation.humanAssignedTo],
                     notificationLevel: 'personal',
                   }).catch(() => {})
                 }
