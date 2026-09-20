@@ -81,6 +81,7 @@ import {
 import { useConvertLeadToContactMutation } from '@/lib/api/contactsApi'
 import { LeadDetailsSheet } from './LeadDetailsSheet'
 import { LeadForm } from './LeadForm'
+import { ClickToCall } from '@/components/calls/ClickToCall'
 
 export function LeadList() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -929,6 +930,12 @@ export function LeadList() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-1">
+                        {lead.phone && currentWorkspace?.id && (
+                          <ClickToCall
+                            phone={lead.phone}
+                            workspaceId={currentWorkspace.id}
+                          />
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

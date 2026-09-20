@@ -27,6 +27,7 @@ import {
   Hand,
 } from 'lucide-react'
 import { WhatsAppTemplateSelector } from './WhatsAppTemplateSelector'
+import { ClickToCall } from '@/components/calls/ClickToCall'
 import { toast } from 'sonner'
 
 interface Props {
@@ -196,6 +197,7 @@ export function WhatsAppChatThread({
           </div>
         </div>
         <div className="flex items-center gap-1.5">
+          <ClickToCall phone={phone} workspaceId={workspaceId} />
           <Button
             variant="outline"
             size="sm"

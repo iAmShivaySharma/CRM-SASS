@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { ContactForm } from './ContactForm'
 import { ContactDetail } from './ContactDetail'
+import { ClickToCall } from '@/components/calls/ClickToCall'
 
 interface ContactListProps {
   contactsData?: ContactsListResponse
@@ -287,6 +288,12 @@ export function ContactList({
                   </div>
 
                   <div className="flex items-center space-x-1">
+                    {contact.phone && (
+                      <ClickToCall
+                        phone={contact.phone}
+                        workspaceId={workspaceId}
+                      />
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"

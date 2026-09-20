@@ -216,3 +216,6 @@ export {
   type ISocialPost,
   type ISocialPostPlatform,
 } from './SocialPost'
+
+export { CallSettings, type ICallSettings } from './CallSettings'
+export { CallLog, type ICallLog } from './CallLog'

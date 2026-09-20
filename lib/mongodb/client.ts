@@ -67,6 +67,8 @@ import { Pipeline, type IPipeline } from './models/Pipeline'
 import { PipelineStage, type IPipelineStage } from './models/PipelineStage'
 import { Deal, type IDeal } from './models/Deal'
 import { DealActivity, type IDealActivity } from './models/DealActivity'
+import { CallSettings, type ICallSettings } from './models/CallSettings'
+import { CallLog, type ICallLog } from './models/CallLog'
 
 export class MongoDBClient {
   constructor() {
@@ -456,4 +458,6 @@ export {
   PipelineStage,
   Deal,
   DealActivity,
+  CallSettings,
+  CallLog,
 }
