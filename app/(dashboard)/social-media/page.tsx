@@ -50,25 +50,52 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  Facebook,
-  Instagram,
-  Linkedin,
-  Twitter,
   Loader2,
   ImagePlus,
   X,
   Unplug,
 } from 'lucide-react'
 
+import {
+  FaFacebook,
+  FaInstagram,
+  FaLinkedin,
+  FaXTwitter,
+} from 'react-icons/fa6'
+
 const PLATFORMS = [
-  { value: 'facebook' as const, label: 'Facebook', icon: Facebook },
-  { value: 'instagram' as const, label: 'Instagram', icon: Instagram },
-  { value: 'linkedin' as const, label: 'LinkedIn', icon: Linkedin },
-  { value: 'twitter' as const, label: 'Twitter/X', icon: Twitter },
+  {
+    value: 'facebook' as const,
+    label: 'Facebook',
+    icon: FaFacebook,
+    color: '#1877F2',
+  },
+  {
+    value: 'instagram' as const,
+    label: 'Instagram',
+    icon: FaInstagram,
+    color: '#E4405F',
+  },
+  {
+    value: 'linkedin' as const,
+    label: 'LinkedIn',
+    icon: FaLinkedin,
+    color: '#0A66C2',
+  },
+  {
+    value: 'twitter' as const,
+    label: 'Twitter/X',
+    icon: FaXTwitter,
+    color: '#000000',
+  },
 ]
 
+function getPlatformConfig(platform: string) {
+  return PLATFORMS.find(p => p.value === platform)
+}
+
 function getPlatformIcon(platform: string) {
-  const found = PLATFORMS.find(p => p.value === platform)
+  const found = getPlatformConfig(platform)
   if (!found) {
     return Share2
   }
@@ -363,7 +390,7 @@ function ComposeTab({
                         : 'border-border bg-background text-muted-foreground hover:bg-muted'
                     )}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4" style={{ color: p.color }} />
                     {p.label}
                     {!hasAccounts && (
                       <span className="text-[10px]">(no account)</span>
@@ -626,13 +653,15 @@ function CalendarTab({
                       onClick={() => openEdit(post)}
                       className="w-full truncate rounded bg-primary/10 px-1 py-0.5 text-left text-[10px] text-primary hover:bg-primary/20"
                     >
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5">
                         {post.platforms.map(p => {
                           const Icon = getPlatformIcon(p.platform)
+                          const cfg = getPlatformConfig(p.platform)
                           return (
                             <Icon
                               key={p.platform}
-                              className="inline h-2.5 w-2.5"
+                              className="inline h-3.5 w-3.5"
+                              style={{ color: cfg?.color }}
                             />
                           )
                         })}
@@ -781,13 +810,15 @@ function PostsTab({
           >
             <div className="mb-2 flex items-center justify-between">
               <StatusBadge status={post.status} />
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 {post.platforms.map(p => {
                   const Icon = getPlatformIcon(p.platform)
+                  const cfg = getPlatformConfig(p.platform)
                   return (
                     <Icon
                       key={p.platform}
-                      className="h-4 w-4 text-muted-foreground"
+                      className="h-4 w-4"
+                      style={{ color: cfg?.color }}
                     />
                   )
                 })}
@@ -870,12 +901,14 @@ function OAuthConnectButton({
   platform,
   label,
   icon: Icon,
+  color,
   workspaceId,
   onSuccess,
 }: {
   platform: string
   label: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+  color?: string
   workspaceId: string
   onSuccess: () => void
 }) {
@@ -933,19 +966,23 @@ function OAuthConnectButton({
   }, [platform, workspaceId, label, onSuccess])
 
   return (
-    <Button
-      variant="outline"
+    <button
       onClick={handleConnect}
       disabled={loading}
-      className="justify-start gap-2"
+      className="flex items-center gap-3 rounded-lg border bg-card p-3 text-left transition-all hover:border-primary/30 hover:shadow-md disabled:opacity-50"
     >
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Icon className="h-4 w-4" />
-      )}
-      {label}
-    </Button>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-background shadow-sm">
+        {loading ? (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        ) : (
+          <Icon className="h-5 w-5" style={{ color }} />
+        )}
+      </div>
+      <div>
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="text-[11px] text-muted-foreground">OAuth</p>
+      </div>
+    </button>
   )
 }
 
@@ -1003,40 +1040,42 @@ function AccountsTab({
     }
   }
 
-  const oauthButtons = [
-    { platform: 'facebook', label: 'Connect Facebook Page', icon: Facebook },
-    { platform: 'instagram', label: 'Connect Instagram', icon: Instagram },
-    { platform: 'linkedin', label: 'Connect LinkedIn Page', icon: Linkedin },
-    { platform: 'twitter', label: 'Connect X/Twitter', icon: Twitter },
-  ]
+  const oauthButtons = PLATFORMS.map(p => ({
+    platform: p.value,
+    label: `Connect ${p.label}`,
+    icon: p.icon,
+    color: p.color,
+  }))
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border bg-card p-6">
-        <h3 className="mb-4 text-lg font-semibold text-foreground">
-          Connect a Social Account
+    <div className="space-y-6">
+      <div>
+        <h3 className="mb-1 text-lg font-semibold text-foreground">
+          Connect Accounts
         </h3>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Link your social media accounts to start publishing
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {oauthButtons.map(btn => (
             <OAuthConnectButton
               key={btn.platform}
               platform={btn.platform}
               label={btn.label}
               icon={btn.icon}
+              color={btn.color}
               workspaceId={workspaceId}
               onSuccess={onRefetch}
             />
           ))}
         </div>
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={() => setManualDialogOpen(true)}
-            className="text-sm text-muted-foreground underline hover:text-foreground"
-          >
-            Connect manually with access token
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setManualDialogOpen(true)}
+          className="mt-3 text-xs text-muted-foreground underline hover:text-foreground"
+        >
+          Or connect manually with access token
+        </button>
       </div>
 
       <Dialog open={manualDialogOpen} onOpenChange={setManualDialogOpen}>
@@ -1117,52 +1156,68 @@ function AccountsTab({
         </DialogContent>
       </Dialog>
 
-      {accounts.length === 0 && (
-        <div className="rounded-lg border bg-card py-12 text-center">
-          <Unplug className="mx-auto h-12 w-12 text-muted-foreground/50" />
-          <p className="mt-2 text-muted-foreground">
-            No social accounts connected yet
+      {accounts.length > 0 && (
+        <div>
+          <h3 className="mb-1 text-lg font-semibold text-foreground">
+            Connected Accounts
+          </h3>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {accounts.length} account{accounts.length !== 1 ? 's' : ''}{' '}
+            connected
           </p>
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {accounts.length === 0 && (
+        <div className="rounded-lg border bg-card py-12 text-center">
+          <Unplug className="mx-auto h-12 w-12 text-muted-foreground/30" />
+          <p className="mt-3 text-sm font-medium text-foreground">
+            No accounts connected
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Connect a social account above to start publishing
+          </p>
+        </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {accounts.map(account => {
           const Icon = getPlatformIcon(account.platform)
+          const config = getPlatformConfig(account.platform)
           return (
             <div
               key={account.id}
-              className="flex items-start gap-4 rounded-lg border bg-card p-4"
+              className="flex items-center gap-3 rounded-lg border bg-card p-4 transition-all hover:shadow-sm"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <Icon className="h-5 w-5 text-primary" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-background shadow-sm">
+                <Icon className="h-5 w-5" style={{ color: config?.color }} />
               </div>
               <div className="min-w-0 flex-1">
-                <h4 className="truncate font-medium text-foreground">
+                <h4 className="truncate text-sm font-medium text-foreground">
                   {account.accountName}
                 </h4>
-                <p className="text-sm capitalize text-muted-foreground">
-                  {account.platform}
+                <p className="text-xs capitalize text-muted-foreground">
+                  {config?.label || account.platform}
                 </p>
                 <div className="mt-1">
                   {account.isActive ? (
-                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                       Active
                     </span>
                   ) : (
-                    <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
+                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                       Inactive
                     </span>
                   )}
                 </div>
               </div>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => handleDisconnect(account.id)}
-                className="text-destructive hover:bg-destructive/10"
+                className="h-8 w-8 shrink-0 p-0 text-muted-foreground hover:text-destructive"
               >
-                <Trash2 className="h-4 w-4" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           )

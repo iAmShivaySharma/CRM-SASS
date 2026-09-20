@@ -193,7 +193,6 @@ export default function SmsPage() {
           workspaceId,
           name: templateForm.name,
           content: templateForm.content,
-          type: templateForm.type,
         }).unwrap()
         toast.success('Template updated')
       } else {
@@ -201,7 +200,6 @@ export default function SmsPage() {
           workspaceId,
           name: templateForm.name,
           content: templateForm.content,
-          type: templateForm.type,
         }).unwrap()
         toast.success('Template created')
       }

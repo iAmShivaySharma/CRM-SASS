@@ -248,14 +248,20 @@ export default function CampaignsPage() {
     }
   }
 
-  const getAudienceEntries = () => {
+  const getAudienceEntries = (): Array<{
+    email?: string
+    phone?: string
+    leadId?: string
+  }> => {
     if (form.audienceType === 'manual') {
       const lines = form.manualRecipients
         .split('\n')
         .map(l => l.trim())
         .filter(Boolean)
       return lines.map(line => {
-        if (line.includes('@')) return { email: line }
+        if (line.includes('@')) {
+          return { email: line }
+        }
         return { phone: line }
       })
     }
@@ -745,8 +751,9 @@ export default function CampaignsPage() {
                         if (
                           form.channel === 'sms' &&
                           e.target.value.length > 160
-                        )
+                        ) {
                           return
+                        }
                         updateForm({ body: e.target.value })
                       }}
                       placeholder={
