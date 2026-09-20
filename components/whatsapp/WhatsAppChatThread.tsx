@@ -268,7 +268,7 @@ export function WhatsAppChatThread({
                         </div>
                       )}
                       <div
-                        className={`relative max-w-[70%] rounded-2xl px-3 py-2 shadow-sm ${
+                        className={`relative max-w-[65%] rounded-2xl px-3 py-2 shadow-sm ${
                           isOut
                             ? 'rounded-br-sm bg-primary/10'
                             : 'rounded-bl-sm border bg-card'

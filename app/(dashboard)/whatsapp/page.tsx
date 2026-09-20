@@ -522,8 +522,11 @@ export default function WhatsAppPage() {
   }
 
   return (
-    <div className="-m-4 flex h-[calc(100vh-4rem)] flex-col overflow-hidden sm:-m-6 lg:-m-8">
-      <div className="flex shrink-0 items-center justify-between border-b bg-card px-6 py-4">
+    <div
+      className="-m-4 flex flex-col overflow-hidden sm:-m-6 lg:-m-8"
+      style={{ height: 'calc(100dvh - 4rem)' }}
+    >
+      <div className="flex shrink-0 items-center justify-between border-b bg-card px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <MessageCircle className="h-5 w-5 text-primary" />
@@ -544,7 +547,7 @@ export default function WhatsAppPage() {
         defaultValue="conversations"
         className="flex flex-1 flex-col overflow-hidden"
       >
-        <div className="shrink-0 border-b bg-card px-6">
+        <div className="shrink-0 border-b bg-card px-4">
           <TabsList className="mt-2">
             <TabsTrigger value="conversations">Conversations</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
@@ -565,7 +568,7 @@ export default function WhatsAppPage() {
                   {conversations.length} chats
                 </p>
               </div>
-              <ScrollArea className="flex-1">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 {conversationsLoading ? (
                   <div className="flex h-32 items-center justify-center">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -600,13 +603,13 @@ export default function WhatsAppPage() {
                             )
                             setSelectedAccountPhone(account?.phoneNumber ?? '')
                           }}
-                          className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors ${isSelected ? 'border border-primary/20 bg-primary/10' : 'hover:bg-muted'}`}
+                          className={`w-full overflow-hidden rounded-lg px-3 py-2.5 text-left transition-colors ${isSelected ? 'border border-primary/20 bg-primary/10' : 'hover:bg-muted'}`}
                         >
-                          <div className="mb-0.5 flex items-center justify-between">
-                            <span className="max-w-[160px] truncate text-sm font-medium">
+                          <div className="mb-0.5 flex items-center justify-between gap-2">
+                            <span className="min-w-0 flex-1 truncate text-sm font-medium">
                               {conv.contactName ?? conv.contactPhone}
                             </span>
-                            <div className="ml-1 flex shrink-0 items-center gap-1.5">
+                            <div className="flex shrink-0 items-center gap-1">
                               {(conv.unreadCount ?? 0) > 0 && (
                                 <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
                                   {(conv.unreadCount ?? 0) > 99
@@ -614,16 +617,14 @@ export default function WhatsAppPage() {
                                     : conv.unreadCount}
                                 </span>
                               )}
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-[10px] text-muted-foreground">
                                 {formatRelativeTime(conv.lastMessageAt)}
                               </span>
                             </div>
                           </div>
-                          {conv.lastMessage && (
-                            <p className="truncate text-xs text-muted-foreground">
-                              {conv.lastMessage}
-                            </p>
-                          )}
+                          <p className="truncate text-xs text-muted-foreground">
+                            {conv.lastMessage || 'No messages'}
+                          </p>
                           {conv.mode && conv.mode !== 'idle' && (
                             <span
                               className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] ${
@@ -646,7 +647,7 @@ export default function WhatsAppPage() {
                     })}
                   </div>
                 )}
-              </ScrollArea>
+              </div>
             </div>
 
             <div className="flex flex-1 flex-col overflow-hidden">

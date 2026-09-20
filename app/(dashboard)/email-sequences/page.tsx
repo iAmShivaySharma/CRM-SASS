@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Smartphone,
   Bot,
+  Pencil,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -44,7 +45,7 @@ const CampaignFlowBuilder = dynamic(
 )
 import { type CampaignStep } from '@/lib/api/campaignApi'
 
-type ViewMode = 'list' | 'create'
+type ViewMode = 'list' | 'create' | 'edit'
 
 const channelIcons: Record<string, typeof Mail> = {
   email: Mail,
@@ -58,6 +59,8 @@ export default function EmailSequencesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [sequenceName, setSequenceName] = useState('')
   const [sequenceDescription, setSequenceDescription] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingSteps, setEditingSteps] = useState<CampaignStep[]>([])
 
   const { data, isLoading } = useGetSequencesQuery(
     { workspaceId: currentWorkspace?.id || '' },
@@ -117,6 +120,56 @@ export default function EmailSequencesPage() {
     setViewMode('list')
     setSequenceName('')
     setSequenceDescription('')
+    setEditingId(null)
+    setEditingSteps([])
+  }
+
+  const openEdit = (seq: any) => {
+    setEditingId(seq._id)
+    setSequenceName(seq.name)
+    setSequenceDescription(seq.description || '')
+    setEditingSteps(
+      (seq.steps || []).map((s: any) => ({
+        order: s.order,
+        channel: s.channel || 'email',
+        subject: s.subject,
+        body: s.body,
+        delayDays: s.delayDays,
+        delayHours: s.delayHours,
+        aiTone: s.aiTone,
+        aiContext: s.aiContext,
+        replyViaChannel: s.replyViaChannel,
+      }))
+    )
+    setViewMode('edit')
+  }
+
+  const handleUpdate = async (steps: CampaignStep[]) => {
+    if (!editingId) {
+      return
+    }
+    try {
+      await updateSequence({
+        id: editingId,
+        name: sequenceName.trim(),
+        description: sequenceDescription.trim() || undefined,
+        steps: steps.map((s, i) => ({
+          order: i,
+          channel: s.channel,
+          subject: s.subject,
+          body: s.body,
+          delayDays: s.delayDays,
+          delayHours: s.delayHours,
+          aiTone: s.aiTone,
+          aiContext: s.aiContext,
+          replyViaChannel: s.replyViaChannel,
+        })),
+      }).unwrap()
+      toast.success('Sequence updated')
+      handleCancel()
+    } catch {
+      toast.error('Failed to update sequence')
+    }
   }
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -225,6 +278,72 @@ export default function EmailSequencesPage() {
     )
   }
 
+  if (viewMode === 'edit' && editingId) {
+    return (
+      <div className="flex h-full flex-col space-y-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="gap-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Edit Sequence</h1>
+            <p className="text-sm text-muted-foreground">
+              Modify your sequence flow
+            </p>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Sequence Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Sequence Name</Label>
+                <Input
+                  value={sequenceName}
+                  onChange={e => setSequenceName(e.target.value)}
+                  placeholder="e.g., Welcome Series"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  value={sequenceDescription}
+                  onChange={e => setSequenceDescription(e.target.value)}
+                  placeholder="Optional description"
+                  rows={1}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="flex-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Sequence Flow</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <CampaignFlowBuilder
+              initialSteps={editingSteps}
+              onSave={handleUpdate}
+              onCancel={handleCancel}
+              saving={false}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -290,6 +409,14 @@ export default function EmailSequencesPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openEdit(seq)}
+                    >
+                      <Pencil className="mr-1 h-3 w-3" />
+                      Edit
+                    </Button>
                     {seq.status === 'draft' || seq.status === 'paused' ? (
                       <Button
                         size="sm"

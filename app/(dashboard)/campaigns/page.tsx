@@ -11,6 +11,7 @@ import {
   Users,
   CheckCircle2,
   ArrowLeft,
+  Pencil,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -43,13 +44,15 @@ const CampaignFlowBuilder = dynamic(
   { ssr: false }
 )
 
-type ViewMode = 'list' | 'create'
+type ViewMode = 'list' | 'create' | 'edit'
 
 export default function CampaignsPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [campaignName, setCampaignName] = useState('')
   const [campaignDescription, setCampaignDescription] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingSteps, setEditingSteps] = useState<CampaignStep[]>([])
 
   const { data, isLoading } = useGetCampaignsQuery(
     { workspaceId: currentWorkspace?.id || '' },
@@ -87,6 +90,34 @@ export default function CampaignsPage() {
     setViewMode('list')
     setCampaignName('')
     setCampaignDescription('')
+    setEditingId(null)
+    setEditingSteps([])
+  }
+
+  const openEdit = (campaign: any) => {
+    setEditingId(campaign._id)
+    setCampaignName(campaign.name)
+    setCampaignDescription(campaign.description || '')
+    setEditingSteps(campaign.steps || [])
+    setViewMode('edit')
+  }
+
+  const handleUpdate = async (steps: CampaignStep[]) => {
+    if (!editingId) {
+      return
+    }
+    try {
+      await updateCampaign({
+        id: editingId,
+        name: campaignName.trim(),
+        description: campaignDescription.trim() || undefined,
+        steps,
+      }).unwrap()
+      toast.success('Campaign updated')
+      handleCancel()
+    } catch {
+      toast.error('Failed to update campaign')
+    }
   }
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -201,6 +232,72 @@ export default function CampaignsPage() {
     )
   }
 
+  if (viewMode === 'edit' && editingId) {
+    return (
+      <div className="flex h-full flex-col space-y-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="gap-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Edit Campaign</h1>
+            <p className="text-sm text-muted-foreground">
+              Modify your campaign flow
+            </p>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Campaign Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Campaign Name</Label>
+                <Input
+                  value={campaignName}
+                  onChange={e => setCampaignName(e.target.value)}
+                  placeholder="e.g., Welcome Onboarding"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  value={campaignDescription}
+                  onChange={e => setCampaignDescription(e.target.value)}
+                  placeholder="Optional description"
+                  rows={1}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="flex-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Campaign Flow</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <CampaignFlowBuilder
+              initialSteps={editingSteps}
+              onSave={handleUpdate}
+              onCancel={handleCancel}
+              saving={false}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -271,6 +368,14 @@ export default function CampaignsPage() {
                   </span>
                 </div>
                 <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openEdit(campaign)}
+                  >
+                    <Pencil className="mr-1 h-3 w-3" />
+                    Edit
+                  </Button>
                   {campaign.status === 'draft' ||
                   campaign.status === 'paused' ? (
                     <Button
