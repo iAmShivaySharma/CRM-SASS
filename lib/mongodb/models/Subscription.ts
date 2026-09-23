@@ -16,6 +16,9 @@ export interface ISubscription extends Omit<Document, '_id'> {
   razorpayOrderId?: string
   razorpayPaymentId?: string
   razorpaySubscriptionId?: string
+  cashfreeOrderId?: string
+  cashfreePaymentId?: string
+  cashfreeSubscriptionId?: string
   metadata: Record<string, any>
   createdAt: Date
   updatedAt: Date
@@ -84,6 +87,15 @@ const SubscriptionSchema = new Schema<ISubscription>(
     razorpaySubscriptionId: {
       type: String,
     },
+    cashfreeOrderId: {
+      type: String,
+    },
+    cashfreePaymentId: {
+      type: String,
+    },
+    cashfreeSubscriptionId: {
+      type: String,
+    },
     metadata: {
       type: Schema.Types.Mixed,
       default: {},
@@ -109,6 +121,8 @@ if (typeof window === 'undefined') {
   SubscriptionSchema.index({ dodoSubscriptionId: 1 }, { sparse: true })
   SubscriptionSchema.index({ razorpaySubscriptionId: 1 }, { sparse: true })
   SubscriptionSchema.index({ razorpayOrderId: 1 }, { sparse: true })
+  SubscriptionSchema.index({ cashfreeOrderId: 1 }, { sparse: true })
+  SubscriptionSchema.index({ cashfreeSubscriptionId: 1 }, { sparse: true })
 }
 
 export const Subscription =

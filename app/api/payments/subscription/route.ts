@@ -7,10 +7,11 @@ import {
   Workspace,
   WorkspaceMember,
 } from '@/lib/mongodb/client'
-import { createSubscription as createRazorpaySubscription } from '@/lib/razorpay/client'
+import { createSubscription as createCashfreeSubscription } from '@/lib/cashfree/client'
 import { log } from '@/lib/logging/logger'
 
-// GET /api/payments/subscription - Get current subscription for workspace
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await verifyAuthToken(request)
@@ -20,7 +21,6 @@ export async function GET(request: NextRequest) {
 
     await connectToMongoDB()
 
-    // Get user's active workspace
     const membership = await WorkspaceMember.findOne({
       userId: auth.user._id,
       status: 'active',
@@ -43,13 +43,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get the subscription
     const subscription = await Subscription.findOne({ workspaceId })
 
-    // Get the current plan details
     const plan = await Plan.findById(workspace.planId)
 
-    // Get all available plans
     const allPlans = await Plan.find({ isActive: true }).sort({ sortOrder: 1 })
 
     return NextResponse.json({
@@ -102,7 +99,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/payments/subscription - Create a Razorpay subscription
 export async function POST(request: NextRequest) {
   try {
     const auth = await verifyAuthToken(request)
@@ -112,13 +108,12 @@ export async function POST(request: NextRequest) {
 
     await connectToMongoDB()
 
-    const { planId, razorpayPlanId } = await request.json()
+    const { planId, cashfreePlanId } = await request.json()
 
     if (!planId) {
       return NextResponse.json({ error: 'planId is required' }, { status: 400 })
     }
 
-    // Get user's workspace
     const membership = await WorkspaceMember.findOne({
       userId: auth.user._id,
       status: 'active',
@@ -139,7 +134,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Look up our internal plan
     const plan = await Plan.findById(planId)
     if (!plan) {
       return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
@@ -152,43 +146,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If a Razorpay plan ID is provided, use it; otherwise the caller must
-    // have set up plans in the Razorpay dashboard and pass the ID
-    if (!razorpayPlanId) {
+    if (!cashfreePlanId) {
       return NextResponse.json(
-        { error: 'razorpayPlanId is required for subscription creation' },
+        { error: 'cashfreePlanId is required for subscription creation' },
         { status: 400 }
       )
     }
 
-    // Create subscription on Razorpay
-    const razorpaySubscription = await createRazorpaySubscription({
-      planId: razorpayPlanId,
-      totalCount: 12,
-      quantity: 1,
-      customerNotify: true,
-      notes: {
-        workspaceId: workspace._id.toString(),
-        planId: planId,
-        userId: auth.user._id.toString(),
-      },
+    const cashfreeSubscription = await createCashfreeSubscription({
+      subscriptionId: `sub_${workspace._id.toString().slice(-8)}_${Date.now()}`,
+      planId: cashfreePlanId,
+      customerEmail: auth.user.email,
+      customerPhone: (auth.user as any).phone || '9999999999',
+      customerName: auth.user.fullName || 'Customer',
+      returnUrl: `${APP_URL}/plans?subscription_id={subscription_id}`,
+      notifyUrl: `${APP_URL}/api/webhooks/cashfree`,
     })
 
-    log.info('Razorpay subscription created', {
-      razorpaySubscriptionId: razorpaySubscription.id,
+    log.info('Cashfree subscription created', {
+      cashfreeSubscriptionId: cashfreeSubscription.subscription_id,
       workspaceId: workspace._id,
       planId,
     })
 
     return NextResponse.json({
-      subscriptionId: razorpaySubscription.id,
-      shortUrl: razorpaySubscription.short_url,
-      status: razorpaySubscription.status,
+      subscriptionId: cashfreeSubscription.subscription_id,
+      authorizationLink: cashfreeSubscription.authorization_link,
+      status: cashfreeSubscription.status,
       planId,
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
     })
   } catch (error) {
-    log.error('Error creating Razorpay subscription', {
+    log.error('Error creating Cashfree subscription', {
       error: error instanceof Error ? error.message : 'Unknown error',
     })
     return NextResponse.json(

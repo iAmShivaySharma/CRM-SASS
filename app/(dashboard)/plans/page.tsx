@@ -31,7 +31,7 @@ import { CardSkeleton, PageHeaderSkeleton } from '@/components/ui/skeleton'
 
 declare global {
   interface Window {
-    Razorpay: any
+    Cashfree: any
   }
 }
 
@@ -58,14 +58,14 @@ interface SubscriptionData {
 
 const POPULAR_PLAN_ID = 'pro'
 
-function loadRazorpayScript(): Promise<boolean> {
+function loadCashfreeScript(): Promise<boolean> {
   return new Promise(resolve => {
-    if (window.Razorpay) {
+    if (window.Cashfree) {
       resolve(true)
       return
     }
     const script = document.createElement('script')
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js'
     script.onload = () => resolve(true)
     script.onerror = () => resolve(false)
     document.body.appendChild(script)
@@ -135,6 +135,52 @@ export default function PlansPage() {
     fetchUsage()
   }, [fetchSubscription, fetchUsage])
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const orderId = params.get('order_id')
+    if (orderId) {
+      handleReturnFromPayment(orderId)
+      window.history.replaceState({}, '', '/plans')
+    }
+  }, [])
+
+  const handleReturnFromPayment = async (orderId: string) => {
+    try {
+      const planIdFromUrl = sessionStorage.getItem('pending_plan_id')
+      if (!planIdFromUrl) return
+
+      setUpgradingPlanId(planIdFromUrl)
+
+      const verifyResponse = await fetch('/api/payments/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ orderId, planId: planIdFromUrl }),
+      })
+
+      if (!verifyResponse.ok) {
+        const errorData = await verifyResponse.json()
+        toast.error(errorData.error || 'Payment verification failed')
+        return
+      }
+
+      const verifyData = await verifyResponse.json()
+      if (verifyData.success) {
+        toast.success('Payment successful! Your plan has been upgraded.')
+        setCurrentPlanId(planIdFromUrl)
+        if (verifyData.subscription) {
+          setSubscription(verifyData.subscription)
+        }
+        await fetchSubscription()
+      }
+    } catch (error) {
+      console.error('Error verifying payment:', error)
+    } finally {
+      sessionStorage.removeItem('pending_plan_id')
+      setUpgradingPlanId(null)
+    }
+  }
+
   const handleCancel = async () => {
     if (
       !confirm(
@@ -177,7 +223,7 @@ export default function PlansPage() {
     setUpgradingPlanId(planId)
 
     try {
-      const loaded = await loadRazorpayScript()
+      const loaded = await loadCashfreeScript()
       if (!loaded) {
         toast.error('Failed to load payment processor. Please try again.')
         setUpgradingPlanId(null)
@@ -200,69 +246,44 @@ export default function PlansPage() {
 
       const orderData = await orderResponse.json()
 
-      const plan = plans.find(p => p.id === planId)
+      sessionStorage.setItem('pending_plan_id', planId)
 
-      const options = {
-        key: orderData.key,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'ClearCRM',
-        description: `${plan?.name || planId} Plan - Monthly Subscription`,
-        order_id: orderData.orderId,
-        handler: async function (response: any) {
-          await handlePaymentSuccess(response, planId)
-        },
-        prefill: {
-          name: workspaceName || currentWorkspace?.name || '',
-        },
-        notes: {
-          planId: planId,
-        },
-        theme: {
-          color: '#6366f1',
-        },
-        modal: {
-          ondismiss: function () {
-            setUpgradingPlanId(null)
-            toast.info('Payment cancelled')
-          },
-        },
+      const cashfreeMode =
+        process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
+      const cashfree = (window.Cashfree as any)({ mode: cashfreeMode })
+
+      const checkoutResult = await cashfree.checkout({
+        paymentSessionId: orderData.paymentSessionId,
+        redirectTarget: '_modal',
+      })
+
+      if (checkoutResult.error) {
+        toast.error(
+          checkoutResult.error?.message || 'Payment failed. Please try again.'
+        )
+        setUpgradingPlanId(null)
+        sessionStorage.removeItem('pending_plan_id')
+        return
       }
 
-      const razorpay = new window.Razorpay(options)
-      razorpay.on('payment.failed', function (response: any) {
-        setUpgradingPlanId(null)
-        toast.error(
-          response.error?.description || 'Payment failed. Please try again.'
-        )
-      })
-      razorpay.open()
+      if (checkoutResult.paymentDetails) {
+        await handlePaymentComplete(orderData.orderId, planId)
+      }
     } catch (error) {
       console.error('Error initiating payment:', error)
       toast.error('Failed to initiate payment. Please try again.')
       setUpgradingPlanId(null)
+      sessionStorage.removeItem('pending_plan_id')
     }
   }
 
-  const handlePaymentSuccess = async (
-    response: {
-      razorpay_order_id: string
-      razorpay_payment_id: string
-      razorpay_signature: string
-    },
-    planId: string
-  ) => {
+  const handlePaymentComplete = async (orderId: string, planId: string) => {
     try {
       const verifyResponse = await fetch('/api/payments/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature,
-          planId,
-        }),
+        body: JSON.stringify({ orderId, planId }),
       })
 
       if (!verifyResponse.ok) {
@@ -291,6 +312,7 @@ export default function PlansPage() {
       )
     } finally {
       setUpgradingPlanId(null)
+      sessionStorage.removeItem('pending_plan_id')
     }
   }
 
@@ -415,7 +437,9 @@ export default function PlansPage() {
                 <Card
                   key={plan.id}
                   className={`relative flex flex-col ${
-                    plan.id === POPULAR_PLAN_ID ? 'border-2 border-primary shadow-lg' : ''
+                    plan.id === POPULAR_PLAN_ID
+                      ? 'border-2 border-primary shadow-lg'
+                      : ''
                   } ${isCurrent ? 'ring-1 ring-green-500' : ''}`}
                 >
                   {plan.id === POPULAR_PLAN_ID && (
@@ -448,14 +472,16 @@ export default function PlansPage() {
                   </CardHeader>
                   <CardContent className="flex flex-1 flex-col">
                     <ul className="mb-6 flex-1 space-y-3">
-                      {(plan.features || []).map((feature: string, index: number) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <Check className="h-4 w-4 flex-shrink-0 text-emerald-500" />
-                          <span className="text-sm text-foreground">
-                            {feature}
-                          </span>
-                        </li>
-                      ))}
+                      {(plan.features || []).map(
+                        (feature: string, index: number) => (
+                          <li key={index} className="flex items-center gap-2">
+                            <Check className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                            <span className="text-sm text-foreground">
+                              {feature}
+                            </span>
+                          </li>
+                        )
+                      )}
                     </ul>
                     <Button
                       className="w-full"
@@ -620,7 +646,7 @@ export default function PlansPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {subscription && subscription.metadata?.razorpayPaymentId ? (
+              {subscription && subscription.metadata?.cashfreePaymentId ? (
                 <div className="rounded-lg border">
                   <div className="grid grid-cols-5 gap-4 border-b bg-muted p-3 text-sm font-medium text-muted-foreground">
                     <span>Date</span>
@@ -654,12 +680,15 @@ export default function PlansPage() {
                         subscription.planId}
                     </span>
                     <span className="font-medium text-foreground">
-                      ${((subscription.metadata?.amountPaid || 0) / 100).toFixed(2) !== '0.00'
-                        ? ((subscription.metadata?.amountPaid || 0) / 100).toFixed(2)
-                        : plans.find(p => p.id === subscription.planId)?.price || 0}
+                      $
+                      {(subscription.metadata?.amountPaid || 0).toFixed(2) !==
+                      '0.00'
+                        ? (subscription.metadata?.amountPaid || 0).toFixed(2)
+                        : plans.find(p => p.id === subscription.planId)
+                            ?.price || 0}
                     </span>
                     <span className="truncate font-mono text-xs text-muted-foreground">
-                      {subscription.metadata?.razorpayPaymentId || '-'}
+                      {subscription.metadata?.cashfreePaymentId || '-'}
                     </span>
                     <Badge
                       variant={
@@ -673,7 +702,11 @@ export default function PlansPage() {
                         subscription.status === 'active' ? 'bg-emerald-600' : ''
                       }
                     >
-                      {subscription.status === 'active' ? 'Paid' : subscription.status === 'cancelled' ? 'Cancelled' : subscription.status}
+                      {subscription.status === 'active'
+                        ? 'Paid'
+                        : subscription.status === 'cancelled'
+                          ? 'Cancelled'
+                          : subscription.status}
                     </Badge>
                   </div>
                 </div>

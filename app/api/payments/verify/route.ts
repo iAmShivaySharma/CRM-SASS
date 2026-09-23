@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Workspace, Subscription, WorkspaceMember } from '@/lib/mongodb/client'
-import { verifyPaymentSignature } from '@/lib/razorpay/client'
+import { verifyPayment } from '@/lib/cashfree/client'
 import { log } from '@/lib/logging/logger'
 
 export async function POST(request: NextRequest) {
@@ -14,45 +14,40 @@ export async function POST(request: NextRequest) {
 
     await connectToMongoDB()
 
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      planId,
-    } = await request.json()
+    const { orderId, planId } = await request.json()
 
-    if (
-      !razorpay_order_id ||
-      !razorpay_payment_id ||
-      !razorpay_signature ||
-      !planId
-    ) {
+    if (!orderId || !planId) {
       return NextResponse.json(
         { error: 'Missing required payment verification fields' },
         { status: 400 }
       )
     }
 
-    // Verify the payment signature
-    const isValid = verifyPaymentSignature(
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
-    )
+    const payments = await verifyPayment(orderId)
 
-    if (!isValid) {
-      log.warn('Invalid Razorpay payment signature', {
-        orderId: razorpay_order_id,
-        paymentId: razorpay_payment_id,
-        userId: auth.user._id,
-      })
+    if (!payments || payments.length === 0) {
+      log.warn('No payments found for Cashfree order', { orderId })
       return NextResponse.json(
-        { error: 'Payment verification failed - invalid signature' },
+        { error: 'No payments found for this order' },
         { status: 400 }
       )
     }
 
-    // Get user's workspace
+    const successfulPayment = payments.find(
+      (p: any) => p.payment_status === 'SUCCESS'
+    )
+
+    if (!successfulPayment) {
+      log.warn('No successful payment found for Cashfree order', {
+        orderId,
+        statuses: payments.map((p: any) => p.payment_status),
+      })
+      return NextResponse.json(
+        { error: 'Payment verification failed - no successful payment' },
+        { status: 400 }
+      )
+    }
+
     const membership = await WorkspaceMember.findOne({
       userId: auth.user._id,
       status: 'active',
@@ -69,9 +64,8 @@ export async function POST(request: NextRequest) {
 
     const now = new Date()
     const periodEnd = new Date(now)
-    periodEnd.setMonth(periodEnd.getMonth() + 1) // 1 month subscription period
+    periodEnd.setMonth(periodEnd.getMonth() + 1)
 
-    // Update or create the subscription record
     const subscription = await (Subscription as any).findOneAndUpdate(
       { workspaceId },
       {
@@ -82,16 +76,19 @@ export async function POST(request: NextRequest) {
         currentPeriodEnd: periodEnd,
         cancelAtPeriodEnd: false,
         cancelledAt: null,
+        cashfreeOrderId: orderId,
+        cashfreePaymentId: successfulPayment.cf_payment_id,
         metadata: {
-          razorpayOrderId: razorpay_order_id,
-          razorpayPaymentId: razorpay_payment_id,
+          cashfreeOrderId: orderId,
+          cashfreePaymentId: successfulPayment.cf_payment_id,
           lastPaymentAt: now.toISOString(),
+          amountPaid: successfulPayment.payment_amount,
+          currency: successfulPayment.payment_currency,
         },
       },
       { upsert: true, new: true }
     )
 
-    // Update the workspace plan and subscription status
     await (Workspace as any).findByIdAndUpdate(workspaceId, {
       planId,
       subscriptionStatus: 'active',
@@ -100,8 +97,8 @@ export async function POST(request: NextRequest) {
     log.info('Payment verified and subscription activated', {
       workspaceId,
       planId,
-      orderId: razorpay_order_id,
-      paymentId: razorpay_payment_id,
+      orderId,
+      paymentId: successfulPayment.cf_payment_id,
       subscriptionId: subscription._id,
     })
 
@@ -117,7 +114,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    log.error('Error verifying Razorpay payment', {
+    log.error('Error verifying Cashfree payment', {
       error: error instanceof Error ? error.message : 'Unknown error',
     })
     return NextResponse.json(

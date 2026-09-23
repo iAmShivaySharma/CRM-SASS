@@ -2,8 +2,10 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Plan, Workspace, WorkspaceMember } from '@/lib/mongodb/client'
-import { createOrder } from '@/lib/razorpay/client'
+import { createOrder } from '@/lib/cashfree/client'
 import { log } from '@/lib/logging/logger'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +22,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'planId is required' }, { status: 400 })
     }
 
-    // Get user's active workspace
     const membership = await WorkspaceMember.findOne({
       userId: auth.user._id,
       status: 'active',
@@ -41,7 +42,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Look up the plan from DB
     const plan = await Plan.findById(planId)
     if (!plan) {
       return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if already on this plan
     if (
       workspace.planId === planId &&
       workspace.subscriptionStatus === 'active'
@@ -65,44 +64,45 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Amount in paise (smallest currency unit)
-    const currency = workspace.currency || 'USD'
-    const amountInSubunit = Math.round(plan.price * 100)
+    const currency = workspace.currency || 'INR'
 
-    const order = await createOrder({
-      amount: amountInSubunit,
+    const orderData = await createOrder({
+      amount: plan.price,
       currency,
-      receipt: `${workspace._id.toString().slice(-8)}_${planId}_${Date.now()}`.slice(0, 40),
-      notes: {
-        workspaceId: workspace._id.toString(),
-        planId: planId,
-        userId: auth.user._id.toString(),
-        workspaceName: workspace.name,
+      orderId: `order_${workspace._id.toString().slice(-8)}_${Date.now()}`,
+      customerDetails: {
+        customerId: workspace._id.toString(),
+        customerEmail: auth.user.email,
+        customerPhone: (auth.user as any).phone || '9999999999',
+        customerName: auth.user.fullName || 'Customer',
       },
+      returnUrl: `${APP_URL}/plans?order_id={order_id}`,
+      notifyUrl: `${APP_URL}/api/webhooks/cashfree`,
+      orderNote: `${planId}|${workspace._id.toString()}`,
     })
 
-    log.info('Razorpay order created', {
-      orderId: order.id,
+    log.info('Cashfree order created', {
+      orderId: orderData.order_id,
       workspaceId: workspace._id,
       planId,
-      amount: amountInSubunit,
+      amount: plan.price,
     })
 
     return NextResponse.json({
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      orderId: orderData.order_id,
+      paymentSessionId: orderData.payment_session_id,
+      orderStatus: orderData.order_status,
       planName: plan.name,
       workspaceName: workspace.name,
     })
   } catch (error: any) {
-    log.error('Error creating Razorpay order', {
-      error: error?.message || error?.error?.description || JSON.stringify(error),
-      statusCode: error?.statusCode,
+    log.error('Error creating Cashfree order', {
+      error: error?.message || JSON.stringify(error),
     })
     return NextResponse.json(
-      { error: error?.error?.description || error?.message || 'Failed to create payment order' },
+      {
+        error: error?.message || 'Failed to create payment order',
+      },
       { status: 500 }
     )
   }
