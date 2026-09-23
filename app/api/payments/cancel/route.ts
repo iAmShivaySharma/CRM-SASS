@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Workspace, WorkspaceMember, Subscription } from '@/lib/mongodb/client'
-import { cancelSubscription } from '@/lib/cashfree/client'
+import { cancelCashfreeSubscription } from '@/lib/cashfree/client'
 import { log } from '@/lib/logging/logger'
 
 export async function POST(request: NextRequest) {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     if (subscription?.cashfreeSubscriptionId) {
       try {
-        await cancelSubscription(subscription.cashfreeSubscriptionId)
+        await cancelCashfreeSubscription(subscription.cashfreeSubscriptionId)
       } catch (err) {
         log.warn('Cashfree cancel failed (may already be cancelled)', {
           error: err instanceof Error ? err.message : 'Unknown',
