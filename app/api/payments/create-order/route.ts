@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Plan, Workspace, WorkspaceMember } from '@/lib/mongodb/client'
-import { createOrder } from '@/lib/cashfree/client'
+import { createCashfreeOrder } from '@/lib/cashfree/client'
 import { log } from '@/lib/logging/logger'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     const currency = workspace.currency || 'INR'
 
-    const orderData = await createOrder({
+    const orderData = await createCashfreeOrder({
       amount: plan.price,
       currency,
       orderId: `order_${workspace._id.toString().slice(-8)}_${Date.now()}`,
@@ -82,16 +82,16 @@ export async function POST(request: NextRequest) {
     })
 
     log.info('Cashfree order created', {
-      orderId: orderData.order_id,
+      orderId: orderData.orderId,
       workspaceId: workspace._id,
       planId,
       amount: plan.price,
     })
 
     return NextResponse.json({
-      orderId: orderData.order_id,
-      paymentSessionId: orderData.payment_session_id,
-      orderStatus: orderData.order_status,
+      orderId: orderData.orderId,
+      paymentSessionId: orderData.paymentSessionId,
+      orderStatus: orderData.orderStatus,
       planName: plan.name,
       workspaceName: workspace.name,
     })
