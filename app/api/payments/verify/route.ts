@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/mongodb/auth'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Workspace, Subscription, WorkspaceMember } from '@/lib/mongodb/client'
-import { verifyPayment } from '@/lib/cashfree/client'
+import { verifyCashfreePayment } from '@/lib/cashfree/client'
 import { log } from '@/lib/logging/logger'
 
 export async function POST(request: NextRequest) {
@@ -23,24 +23,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const payments = await verifyPayment(orderId)
+    const paymentResult = await verifyCashfreePayment(orderId)
 
-    if (!payments || payments.length === 0) {
-      log.warn('No payments found for Cashfree order', { orderId })
-      return NextResponse.json(
-        { error: 'No payments found for this order' },
-        { status: 400 }
-      )
-    }
-
-    const successfulPayment = payments.find(
-      (p: any) => p.payment_status === 'SUCCESS'
-    )
-
-    if (!successfulPayment) {
-      log.warn('No successful payment found for Cashfree order', {
+    if (!paymentResult.success) {
+      log.warn('Payment verification failed for Cashfree order', {
         orderId,
-        statuses: payments.map((p: any) => p.payment_status),
+        error: paymentResult.error,
       })
       return NextResponse.json(
         { error: 'Payment verification failed - no successful payment' },
@@ -77,13 +65,13 @@ export async function POST(request: NextRequest) {
         cancelAtPeriodEnd: false,
         cancelledAt: null,
         cashfreeOrderId: orderId,
-        cashfreePaymentId: successfulPayment.cf_payment_id,
+        cashfreePaymentId: paymentResult.paymentId,
         metadata: {
           cashfreeOrderId: orderId,
-          cashfreePaymentId: successfulPayment.cf_payment_id,
+          cashfreePaymentId: paymentResult.paymentId,
           lastPaymentAt: now.toISOString(),
-          amountPaid: successfulPayment.payment_amount,
-          currency: successfulPayment.payment_currency,
+          amountPaid: paymentResult.amount,
+          paymentMethod: paymentResult.paymentMethod,
         },
       },
       { upsert: true, new: true }
@@ -98,7 +86,7 @@ export async function POST(request: NextRequest) {
       workspaceId,
       planId,
       orderId,
-      paymentId: successfulPayment.cf_payment_id,
+      paymentId: paymentResult.paymentId,
       subscriptionId: subscription._id,
     })
 
