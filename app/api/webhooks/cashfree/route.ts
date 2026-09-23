@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { connectToMongoDB } from '@/lib/mongodb/connection'
 import { Subscription, Workspace } from '@/lib/mongodb/client'
-import { verifyWebhookSignature } from '@/lib/cashfree/client'
+import { verifyCashfreeWebhook } from '@/lib/cashfree/client'
 import { log } from '@/lib/logging/logger'
 
 export async function POST(request: NextRequest) {
@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const isValid = verifyWebhookSignature(body, signature, timestamp)
-    if (!isValid) {
+    const verification = verifyCashfreeWebhook(body, signature, timestamp)
+    if (!verification.valid) {
       log.warn('Cashfree webhook signature verification failed')
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }

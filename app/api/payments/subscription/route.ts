@@ -7,7 +7,7 @@ import {
   Workspace,
   WorkspaceMember,
 } from '@/lib/mongodb/client'
-import { createSubscription as createCashfreeSubscription } from '@/lib/cashfree/client'
+import { createCashfreeSubscription } from '@/lib/cashfree/client'
 import { log } from '@/lib/logging/logger'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -164,14 +164,14 @@ export async function POST(request: NextRequest) {
     })
 
     log.info('Cashfree subscription created', {
-      cashfreeSubscriptionId: cashfreeSubscription.subscription_id,
+      cashfreeSubscriptionId: cashfreeSubscription.subscriptionId,
       workspaceId: workspace._id,
       planId,
     })
 
     return NextResponse.json({
-      subscriptionId: cashfreeSubscription.subscription_id,
-      authorizationLink: cashfreeSubscription.authorization_link,
+      subscriptionId: cashfreeSubscription.subscriptionId,
+      authorizationLink: cashfreeSubscription.authorizationLink,
       status: cashfreeSubscription.status,
       planId,
     })
