@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface AttendanceRecord {
   _id: string
@@ -103,10 +104,7 @@ export interface AttendanceQuery {
 
 export const attendanceApi = createApi({
   reducerPath: 'attendanceApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/attendance',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery('/api/attendance'),
   tagTypes: ['Attendance', 'TodayAttendance', 'Employees'],
   endpoints: builder => ({
     getTodayAttendance: builder.query<

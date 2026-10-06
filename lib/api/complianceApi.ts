@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface ComplianceTaskRecord {
   _id: string
@@ -108,7 +109,7 @@ interface DocumentsQueryParams {
 
 export const complianceApi = createApi({
   reducerPath: 'complianceApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  baseQuery: createBaseQuery('/api'),
   tagTypes: ['ComplianceTask', 'ComplianceDocument'],
   endpoints: builder => ({
     getTasks: builder.query<TasksResponse, TasksQueryParams>({

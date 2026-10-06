@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface LastActiveWorkspaceResponse {
   lastActiveWorkspaceId: string | null
@@ -21,14 +22,7 @@ export interface UpdateLastActiveWorkspaceResponse {
 
 export const workspaceApi = createApi({
   reducerPath: 'workspaceApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/user',
-    credentials: 'include',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/users'),
   tagTypes: ['LastActiveWorkspace'],
   endpoints: builder => ({
     getLastActiveWorkspace: builder.query<LastActiveWorkspaceResponse, void>({

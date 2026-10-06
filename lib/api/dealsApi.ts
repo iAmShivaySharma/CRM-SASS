@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface PipelineStage {
   id: string
@@ -126,7 +127,7 @@ export interface DealAnalytics {
 
 export const dealsApi = createApi({
   reducerPath: 'dealsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  baseQuery: createBaseQuery('/api'),
   tagTypes: ['Pipeline', 'Deal', 'DealActivity', 'DealAnalytics'],
   endpoints: builder => ({
     // Pipelines

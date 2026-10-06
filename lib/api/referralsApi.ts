@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Referral {
   _id: string
@@ -34,7 +35,7 @@ export interface ValidateReferralResponse {
 
 export const referralsApi = createApi({
   reducerPath: 'referralsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/', credentials: 'include' }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['Referral'],
   endpoints: builder => ({
     getReferrals: builder.query<ReferralsResponse, { workspaceId: string }>({

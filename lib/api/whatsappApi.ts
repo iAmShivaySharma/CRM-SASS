@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface WhatsAppAccount {
   _id: string
@@ -148,10 +149,7 @@ export interface WhatsAppBotFlowResponse {
 
 export const whatsappApi = createApi({
   reducerPath: 'whatsappApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery(''),
   tagTypes: [
     'WhatsAppAccount',
     'WhatsAppTemplate',

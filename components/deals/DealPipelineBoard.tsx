@@ -228,7 +228,7 @@ export function DealPipelineBoard() {
                 <div>
                   <p className="text-xs text-muted-foreground">Open Deals</p>
                   <p className="text-lg font-bold">
-                    {analytics.overview.openDeals}
+                    {analytics?.overview?.openDeals}
                   </p>
                 </div>
               </div>
@@ -243,7 +243,7 @@ export function DealPipelineBoard() {
                     Pipeline Value
                   </p>
                   <p className="text-lg font-bold">
-                    ₹{(analytics.overview.openValue / 1000).toFixed(0)}K
+                    ₹{((analytics?.overview?.openValue || 0) / 1000).toFixed(0)}K
                   </p>
                 </div>
               </div>
@@ -256,7 +256,7 @@ export function DealPipelineBoard() {
                 <div>
                   <p className="text-xs text-muted-foreground">Weighted</p>
                   <p className="text-lg font-bold">
-                    ₹{(analytics.overview.weightedPipeline / 1000).toFixed(0)}K
+                    ₹{((analytics?.overview?.weightedPipeline || 0) / 1000).toFixed(0)}K
                   </p>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export function DealPipelineBoard() {
                 <div>
                   <p className="text-xs text-muted-foreground">Win Rate</p>
                   <p className="text-lg font-bold">
-                    {analytics.overview.winRate}%
+                    {analytics?.overview?.winRate}%
                   </p>
                 </div>
               </div>
@@ -282,7 +282,7 @@ export function DealPipelineBoard() {
                 <div>
                   <p className="text-xs text-muted-foreground">Won Value</p>
                   <p className="text-lg font-bold">
-                    ₹{(analytics.overview.wonValue / 1000).toFixed(0)}K
+                    ₹{((analytics?.overview?.wonValue || 0) / 1000).toFixed(0)}K
                   </p>
                 </div>
               </div>

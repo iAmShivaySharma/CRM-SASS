@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Task {
   id: string
@@ -85,10 +86,7 @@ export interface GetTasksRequest {
 
 export const tasksApi = createApi({
   reducerPath: 'tasksApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/tasks',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery('/api/tasks'),
   tagTypes: ['Task'],
   endpoints: builder => ({
     getTasks: builder.query<TasksResponse, GetTasksRequest>({

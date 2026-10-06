@@ -7,20 +7,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: [
-    'mongoose',
-    'imap',
-    'nodemailer',
-    'googleapis',
-    '@microsoft/microsoft-graph-client',
-    'mailparser',
-    'socket.io',
-    'socket.io-client',
-    'web-push',
-    'exceljs',
-    'bullmq',
-    'speakeasy',
-  ],
+  serverExternalPackages: [],
   async headers() {
     return [
       {
@@ -283,6 +270,15 @@ const nextConfig = {
             value: 'no-store, no-cache, must-revalidate',
           },
         ],
+      },
+    ]
+  },
+  async rewrites() {
+    const apiUrl = process.env.API_GATEWAY_URL || 'http://localhost:8000'
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${apiUrl}/api/:path*`,
       },
     ]
   },

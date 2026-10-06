@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface LeaveRequestRecord {
   _id: string
@@ -102,10 +103,7 @@ export interface LeaveStats {
 
 export const leaveApi = createApi({
   reducerPath: 'leaveApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/leaves',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery('/api/leaves'),
   tagTypes: ['Leave', 'LeaveStats'],
   endpoints: builder => ({
     getLeaveRequests: builder.query<

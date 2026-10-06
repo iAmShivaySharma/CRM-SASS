@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface AssetRecord {
   _id: string
@@ -126,10 +127,7 @@ export interface AssetStats {
 
 export const assetApi = createApi({
   reducerPath: 'assetApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/assets',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery('/api/assets'),
   tagTypes: ['Asset', 'AssetStats'],
   endpoints: builder => ({
     getAssets: builder.query<

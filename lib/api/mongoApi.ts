@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 import { RootState } from '../store'
 
 export interface Lead {
@@ -150,14 +151,7 @@ export interface User {
 
 export const mongoApi = createApi({
   reducerPath: 'mongoApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api',
-    credentials: 'include',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api'),
   tagTypes: [
     'Lead',
     'Role',

@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export type SequenceChannel = 'email' | 'whatsapp' | 'sms' | 'ai_reply'
 
@@ -49,7 +50,7 @@ export interface SequenceDetailResponse {
 
 export const emailSequencesApi = createApi({
   reducerPath: 'emailSequencesApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/', credentials: 'include' }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['EmailSequence', 'SequenceEnrollment'],
   endpoints: builder => ({
     getSequences: builder.query<SequencesResponse, { workspaceId: string }>({

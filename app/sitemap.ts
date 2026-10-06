@@ -1,14 +1,11 @@
 import type { MetadataRoute } from 'next'
-import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { Blog } from '@/lib/mongodb/models/Blog'
-import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://crmprosaas.com'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
-export const revalidate = 3600 // Revalidate sitemap every hour
+export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${APP_URL}/home`,
@@ -37,27 +34,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    await connectToMongoDB()
+    const [blogsRes, catsRes] = await Promise.all([
+      fetch(`${API_URL}/api/blogs?status=published`, {
+        next: { revalidate: 3600 },
+      }),
+      fetch(`${API_URL}/api/blogs/categories`, {
+        next: { revalidate: 3600 },
+      }),
+    ])
 
-    // Blog posts
-    const blogs = await Blog.find({ status: 'published' })
-      .select('slug updatedAt priority changeFrequency')
-      .sort({ publishedAt: -1 })
-      .lean()
+    const blogsData = await blogsRes.json()
+    const catsData = await catsRes.json()
 
-    const blogPages: MetadataRoute.Sitemap = blogs.map((blog: any) => ({
-      url: `${APP_URL}/blog/${blog.slug}`,
-      lastModified: blog.updatedAt,
-      changeFrequency: (blog.changeFrequency || 'weekly') as any,
-      priority: blog.priority || 0.7,
-    }))
+    const blogPages: MetadataRoute.Sitemap = (blogsData.blogs || []).map(
+      (blog: any) => ({
+        url: `${APP_URL}/blog/${blog.slug}`,
+        lastModified: blog.updatedAt,
+        changeFrequency: (blog.changeFrequency || 'weekly') as any,
+        priority: blog.priority || 0.7,
+      })
+    )
 
-    // Blog categories
-    const categories = await BlogCategory.find({ isActive: true })
-      .select('slug updatedAt')
-      .lean()
-
-    const categoryPages: MetadataRoute.Sitemap = categories.map((cat: any) => ({
+    const categoryPages: MetadataRoute.Sitemap = (
+      catsData.categories || []
+    ).map((cat: any) => ({
       url: `${APP_URL}/blog?category=${cat.slug}`,
       lastModified: cat.updatedAt,
       changeFrequency: 'weekly' as const,

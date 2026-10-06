@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Webhook {
   id: string
@@ -111,14 +112,7 @@ export interface WebhookResponse {
 
 export const webhookApi = createApi({
   reducerPath: 'webhookApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/webhooks',
-    credentials: 'include',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/webhooks'),
   tagTypes: ['Webhook', 'WebhookLog'],
   endpoints: builder => ({
     getWebhooks: builder.query<WebhookResponse, string>({

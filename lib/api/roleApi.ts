@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Role {
   id: string
@@ -39,17 +40,12 @@ export interface UpdateRoleRequest {
 
 export const roleApi = createApi({
   reducerPath: 'roleApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/roles',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/roles'),
   tagTypes: ['Role', 'Permission'],
   endpoints: builder => ({
-    getRoles: builder.query<Role[], void>({
-      query: () => '',
+    getRoles: builder.query<Role[], string>({
+      query: (workspaceId) => `?workspaceId=${workspaceId}`,
+      transformResponse: (response: any) => response.roles || response,
       providesTags: ['Role'],
     }),
     getRole: builder.query<Role, string>({

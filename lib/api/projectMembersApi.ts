@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface ProjectMemberUser {
   id: string
@@ -39,7 +40,7 @@ export interface AddMemberBody {
 
 export const projectMembersApi = createApi({
   reducerPath: 'projectMembersApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/', credentials: 'include' }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['ProjectMember'],
   endpoints: builder => ({
     getProjectMembers: builder.query<ProjectMembersResponse, string>({

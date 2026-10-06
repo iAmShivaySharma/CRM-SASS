@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Product {
   _id: string
@@ -63,10 +64,7 @@ export interface AnalyticsResponse {
 
 export const inventoryApi = createApi({
   reducerPath: 'inventoryApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['Product', 'StockMovement'],
   endpoints: builder => ({
     getProducts: builder.query<ProductsResponse, { workspaceId: string; category?: string; search?: string }>({

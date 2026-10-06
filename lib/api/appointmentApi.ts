@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Appointment {
   _id: string
@@ -55,10 +56,7 @@ export interface AnalyticsResponse {
 
 export const appointmentApi = createApi({
   reducerPath: 'appointmentApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['Service', 'Appointment'],
   endpoints: builder => ({
     getAppointments: builder.query<AppointmentsResponse, { workspaceId: string; status?: string; date?: string }>({

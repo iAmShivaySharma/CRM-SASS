@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Contact {
   _id: string
@@ -145,14 +146,7 @@ export interface ConvertLeadToContactResponse {
 
 export const contactsApi = createApi({
   reducerPath: 'contactsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/contacts',
-    credentials: 'include',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/contacts'),
   tagTypes: ['Contact', 'ContactsList'],
   endpoints: builder => ({
     getContacts: builder.query<ContactsListResponse, ContactsQueryParams>({

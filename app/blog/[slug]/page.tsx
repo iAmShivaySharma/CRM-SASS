@@ -3,9 +3,6 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Calendar, Clock, User, Tag, Eye } from 'lucide-react'
-import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { Blog } from '@/lib/mongodb/models/Blog'
-import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 import Breadcrumb from '@/components/blog/Breadcrumb'
 import TableOfContents from '@/components/blog/TableOfContents'
 import ShareButtons from '@/components/blog/ShareButtons'
@@ -15,6 +12,7 @@ import BlogContent from '@/components/blog/BlogContent'
 export const revalidate = 600
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>
@@ -28,17 +26,15 @@ export async function generateMetadata({
   params,
 }: BlogPageProps): Promise<Metadata> {
   try {
-    await connectToMongoDB()
     const { slug } = await params
-    const blog = await Blog.findOne({ slug, status: 'published' })
-      .select(
-        'title metaTitle metaDescription metaKeywords ogTitle ogDescription ogImage twitterTitle twitterDescription twitterImage canonicalUrl featuredImage excerpt publishedAt updatedAt author'
-      )
-      .lean()
+    const res = await fetch(`${API_URL}/api/blogs/${slug}`, {
+      next: { revalidate: 600 },
+    })
+    if (!res.ok) return { title: 'Blog Post Not Found' }
 
-    if (!blog) return { title: 'Blog Post Not Found' }
+    const { blog: b } = await res.json()
+    if (!b) return { title: 'Blog Post Not Found' }
 
-    const b = blog as any
     const title = b.metaTitle || `${b.title} — ClearCRM Blog`
     const description = b.metaDescription || b.excerpt || ''
     const canonical = b.canonicalUrl || `${APP_URL}/blog/${slug}`
@@ -56,8 +52,8 @@ export async function generateMetadata({
         locale: 'en_US',
         siteName: 'ClearCRM',
         url: canonical,
-        publishedTime: b.publishedAt?.toISOString(),
-        modifiedTime: b.updatedAt?.toISOString(),
+        publishedTime: b.publishedAt,
+        modifiedTime: b.updatedAt,
         authors: [b.author?.name],
         ...(ogImage
           ? {
@@ -84,55 +80,17 @@ export async function generateMetadata({
 }
 
 async function getBlogData(slug: string) {
-  await connectToMongoDB()
+  const res = await fetch(`${API_URL}/api/blogs/${slug}`, {
+    next: { revalidate: 600 },
+  })
+  if (!res.ok) return null
 
-  const blog = await Blog.findOne({ slug, status: 'published' }).lean()
-  if (!blog) return null
-
-  const b = blog as any
-
-  Blog.updateOne({ slug }, { $inc: { views: 1 } }).exec()
-
-  const category = await BlogCategory.findById(b.categoryId)
-    .select('name slug')
-    .lean()
-
-  let relatedPosts: any[] = []
-  if (b.relatedSlugs?.length > 0) {
-    relatedPosts = await Blog.find({
-      slug: { $in: b.relatedSlugs },
-      status: 'published',
-    })
-      .select(
-        'title slug excerpt featuredImage featuredImageAlt publishedAt readTime'
-      )
-      .lean()
-  }
-
-  if (relatedPosts.length < 3) {
-    const morePosts = await Blog.find({
-      categoryId: b.categoryId,
-      slug: { $ne: slug },
-      status: 'published',
-    })
-      .select(
-        'title slug excerpt featuredImage featuredImageAlt publishedAt readTime'
-      )
-      .sort({ publishedAt: -1 })
-      .limit(3 - relatedPosts.length)
-      .lean()
-    relatedPosts = [...relatedPosts, ...morePosts]
-  }
+  const data = await res.json()
+  if (!data.blog) return null
 
   return {
-    blog: {
-      ...b,
-      id: b._id,
-      category: category
-        ? { ...(category as any), id: (category as any)._id }
-        : null,
-    },
-    relatedPosts: relatedPosts.map((p: any) => ({ ...p, id: p._id })),
+    blog: data.blog,
+    relatedPosts: data.relatedPosts || [],
   }
 }
 

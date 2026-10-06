@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface QuotationItem {
   name: string
@@ -46,10 +47,7 @@ export interface QuotationResponse {
 
 export const quotationApi = createApi({
   reducerPath: 'quotationApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['Quotation'],
   endpoints: builder => ({
     getQuotations: builder.query<QuotationsResponse, { workspaceId: string; status?: string }>({

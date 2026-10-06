@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Notification {
   id: string
@@ -41,14 +42,7 @@ export interface MarkNotificationRequest {
 
 export const notificationsApi = createApi({
   reducerPath: 'notificationsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/notifications',
-    credentials: 'include',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/notifications'),
   tagTypes: ['Notification'],
   endpoints: builder => ({
     getNotifications: builder.query<NotificationsResponse, NotificationFilters>(

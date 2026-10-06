@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 import { logout } from '@/lib/slices/authSlice'
 import { clearPersistedData } from '@/lib/middleware/persistenceMiddleware'
 
@@ -32,14 +33,7 @@ export interface VerifyResponse {
 
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/auth',
-    credentials: 'include', // Include cookies for authentication
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/auth'),
   tagTypes: ['Auth'],
   endpoints: builder => ({
     login: builder.mutation<AuthResponse, LoginRequest>({

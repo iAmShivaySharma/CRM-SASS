@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface SmsTemplate {
   _id: string
@@ -52,10 +53,7 @@ export interface SendBulkSmsBody {
 
 export const smsApi = createApi({
   reducerPath: 'smsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['SmsTemplate', 'SmsLog'],
   endpoints: builder => ({
     getTemplates: builder.query<SmsTemplatesResponse, { workspaceId: string }>({

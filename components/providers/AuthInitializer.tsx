@@ -13,11 +13,8 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         const response = await fetch('/api/auth/verify', {
-          method: 'POST',
+          method: 'GET',
           credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
         })
 
         if (response.ok) {
@@ -30,11 +27,11 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
                   id: data.user.id,
                   email: data.user.email,
                   name: data.user.fullName || data.user.name || data.user.email,
-                  role: data.user.role || 'user',
-                  roleId: data.user.roleId || '',
+                  role: data.role?.name || data.user.role || 'user',
+                  roleId: data.role?.id || data.role?._id || data.user.roleId || '',
                   workspaceId:
                     data.user.workspaceId || data.workspace?.id || '',
-                  permissions: data.user.permissions || [],
+                  permissions: data.role?.permissions || data.user.permissions || [],
                 },
               })
             )

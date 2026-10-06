@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Shift {
   _id: string
@@ -66,10 +67,7 @@ export interface ShiftsQuery {
 
 export const shiftsApi = createApi({
   reducerPath: 'shiftsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/shifts',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery('/api/shifts'),
   tagTypes: ['Shift'],
   endpoints: builder => ({
     getShifts: builder.query<

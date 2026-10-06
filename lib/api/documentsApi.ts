@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface ProjectDocument {
   _id: string
@@ -40,7 +41,7 @@ export interface CreateDocumentBody {
 
 export const documentsApi = createApi({
   reducerPath: 'documentsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/', credentials: 'include' }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['Document'],
   endpoints: builder => ({
     getDocuments: builder.query<

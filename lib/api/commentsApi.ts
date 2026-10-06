@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface CommentUser {
   id: string
@@ -41,14 +42,7 @@ export interface CommentHistoryVersion {
 
 export const commentsApi = createApi({
   reducerPath: 'commentsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api',
-    credentials: 'include',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api'),
   tagTypes: ['Comment'],
   endpoints: builder => ({
     getComments: builder.query<

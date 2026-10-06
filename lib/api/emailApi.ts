@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface EmailAccount {
   _id: string
@@ -183,10 +184,7 @@ export interface UpdateEmailMessageRequest {
 
 export const emailApi = createApi({
   reducerPath: 'emailApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/email',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery('/api/email'),
   tagTypes: ['EmailAccount', 'EmailMessage'],
   endpoints: builder => ({
     getEmailAccounts: builder.query<{ accounts: EmailAccount[] }, string>({

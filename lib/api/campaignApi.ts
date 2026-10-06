@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export type CampaignChannel = 'email' | 'whatsapp' | 'sms' | 'ai_reply'
 
@@ -37,7 +38,7 @@ interface CampaignResponse {
 
 export const campaignApi = createApi({
   reducerPath: 'campaignApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/', credentials: 'include' }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['Campaign'],
   endpoints: builder => ({
     getCampaigns: builder.query<CampaignsResponse, { workspaceId: string }>({

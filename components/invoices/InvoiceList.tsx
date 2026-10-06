@@ -214,7 +214,7 @@ export function InvoiceList() {
             <CardContent className="p-3">
               <p className="text-xs text-muted-foreground">Total Invoiced</p>
               <p className="text-lg font-bold">
-                ₹{(analytics.overview.totalAmount / 1000).toFixed(0)}K
+                ₹{((analytics?.overview?.totalAmount || 0) / 1000).toFixed(0)}K
               </p>
             </CardContent>
           </Card>
@@ -222,7 +222,7 @@ export function InvoiceList() {
             <CardContent className="p-3">
               <p className="text-xs text-muted-foreground">Collected</p>
               <p className="text-lg font-bold text-green-600">
-                ₹{(analytics.overview.totalPaid / 1000).toFixed(0)}K
+                ₹{((analytics?.overview?.totalPaid || 0) / 1000).toFixed(0)}K
               </p>
             </CardContent>
           </Card>
@@ -230,7 +230,7 @@ export function InvoiceList() {
             <CardContent className="p-3">
               <p className="text-xs text-muted-foreground">Outstanding</p>
               <p className="text-lg font-bold text-orange-600">
-                ₹{(analytics.overview.totalDue / 1000).toFixed(0)}K
+                ₹{((analytics?.overview?.totalDue || 0) / 1000).toFixed(0)}K
               </p>
             </CardContent>
           </Card>
@@ -238,7 +238,7 @@ export function InvoiceList() {
             <CardContent className="p-3">
               <p className="text-xs text-muted-foreground">GST Collected</p>
               <p className="text-lg font-bold text-blue-600">
-                ₹{(analytics.overview.totalTax / 1000).toFixed(0)}K
+                ₹{((analytics?.overview?.totalTax || 0) / 1000).toFixed(0)}K
               </p>
             </CardContent>
           </Card>

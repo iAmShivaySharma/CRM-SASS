@@ -42,7 +42,6 @@ import {
   useCreateWorkspaceMutation,
   type Workspace as ApiWorkspace,
 } from '@/lib/api/mongoApi'
-import { projectsApi } from '@/lib/api/projectsApi'
 import {
   useGetLastActiveWorkspaceQuery,
   useUpdateLastActiveWorkspaceMutation,
@@ -131,44 +130,49 @@ export function WorkspaceSwitcher({
   })
 
   useEffect(() => {
+    if (workspaces.length === 0) return
+    if (currentWorkspace?.id) {
+      const stillValid = workspaces.some(w => w.id === currentWorkspace.id)
+      if (stillValid) return
+    }
+
     if (
       lastActiveWorkspaceData?.lastActiveWorkspaceId &&
-      lastActiveWorkspaceData?.workspace &&
-      workspaces.length > 0
+      lastActiveWorkspaceData?.workspace
     ) {
-      const workspace = lastActiveWorkspaceData.workspace
-      const isValidWorkspace = workspaces.some(w => w.id === workspace.id)
-
-      if (isValidWorkspace && workspace.id !== currentWorkspace?.id) {
+      const ws = lastActiveWorkspaceData.workspace
+      const isValid = workspaces.some(w => w.id === ws.id)
+      if (isValid) {
         dispatch(
           setCurrentWorkspace({
-            id: workspace.id,
-            name: workspace.name,
-            plan: 'free',
+            id: ws.id,
+            name: ws.name,
+            plan: ws.planId || 'free',
             memberCount: 1,
-            currency: workspace.currency,
-            timezone: workspace.timezone,
-            settings: workspace.settings,
-            createdAt: workspace.createdAt,
+            currency: ws.currency,
+            timezone: ws.timezone,
+            settings: ws.settings,
+            createdAt: ws.createdAt,
           })
         )
+        return
       }
-    } else if (workspaces.length > 0 && !currentWorkspace) {
-      const firstWorkspace = workspaces[0]
-      dispatch(
-        setCurrentWorkspace({
-          id: firstWorkspace.id,
-          name: firstWorkspace.name,
-          plan: 'free',
-          memberCount: 1,
-          currency: firstWorkspace.currency,
-          timezone: firstWorkspace.timezone,
-          settings: firstWorkspace.settings,
-          createdAt: firstWorkspace.createdAt,
-        })
-      )
-      updateLastActiveWorkspace({ workspaceId: firstWorkspace.id })
     }
+
+    const firstWorkspace = workspaces[0]
+    dispatch(
+      setCurrentWorkspace({
+        id: firstWorkspace.id,
+        name: firstWorkspace.name,
+        plan: firstWorkspace.planId || 'free',
+        memberCount: 1,
+        currency: firstWorkspace.currency,
+        timezone: firstWorkspace.timezone,
+        settings: firstWorkspace.settings,
+        createdAt: firstWorkspace.createdAt,
+      })
+    )
+    updateLastActiveWorkspace({ workspaceId: firstWorkspace.id })
   }, [
     lastActiveWorkspaceData,
     workspaces,
@@ -183,11 +187,13 @@ export function WorkspaceSwitcher({
     try {
       setIsSwitching(true)
 
+      await updateLastActiveWorkspace({ workspaceId: workspace.id }).unwrap()
+
       dispatch(
         setCurrentWorkspace({
           id: workspace.id,
           name: workspace.name,
-          plan: 'free',
+          plan: workspace.planId || 'free',
           memberCount: 1,
           currency: workspace.currency,
           timezone: workspace.timezone,
@@ -196,41 +202,14 @@ export function WorkspaceSwitcher({
         })
       )
 
-      if (currentWorkspace?.id) {
-        dispatch(
-          projectsApi.util.invalidateTags([
-            { type: 'Task', id: `WORKSPACE_${currentWorkspace.id}` },
-            { type: 'Project', id: 'LIST' },
-            { type: 'Task', id: 'LIST' },
-          ])
-        )
-      }
-
-      await updateLastActiveWorkspace({ workspaceId: workspace.id }).unwrap()
-
-      try {
-        const permRes = await fetch(
-          `/api/user/workspace-permissions?workspaceId=${workspace.id}`,
-          { credentials: 'include' }
-        )
-        if (permRes.ok) {
-          const permData = await permRes.json()
-          dispatch(
-            updateUser({
-              role: permData.role,
-              roleId: permData.roleId,
-              permissions: permData.permissions,
-              workspaceId: workspace.id,
-            })
-          )
-        }
-      } catch (permError) {
-        console.error('Error loading workspace permissions:', permError)
-      }
+      dispatch(
+        updateUser({
+          workspaceId: workspace.id,
+        })
+      )
 
       toast.success(`Switched to ${workspace.name}`)
     } catch (error) {
-      console.error('Error switching workspace:', error)
       toast.error('Failed to switch workspace')
     } finally {
       setIsSwitching(false)

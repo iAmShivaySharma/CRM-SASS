@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface InvoiceItem {
   _id?: string
@@ -147,7 +148,7 @@ export interface InvoiceAnalytics {
 
 export const invoiceApi = createApi({
   reducerPath: 'invoiceApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  baseQuery: createBaseQuery('/api'),
   tagTypes: ['Invoice', 'InvoiceAnalytics'],
   endpoints: builder => ({
     getInvoices: builder.query<

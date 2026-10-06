@@ -86,8 +86,10 @@ export function AnalyticsOverview() {
   }
 
   const calculateChange = (current: number, previous: number) => {
-    if (previous === 0) return { value: 0, trend: 'up' as const }
-    const change = ((current - previous) / previous) * 100
+    const cur = Number(current) || 0
+    const prev = Number(previous) || 0
+    if (prev === 0) return { value: 0, trend: 'up' as const }
+    const change = ((cur - prev) / prev) * 100
     return {
       value: Math.abs(change),
       trend: change >= 0 ? ('up' as const) : ('down' as const),
@@ -95,34 +97,34 @@ export function AnalyticsOverview() {
   }
 
   const revenueChange = calculateChange(
-    analytics.totalRevenue,
-    analytics.totalRevenuePrevious
+    analytics.totalRevenue ?? 0,
+    analytics.totalRevenuePrevious ?? 0
   )
   const leadsChange = calculateChange(
-    analytics.totalLeads,
-    analytics.totalLeadsPrevious
+    analytics.totalLeads ?? 0,
+    analytics.totalLeadsPrevious ?? 0
   )
   const conversionChange = calculateChange(
-    analytics.conversionRate,
-    analytics.conversionRatePrevious
+    analytics.conversionRate ?? 0,
+    analytics.conversionRatePrevious ?? 0
   )
 
   const quickStats = [
     {
       label: 'Active Deals',
-      value: analytics.activeDeals.toString(),
+      value: (analytics.activeDeals ?? analytics.openDeals ?? 0).toString(),
       icon: Target,
       color: 'text-blue-600',
     },
     {
       label: 'This Month',
-      value: formatCurrency(analytics.monthlyRevenue, { compact: true }),
+      value: formatCurrency(analytics.monthlyRevenue ?? analytics.totalRevenue ?? 0, { compact: true }),
       icon: DollarSign,
       color: 'text-green-600',
     },
     {
       label: 'New Leads',
-      value: analytics.newLeads.toString(),
+      value: (analytics.newLeads ?? analytics.totalLeads ?? 0).toString(),
       icon: Users,
       color: 'text-purple-600',
     },
@@ -163,10 +165,10 @@ export function AnalyticsOverview() {
               </div>
             </div>
             <div className="text-2xl font-bold">
-              {formatCurrency(analytics.totalRevenue)}
+              {formatCurrency(analytics.totalRevenue ?? 0)}
             </div>
             <div className="text-xs text-muted-foreground">
-              vs {formatCurrency(analytics.totalRevenuePrevious)} last month
+              vs {formatCurrency(analytics.totalRevenuePrevious ?? 0)} last month
             </div>
           </div>
 
@@ -188,10 +190,10 @@ export function AnalyticsOverview() {
               </div>
             </div>
             <div className="text-2xl font-bold">
-              {formatNumber(analytics.totalLeads)}
+              {formatNumber(analytics.totalLeads ?? 0)}
             </div>
             <div className="text-xs text-muted-foreground">
-              vs {formatNumber(analytics.totalLeadsPrevious)} last month
+              vs {formatNumber(analytics.totalLeadsPrevious ?? 0)} last month
             </div>
           </div>
 
@@ -215,10 +217,10 @@ export function AnalyticsOverview() {
               </div>
             </div>
             <div className="text-2xl font-bold">
-              {formatPercentage(analytics.conversionRate)}
+              {formatPercentage(analytics.conversionRate ?? 0)}
             </div>
             <div className="text-xs text-muted-foreground">
-              vs {formatPercentage(analytics.conversionRatePrevious)} last month
+              vs {formatPercentage(analytics.conversionRatePrevious ?? 0)} last month
             </div>
           </div>
 
@@ -228,19 +230,19 @@ export function AnalyticsOverview() {
               <span className="text-sm text-muted-foreground">Growth</span>
               <div
                 className={`flex items-center space-x-1 text-xs ${
-                  analytics.growth >= 0 ? 'text-green-600' : 'text-red-600'
+                  (analytics.growth ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >
-                {analytics.growth >= 0 ? (
+                {(analytics.growth ?? 0) >= 0 ? (
                   <ArrowUpRight className="h-3 w-3" />
                 ) : (
                   <ArrowDownRight className="h-3 w-3" />
                 )}
-                <span>{formatPercentage(Math.abs(analytics.growth))}</span>
+                <span>{formatPercentage(Math.abs((analytics.growth ?? 0)))}</span>
               </div>
             </div>
             <div className="text-2xl font-bold">
-              {formatPercentage(analytics.growth)}
+              {formatPercentage((analytics.growth ?? 0))}
             </div>
             <div className="text-xs text-muted-foreground">
               overall growth rate

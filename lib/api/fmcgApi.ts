@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface FmcgProductRecord {
   _id: string
@@ -637,10 +638,7 @@ function buildQueryString(params: Record<string, any>): string {
 
 export const fmcgApi = createApi({
   reducerPath: 'fmcgApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery(''),
   tagTypes: [
     'FmcgProduct',
     'FmcgBatch',

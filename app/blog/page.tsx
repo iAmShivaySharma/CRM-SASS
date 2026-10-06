@@ -1,15 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
-import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { Blog } from '@/lib/mongodb/models/Blog'
-import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 import BlogCard from '@/components/blog/BlogCard'
 import Breadcrumb from '@/components/blog/Breadcrumb'
 
 export const revalidate = 300
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 export const metadata: Metadata = {
   title: 'Blog — ClearCRM | Tips, Guides & Insights for Business Growth',
@@ -52,71 +50,26 @@ async function getBlogs(
   tag?: string,
   search?: string
 ) {
-  await connectToMongoDB()
+  const params = new URLSearchParams({ status: 'published', limit: '12' })
+  params.set('page', String(page))
+  if (category) params.set('category', category)
+  if (tag) params.set('tag', tag)
+  if (search) params.set('q', search)
 
-  const query: Record<string, any> = { status: 'published' }
-
-  if (category) {
-    const cat = await BlogCategory.findOne({ slug: category, isActive: true })
-    if (cat) query.categoryId = cat._id
-  }
-
-  if (tag) query.tags = tag.toLowerCase()
-
-  if (search) {
-    query.$text = { $search: search }
-  }
-
-  const limit = 12
-  const skip = (page - 1) * limit
-  const isFirstPageDefault = page === 1 && !category && !tag && !search
-
-  const [categories, featuredBlogs] = await Promise.all([
-    BlogCategory.find({ isActive: true }).sort({ order: 1, name: 1 }).lean(),
-    isFirstPageDefault
-      ? Blog.find({ status: 'published', isFeatured: true })
-          .select('-content -jsonLd')
-          .sort({ publishedAt: -1 })
-          .limit(3)
-          .lean()
-      : Promise.resolve([]),
+  const [blogsRes, catsRes] = await Promise.all([
+    fetch(`${API_URL}/api/blogs?${params}`, { next: { revalidate: 300 } }),
+    fetch(`${API_URL}/api/blogs/categories`, { next: { revalidate: 300 } }),
   ])
 
-  const mainQuery = { ...query }
-  if (isFirstPageDefault && featuredBlogs.length > 0) {
-    mainQuery._id = { $nin: featuredBlogs.map((b: any) => b._id) }
-  }
-
-  const [blogs, total] = await Promise.all([
-    Blog.find(mainQuery)
-      .select('-content -jsonLd')
-      .sort(search ? { score: { $meta: 'textScore' } } : { publishedAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean(),
-    Blog.countDocuments(mainQuery),
-  ])
-
-  const categoryMap = new Map(categories.map((c: any) => [String(c._id), c]))
-
-  const enrichedBlogs = blogs.map((b: any) => ({
-    ...b,
-    id: b._id,
-    category: categoryMap.get(String(b.categoryId)) || null,
-  }))
-
-  const enrichedFeatured = featuredBlogs.map((b: any) => ({
-    ...b,
-    id: b._id,
-    category: categoryMap.get(String(b.categoryId)) || null,
-  }))
+  const blogsData = await blogsRes.json()
+  const catsData = await catsRes.json()
 
   return {
-    blogs: enrichedBlogs,
-    featured: enrichedFeatured,
-    categories: categories.map((c: any) => ({ ...c, id: c._id })),
-    total,
-    totalPages: Math.ceil(total / limit),
+    blogs: blogsData.blogs || [],
+    featured: blogsData.featured || [],
+    categories: catsData.categories || [],
+    total: blogsData.total || 0,
+    totalPages: blogsData.totalPages || 1,
     page,
   }
 }

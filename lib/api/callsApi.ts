@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface CallSettingsResponse {
   success: boolean
@@ -42,10 +43,7 @@ export interface InitiateCallResponse {
 
 export const callsApi = createApi({
   reducerPath: 'callsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['CallSettings', 'CallLog'],
   endpoints: builder => ({
     getCallSettings: builder.query<

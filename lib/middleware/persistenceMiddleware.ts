@@ -3,6 +3,7 @@ import { type Middleware } from '@reduxjs/toolkit'
 const PERSIST_KEYS = {
   theme: 'crm_theme_preferences',
   auth: 'crm_auth_state',
+  workspace: 'crm_workspace_state',
 }
 
 const PERSIST_ACTIONS = [
@@ -19,6 +20,7 @@ const PERSIST_ACTIONS = [
   'theme/loadThemeFromPreferences',
   'auth/loginSuccess',
   'auth/logout',
+  'workspace/setCurrentWorkspace',
 ]
 
 export const loadPersistedState = () => {
@@ -42,6 +44,15 @@ export const loadPersistedState = () => {
         user: parsed.user || null,
         loading: false,
         error: null,
+      }
+    }
+
+    const workspaceState = localStorage.getItem(PERSIST_KEYS.workspace)
+    if (workspaceState) {
+      const parsed = JSON.parse(workspaceState)
+      persistedState.workspace = {
+        currentWorkspace: parsed.currentWorkspace || null,
+        workspaces: parsed.workspaces || [],
       }
     }
 
@@ -76,6 +87,13 @@ export const persistenceMiddleware: Middleware =
             user: state.auth.user,
           }
           saveToLocalStorage(PERSIST_KEYS.auth, authData)
+          break
+        case 'workspace':
+          const workspaceData = {
+            currentWorkspace: state.workspace.currentWorkspace,
+            workspaces: state.workspace.workspaces,
+          }
+          saveToLocalStorage(PERSIST_KEYS.workspace, workspaceData)
           break
       }
     }

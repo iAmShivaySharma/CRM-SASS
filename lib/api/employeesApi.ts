@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface Employee {
   _id: string
@@ -38,7 +39,7 @@ export interface CreateEmployeeBody {
 
 export const employeesApi = createApi({
   reducerPath: 'employeesApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/', credentials: 'include' }),
+  baseQuery: createBaseQuery(''),
   tagTypes: ['Employee'],
   endpoints: builder => ({
     getEmployees: builder.query<

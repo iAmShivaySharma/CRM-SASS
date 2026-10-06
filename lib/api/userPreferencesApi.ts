@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface UserPreferences {
   theme?: {
@@ -53,14 +54,7 @@ export interface PreferencesResponse {
 
 export const userPreferencesApi = createApi({
   reducerPath: 'userPreferencesApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/users/preferences',
-    credentials: 'include', // Use cookies instead of Authorization header
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/users/preferences'),
   tagTypes: ['UserPreferences'],
   endpoints: builder => ({
     getUserPreferences: builder.query<PreferencesResponse, void>({

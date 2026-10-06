@@ -68,8 +68,10 @@ export function StatsCards() {
     current: number,
     previous: number
   ): { change: string; trend: 'up' | 'down' } => {
-    if (previous === 0) return { change: '+0%', trend: 'up' }
-    const changePercent = ((current - previous) / previous) * 100
+    const cur = Number(current) || 0
+    const prev = Number(previous) || 0
+    if (prev === 0) return { change: '+0%', trend: 'up' }
+    const changePercent = ((cur - prev) / prev) * 100
     return {
       change: `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(1)}%`,
       trend: changePercent >= 0 ? 'up' : 'down',

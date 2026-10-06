@@ -34,18 +34,23 @@ export function usePermissions(): UserPermissions {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   )
+  const { currentWorkspace } = useSelector(
+    (state: RootState) => state.workspace
+  )
 
   const { data: workspaceData, isLoading: workspaceLoading } =
     useGetLastActiveWorkspaceQuery(undefined, {
       skip: !isAuthenticated,
     })
 
+  const workspaceId = currentWorkspace?.id || workspaceData?.workspace?.id || ''
+
   const {
     data: rolesData,
     isLoading: rolesLoading,
     isError: rolesError,
-  } = useGetRolesQuery(undefined, {
-    skip: !isAuthenticated || !workspaceData?.workspace,
+  } = useGetRolesQuery(workspaceId, {
+    skip: !isAuthenticated || !workspaceId,
   })
 
   const userPermissions = useMemo((): Permission[] => {

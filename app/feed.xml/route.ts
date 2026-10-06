@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server'
-import { connectToMongoDB } from '@/lib/mongodb/connection'
-import { Blog } from '@/lib/mongodb/models/Blog'
-import { BlogCategory } from '@/lib/mongodb/models/BlogCategory'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://crmprosaas.com'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 const SITE_NAME = 'ClearCRM Blog'
 const SITE_DESCRIPTION =
   'Expert articles on CRM strategy, sales automation, AI workflows, and business productivity.'
 
-export const revalidate = 3600 // 1 hour
+export const revalidate = 3600
 
 function escapeXml(str: string): string {
   return str
@@ -21,23 +19,16 @@ function escapeXml(str: string): string {
 
 export async function GET() {
   try {
-    await connectToMongoDB()
-
-    const blogs = await Blog.find({ status: 'published' })
-      .select('title slug excerpt author publishedAt updatedAt categoryId tags')
-      .sort({ publishedAt: -1 })
-      .limit(50)
-      .lean()
-
-    const categoryIds = [...new Set(blogs.map((b: any) => b.categoryId))]
-    const categories = await BlogCategory.find({ _id: { $in: categoryIds } })
-      .select('name')
-      .lean()
-    const categoryMap = new Map(categories.map((c: any) => [String(c._id), c.name]))
+    const res = await fetch(
+      `${API_URL}/api/blogs?status=published&limit=50`,
+      { next: { revalidate: 3600 } }
+    )
+    const data = await res.json()
+    const blogs = data.blogs || []
 
     const rssItems = blogs
       .map((blog: any) => {
-        const categoryName = categoryMap.get(String(blog.categoryId)) || ''
+        const categoryName = blog.category?.name || ''
         return `    <item>
       <title>${escapeXml(blog.title)}</title>
       <link>${APP_URL}/blog/${blog.slug}</link>

@@ -39,10 +39,24 @@ export function OnboardingChecklist() {
           `/api/onboarding?workspaceId=${currentWorkspace.id}`
         )
         const data = await response.json()
-        if (data.success) {
-          setSteps(data.steps)
-          setProgress(data.progress)
-          setIsComplete(data.isComplete)
+        if (data.success && data.onboarding) {
+          const stepMap = data.onboarding.progress?.steps || {}
+          const stepLabels: Record<string, string> = {
+            profileCompleted: 'Complete your profile',
+            workspaceConfigured: 'Configure workspace settings',
+            teamInvited: 'Invite team members',
+            firstLeadCreated: 'Create your first lead',
+            pipelineConfigured: 'Set up a sales pipeline',
+            integrationConnected: 'Connect an integration',
+          }
+          const mapped = Object.entries(stepLabels).map(([key, title]) => ({
+            id: key,
+            title,
+            completed: !!stepMap[key],
+          }))
+          setSteps(mapped)
+          setProgress(data.onboarding.percentComplete || 0)
+          setIsComplete(data.onboarding.isComplete || false)
         }
       } catch {}
       setLoading(false)
@@ -64,7 +78,7 @@ export function OnboardingChecklist() {
     send_message: '/chat',
   }
 
-  if (loading || dismissed || isComplete) return null
+  if (loading || dismissed || isComplete || !steps?.length) return null
 
   return (
     <Card className="border-primary/20 bg-primary/5">

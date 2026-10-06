@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface ChatRoom {
   id: string
@@ -81,16 +82,7 @@ export interface CreateMessageData {
 
 export const chatApi = createApi({
   reducerPath: 'chatApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/chat',
-    credentials: 'include',
-    prepareHeaders: (headers, { endpoint }) => {
-      if (endpoint !== 'uploadFile') {
-        headers.set('Content-Type', 'application/json')
-      }
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/chat'),
   tagTypes: ['ChatRoom', 'Message'],
   endpoints: builder => ({
     getChatRooms: builder.query<

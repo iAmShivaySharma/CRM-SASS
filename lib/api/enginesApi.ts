@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface WorkflowCatalogItem {
   _id: string
@@ -170,10 +171,7 @@ export interface PendingInputsResponse {
 
 export const enginesApi = createApi({
   reducerPath: 'enginesApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/engines',
-    credentials: 'include',
-  }),
+  baseQuery: createBaseQuery('/api/engines'),
   tagTypes: [
     'WorkflowCatalog',
     'WorkflowCategory',

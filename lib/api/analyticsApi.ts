@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQuery } from './baseQuery'
 
 export interface DashboardAnalytics {
   totalLeads: number
@@ -54,14 +55,7 @@ export interface AnalyticsFilters {
 
 export const analyticsApi = createApi({
   reducerPath: 'analyticsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/analytics',
-    credentials: 'include',
-    prepareHeaders: headers => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
+  baseQuery: createBaseQuery('/api/analytics'),
   tagTypes: [
     'Analytics',
     'Dashboard',
