@@ -257,7 +257,7 @@ export function WorkspaceSwitcher({
 
   return (
     <>
-      <div className={`space-y-2 ${className}`}>
+      <div className={`space-y-2 ${className}`} data-tour="workspace-switcher">
         <div className={compact ? 'px-1 py-2' : 'px-3 py-2'}>
           {!compact && (
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">

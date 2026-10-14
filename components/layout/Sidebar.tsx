@@ -505,6 +505,7 @@ export function Sidebar({
       <Link
         key={item.href + item.name}
         href={item.href}
+        data-tour={`sidebar-${item.href.replace('/', '').replace(/\//g, '-') || 'home'}`}
         className={cn(
           'group relative flex items-center overflow-hidden rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300',
           isSubItem && 'ml-6 rounded-lg py-2.5',

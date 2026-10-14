@@ -71,11 +71,12 @@ export function OnboardingChecklist() {
   }
 
   const stepRoutes: Record<string, string> = {
-    complete_profile: '/settings',
-    invite_team: '/settings',
-    create_lead: '/leads',
-    create_project: '/projects',
-    send_message: '/chat',
+    profileCompleted: '/settings',
+    workspaceConfigured: '/settings',
+    teamInvited: '/settings',
+    firstLeadCreated: '/leads',
+    pipelineConfigured: '/deals',
+    integrationConnected: '/webhooks',
   }
 
   if (loading || dismissed || isComplete || !steps?.length) return null

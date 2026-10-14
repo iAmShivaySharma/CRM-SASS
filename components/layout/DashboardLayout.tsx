@@ -7,6 +7,7 @@ import { SocketProvider } from '@/lib/context/SocketContext'
 import { cn } from '@/lib/utils'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
+import { SiteTour } from '@/components/tour/SiteTour'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -51,6 +52,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </main>
         </div>
       </div>
+      <SiteTour />
     </SocketProvider>
   )
 }
