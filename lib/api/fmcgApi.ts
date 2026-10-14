@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface FmcgProductRecord {
   _id: string
@@ -636,32 +635,14 @@ function buildQueryString(params: Record<string, any>): string {
   return searchParams.toString()
 }
 
-export const fmcgApi = createApi({
-  reducerPath: 'fmcgApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: [
-    'FmcgProduct',
-    'FmcgBatch',
-    'FmcgLicense',
-    'FmcgTestReport',
-    'FmcgSupplier',
-    'FmcgDistribution',
-    'FmcgRmLot',
-    'FmcgCleaningLog',
-    'FmcgPestLog',
-    'FmcgComplaint',
-    'FmcgTemperatureLog',
-    'FmcgCalibrationLog',
-    'FmcgWaterTest',
-    'FmcgRecallEvent',
-  ],
+const fmcgApi = api.injectEndpoints({
   endpoints: builder => ({
-    getProducts: builder.query<ProductsResponse, ProductQuery>({
+    getFmcgProducts: builder.query<ProductsResponse, ProductQuery>({
       query: (params = {}) => `api/fmcg/products?${buildQueryString(params)}`,
       providesTags: ['FmcgProduct'],
     }),
 
-    getProduct: builder.query<
+    getFmcgProduct: builder.query<
       { success: boolean; product: FmcgProductRecord },
       { id: string; workspaceId: string }
     >({
@@ -670,7 +651,7 @@ export const fmcgApi = createApi({
       providesTags: (result, error, { id }) => [{ type: 'FmcgProduct', id }],
     }),
 
-    createProduct: builder.mutation<
+    createFmcgProduct: builder.mutation<
       { success: boolean; product: FmcgProductRecord },
       Partial<FmcgProductRecord> & { workspaceId: string }
     >({
@@ -682,7 +663,7 @@ export const fmcgApi = createApi({
       invalidatesTags: ['FmcgProduct'],
     }),
 
-    updateProduct: builder.mutation<
+    updateFmcgProduct: builder.mutation<
       { success: boolean; product: FmcgProductRecord },
       { id: string; workspaceId: string } & Partial<FmcgProductRecord>
     >({
@@ -697,7 +678,7 @@ export const fmcgApi = createApi({
       ],
     }),
 
-    deleteProduct: builder.mutation<
+    deleteFmcgProduct: builder.mutation<
       { success: boolean; message: string },
       { id: string; workspaceId: string }
     >({
@@ -1321,11 +1302,11 @@ export const fmcgApi = createApi({
 })
 
 export const {
-  useGetProductsQuery,
-  useGetProductQuery,
-  useCreateProductMutation,
-  useUpdateProductMutation,
-  useDeleteProductMutation,
+  useGetFmcgProductsQuery,
+  useGetFmcgProductQuery,
+  useCreateFmcgProductMutation,
+  useUpdateFmcgProductMutation,
+  useDeleteFmcgProductMutation,
   useGetBatchesQuery,
   useGetBatchQuery,
   useCreateBatchMutation,

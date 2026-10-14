@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Notification {
   id: string
@@ -40,10 +39,7 @@ export interface MarkNotificationRequest {
   workspaceId: string
 }
 
-export const notificationsApi = createApi({
-  reducerPath: 'notificationsApi',
-  baseQuery: createBaseQuery('/api/notifications'),
-  tagTypes: ['Notification'],
+const notificationsApi = api.injectEndpoints({
   endpoints: builder => ({
     getNotifications: builder.query<NotificationsResponse, NotificationFilters>(
       {
@@ -65,7 +61,7 @@ export const notificationsApi = createApi({
             params.append('entityType', entityType)
           }
 
-          return `?${params}`
+          return `api/notifications?${params}`
         },
         providesTags: ['Notification'],
       }
@@ -76,13 +72,13 @@ export const notificationsApi = createApi({
       MarkNotificationRequest
     >({
       query: ({ notificationId, action, workspaceId }) => ({
-        url: '',
+        url: 'api/notifications',
         method: 'PATCH',
         body: { notificationId, action, workspaceId },
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(notificationsApi.util.invalidateTags(['Notification']))
+        dispatch(api.util.invalidateTags(['Notification']))
       },
     }),
   }),

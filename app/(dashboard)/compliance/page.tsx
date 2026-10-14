@@ -60,14 +60,14 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useAppSelector } from '@/lib/hooks'
 import {
-  useGetTasksQuery,
-  useCreateTaskMutation,
-  useUpdateTaskMutation,
-  useDeleteTaskMutation,
-  useGetDocumentsQuery,
-  useCreateDocumentMutation,
-  useUpdateDocumentMutation,
-  useDeleteDocumentMutation,
+  useGetComplianceTasksQuery,
+  useCreateComplianceTaskMutation,
+  useUpdateComplianceTaskMutation,
+  useDeleteComplianceTaskMutation,
+  useGetComplianceDocumentsQuery,
+  useCreateComplianceDocumentMutation,
+  useUpdateComplianceDocumentMutation,
+  useDeleteComplianceDocumentMutation,
   type ComplianceTaskRecord,
   type ComplianceDocumentRecord,
 } from '@/lib/api/complianceApi'
@@ -297,7 +297,7 @@ export default function CompliancePage() {
   const [seedConfirmOpen, setSeedConfirmOpen] = useState(false)
   const [seeding, setSeeding] = useState(false)
 
-  const { data: tasksData, isLoading: tasksLoading } = useGetTasksQuery(
+  const { data: tasksData, isLoading: tasksLoading } = useGetComplianceTasksQuery(
     {
       workspaceId,
       page: taskPage,
@@ -308,19 +308,19 @@ export default function CompliancePage() {
     { skip: !workspaceId }
   )
 
-  const { data: docsData, isLoading: docsLoading } = useGetDocumentsQuery(
+  const { data: docsData, isLoading: docsLoading } = useGetComplianceDocumentsQuery(
     { workspaceId, page: docPage, limit: 50 },
     { skip: !workspaceId }
   )
 
-  const { data: overdueData } = useGetTasksQuery(
+  const { data: overdueData } = useGetComplianceTasksQuery(
     { workspaceId, status: 'overdue', limit: 1 },
     { skip: !workspaceId }
   )
 
   const now = new Date()
   const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-  const { data: dueSoonData } = useGetTasksQuery(
+  const { data: dueSoonData } = useGetComplianceTasksQuery(
     {
       workspaceId,
       dateFrom: now.toISOString().split('T')[0],
@@ -331,20 +331,20 @@ export default function CompliancePage() {
   )
 
   const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-  const { data: expiringSoonDocs } = useGetDocumentsQuery(
+  const { data: expiringSoonDocs } = useGetComplianceDocumentsQuery(
     { workspaceId, status: 'expiring_soon', limit: 1 },
     { skip: !workspaceId }
   )
 
-  const [createTask, { isLoading: creatingTask }] = useCreateTaskMutation()
-  const [updateTask, { isLoading: updatingTask }] = useUpdateTaskMutation()
-  const [deleteTask, { isLoading: deletingTask }] = useDeleteTaskMutation()
+  const [createTask, { isLoading: creatingTask }] = useCreateComplianceTaskMutation()
+  const [updateTask, { isLoading: updatingTask }] = useUpdateComplianceTaskMutation()
+  const [deleteTask, { isLoading: deletingTask }] = useDeleteComplianceTaskMutation()
   const [createDocument, { isLoading: creatingDoc }] =
-    useCreateDocumentMutation()
+    useCreateComplianceDocumentMutation()
   const [updateDocument, { isLoading: updatingDoc }] =
-    useUpdateDocumentMutation()
+    useUpdateComplianceDocumentMutation()
   const [deleteDocument, { isLoading: deletingDoc }] =
-    useDeleteDocumentMutation()
+    useDeleteComplianceDocumentMutation()
 
   const tasks = tasksData?.tasks || []
   const docs = docsData?.documents || []

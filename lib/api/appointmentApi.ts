@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Appointment {
   _id: string
@@ -54,10 +53,7 @@ export interface AnalyticsResponse {
   analytics: AppointmentAnalytics
 }
 
-export const appointmentApi = createApi({
-  reducerPath: 'appointmentApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['Service', 'Appointment'],
+const appointmentApi = api.injectEndpoints({
   endpoints: builder => ({
     getAppointments: builder.query<AppointmentsResponse, { workspaceId: string; status?: string; date?: string }>({
       query: ({ workspaceId, ...rest }) => {

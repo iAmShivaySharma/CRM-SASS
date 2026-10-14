@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Task {
   id: string
@@ -84,10 +83,7 @@ export interface GetTasksRequest {
   search?: string
 }
 
-export const tasksApi = createApi({
-  reducerPath: 'tasksApi',
-  baseQuery: createBaseQuery('/api/tasks'),
-  tagTypes: ['Task'],
+const tasksApi = api.injectEndpoints({
   endpoints: builder => ({
     getTasks: builder.query<TasksResponse, GetTasksRequest>({
       query: ({ projectId, status, assigneeId, search }) => {
@@ -97,44 +93,44 @@ export const tasksApi = createApi({
         if (assigneeId) params.append('assigneeId', assigneeId)
         if (search) params.append('search', search)
 
-        return `?${params.toString()}`
+        return `api/tasks?${params.toString()}`
       },
       providesTags: ['Task'],
     }),
     getTask: builder.query<{ task: Task }, string>({
-      query: id => `/${id}`,
+      query: id => `api/tasks/${id}`,
       providesTags: (result, error, id) => [{ type: 'Task', id }],
     }),
     createTask: builder.mutation<{ task: Task }, CreateTaskRequest>({
       query: body => ({
-        url: '',
+        url: 'api/tasks',
         method: 'POST',
         body,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(tasksApi.util.invalidateTags(['Task']))
+        dispatch(api.util.invalidateTags(['Task']))
       },
     }),
     updateTask: builder.mutation<{ task: Task }, UpdateTaskRequest>({
       query: ({ id, ...body }) => ({
-        url: `/${id}`,
+        url: `api/tasks/${id}`,
         method: 'PUT',
         body,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(tasksApi.util.invalidateTags([{ type: 'Task', id }, 'Task']))
+        dispatch(api.util.invalidateTags([{ type: 'Task', id }, 'Task']))
       },
     }),
     deleteTask: builder.mutation<{ success: boolean }, string>({
       query: id => ({
-        url: `/${id}`,
+        url: `api/tasks/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(tasksApi.util.invalidateTags([{ type: 'Task', id }, 'Task']))
+        dispatch(api.util.invalidateTags([{ type: 'Task', id }, 'Task']))
       },
     }),
     toggleTaskCompletion: builder.mutation<
@@ -142,13 +138,13 @@ export const tasksApi = createApi({
       { id: string; completed: boolean }
     >({
       query: ({ id, completed }) => ({
-        url: `/${id}/toggle-completion`,
+        url: `api/tasks/${id}/toggle-completion`,
         method: 'PATCH',
         body: { completed },
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(tasksApi.util.invalidateTags([{ type: 'Task', id }, 'Task']))
+        dispatch(api.util.invalidateTags([{ type: 'Task', id }, 'Task']))
       },
     }),
   }),

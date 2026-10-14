@@ -7,9 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetProjectQuery,
-  useGetTasksQuery,
-  useGetProjectMembersQuery,
-  useGetDocumentsQuery,
+  useGetProjectTasksQuery,
+  useGetProjectMembersInProjectQuery,
+  useGetProjectDocumentsQuery,
   type Task,
 } from '@/lib/api/projectsApi'
 import { ProjectHeader } from '@/components/projects/ProjectHeader'
@@ -54,7 +54,7 @@ export default function ProjectDetailPage() {
     data: tasksData,
     isLoading: tasksLoading,
     error: tasksError,
-  } = useGetTasksQuery(
+  } = useGetProjectTasksQuery(
     {
       projectId,
       workspaceId: currentWorkspace?.id || '',
@@ -63,10 +63,10 @@ export default function ProjectDetailPage() {
   )
 
   const { data: membersData, isLoading: membersLoading } =
-    useGetProjectMembersQuery({ projectId }, { skip: !projectId })
+    useGetProjectMembersInProjectQuery({ projectId }, { skip: !projectId })
 
   const { data: documentsData, isLoading: documentsLoading } =
-    useGetDocumentsQuery({ projectId }, { skip: !projectId })
+    useGetProjectDocumentsQuery({ projectId }, { skip: !projectId })
 
   if (!currentWorkspace) {
     return (

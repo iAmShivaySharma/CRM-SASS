@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface EmailAccount {
   _id: string
@@ -182,13 +181,10 @@ export interface UpdateEmailMessageRequest {
   snoozeUntil?: string | null
 }
 
-export const emailApi = createApi({
-  reducerPath: 'emailApi',
-  baseQuery: createBaseQuery('/api/email'),
-  tagTypes: ['EmailAccount', 'EmailMessage'],
+const emailApi = api.injectEndpoints({
   endpoints: builder => ({
     getEmailAccounts: builder.query<{ accounts: EmailAccount[] }, string>({
-      query: workspaceId => `/accounts?workspaceId=${workspaceId}`,
+      query: workspaceId => `api/email/accounts?workspaceId=${workspaceId}`,
       providesTags: ['EmailAccount'],
     }),
 
@@ -197,7 +193,7 @@ export const emailApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) =>
-        `/accounts/${id}?workspaceId=${workspaceId}`,
+        `api/email/accounts/${id}?workspaceId=${workspaceId}`,
       providesTags: (result, error, { id }) => [{ type: 'EmailAccount', id }],
     }),
 
@@ -206,13 +202,13 @@ export const emailApi = createApi({
       CreateEmailAccountRequest & { workspaceId: string }
     >({
       query: ({ workspaceId, ...account }) => ({
-        url: `/accounts?workspaceId=${workspaceId}`,
+        url: `api/email/accounts?workspaceId=${workspaceId}`,
         method: 'POST',
         body: account,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(emailApi.util.invalidateTags(['EmailAccount']))
+        dispatch(api.util.invalidateTags(['EmailAccount']))
       },
     }),
 
@@ -221,13 +217,13 @@ export const emailApi = createApi({
       { id: string; workspaceId: string; data: UpdateEmailAccountRequest }
     >({
       query: ({ id, workspaceId, data }) => ({
-        url: `/accounts/${id}?workspaceId=${workspaceId}`,
+        url: `api/email/accounts/${id}?workspaceId=${workspaceId}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(emailApi.util.invalidateTags([{ type: 'EmailAccount', id }]))
+        dispatch(api.util.invalidateTags([{ type: 'EmailAccount', id }]))
       },
     }),
 
@@ -236,12 +232,12 @@ export const emailApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `/accounts/${id}?workspaceId=${workspaceId}`,
+        url: `api/email/accounts/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(emailApi.util.invalidateTags(['EmailAccount']))
+        dispatch(api.util.invalidateTags(['EmailAccount']))
       },
     }),
 
@@ -250,12 +246,12 @@ export const emailApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `/accounts/${id}/set-default?workspaceId=${workspaceId}`,
+        url: `api/email/accounts/${id}/set-default?workspaceId=${workspaceId}`,
         method: 'POST',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(emailApi.util.invalidateTags(['EmailAccount']))
+        dispatch(api.util.invalidateTags(['EmailAccount']))
       },
     }),
 
@@ -264,12 +260,12 @@ export const emailApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `/accounts/${id}/sync?workspaceId=${workspaceId}`,
+        url: `api/email/accounts/${id}/sync?workspaceId=${workspaceId}`,
         method: 'POST',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(emailApi.util.invalidateTags(['EmailMessage', 'EmailAccount']))
+        dispatch(api.util.invalidateTags(['EmailMessage', 'EmailAccount']))
       },
     }),
 
@@ -278,7 +274,7 @@ export const emailApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `/accounts/${id}/test?workspaceId=${workspaceId}`,
+        url: `api/email/accounts/${id}/test?workspaceId=${workspaceId}`,
         method: 'POST',
       }),
     }),
@@ -303,7 +299,7 @@ export const emailApi = createApi({
             searchParams.append(key, value.toString())
           }
         })
-        return `/messages?${searchParams.toString()}`
+        return `api/email/messages?${searchParams.toString()}`
       },
       providesTags: ['EmailMessage'],
     }),
@@ -313,7 +309,7 @@ export const emailApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) =>
-        `/messages/${id}?workspaceId=${workspaceId}`,
+        `api/email/messages/${id}?workspaceId=${workspaceId}`,
       providesTags: (result, error, { id }) => [{ type: 'EmailMessage', id }],
     }),
 
@@ -322,14 +318,14 @@ export const emailApi = createApi({
       { id: string; workspaceId: string; data: UpdateEmailMessageRequest }
     >({
       query: ({ id, workspaceId, data }) => ({
-        url: `/messages/${id}?workspaceId=${workspaceId}`,
+        url: `api/email/messages/${id}?workspaceId=${workspaceId}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          emailApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'EmailMessage', id },
             'EmailMessage',
           ])
@@ -342,12 +338,12 @@ export const emailApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `/messages/${id}?workspaceId=${workspaceId}`,
+        url: `api/email/messages/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(emailApi.util.invalidateTags(['EmailMessage']))
+        dispatch(api.util.invalidateTags(['EmailMessage']))
       },
     }),
 
@@ -356,13 +352,13 @@ export const emailApi = createApi({
       SendEmailRequest & { workspaceId: string }
     >({
       query: ({ workspaceId, ...email }) => ({
-        url: `/send?workspaceId=${workspaceId}`,
+        url: `api/email/send?workspaceId=${workspaceId}`,
         method: 'POST',
         body: email,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(emailApi.util.invalidateTags(['EmailMessage']))
+        dispatch(api.util.invalidateTags(['EmailMessage']))
       },
     }),
   }),

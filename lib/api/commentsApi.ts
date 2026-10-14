@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface CommentUser {
   id: string
@@ -40,17 +39,14 @@ export interface CommentHistoryVersion {
   label: string
 }
 
-export const commentsApi = createApi({
-  reducerPath: 'commentsApi',
-  baseQuery: createBaseQuery('/api'),
-  tagTypes: ['Comment'],
+const commentsApi = api.injectEndpoints({
   endpoints: builder => ({
     getComments: builder.query<
       { comments: Comment[] },
       { entityType: string; entityId: string }
     >({
       query: ({ entityType, entityId }) =>
-        `comments?entityType=${entityType}&entityId=${entityId}`,
+        `api/comments?entityType=${entityType}&entityId=${entityId}`,
       providesTags: (result, error, arg) =>
         result
           ? [
@@ -76,14 +72,14 @@ export const commentsApi = createApi({
       }
     >({
       query: data => ({
-        url: 'comments',
+        url: 'api/comments',
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          commentsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Comment', id: `${arg.entityType}_${arg.entityId}` },
           ])
         )
@@ -95,7 +91,7 @@ export const commentsApi = createApi({
       { id: string; content: string }
     >({
       query: ({ id, content }) => ({
-        url: `comments/${id}`,
+        url: `api/comments/${id}`,
         method: 'PUT',
         body: { content },
       }),
@@ -103,7 +99,7 @@ export const commentsApi = createApi({
         const { data: result } = await queryFulfilled
         if (result) {
           dispatch(
-            commentsApi.util.invalidateTags([
+            api.util.invalidateTags([
               {
                 type: 'Comment',
                 id: `${result.comment.entityType}_${result.comment.entityId}`,
@@ -112,7 +108,7 @@ export const commentsApi = createApi({
             ])
           )
         } else {
-          dispatch(commentsApi.util.invalidateTags(['Comment']))
+          dispatch(api.util.invalidateTags(['Comment']))
         }
       },
     }),
@@ -122,13 +118,13 @@ export const commentsApi = createApi({
       { id: string; entityType: string; entityId: string }
     >({
       query: ({ id }) => ({
-        url: `comments/${id}`,
+        url: `api/comments/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          commentsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Comment', id: `${arg.entityType}_${arg.entityId}` },
           ])
         )
@@ -143,7 +139,7 @@ export const commentsApi = createApi({
       },
       { commentId: string }
     >({
-      query: ({ commentId }) => `comments/${commentId}/history`,
+      query: ({ commentId }) => `api/comments/${commentId}/history`,
       providesTags: (result, error, arg) => [
         { type: 'Comment', id: arg.commentId },
       ],

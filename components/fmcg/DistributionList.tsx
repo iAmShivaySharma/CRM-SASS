@@ -52,7 +52,7 @@ import {
   useUpdateDistributionMutation,
   useDeleteDistributionMutation,
   useGetBatchesQuery,
-  useGetProductsQuery,
+  useGetFmcgProductsQuery,
   type FmcgDistributionRecord,
 } from '@/lib/api/fmcgApi'
 
@@ -120,7 +120,7 @@ export function DistributionList({ workspaceId }: DistributionListProps) {
   })
 
   const { data: batchesData } = useGetBatchesQuery({ workspaceId, limit: 200 })
-  const { data: productsData } = useGetProductsQuery({ workspaceId, limit: 200 })
+  const { data: productsData } = useGetFmcgProductsQuery({ workspaceId, limit: 200 })
   const batches = batchesData?.batches || []
   const products = productsData?.products || []
 

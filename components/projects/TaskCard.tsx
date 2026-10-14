@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { type Task, useGetTagsQuery } from '@/lib/api/projectsApi'
+import { type Task, useGetProjectTagsQuery } from '@/lib/api/projectsApi'
 import { useToggleTaskCompletionMutation } from '@/lib/api/tasksApi'
 import { useAppSelector } from '@/lib/hooks'
 import { TimeTracker } from './TimeTracker'
@@ -39,7 +39,7 @@ export function TaskCard({ task, isDragging = false, onEdit }: TaskCardProps) {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
   // Get tags for workspace to show proper colors
-  const { data: tagsData } = useGetTagsQuery(
+  const { data: tagsData } = useGetProjectTagsQuery(
     { workspaceId: currentWorkspace?.id || '' },
     { skip: !currentWorkspace?.id }
   )

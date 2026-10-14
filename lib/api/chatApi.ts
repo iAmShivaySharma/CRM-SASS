@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface ChatRoom {
   id: string
@@ -80,10 +79,7 @@ export interface CreateMessageData {
   replyTo?: string
 }
 
-export const chatApi = createApi({
-  reducerPath: 'chatApi',
-  baseQuery: createBaseQuery('/api/chat'),
-  tagTypes: ['ChatRoom', 'Message'],
+const chatApi = api.injectEndpoints({
   endpoints: builder => ({
     getChatRooms: builder.query<
       { chatRooms: ChatRoom[] },
@@ -94,7 +90,7 @@ export const chatApi = createApi({
         if (includeArchived) {
           params.append('includeArchived', 'true')
         }
-        return `rooms?${params}`
+        return `api/chat/rooms?${params}`
       },
       providesTags: ['ChatRoom'],
     }),
@@ -104,13 +100,13 @@ export const chatApi = createApi({
       CreateChatRoomData
     >({
       query: roomData => ({
-        url: 'rooms',
+        url: 'api/chat/rooms',
         method: 'POST',
         body: roomData,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(chatApi.util.invalidateTags(['ChatRoom']))
+        dispatch(api.util.invalidateTags(['ChatRoom']))
       },
     }),
 
@@ -119,30 +115,30 @@ export const chatApi = createApi({
       { id: string; workspaceId: string } & Partial<ChatRoom>
     >({
       query: ({ id, workspaceId, ...updates }) => ({
-        url: `rooms/${id}?workspaceId=${workspaceId}`,
+        url: `api/chat/rooms/${id}?workspaceId=${workspaceId}`,
         method: 'PUT',
         body: updates,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(chatApi.util.invalidateTags(['ChatRoom']))
+        dispatch(api.util.invalidateTags(['ChatRoom']))
       },
     }),
 
     deleteChatRoom: builder.mutation<void, { id: string; workspaceId: string }>(
       {
         query: ({ id, workspaceId }) => ({
-          url: `rooms/${id}?workspaceId=${workspaceId}`,
+          url: `api/chat/rooms/${id}?workspaceId=${workspaceId}`,
           method: 'DELETE',
         }),
         async onQueryStarted(_, { dispatch, queryFulfilled }) {
           await queryFulfilled
-          dispatch(chatApi.util.invalidateTags(['ChatRoom']))
+          dispatch(api.util.invalidateTags(['ChatRoom']))
         },
       }
     ),
 
-    getMessages: builder.query<
+    getChatMessages: builder.query<
       {
         messages: Message[]
         pagination: {
@@ -164,7 +160,7 @@ export const chatApi = createApi({
           page: page.toString(),
           limit: limit.toString(),
         })
-        return `messages?${params}`
+        return `api/chat/messages?${params}`
       },
       providesTags: (result, error, { chatRoomId }) => [
         { type: 'Message', id: chatRoomId },
@@ -190,14 +186,14 @@ export const chatApi = createApi({
 
     createMessage: builder.mutation<{ message: Message }, CreateMessageData>({
       query: messageData => ({
-        url: 'messages',
+        url: 'api/chat/messages',
         method: 'POST',
         body: messageData,
       }),
       async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          chatApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Message', id: chatRoomId },
             'ChatRoom',
           ])
@@ -210,14 +206,14 @@ export const chatApi = createApi({
       { messageId: string; chatRoomId: string; content: string }
     >({
       query: ({ messageId, content }) => ({
-        url: `messages/${messageId}`,
+        url: `api/chat/messages/${messageId}`,
         method: 'PATCH',
         body: { content },
       }),
       async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          chatApi.util.invalidateTags([{ type: 'Message', id: chatRoomId }])
+          api.util.invalidateTags([{ type: 'Message', id: chatRoomId }])
         )
       },
     }),
@@ -227,13 +223,13 @@ export const chatApi = createApi({
       { messageId: string; chatRoomId: string }
     >({
       query: ({ messageId, chatRoomId }) => ({
-        url: `messages/${messageId}?chatRoomId=${chatRoomId}`,
+        url: `api/chat/messages/${messageId}?chatRoomId=${chatRoomId}`,
         method: 'DELETE',
       }),
       async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          chatApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Message', id: chatRoomId },
             'ChatRoom',
           ])
@@ -246,14 +242,14 @@ export const chatApi = createApi({
       { chatRoomId: string; messageIds?: string[] }
     >({
       query: data => ({
-        url: 'messages/read',
+        url: 'api/chat/messages/read',
         method: 'POST',
         body: data,
       }),
       async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          chatApi.util.invalidateTags([{ type: 'Message', id: chatRoomId }])
+          api.util.invalidateTags([{ type: 'Message', id: chatRoomId }])
         )
       },
     }),
@@ -263,7 +259,7 @@ export const chatApi = createApi({
       { messageId: string; emoji: string; chatRoomId: string }
     >({
       query: data => ({
-        url: `messages/${data.messageId}/reactions`,
+        url: `api/chat/messages/${data.messageId}/reactions`,
         method: 'POST',
         body: { emoji: data.emoji, chatRoomId: data.chatRoomId },
       }),
@@ -274,7 +270,7 @@ export const chatApi = createApi({
       { messageId: string; emoji: string; chatRoomId: string }
     >({
       query: data => ({
-        url: `messages/${data.messageId}/reactions`,
+        url: `api/chat/messages/${data.messageId}/reactions`,
         method: 'DELETE',
         body: { emoji: data.emoji, chatRoomId: data.chatRoomId },
       }),
@@ -302,7 +298,7 @@ export const chatApi = createApi({
         formData.append('file', file)
 
         return {
-          url: `upload?workspaceId=${workspaceId}&chatRoomId=${chatRoomId}`,
+          url: `api/chat/upload?workspaceId=${workspaceId}&chatRoomId=${chatRoomId}`,
           method: 'POST',
           body: formData,
         }
@@ -320,7 +316,7 @@ export const chatApi = createApi({
       },
       void
     >({
-      query: () => 'upload',
+      query: () => 'api/chat/upload',
     }),
   }),
 })
@@ -330,7 +326,7 @@ export const {
   useCreateChatRoomMutation,
   useUpdateChatRoomMutation,
   useDeleteChatRoomMutation,
-  useGetMessagesQuery,
+  useGetChatMessagesQuery,
   useCreateMessageMutation,
   useEditMessageMutation,
   useDeleteMessageMutation,

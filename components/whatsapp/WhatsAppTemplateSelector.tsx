@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import {
-  useGetTemplatesQuery,
+  useGetWhatsAppTemplatesQuery,
   useSendTemplateMutation,
 } from '@/lib/api/whatsappApi'
 import { Button } from '@/components/ui/button'
@@ -32,7 +32,7 @@ export function WhatsAppTemplateSelector({
   phone,
   onSend,
 }: Props) {
-  const { data, isLoading } = useGetTemplatesQuery(
+  const { data, isLoading } = useGetWhatsAppTemplatesQuery(
     { workspaceId },
     { skip: !workspaceId }
   )

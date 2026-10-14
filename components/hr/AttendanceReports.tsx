@@ -43,7 +43,7 @@ import { useAppSelector } from '@/lib/hooks'
 import {
   useGetAttendanceRecordsQuery,
   useGetAttendanceSummaryQuery,
-  useGetEmployeesQuery,
+  useGetAttendanceEmployeesQuery,
 } from '@/lib/api/attendanceApi'
 
 const WORK_TYPE_COLORS: Record<string, string> = {
@@ -116,7 +116,7 @@ export function AttendanceReports() {
       { skip: !currentWorkspace?.id }
     )
 
-  const { data: employeesData } = useGetEmployeesQuery(
+  const { data: employeesData } = useGetAttendanceEmployeesQuery(
     {
       workspaceId: currentWorkspace?.id || '',
       includeAttendance: true,

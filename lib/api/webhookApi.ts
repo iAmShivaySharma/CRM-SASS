@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Webhook {
   id: string
@@ -110,49 +109,46 @@ export interface WebhookResponse {
   message?: string
 }
 
-export const webhookApi = createApi({
-  reducerPath: 'webhookApi',
-  baseQuery: createBaseQuery('/api/webhooks'),
-  tagTypes: ['Webhook', 'WebhookLog'],
+const webhookApi = api.injectEndpoints({
   endpoints: builder => ({
     getWebhooks: builder.query<WebhookResponse, string>({
-      query: workspaceId => `?workspaceId=${workspaceId}`,
+      query: workspaceId => `api/webhooks?workspaceId=${workspaceId}`,
       providesTags: ['Webhook'],
     }),
     getWebhook: builder.query<WebhookResponse, string>({
-      query: id => `/${id}`,
+      query: id => `api/webhooks/${id}`,
       providesTags: (result, error, id) => [{ type: 'Webhook', id }],
     }),
     createWebhook: builder.mutation<WebhookResponse, CreateWebhookRequest>({
       query: webhook => ({
-        url: '',
+        url: 'api/webhooks',
         method: 'POST',
         body: webhook,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(webhookApi.util.invalidateTags(['Webhook']))
+        dispatch(api.util.invalidateTags(['Webhook']))
       },
     }),
     updateWebhook: builder.mutation<WebhookResponse, UpdateWebhookRequest>({
       query: ({ id, ...patch }) => ({
-        url: `/${id}`,
+        url: `api/webhooks/${id}`,
         method: 'PUT',
         body: patch,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(webhookApi.util.invalidateTags([{ type: 'Webhook', id }]))
+        dispatch(api.util.invalidateTags([{ type: 'Webhook', id }]))
       },
     }),
     deleteWebhook: builder.mutation<WebhookResponse, string>({
       query: id => ({
-        url: `/${id}`,
+        url: `api/webhooks/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(webhookApi.util.invalidateTags(['Webhook']))
+        dispatch(api.util.invalidateTags(['Webhook']))
       },
     }),
     toggleWebhook: builder.mutation<
@@ -160,13 +156,13 @@ export const webhookApi = createApi({
       { id: string; isActive: boolean }
     >({
       query: ({ id, isActive }) => ({
-        url: `/${id}`,
+        url: `api/webhooks/${id}`,
         method: 'PUT',
         body: { isActive },
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(webhookApi.util.invalidateTags([{ type: 'Webhook', id }]))
+        dispatch(api.util.invalidateTags([{ type: 'Webhook', id }]))
       },
     }),
   }),
@@ -181,7 +177,6 @@ export const {
   useToggleWebhookMutation,
 } = webhookApi
 
-// Webhook type configurations
 export const webhookTypeConfigs = {
   facebook_leads: {
     name: 'Facebook Lead Ads',

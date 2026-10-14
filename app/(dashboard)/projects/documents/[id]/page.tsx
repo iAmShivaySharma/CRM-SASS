@@ -16,8 +16,8 @@ import {
 import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import {
-  useGetDocumentQuery,
-  useUpdateDocumentMutation,
+  useGetProjectDocumentQuery,
+  useUpdateProjectDocumentMutation,
 } from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -61,9 +61,9 @@ export default function DocumentEditorPage() {
     data: documentData,
     isLoading: documentLoading,
     error: documentError,
-  } = useGetDocumentQuery({ id: documentId }, { skip: !documentId })
+  } = useGetProjectDocumentQuery({ id: documentId }, { skip: !documentId })
 
-  const [updateDocument] = useUpdateDocumentMutation()
+  const [updateDocument] = useUpdateProjectDocumentMutation()
 
   useEffect(() => {
     if (documentData?.document) {

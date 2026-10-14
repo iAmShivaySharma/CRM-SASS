@@ -14,7 +14,7 @@ import {
 import { type RootState } from '@/lib/store'
 import {
   useGetChatRoomsQuery,
-  useGetMessagesQuery,
+  useGetChatMessagesQuery,
   type Message,
 } from '@/lib/api/chatApi'
 import { useSocket } from '@/lib/context/SocketContext'

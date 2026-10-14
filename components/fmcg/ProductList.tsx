@@ -48,10 +48,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import {
-  useGetProductsQuery,
-  useCreateProductMutation,
-  useUpdateProductMutation,
-  useDeleteProductMutation,
+  useGetFmcgProductsQuery,
+  useCreateFmcgProductMutation,
+  useUpdateFmcgProductMutation,
+  useDeleteFmcgProductMutation,
   type FmcgProductRecord,
 } from '@/lib/api/fmcgApi'
 
@@ -94,7 +94,7 @@ export function ProductList({ workspaceId }: ProductListProps) {
   const [form, setForm] = useState(emptyForm)
   const [page, setPage] = useState(1)
 
-  const { data, isLoading } = useGetProductsQuery({
+  const { data, isLoading } = useGetFmcgProductsQuery({
     workspaceId,
     page,
     limit: 20,
@@ -102,9 +102,9 @@ export function ProductList({ workspaceId }: ProductListProps) {
     category: categoryFilter || undefined,
   })
 
-  const [createProduct, { isLoading: creating }] = useCreateProductMutation()
-  const [updateProduct, { isLoading: updating }] = useUpdateProductMutation()
-  const [deleteProduct, { isLoading: deleting }] = useDeleteProductMutation()
+  const [createProduct, { isLoading: creating }] = useCreateFmcgProductMutation()
+  const [updateProduct, { isLoading: updating }] = useUpdateFmcgProductMutation()
+  const [deleteProduct, { isLoading: deleting }] = useDeleteFmcgProductMutation()
 
   const products = data?.products || []
   const pagination = data?.pagination

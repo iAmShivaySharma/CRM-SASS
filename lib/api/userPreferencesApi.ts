@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface UserPreferences {
   theme?: {
@@ -52,13 +51,10 @@ export interface PreferencesResponse {
   message?: string
 }
 
-export const userPreferencesApi = createApi({
-  reducerPath: 'userPreferencesApi',
-  baseQuery: createBaseQuery('/api/users/preferences'),
-  tagTypes: ['UserPreferences'],
+const userPreferencesApi = api.injectEndpoints({
   endpoints: builder => ({
     getUserPreferences: builder.query<PreferencesResponse, void>({
-      query: () => '',
+      query: () => 'api/users/preferences',
       providesTags: ['UserPreferences'],
     }),
     updateUserPreferences: builder.mutation<
@@ -66,13 +62,13 @@ export const userPreferencesApi = createApi({
       UserPreferences
     >({
       query: preferences => ({
-        url: '',
+        url: 'api/users/preferences',
         method: 'PUT',
         body: preferences,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(userPreferencesApi.util.invalidateTags(['UserPreferences']))
+        dispatch(api.util.invalidateTags(['UserPreferences']))
       },
     }),
     patchUserPreferences: builder.mutation<
@@ -80,13 +76,13 @@ export const userPreferencesApi = createApi({
       Partial<UserPreferences>
     >({
       query: preferences => ({
-        url: '',
+        url: 'api/users/preferences',
         method: 'PATCH',
         body: preferences,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(userPreferencesApi.util.invalidateTags(['UserPreferences']))
+        dispatch(api.util.invalidateTags(['UserPreferences']))
       },
     }),
   }),

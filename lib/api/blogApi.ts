@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface BlogAuthor {
   name: string
@@ -74,10 +73,7 @@ export interface CreateBlogBody {
   metaDescription?: string
 }
 
-export const blogApi = createApi({
-  reducerPath: 'blogApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['Blog', 'BlogCategory'],
+const blogApi = api.injectEndpoints({
   endpoints: builder => ({
     getBlogs: builder.query<
       BlogsResponse,

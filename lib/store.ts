@@ -1,43 +1,45 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query/react'
-import { mongoApi } from './api/mongoApi'
-import { userPreferencesApi } from './api/userPreferencesApi'
-import { webhookApi } from './api/webhookApi'
-import { authApi } from './api/authApi'
-import { contactsApi } from './api/contactsApi'
-import { workspaceApi } from './api/workspaceApi'
-import { analyticsApi } from './api/analyticsApi'
-import { notificationsApi } from './api/notificationsApi'
-import { chatApi } from './api/chatApi'
-import { roleApi } from './api/roleApi'
-import { projectsApi } from './api/projectsApi'
-import { tasksApi } from './api/tasksApi'
-import { enginesApi } from './api/enginesApi'
-import { emailApi } from './api/emailApi'
-import { attendanceApi } from './api/attendanceApi'
-import { shiftsApi } from './api/shiftsApi'
-import { leaveApi } from './api/leaveApi'
-import { assetApi } from './api/assetApi'
-import { commentsApi } from './api/commentsApi'
-import { invoiceApi } from './api/invoiceApi'
-import { dealsApi } from './api/dealsApi'
-import { fmcgApi } from './api/fmcgApi'
-import { smsApi } from './api/smsApi'
-import { whatsappApi } from './api/whatsappApi'
-import { appointmentApi } from './api/appointmentApi'
-import { quotationApi } from './api/quotationApi'
-import { inventoryApi } from './api/inventoryApi'
-import { employeesApi } from './api/employeesApi'
-import { emailSequencesApi } from './api/emailSequencesApi'
-import { calendarApi } from './api/calendarApi'
-import { referralsApi } from './api/referralsApi'
-import { blogApi } from './api/blogApi'
-import { projectMembersApi } from './api/projectMembersApi'
-import { documentsApi } from './api/documentsApi'
-import { complianceApi } from './api/complianceApi'
-import { campaignApi } from './api/campaignApi'
-import { socialApi } from './api/socialApi'
-import { callsApi } from './api/callsApi'
+import { api } from './api/index'
+import './api/authApi'
+import './api/contactsApi'
+import './api/analyticsApi'
+import './api/chatApi'
+import './api/attendanceApi'
+import './api/assetApi'
+import './api/commentsApi'
+import './api/appointmentApi'
+import './api/calendarApi'
+import './api/blogApi'
+import './api/complianceApi'
+import './api/campaignApi'
+import './api/callsApi'
+import './api/mongoApi'
+import './api/dealsApi'
+import './api/documentsApi'
+import './api/emailApi'
+import './api/emailSequencesApi'
+import './api/employeesApi'
+import './api/enginesApi'
+import './api/fmcgApi'
+import './api/inventoryApi'
+import './api/invoiceApi'
+import './api/leadFormApi'
+import './api/leaveApi'
+import './api/notificationsApi'
+import './api/projectMembersApi'
+import './api/projectsApi'
+import './api/quotationApi'
+import './api/referralsApi'
+import './api/roleApi'
+import './api/shiftsApi'
+import './api/smsApi'
+import './api/socialApi'
+import './api/tasksApi'
+import './api/userPreferencesApi'
+import './api/webhookApi'
+import './api/whatsappApi'
+import './api/workspaceApi'
 import authReducer from './slices/authSlice'
 import themeReducer from './slices/themeSlice'
 import workspaceReducer from './slices/workspaceSlice'
@@ -53,87 +55,13 @@ export const store = configureStore({
     auth: authReducer,
     theme: themeReducer,
     workspace: workspaceReducer,
-    [mongoApi.reducerPath]: mongoApi.reducer,
-    [userPreferencesApi.reducerPath]: userPreferencesApi.reducer,
-    [webhookApi.reducerPath]: webhookApi.reducer,
-    [authApi.reducerPath]: authApi.reducer,
-    [contactsApi.reducerPath]: contactsApi.reducer,
-    [workspaceApi.reducerPath]: workspaceApi.reducer,
-    [analyticsApi.reducerPath]: analyticsApi.reducer,
-    [notificationsApi.reducerPath]: notificationsApi.reducer,
-    [chatApi.reducerPath]: chatApi.reducer,
-    [roleApi.reducerPath]: roleApi.reducer,
-    [projectsApi.reducerPath]: projectsApi.reducer,
-    [tasksApi.reducerPath]: tasksApi.reducer,
-    [enginesApi.reducerPath]: enginesApi.reducer,
-    [attendanceApi.reducerPath]: attendanceApi.reducer,
-    [shiftsApi.reducerPath]: shiftsApi.reducer,
-    [leaveApi.reducerPath]: leaveApi.reducer,
-    [assetApi.reducerPath]: assetApi.reducer,
-    [emailApi.reducerPath]: emailApi.reducer,
-    [commentsApi.reducerPath]: commentsApi.reducer,
-    [invoiceApi.reducerPath]: invoiceApi.reducer,
-    [dealsApi.reducerPath]: dealsApi.reducer,
-    [fmcgApi.reducerPath]: fmcgApi.reducer,
-    [smsApi.reducerPath]: smsApi.reducer,
-    [whatsappApi.reducerPath]: whatsappApi.reducer,
-    [appointmentApi.reducerPath]: appointmentApi.reducer,
-    [quotationApi.reducerPath]: quotationApi.reducer,
-    [inventoryApi.reducerPath]: inventoryApi.reducer,
-    [employeesApi.reducerPath]: employeesApi.reducer,
-    [emailSequencesApi.reducerPath]: emailSequencesApi.reducer,
-    [calendarApi.reducerPath]: calendarApi.reducer,
-    [referralsApi.reducerPath]: referralsApi.reducer,
-    [blogApi.reducerPath]: blogApi.reducer,
-    [projectMembersApi.reducerPath]: projectMembersApi.reducer,
-    [documentsApi.reducerPath]: documentsApi.reducer,
-    [complianceApi.reducerPath]: complianceApi.reducer,
-    [campaignApi.reducerPath]: campaignApi.reducer,
-    [socialApi.reducerPath]: socialApi.reducer,
-    [callsApi.reducerPath]: callsApi.reducer,
+    [api.reducerPath]: api.reducer,
   } as any,
   preloadedState,
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
       persistenceMiddleware,
-      mongoApi.middleware,
-      userPreferencesApi.middleware,
-      webhookApi.middleware,
-      authApi.middleware,
-      contactsApi.middleware,
-      workspaceApi.middleware,
-      analyticsApi.middleware,
-      notificationsApi.middleware,
-      chatApi.middleware,
-      roleApi.middleware,
-      projectsApi.middleware,
-      tasksApi.middleware,
-      enginesApi.middleware,
-      attendanceApi.middleware,
-      shiftsApi.middleware,
-      leaveApi.middleware,
-      assetApi.middleware,
-      emailApi.middleware,
-      commentsApi.middleware,
-      invoiceApi.middleware,
-      dealsApi.middleware,
-      fmcgApi.middleware,
-      smsApi.middleware,
-      whatsappApi.middleware,
-      appointmentApi.middleware,
-      quotationApi.middleware,
-      inventoryApi.middleware,
-      employeesApi.middleware,
-      emailSequencesApi.middleware,
-      calendarApi.middleware,
-      referralsApi.middleware,
-      blogApi.middleware,
-      projectMembersApi.middleware,
-      documentsApi.middleware,
-      complianceApi.middleware,
-      campaignApi.middleware,
-      socialApi.middleware,
-      callsApi.middleware
+      api.middleware
     ),
 })
 

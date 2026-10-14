@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Role {
   id: string
@@ -38,50 +37,47 @@ export interface UpdateRoleRequest {
   permissions?: string[]
 }
 
-export const roleApi = createApi({
-  reducerPath: 'roleApi',
-  baseQuery: createBaseQuery('/api/roles'),
-  tagTypes: ['Role', 'Permission'],
+const roleApi = api.injectEndpoints({
   endpoints: builder => ({
     getRoles: builder.query<Role[], string>({
-      query: (workspaceId) => `?workspaceId=${workspaceId}`,
+      query: (workspaceId) => `api/roles?workspaceId=${workspaceId}`,
       transformResponse: (response: any) => response.roles || response,
       providesTags: ['Role'],
     }),
     getRole: builder.query<Role, string>({
-      query: id => `/${id}`,
+      query: id => `api/roles/${id}`,
       providesTags: (result, error, id) => [{ type: 'Role', id }],
     }),
     createRole: builder.mutation<Role, CreateRoleRequest>({
       query: role => ({
-        url: '',
+        url: 'api/roles',
         method: 'POST',
         body: role,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(roleApi.util.invalidateTags(['Role']))
+        dispatch(api.util.invalidateTags(['Role']))
       },
     }),
     updateRole: builder.mutation<Role, UpdateRoleRequest>({
       query: ({ id, ...patch }) => ({
-        url: `/${id}`,
+        url: `api/roles/${id}`,
         method: 'PATCH',
         body: patch,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(roleApi.util.invalidateTags([{ type: 'Role', id }]))
+        dispatch(api.util.invalidateTags([{ type: 'Role', id }]))
       },
     }),
     deleteRole: builder.mutation<void, string>({
       query: id => ({
-        url: `/${id}`,
+        url: `api/roles/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(roleApi.util.invalidateTags(['Role']))
+        dispatch(api.util.invalidateTags(['Role']))
       },
     }),
   }),

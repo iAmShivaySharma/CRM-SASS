@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { Loader2, MessageSquare } from 'lucide-react'
-import { useGetMessagesQuery, type Message } from '@/lib/api/chatApi'
+import { useGetChatMessagesQuery, type Message } from '@/lib/api/chatApi'
 import { useSocket } from '@/lib/context/SocketContext'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -39,7 +39,7 @@ export const MessageList: React.FC<MessageListProps> = ({
     isLoading,
     error,
     isFetching,
-  } = useGetMessagesQuery(
+  } = useGetChatMessagesQuery(
     { chatRoomId, page, limit: 50 },
     { skip: !chatRoomId }
   )

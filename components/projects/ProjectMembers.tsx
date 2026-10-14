@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
-  useRemoveProjectMemberMutation,
+  useRemoveProjectMemberInProjectMutation,
   type ProjectMember,
 } from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
@@ -44,7 +44,7 @@ export function ProjectMembers({
 }: ProjectMembersProps) {
   const [showInviteDialog, setShowInviteDialog] = useState(false)
   const [removeProjectMember, { isLoading: isRemovingMember }] =
-    useRemoveProjectMemberMutation()
+    useRemoveProjectMemberInProjectMutation()
 
   const existingMemberIds = members.flatMap(member =>
     member.userId ? [member.userId] : []

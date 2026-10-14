@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface CallSettingsResponse {
   success: boolean
@@ -41,10 +40,7 @@ export interface InitiateCallResponse {
   message?: string
 }
 
-export const callsApi = createApi({
-  reducerPath: 'callsApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['CallSettings', 'CallLog'],
+const callsApi = api.injectEndpoints({
   endpoints: builder => ({
     getCallSettings: builder.query<
       CallSettingsResponse,

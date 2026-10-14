@@ -11,7 +11,7 @@ import {
   type Sprint,
   type Task,
   useGetSprintsQuery,
-  useGetTasksQuery,
+  useGetProjectTasksQuery,
   useStartSprintMutation,
   useAssignTasksToSprintMutation,
 } from '@/lib/api/projectsApi'
@@ -40,7 +40,7 @@ export function SprintBoard({ projectId, onEditTask }: SprintBoardProps) {
     { skip: !projectId }
   )
 
-  const { data: allTasksData, isLoading: tasksLoading } = useGetTasksQuery(
+  const { data: allTasksData, isLoading: tasksLoading } = useGetProjectTasksQuery(
     { projectId, workspaceId: currentWorkspace?.id || '' },
     { skip: !projectId || !currentWorkspace?.id }
   )

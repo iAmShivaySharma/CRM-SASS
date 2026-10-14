@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useGetEmployeesQuery } from '@/lib/api/attendanceApi'
+import { useGetAttendanceEmployeesQuery } from '@/lib/api/attendanceApi'
 import { useAppSelector } from '@/lib/hooks'
 
 interface AttendanceOverviewProps {
@@ -44,7 +44,7 @@ export function AttendanceOverview({
     data: employeesData,
     isLoading,
     error,
-  } = useGetEmployeesQuery(
+  } = useGetAttendanceEmployeesQuery(
     {
       limit: detailed ? 50 : 10,
       includeAttendance: true,

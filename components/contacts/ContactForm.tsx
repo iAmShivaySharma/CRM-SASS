@@ -27,7 +27,7 @@ import {
 } from '@/lib/api/contactsApi'
 import {
   useGetWorkspaceMembersQuery,
-  useGetTagsQuery,
+  useGetWorkspaceTagsQuery,
 } from '@/lib/api/mongoApi'
 
 // Form validation schema
@@ -125,7 +125,7 @@ export function ContactForm({
   const { data: membersData } = useGetWorkspaceMembersQuery(workspaceId, {
     skip: !workspaceId,
   })
-  const { data: tagsData } = useGetTagsQuery(workspaceId, {
+  const { data: tagsData } = useGetWorkspaceTagsQuery(workspaceId, {
     skip: !workspaceId,
   })
   const [createContact] = useCreateContactMutation()

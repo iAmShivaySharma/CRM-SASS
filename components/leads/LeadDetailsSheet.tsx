@@ -44,7 +44,7 @@ import { useAppSelector } from '@/lib/hooks'
 import { useWorkspaceFormatting } from '@/lib/utils/workspace-formatting'
 import {
   useGetLeadStatusesQuery,
-  useGetTagsQuery,
+  useGetWorkspaceTagsQuery,
   useUpdateLeadMutation,
   useGetWorkspaceMembersQuery,
 } from '@/lib/api/mongoApi'
@@ -124,7 +124,7 @@ export function LeadDetailsSheet({
       skip: !currentWorkspace?.id,
     }
   )
-  const { data: tagsData } = useGetTagsQuery(currentWorkspace?.id || '', {
+  const { data: tagsData } = useGetWorkspaceTagsQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
   const { data: membersData } = useGetWorkspaceMembersQuery(

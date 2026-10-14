@@ -19,8 +19,8 @@ import jsPDF from 'jspdf'
 import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import {
-  useCreateDocumentMutation,
-  useDeleteDocumentMutation,
+  useCreateProjectDocumentMutation,
+  useDeleteProjectDocumentMutation,
   type Document,
 } from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
@@ -68,9 +68,9 @@ export function ProjectDocuments({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const [createDocument, { isLoading: isCreatingDoc }] =
-    useCreateDocumentMutation()
+    useCreateProjectDocumentMutation()
   const [deleteDocument, { isLoading: isDeletingDoc }] =
-    useDeleteDocumentMutation()
+    useDeleteProjectDocumentMutation()
 
   const getTypeColor = (type: string) => {
     switch (type) {

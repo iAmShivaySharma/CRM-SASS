@@ -10,7 +10,7 @@ import { EmployeeList } from '@/components/hr/EmployeeList'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetWorkspaceMembersQuery,
-  useGetRolesQuery,
+  useGetWorkspaceSettingsRolesQuery,
 } from '@/lib/api/mongoApi'
 import { usePermissions, Permission } from '@/hooks/usePermissions'
 import { AccessDenied } from '@/components/ui/access-denied'
@@ -25,7 +25,7 @@ export default function EmployeesPage() {
     { skip: !currentWorkspace?.id }
   )
 
-  const { data: rolesData } = useGetRolesQuery(currentWorkspace?.id || '', {
+  const { data: rolesData } = useGetWorkspaceSettingsRolesQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
 

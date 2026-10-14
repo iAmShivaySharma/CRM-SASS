@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface ComplianceTaskRecord {
   _id: string
@@ -107,98 +106,95 @@ interface DocumentsQueryParams {
   limit?: number
 }
 
-export const complianceApi = createApi({
-  reducerPath: 'complianceApi',
-  baseQuery: createBaseQuery('/api'),
-  tagTypes: ['ComplianceTask', 'ComplianceDocument'],
+const complianceApi = api.injectEndpoints({
   endpoints: builder => ({
-    getTasks: builder.query<TasksResponse, TasksQueryParams>({
+    getComplianceTasks: builder.query<TasksResponse, TasksQueryParams>({
       query: params => {
         const searchParams = new URLSearchParams()
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== '') searchParams.set(k, String(v))
         })
-        return `/compliance/tasks?${searchParams}`
+        return `api/compliance/tasks?${searchParams}`
       },
       providesTags: ['ComplianceTask'],
     }),
 
-    createTask: builder.mutation<
+    createComplianceTask: builder.mutation<
       { success: boolean; task: ComplianceTaskRecord },
       Partial<ComplianceTaskRecord> & { workspaceId: string }
     >({
       query: body => ({
-        url: '/compliance/tasks',
+        url: 'api/compliance/tasks',
         method: 'POST',
         body,
       }),
       invalidatesTags: ['ComplianceTask'],
     }),
 
-    updateTask: builder.mutation<
+    updateComplianceTask: builder.mutation<
       { success: boolean; task: ComplianceTaskRecord },
       { id: string; workspaceId: string } & Partial<ComplianceTaskRecord>
     >({
       query: ({ id, ...body }) => ({
-        url: `/compliance/tasks/${id}`,
+        url: `api/compliance/tasks/${id}`,
         method: 'PUT',
         body,
       }),
       invalidatesTags: ['ComplianceTask'],
     }),
 
-    deleteTask: builder.mutation<
+    deleteComplianceTask: builder.mutation<
       { success: boolean },
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `/compliance/tasks/${id}?workspaceId=${workspaceId}`,
+        url: `api/compliance/tasks/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['ComplianceTask'],
     }),
 
-    getDocuments: builder.query<DocumentsResponse, DocumentsQueryParams>({
+    getComplianceDocuments: builder.query<DocumentsResponse, DocumentsQueryParams>({
       query: params => {
         const searchParams = new URLSearchParams()
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== '') searchParams.set(k, String(v))
         })
-        return `/compliance/documents?${searchParams}`
+        return `api/compliance/documents?${searchParams}`
       },
       providesTags: ['ComplianceDocument'],
     }),
 
-    createDocument: builder.mutation<
+    createComplianceDocument: builder.mutation<
       { success: boolean; document: ComplianceDocumentRecord },
       Partial<ComplianceDocumentRecord> & { workspaceId: string }
     >({
       query: body => ({
-        url: '/compliance/documents',
+        url: 'api/compliance/documents',
         method: 'POST',
         body,
       }),
       invalidatesTags: ['ComplianceDocument'],
     }),
 
-    updateDocument: builder.mutation<
+    updateComplianceDocument: builder.mutation<
       { success: boolean; document: ComplianceDocumentRecord },
       { id: string; workspaceId: string } & Partial<ComplianceDocumentRecord>
     >({
       query: ({ id, ...body }) => ({
-        url: `/compliance/documents/${id}`,
+        url: `api/compliance/documents/${id}`,
         method: 'PUT',
         body,
       }),
       invalidatesTags: ['ComplianceDocument'],
     }),
 
-    deleteDocument: builder.mutation<
+    deleteComplianceDocument: builder.mutation<
       { success: boolean },
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `/compliance/documents/${id}?workspaceId=${workspaceId}`,
+        url: `api/compliance/documents/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['ComplianceDocument'],
@@ -207,12 +203,12 @@ export const complianceApi = createApi({
 })
 
 export const {
-  useGetTasksQuery,
-  useCreateTaskMutation,
-  useUpdateTaskMutation,
-  useDeleteTaskMutation,
-  useGetDocumentsQuery,
-  useCreateDocumentMutation,
-  useUpdateDocumentMutation,
-  useDeleteDocumentMutation,
+  useGetComplianceTasksQuery,
+  useCreateComplianceTaskMutation,
+  useUpdateComplianceTaskMutation,
+  useDeleteComplianceTaskMutation,
+  useGetComplianceDocumentsQuery,
+  useCreateComplianceDocumentMutation,
+  useUpdateComplianceDocumentMutation,
+  useDeleteComplianceDocumentMutation,
 } = complianceApi

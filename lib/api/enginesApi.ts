@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface WorkflowCatalogItem {
   _id: string
@@ -169,17 +168,7 @@ export interface PendingInputsResponse {
   }
 }
 
-export const enginesApi = createApi({
-  reducerPath: 'enginesApi',
-  baseQuery: createBaseQuery('/api/engines'),
-  tagTypes: [
-    'WorkflowCatalog',
-    'WorkflowCategory',
-    'WorkflowExecution',
-    'ApiKey',
-    'SyncStatus',
-    'PendingInput',
-  ],
+const enginesApi = api.injectEndpoints({
   endpoints: builder => ({
     getWorkflowCatalog: builder.query<
       WorkflowCatalogResponse,
@@ -192,7 +181,7 @@ export const enginesApi = createApi({
       }
     >({
       query: params => ({
-        url: '/catalog',
+        url: 'api/engines/catalog',
         params: Object.fromEntries(
           Object.entries(params).filter(([, value]) => value !== undefined)
         ),
@@ -201,19 +190,19 @@ export const enginesApi = createApi({
     }),
 
     getWorkflowDetails: builder.query<{ data: WorkflowCatalogItem }, string>({
-      query: id => `/workflow/${id}`,
+      query: id => `api/engines/workflow/${id}`,
       providesTags: (result, error, id) => [{ type: 'WorkflowCatalog', id }],
     }),
 
     syncWorkflows: builder.mutation<SyncWorkflowsResponse, void>({
       query: () => ({
-        url: '/sync-workflows',
+        url: 'api/engines/sync',
         method: 'POST',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          enginesApi.util.invalidateTags([
+          api.util.invalidateTags([
             'WorkflowCatalog',
             'WorkflowCategory',
             'SyncStatus',
@@ -230,7 +219,7 @@ export const enginesApi = createApi({
       },
       void
     >({
-      query: () => '/sync-workflows',
+      query: () => 'api/engines/sync',
       providesTags: ['SyncStatus'],
     }),
 
@@ -238,14 +227,14 @@ export const enginesApi = createApi({
       WorkflowExecutionResponse,
       WorkflowExecutionRequest
     >({
-      query: data => ({
-        url: '/execute',
+      query: ({ workflowId, ...body }) => ({
+        url: `api/engines/execute/${workflowId}`,
         method: 'POST',
-        body: data,
+        body,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(enginesApi.util.invalidateTags(['WorkflowExecution']))
+        dispatch(api.util.invalidateTags(['WorkflowExecution']))
       },
     }),
 
@@ -267,7 +256,7 @@ export const enginesApi = createApi({
       }
     >({
       query: params => ({
-        url: '/executions',
+        url: 'api/engines/executions',
         params: Object.fromEntries(
           Object.entries(params).filter(([, value]) => value !== undefined)
         ),
@@ -279,7 +268,7 @@ export const enginesApi = createApi({
       { data: WorkflowExecutionResponse },
       string
     >({
-      query: id => `/executions/${id}`,
+      query: id => `api/engines/executions/${id}`,
       providesTags: (result, error, id) => [{ type: 'WorkflowExecution', id }],
     }),
 
@@ -302,7 +291,7 @@ export const enginesApi = createApi({
       },
       void
     >({
-      query: () => '/api-keys',
+      query: () => 'api/engines/api-keys',
       providesTags: ['ApiKey'],
     }),
 
@@ -318,13 +307,13 @@ export const enginesApi = createApi({
       }
     >({
       query: data => ({
-        url: '/api-keys',
+        url: 'api/engines/api-keys',
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(enginesApi.util.invalidateTags(['ApiKey']))
+        dispatch(api.util.invalidateTags(['ApiKey']))
       },
     }),
 
@@ -340,24 +329,24 @@ export const enginesApi = createApi({
       }
     >({
       query: ({ id, ...data }) => ({
-        url: `/api-keys/${id}`,
+        url: `api/engines/api-keys/${id}`,
         method: 'PATCH',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(enginesApi.util.invalidateTags(['ApiKey']))
+        dispatch(api.util.invalidateTags(['ApiKey']))
       },
     }),
 
     deleteApiKey: builder.mutation<{ success: boolean }, string>({
       query: id => ({
-        url: `/api-keys/${id}`,
+        url: `api/engines/api-keys/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(enginesApi.util.invalidateTags(['ApiKey']))
+        dispatch(api.util.invalidateTags(['ApiKey']))
       },
     }),
 
@@ -373,7 +362,7 @@ export const enginesApi = createApi({
       }
     >({
       query: data => ({
-        url: '/api-keys/validate',
+        url: 'api/engines/api-keys/validate',
         method: 'POST',
         body: data,
       }),
@@ -397,7 +386,7 @@ export const enginesApi = createApi({
       { timeframe?: number }
     >({
       query: params => ({
-        url: '/usage',
+        url: 'api/engines/usage',
         params,
       }),
       providesTags: ['WorkflowExecution'],
@@ -415,7 +404,7 @@ export const enginesApi = createApi({
       },
       void
     >({
-      query: () => '/billing',
+      query: () => 'api/engines/billing',
       providesTags: ['WorkflowExecution'],
     }),
 
@@ -423,7 +412,7 @@ export const enginesApi = createApi({
       { success: boolean; data: ExecutionInputRequirement },
       string
     >({
-      query: executionId => `/executions/${executionId}/input`,
+      query: executionId => `api/engines/executions/${executionId}/input`,
       providesTags: (result, error, id) => [{ type: 'WorkflowExecution', id }],
     }),
 
@@ -447,14 +436,14 @@ export const enginesApi = createApi({
       }
     >({
       query: ({ executionId, ...body }) => ({
-        url: `/executions/${executionId}/input`,
+        url: `api/engines/executions/${executionId}/input`,
         method: 'POST',
         body,
       }),
       async onQueryStarted({ executionId }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          enginesApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'WorkflowExecution', id: executionId },
             'WorkflowExecution',
             'PendingInput',
@@ -468,7 +457,7 @@ export const enginesApi = createApi({
       { limit?: number; priority?: string; workflowId?: string }
     >({
       query: params => ({
-        url: '/input/pending',
+        url: 'api/engines/input/pending',
         params: Object.fromEntries(
           Object.entries(params).filter(([, value]) => value !== undefined)
         ),

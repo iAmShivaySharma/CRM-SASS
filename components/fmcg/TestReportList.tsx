@@ -52,7 +52,7 @@ import {
   useUpdateTestReportMutation,
   useDeleteTestReportMutation,
   useGetBatchesQuery,
-  useGetProductsQuery,
+  useGetFmcgProductsQuery,
   type FmcgTestReportRecord,
   type FmcgTestParameter,
 } from '@/lib/api/fmcgApi'
@@ -131,7 +131,7 @@ export function TestReportList({ workspaceId }: TestReportListProps) {
   })
 
   const { data: batchesData } = useGetBatchesQuery({ workspaceId, limit: 200 })
-  const { data: productsData } = useGetProductsQuery({ workspaceId, limit: 200 })
+  const { data: productsData } = useGetFmcgProductsQuery({ workspaceId, limit: 200 })
   const batches = batchesData?.batches || []
   const products = productsData?.products || []
 

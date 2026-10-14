@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface PipelineStage {
   id: string
@@ -125,14 +124,10 @@ export interface DealAnalytics {
   }>
 }
 
-export const dealsApi = createApi({
-  reducerPath: 'dealsApi',
-  baseQuery: createBaseQuery('/api'),
-  tagTypes: ['Pipeline', 'Deal', 'DealActivity', 'DealAnalytics'],
+const dealsApi = api.injectEndpoints({
   endpoints: builder => ({
-    // Pipelines
     getPipelines: builder.query<Pipeline[], string>({
-      query: workspaceId => `/pipelines?workspaceId=${workspaceId}`,
+      query: workspaceId => `api/pipelines?workspaceId=${workspaceId}`,
       transformResponse: (response: any) => response.pipelines,
       providesTags: ['Pipeline'],
     }),
@@ -142,7 +137,7 @@ export const dealsApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) =>
-        `/pipelines/${id}?workspaceId=${workspaceId}`,
+        `api/pipelines/${id}?workspaceId=${workspaceId}`,
       providesTags: (_result, _error, { id }) => [{ type: 'Pipeline', id }],
     }),
 
@@ -151,7 +146,7 @@ export const dealsApi = createApi({
       Partial<Pipeline> & { workspaceId: string }
     >({
       query: body => ({
-        url: '/pipelines',
+        url: 'api/pipelines',
         method: 'POST',
         body,
       }),
@@ -163,7 +158,7 @@ export const dealsApi = createApi({
       { id: string } & Partial<Pipeline> & { workspaceId: string }
     >({
       query: ({ id, ...body }) => ({
-        url: `/pipelines/${id}`,
+        url: `api/pipelines/${id}`,
         method: 'PUT',
         body,
       }),
@@ -173,7 +168,7 @@ export const dealsApi = createApi({
     deletePipeline: builder.mutation<void, { id: string; workspaceId: string }>(
       {
         query: ({ id, workspaceId }) => ({
-          url: `/pipelines/${id}?workspaceId=${workspaceId}`,
+          url: `api/pipelines/${id}?workspaceId=${workspaceId}`,
           method: 'DELETE',
         }),
         invalidatesTags: ['Pipeline'],
@@ -186,7 +181,7 @@ export const dealsApi = createApi({
       { pipelineId: string; workspaceId: string } & Partial<PipelineStage>
     >({
       query: ({ pipelineId, ...body }) => ({
-        url: `/pipelines/${pipelineId}/stages`,
+        url: `api/pipelines/${pipelineId}/stages`,
         method: 'POST',
         body,
       }),
@@ -202,7 +197,7 @@ export const dealsApi = createApi({
       } & Partial<PipelineStage>
     >({
       query: ({ pipelineId, stageId, ...body }) => ({
-        url: `/pipelines/${pipelineId}/stages/${stageId}`,
+        url: `api/pipelines/${pipelineId}/stages/${stageId}`,
         method: 'PUT',
         body,
       }),
@@ -214,7 +209,7 @@ export const dealsApi = createApi({
       { pipelineId: string; stageId: string; workspaceId: string }
     >({
       query: ({ pipelineId, stageId, workspaceId }) => ({
-        url: `/pipelines/${pipelineId}/stages/${stageId}?workspaceId=${workspaceId}`,
+        url: `api/pipelines/${pipelineId}/stages/${stageId}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Pipeline'],
@@ -255,7 +250,7 @@ export const dealsApi = createApi({
             searchParams.set(key, String(value))
           }
         })
-        return `/deals?${searchParams.toString()}`
+        return `api/deals?${searchParams.toString()}`
       },
       providesTags: result =>
         result
@@ -273,7 +268,7 @@ export const dealsApi = createApi({
       { deal: Deal; activities: DealActivity[] },
       { id: string; workspaceId: string }
     >({
-      query: ({ id, workspaceId }) => `/deals/${id}?workspaceId=${workspaceId}`,
+      query: ({ id, workspaceId }) => `api/deals/${id}?workspaceId=${workspaceId}`,
       providesTags: (_result, _error, { id }) => [{ type: 'Deal', id }],
     }),
 
@@ -287,7 +282,7 @@ export const dealsApi = createApi({
       }
     >({
       query: body => ({
-        url: '/deals',
+        url: 'api/deals',
         method: 'POST',
         body,
       }),
@@ -303,7 +298,7 @@ export const dealsApi = createApi({
       { id: string; workspaceId: string } & Partial<Deal>
     >({
       query: ({ id, ...body }) => ({
-        url: `/deals/${id}`,
+        url: `api/deals/${id}`,
         method: 'PUT',
         body,
       }),
@@ -316,7 +311,7 @@ export const dealsApi = createApi({
 
     deleteDeal: builder.mutation<void, { id: string; workspaceId: string }>({
       query: ({ id, workspaceId }) => ({
-        url: `/deals/${id}?workspaceId=${workspaceId}`,
+        url: `api/deals/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       invalidatesTags: [
@@ -331,7 +326,7 @@ export const dealsApi = createApi({
       { id: string; stageId: string; workspaceId: string }
     >({
       query: ({ id, ...body }) => ({
-        url: `/deals/${id}/move`,
+        url: `api/deals/${id}/move-stage`,
         method: 'POST',
         body,
       }),
@@ -353,8 +348,8 @@ export const dealsApi = createApi({
       }
     >({
       query: ({ id, ...body }) => ({
-        url: `/deals/${id}/won`,
-        method: 'POST',
+        url: `api/deals/${id}/won`,
+        method: 'PUT',
         body,
       }),
       invalidatesTags: [
@@ -369,8 +364,8 @@ export const dealsApi = createApi({
       { id: string; workspaceId: string; lostReason?: string }
     >({
       query: ({ id, ...body }) => ({
-        url: `/deals/${id}/lost`,
-        method: 'POST',
+        url: `api/deals/${id}/lost`,
+        method: 'PUT',
         body,
       }),
       invalidatesTags: [
@@ -394,7 +389,7 @@ export const dealsApi = createApi({
       { dealId: string; workspaceId: string; page?: number; limit?: number }
     >({
       query: ({ dealId, workspaceId, page = 1, limit = 50 }) =>
-        `/deals/${dealId}/activities?workspaceId=${workspaceId}&page=${page}&limit=${limit}`,
+        `api/deals/${dealId}/activities?workspaceId=${workspaceId}&page=${page}&limit=${limit}`,
       providesTags: ['DealActivity'],
     }),
 
@@ -413,7 +408,7 @@ export const dealsApi = createApi({
         Object.entries(params).forEach(([key, value]) => {
           if (value) searchParams.set(key, value)
         })
-        return `/deals/analytics?${searchParams.toString()}`
+        return `api/deals/analytics?${searchParams.toString()}`
       },
       transformResponse: (response: any) => response.analytics,
       providesTags: ['DealAnalytics'],

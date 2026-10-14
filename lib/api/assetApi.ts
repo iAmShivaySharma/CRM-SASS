@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface AssetRecord {
   _id: string
@@ -125,10 +124,7 @@ export interface AssetStats {
   overdueReturns: number
 }
 
-export const assetApi = createApi({
-  reducerPath: 'assetApi',
-  baseQuery: createBaseQuery('/api/assets'),
-  tagTypes: ['Asset', 'AssetStats'],
+const assetApi = api.injectEndpoints({
   endpoints: builder => ({
     getAssets: builder.query<
       {
@@ -149,13 +145,13 @@ export const assetApi = createApi({
             searchParams.append(key, value.toString())
           }
         })
-        return `?${searchParams.toString()}`
+        return `api/assets?${searchParams.toString()}`
       },
       providesTags: ['Asset'],
     }),
 
     getAsset: builder.query<{ asset: AssetRecord }, string>({
-      query: id => `/${id}`,
+      query: id => `api/assets/${id}`,
       providesTags: (result, error, id) => [{ type: 'Asset', id }],
     }),
 
@@ -164,13 +160,13 @@ export const assetApi = createApi({
       CreateAssetRequest
     >({
       query: body => ({
-        url: '',
+        url: 'api/assets',
         method: 'POST',
         body,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(assetApi.util.invalidateTags(['Asset', 'AssetStats']))
+        dispatch(api.util.invalidateTags(['Asset', 'AssetStats']))
       },
     }),
 
@@ -179,14 +175,14 @@ export const assetApi = createApi({
       UpdateAssetRequest
     >({
       query: ({ id, ...body }) => ({
-        url: `/${id}`,
+        url: `api/assets/${id}`,
         method: 'PUT',
         body,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          assetApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Asset', id },
             'Asset',
             'AssetStats',
@@ -200,12 +196,12 @@ export const assetApi = createApi({
       string
     >({
       query: id => ({
-        url: `/${id}`,
+        url: `api/assets/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(assetApi.util.invalidateTags(['Asset', 'AssetStats']))
+        dispatch(api.util.invalidateTags(['Asset', 'AssetStats']))
       },
     }),
 
@@ -215,7 +211,7 @@ export const assetApi = createApi({
         if (params.workspaceId) {
           searchParams.append('workspaceId', params.workspaceId)
         }
-        return `../assets/stats?${searchParams.toString()}`
+        return `api/assets/stats?${searchParams.toString()}`
       },
       providesTags: ['AssetStats'],
     }),

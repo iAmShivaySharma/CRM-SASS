@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Product {
   _id: string
@@ -62,10 +61,7 @@ export interface AnalyticsResponse {
   analytics: ProductAnalytics
 }
 
-export const inventoryApi = createApi({
-  reducerPath: 'inventoryApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['Product', 'StockMovement'],
+const inventoryApi = api.injectEndpoints({
   endpoints: builder => ({
     getProducts: builder.query<ProductsResponse, { workspaceId: string; category?: string; search?: string }>({
       query: ({ workspaceId, ...rest }) => {

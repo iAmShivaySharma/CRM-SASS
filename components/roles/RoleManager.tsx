@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { useAppSelector } from '@/lib/hooks'
 import { CardSkeleton, PageHeaderSkeleton } from '@/components/ui/skeleton'
-import { useGetRolesQuery, useDeleteRoleMutation } from '@/lib/api/mongoApi'
+import { useGetWorkspaceSettingsRolesQuery, useDeleteWorkspaceSettingsRoleMutation } from '@/lib/api/mongoApi'
 import { RoleForm } from './RoleForm'
 
 export function RoleManager() {
@@ -29,10 +29,10 @@ export function RoleManager() {
     data: rolesData,
     isLoading,
     refetch,
-  } = useGetRolesQuery(currentWorkspace?.id || '', {
+  } = useGetWorkspaceSettingsRolesQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
-  const [deleteRole, { isLoading: isDeletingRole }] = useDeleteRoleMutation()
+  const [deleteRole, { isLoading: isDeletingRole }] = useDeleteWorkspaceSettingsRoleMutation()
 
   const roles = rolesData?.roles || []
 

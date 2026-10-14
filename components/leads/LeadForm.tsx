@@ -21,7 +21,7 @@ import { useAppSelector } from '@/lib/hooks'
 import {
   useCreateLeadMutation,
   useGetLeadStatusesQuery,
-  useGetTagsQuery,
+  useGetWorkspaceTagsQuery,
 } from '@/lib/api/mongoApi'
 import {
   leadFormSchema,
@@ -64,7 +64,7 @@ export function LeadForm({ onSuccess }: LeadFormProps) {
     useGetLeadStatusesQuery(currentWorkspace?.id || '', {
       skip: !currentWorkspace?.id,
     })
-  const { data: tagsData } = useGetTagsQuery(currentWorkspace?.id || '', {
+  const { data: tagsData } = useGetWorkspaceTagsQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
 

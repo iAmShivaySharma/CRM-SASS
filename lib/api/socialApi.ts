@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface SocialAccount {
   id: string
@@ -75,10 +74,7 @@ interface GenerateResponse {
   platform: string
 }
 
-export const socialApi = createApi({
-  reducerPath: 'socialApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['SocialAccount', 'SocialPost'],
+const socialApi = api.injectEndpoints({
   endpoints: builder => ({
     getSocialAccounts: builder.query<AccountsResponse, { workspaceId: string }>(
       {

@@ -20,7 +20,7 @@ import {
 import { useAppSelector } from '@/lib/hooks'
 import { CardSkeleton, PageHeaderSkeleton } from '@/components/ui/skeleton'
 import {
-  useGetTagsQuery,
+  useGetWorkspaceTagsQuery,
   useCreateTagMutation,
   useDeleteTagMutation,
 } from '@/lib/api/mongoApi'
@@ -48,7 +48,7 @@ export function TagManager() {
     data: tagsData,
     isLoading,
     refetch,
-  } = useGetTagsQuery(currentWorkspace?.id || '', {
+  } = useGetWorkspaceTagsQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
   const [createTag, { isLoading: isCreatingTag }] = useCreateTagMutation()

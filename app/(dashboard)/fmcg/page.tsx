@@ -25,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { useAppSelector } from '@/lib/hooks'
 import {
-  useGetProductsQuery,
+  useGetFmcgProductsQuery,
   useGetBatchesQuery,
   useGetLicensesQuery,
   useGetTestReportsQuery,
@@ -52,7 +52,7 @@ export default function FmcgPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
   const workspaceId = currentWorkspace?.id || ''
 
-  const { data: productsData } = useGetProductsQuery(
+  const { data: productsData } = useGetFmcgProductsQuery(
     { workspaceId, limit: 1 },
     { skip: !workspaceId }
   )

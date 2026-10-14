@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface SmsTemplate {
   _id: string
@@ -51,16 +50,13 @@ export interface SendBulkSmsBody {
   templateId?: string
 }
 
-export const smsApi = createApi({
-  reducerPath: 'smsApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['SmsTemplate', 'SmsLog'],
+const smsApi = api.injectEndpoints({
   endpoints: builder => ({
-    getTemplates: builder.query<SmsTemplatesResponse, { workspaceId: string }>({
+    getSmsTemplates: builder.query<SmsTemplatesResponse, { workspaceId: string }>({
       query: ({ workspaceId }) => `api/sms/templates?workspaceId=${workspaceId}`,
       providesTags: ['SmsTemplate'],
     }),
-    createTemplate: builder.mutation<{ success: boolean; template: SmsTemplate }, Partial<SmsTemplate> & { workspaceId: string }>({
+    createSmsTemplate: builder.mutation<{ success: boolean; template: SmsTemplate }, Partial<SmsTemplate> & { workspaceId: string }>({
       query: body => ({
         url: 'api/sms/templates',
         method: 'POST',
@@ -76,7 +72,7 @@ export const smsApi = createApi({
       }),
       invalidatesTags: ['SmsTemplate'],
     }),
-    deleteTemplate: builder.mutation<{ success: boolean; message: string }, { id: string; workspaceId: string }>({
+    deleteSmsTemplate: builder.mutation<{ success: boolean; message: string }, { id: string; workspaceId: string }>({
       query: ({ id, workspaceId }) => ({
         url: `api/sms/templates/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
@@ -107,10 +103,10 @@ export const smsApi = createApi({
 })
 
 export const {
-  useGetTemplatesQuery,
-  useCreateTemplateMutation,
+  useGetSmsTemplatesQuery,
+  useCreateSmsTemplateMutation,
   useUpdateTemplateMutation,
-  useDeleteTemplateMutation,
+  useDeleteSmsTemplateMutation,
   useSendSmsMutation,
   useSendBulkSmsMutation,
   useGetSmsLogsQuery,

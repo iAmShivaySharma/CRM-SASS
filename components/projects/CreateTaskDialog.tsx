@@ -44,11 +44,11 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import {
-  useCreateTaskMutation,
-  useUpdateTaskMutation,
+  useCreateProjectTaskMutation,
+  useUpdateProjectTaskMutation,
   useGetProjectsQuery,
   useGetColumnsQuery,
-  useGetTagsQuery,
+  useGetProjectTagsQuery,
   type Task,
 } from '@/lib/api/projectsApi'
 import { useToggleTaskCompletionMutation } from '@/lib/api/tasksApi'
@@ -102,8 +102,8 @@ export function CreateTaskDialog({
   const [isCompleted, setIsCompleted] = useState(false)
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
-  const [createTask] = useCreateTaskMutation()
-  const [updateTask] = useUpdateTaskMutation()
+  const [createTask] = useCreateProjectTaskMutation()
+  const [updateTask] = useUpdateProjectTaskMutation()
   const [toggleTaskCompletion] = useToggleTaskCompletionMutation()
 
   // Get projects for dropdown when no specific project is provided
@@ -182,7 +182,7 @@ export function CreateTaskDialog({
   )
 
   // Get tags for workspace
-  const { data: tagsData } = useGetTagsQuery(
+  const { data: tagsData } = useGetProjectTagsQuery(
     { workspaceId: currentWorkspace?.id || '' },
     { skip: !currentWorkspace?.id }
   )

@@ -19,9 +19,9 @@ import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetProjectsQuery,
-  useGetDocumentsQuery,
-  useCreateDocumentMutation,
-  useDeleteDocumentMutation,
+  useGetProjectDocumentsQuery,
+  useCreateProjectDocumentMutation,
+  useDeleteProjectDocumentMutation,
 } from '@/lib/api/projectsApi'
 import {
   useGetUserPreferencesQuery,
@@ -79,7 +79,7 @@ export default function ProjectDocumentsPage() {
     data: documentsData,
     isLoading: documentsLoading,
     error: documentsError,
-  } = useGetDocumentsQuery(
+  } = useGetProjectDocumentsQuery(
     {
       projectId: projectFilter,
       type: typeFilter === 'all' ? undefined : typeFilter,
@@ -94,8 +94,8 @@ export default function ProjectDocumentsPage() {
     }
   )
 
-  const [createDocument] = useCreateDocumentMutation()
-  const [deleteDocument] = useDeleteDocumentMutation()
+  const [createDocument] = useCreateProjectDocumentMutation()
+  const [deleteDocument] = useDeleteProjectDocumentMutation()
 
   useEffect(() => {
     if (

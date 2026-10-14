@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Employee {
   _id: string
@@ -37,10 +36,7 @@ export interface CreateEmployeeBody {
   startDate?: string
 }
 
-export const employeesApi = createApi({
-  reducerPath: 'employeesApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['Employee'],
+const employeesApi = api.injectEndpoints({
   endpoints: builder => ({
     getEmployees: builder.query<
       EmployeesResponse,

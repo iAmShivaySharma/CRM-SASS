@@ -211,7 +211,7 @@ export function ContactList({
           <div className="space-y-4">
             {contactsData.contacts.map(contact => (
               <div
-                key={contact._id}
+                key={contact.id}
                 className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
               >
                 <div className="flex flex-1 items-center space-x-4">

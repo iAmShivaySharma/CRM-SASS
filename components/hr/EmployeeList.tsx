@@ -53,10 +53,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useGetEmployeesQuery } from '@/lib/api/attendanceApi'
+import { useGetAttendanceEmployeesQuery } from '@/lib/api/attendanceApi'
 import {
   useInviteToWorkspaceMutation,
-  useGetRolesQuery,
+  useGetWorkspaceSettingsRolesQuery,
 } from '@/lib/api/mongoApi'
 import { useAppSelector } from '@/lib/hooks'
 
@@ -71,7 +71,7 @@ export function EmployeeList() {
 
   const [inviteToWorkspace, { isLoading: inviteLoading }] =
     useInviteToWorkspaceMutation()
-  const { data: rolesData } = useGetRolesQuery(currentWorkspace?.id || '', {
+  const { data: rolesData } = useGetWorkspaceSettingsRolesQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
   const roles = rolesData?.roles || []
@@ -109,7 +109,7 @@ export function EmployeeList() {
     isLoading,
     error,
     refetch,
-  } = useGetEmployeesQuery(
+  } = useGetAttendanceEmployeesQuery(
     {
       limit: 50,
       includeAttendance: true,

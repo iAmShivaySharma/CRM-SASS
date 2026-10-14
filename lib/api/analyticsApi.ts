@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface DashboardAnalytics {
   totalLeads: number
@@ -53,17 +52,7 @@ export interface AnalyticsFilters {
   }
 }
 
-export const analyticsApi = createApi({
-  reducerPath: 'analyticsApi',
-  baseQuery: createBaseQuery('/api/analytics'),
-  tagTypes: [
-    'Analytics',
-    'Dashboard',
-    'Pipeline',
-    'TimeSeries',
-    'LeadSource',
-    'Workspace',
-  ],
+const analyticsApi = api.injectEndpoints({
   endpoints: builder => ({
     getDashboardAnalytics: builder.query<
       { success: boolean; data: DashboardAnalytics },
@@ -79,7 +68,7 @@ export const analyticsApi = createApi({
           params.append('compareFrom', compareWith.from)
           params.append('compareTo', compareWith.to)
         }
-        return `dashboard?${params}`
+        return `api/analytics/dashboard?${params}`
       },
       providesTags: ['Analytics', 'Dashboard', 'Workspace'],
     }),
@@ -94,7 +83,7 @@ export const analyticsApi = createApi({
           params.append('from', dateRange.from)
           params.append('to', dateRange.to)
         }
-        return `pipeline?${params}`
+        return `api/analytics/pipeline?${params}`
       },
       providesTags: ['Analytics', 'Pipeline', 'Workspace'],
     }),
@@ -109,7 +98,7 @@ export const analyticsApi = createApi({
           params.append('from', dateRange.from)
           params.append('to', dateRange.to)
         }
-        return `timeseries?${params}`
+        return `api/analytics/timeseries?${params}`
       },
       providesTags: ['Analytics', 'TimeSeries', 'Workspace'],
     }),
@@ -124,7 +113,7 @@ export const analyticsApi = createApi({
           params.append('from', dateRange.from)
           params.append('to', dateRange.to)
         }
-        return `lead-sources?${params}`
+        return `api/analytics/lead-sources?${params}`
       },
       providesTags: ['Analytics', 'LeadSource', 'Workspace'],
     }),
@@ -149,7 +138,7 @@ export const analyticsApi = createApi({
           params.append('from', dateRange.from)
           params.append('to', dateRange.to)
         }
-        return `performance?${params}`
+        return `api/analytics/performance?${params}`
       },
       providesTags: ['Analytics', 'Workspace'],
     }),

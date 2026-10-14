@@ -1,6 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
-import { RootState } from '../store'
+import { api } from './index'
 
 export interface Lead {
   id: string
@@ -149,20 +147,7 @@ export interface User {
   updatedAt: string
 }
 
-export const mongoApi = createApi({
-  reducerPath: 'mongoApi',
-  baseQuery: createBaseQuery('/api'),
-  tagTypes: [
-    'Lead',
-    'Role',
-    'Workspace',
-    'Activity',
-    'User',
-    'LeadStatus',
-    'Tag',
-    'WorkspaceMember',
-    'LeadActivity',
-  ],
+const mongoApi = api.injectEndpoints({
   endpoints: builder => ({
     getLeads: builder.query<
       { leads: Lead[]; pagination: any },
@@ -212,7 +197,7 @@ export const mongoApi = createApi({
         if (dateTo) params.append('dateTo', dateTo)
         if (sortBy) params.append('sortBy', sortBy)
         if (sortOrder) params.append('sortOrder', sortOrder)
-        return `leads?${params}`
+        return `api/leads?${params}`
       },
       providesTags: ['Lead'],
     }),
@@ -222,13 +207,13 @@ export const mongoApi = createApi({
       Partial<Lead> & { workspaceId: string }
     >({
       query: leadData => ({
-        url: `leads?workspaceId=${leadData.workspaceId}`,
+        url: `api/leads?workspaceId=${leadData.workspaceId}`,
         method: 'POST',
         body: leadData,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Lead']))
+        dispatch(api.util.invalidateTags(['Lead']))
       },
     }),
 
@@ -237,24 +222,24 @@ export const mongoApi = createApi({
       { id: string; workspaceId: string } & Partial<Lead>
     >({
       query: ({ id, workspaceId, ...updates }) => ({
-        url: `leads/${id}?workspaceId=${workspaceId}`,
+        url: `api/leads/${id}?workspaceId=${workspaceId}`,
         method: 'PUT',
         body: updates,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Lead']))
+        dispatch(api.util.invalidateTags(['Lead']))
       },
     }),
 
     deleteLead: builder.mutation<void, { id: string; workspaceId: string }>({
       query: ({ id, workspaceId }) => ({
-        url: `leads/${id}?workspaceId=${workspaceId}`,
+        url: `api/leads/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Lead']))
+        dispatch(api.util.invalidateTags(['Lead']))
       },
     }),
 
@@ -263,13 +248,13 @@ export const mongoApi = createApi({
       { ids: string[]; workspaceId: string }
     >({
       query: ({ ids, workspaceId }) => ({
-        url: 'leads/bulk-delete',
+        url: 'api/leads/bulk-delete',
         method: 'POST',
         body: { ids, workspaceId },
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Lead']))
+        dispatch(api.util.invalidateTags(['Lead']))
       },
     }),
 
@@ -300,7 +285,7 @@ export const mongoApi = createApi({
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Lead']))
+        dispatch(api.util.invalidateTags(['Lead']))
       },
     }),
 
@@ -309,7 +294,7 @@ export const mongoApi = createApi({
       { leadId: string; workspaceId: string; limit?: number }
     >({
       query: ({ leadId, workspaceId, limit = 50 }) => ({
-        url: `leads/${leadId}/activities?workspaceId=${workspaceId}&limit=${limit}`,
+        url: `api/leads/${leadId}/activities?workspaceId=${workspaceId}&limit=${limit}`,
         method: 'GET',
       }),
       providesTags: (result, error, { leadId }) => [
@@ -330,46 +315,46 @@ export const mongoApi = createApi({
       }
     >({
       query: ({ leadId, workspaceId, ...body }) => ({
-        url: `leads/${leadId}/activities?workspaceId=${workspaceId}`,
+        url: `api/leads/${leadId}/activities?workspaceId=${workspaceId}`,
         method: 'POST',
         body,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['LeadActivity']))
+        dispatch(api.util.invalidateTags(['LeadActivity']))
       },
     }),
 
-    getRoles: builder.query<{ success: boolean; roles: Role[] }, string>({
-      query: workspaceId => `roles?workspaceId=${workspaceId}`,
+    getWorkspaceSettingsRoles: builder.query<{ success: boolean; roles: Role[] }, string>({
+      query: workspaceId => `api/roles?workspaceId=${workspaceId}`,
       providesTags: ['Role'],
     }),
 
-    createRole: builder.mutation<
+    createWorkspaceSettingsRole: builder.mutation<
       { success: boolean; role: Role },
       Partial<Role>
     >({
       query: role => ({
-        url: `roles?workspaceId=${role.workspaceId}`,
+        url: `api/roles?workspaceId=${role.workspaceId}`,
         method: 'POST',
         body: role,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Role']))
+        dispatch(api.util.invalidateTags(['Role']))
       },
     }),
-    deleteRole: builder.mutation<
+    deleteWorkspaceSettingsRole: builder.mutation<
       { success: boolean },
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `roles/${id}?workspaceId=${workspaceId}`,
+        url: `api/roles/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Role']))
+        dispatch(api.util.invalidateTags(['Role']))
       },
     }),
 
@@ -377,7 +362,7 @@ export const mongoApi = createApi({
       { success: boolean; workspaces: Workspace[] },
       string
     >({
-      query: userId => `workspaces?userId=${userId}`,
+      query: userId => `api/workspaces?userId=${userId}`,
       providesTags: ['Workspace'],
     }),
 
@@ -385,7 +370,7 @@ export const mongoApi = createApi({
       { success: boolean; statuses: LeadStatus[] },
       string
     >({
-      query: workspaceId => `lead-statuses?workspaceId=${workspaceId}`,
+      query: workspaceId => `api/lead-statuses?workspaceId=${workspaceId}`,
       providesTags: ['LeadStatus'],
     }),
     createLeadStatus: builder.mutation<
@@ -393,13 +378,13 @@ export const mongoApi = createApi({
       Partial<LeadStatus>
     >({
       query: status => ({
-        url: `lead-statuses?workspaceId=${status.workspaceId}`,
+        url: `api/lead-statuses?workspaceId=${status.workspaceId}`,
         method: 'POST',
         body: status,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['LeadStatus']))
+        dispatch(api.util.invalidateTags(['LeadStatus']))
       },
     }),
     deleteLeadStatus: builder.mutation<
@@ -407,28 +392,28 @@ export const mongoApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `lead-statuses/${id}?workspaceId=${workspaceId}`,
+        url: `api/lead-statuses/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['LeadStatus']))
+        dispatch(api.util.invalidateTags(['LeadStatus']))
       },
     }),
 
-    getTags: builder.query<{ success: boolean; tags: Tag[] }, string>({
-      query: workspaceId => `tags?workspaceId=${workspaceId}`,
+    getWorkspaceTags: builder.query<{ success: boolean; tags: Tag[] }, string>({
+      query: workspaceId => `api/tags?workspaceId=${workspaceId}`,
       providesTags: ['Tag'],
     }),
     createTag: builder.mutation<{ success: boolean; tag: Tag }, Partial<Tag>>({
       query: tag => ({
-        url: `tags?workspaceId=${tag.workspaceId}`,
+        url: `api/tags?workspaceId=${tag.workspaceId}`,
         method: 'POST',
         body: tag,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Tag']))
+        dispatch(api.util.invalidateTags(['Tag']))
       },
     }),
     deleteTag: builder.mutation<
@@ -436,12 +421,12 @@ export const mongoApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `tags/${id}?workspaceId=${workspaceId}`,
+        url: `api/tags/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Tag']))
+        dispatch(api.util.invalidateTags(['Tag']))
       },
     }),
 
@@ -450,12 +435,12 @@ export const mongoApi = createApi({
       { workspaceId: string; limit?: number }
     >({
       query: ({ workspaceId, limit = 50 }) =>
-        `activities?workspaceId=${workspaceId}&limit=${limit}`,
+        `api/activities?workspaceId=${workspaceId}&limit=${limit}`,
       providesTags: ['Activity'],
     }),
 
     getWorkspace: builder.query<{ success: boolean; workspace: any }, string>({
-      query: workspaceId => `workspaces/${workspaceId}`,
+      query: workspaceId => `api/workspaces/${workspaceId}`,
       providesTags: ['Workspace'],
     }),
 
@@ -464,13 +449,13 @@ export const mongoApi = createApi({
       { name: string; description?: string }
     >({
       query: workspace => ({
-        url: 'workspaces',
+        url: 'api/workspaces',
         method: 'POST',
         body: workspace,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Workspace']))
+        dispatch(api.util.invalidateTags(['Workspace']))
       },
     }),
     updateWorkspace: builder.mutation<
@@ -478,13 +463,13 @@ export const mongoApi = createApi({
       { id: string; [key: string]: any }
     >({
       query: ({ id, ...data }) => ({
-        url: `workspaces/${id}`,
+        url: `api/workspaces/${id}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Workspace']))
+        dispatch(api.util.invalidateTags(['Workspace']))
       },
     }),
 
@@ -492,7 +477,7 @@ export const mongoApi = createApi({
       { success: boolean; members: WorkspaceMember[] },
       string
     >({
-      query: workspaceId => `workspaces/${workspaceId}/members`,
+      query: workspaceId => `api/workspaces/${workspaceId}/members`,
       providesTags: ['WorkspaceMember'],
     }),
 
@@ -500,7 +485,7 @@ export const mongoApi = createApi({
       { success: boolean; roles: Role[] },
       string
     >({
-      query: workspaceId => `workspaces/${workspaceId}/roles`,
+      query: workspaceId => `api/workspaces/${workspaceId}/roles`,
       providesTags: ['Role'],
     }),
 
@@ -514,13 +499,13 @@ export const mongoApi = createApi({
       }
     >({
       query: ({ workspaceId, ...body }) => ({
-        url: `workspaces/${workspaceId}/invites`,
+        url: `api/workspaces/${workspaceId}/invites`,
         method: 'POST',
         body,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+        dispatch(api.util.invalidateTags(['WorkspaceMember']))
       },
     }),
 
@@ -529,12 +514,12 @@ export const mongoApi = createApi({
       { workspaceId: string; inviteId: string }
     >({
       query: ({ workspaceId, inviteId }) => ({
-        url: `workspaces/${workspaceId}/invites/${inviteId}/resend`,
+        url: `api/workspaces/${workspaceId}/invites/${inviteId}/resend`,
         method: 'POST',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+        dispatch(api.util.invalidateTags(['WorkspaceMember']))
       },
     }),
 
@@ -543,12 +528,12 @@ export const mongoApi = createApi({
       { workspaceId: string; inviteId: string }
     >({
       query: ({ workspaceId, inviteId }) => ({
-        url: `workspaces/${workspaceId}/invites/${inviteId}`,
+        url: `api/workspaces/${workspaceId}/invites/${inviteId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember']))
+        dispatch(api.util.invalidateTags(['WorkspaceMember']))
       },
     }),
 
@@ -557,12 +542,12 @@ export const mongoApi = createApi({
       { workspaceId: string; memberId: string }
     >({
       query: ({ workspaceId, memberId }) => ({
-        url: `workspaces/${workspaceId}/members/${memberId}`,
+        url: `api/workspaces/${workspaceId}/members/${memberId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['WorkspaceMember', 'Workspace']))
+        dispatch(api.util.invalidateTags(['WorkspaceMember', 'Workspace']))
       },
     }),
 
@@ -577,13 +562,13 @@ export const mongoApi = createApi({
       }
     >({
       query: ({ leadId, workspaceId, ...body }) => ({
-        url: `leads/${leadId}/notes?workspaceId=${workspaceId}`,
+        url: `api/leads/${leadId}/notes?workspaceId=${workspaceId}`,
         method: 'POST',
         body,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(mongoApi.util.invalidateTags(['Lead', 'LeadActivity']))
+        dispatch(api.util.invalidateTags(['Lead', 'LeadActivity']))
       },
     }),
   }),
@@ -598,14 +583,14 @@ export const {
   useImportLeadsMutation,
   useGetLeadActivitiesQuery,
   useCreateLeadActivityMutation,
-  useGetRolesQuery,
-  useCreateRoleMutation,
-  useDeleteRoleMutation,
+  useGetWorkspaceSettingsRolesQuery,
+  useCreateWorkspaceSettingsRoleMutation,
+  useDeleteWorkspaceSettingsRoleMutation,
   useGetUserWorkspacesQuery,
   useGetLeadStatusesQuery,
   useCreateLeadStatusMutation,
   useDeleteLeadStatusMutation,
-  useGetTagsQuery,
+  useGetWorkspaceTagsQuery,
   useCreateTagMutation,
   useDeleteTagMutation,
   useGetActivitiesQuery,

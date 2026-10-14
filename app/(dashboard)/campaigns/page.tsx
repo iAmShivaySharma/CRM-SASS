@@ -53,12 +53,12 @@ import {
 import {
   useGetLeadsQuery,
   useGetLeadStatusesQuery,
-  useGetTagsQuery,
+  useGetWorkspaceTagsQuery,
   type Lead,
 } from '@/lib/api/mongoApi'
 import { useGetSequencesQuery } from '@/lib/api/emailSequencesApi'
 import {
-  useGetTemplatesQuery,
+  useGetWhatsAppTemplatesQuery,
   type WhatsAppTemplate,
 } from '@/lib/api/whatsappApi'
 
@@ -142,14 +142,14 @@ export default function CampaignsPage() {
   const { data: statusesData } = useGetLeadStatusesQuery(workspaceId, {
     skip: !workspaceId,
   })
-  const { data: tagsData } = useGetTagsQuery(workspaceId, {
+  const { data: tagsData } = useGetWorkspaceTagsQuery(workspaceId, {
     skip: !workspaceId,
   })
   const { data: sequencesData } = useGetSequencesQuery(
     { workspaceId },
     { skip: !workspaceId }
   )
-  const { data: templatesData } = useGetTemplatesQuery(
+  const { data: templatesData } = useGetWhatsAppTemplatesQuery(
     { workspaceId },
     { skip: !workspaceId || form.channel !== 'whatsapp' }
   )

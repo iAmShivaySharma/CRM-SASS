@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface LastActiveWorkspaceResponse {
   lastActiveWorkspaceId: string | null
@@ -20,13 +19,10 @@ export interface UpdateLastActiveWorkspaceResponse {
   message: string
 }
 
-export const workspaceApi = createApi({
-  reducerPath: 'workspaceApi',
-  baseQuery: createBaseQuery('/api/users'),
-  tagTypes: ['LastActiveWorkspace'],
+const workspaceApi = api.injectEndpoints({
   endpoints: builder => ({
     getLastActiveWorkspace: builder.query<LastActiveWorkspaceResponse, void>({
-      query: () => 'last-active-workspace',
+      query: () => 'api/users/last-active-workspace',
       providesTags: ['LastActiveWorkspace'],
     }),
     updateLastActiveWorkspace: builder.mutation<
@@ -34,13 +30,13 @@ export const workspaceApi = createApi({
       UpdateLastActiveWorkspaceRequest
     >({
       query: ({ workspaceId }) => ({
-        url: 'last-active-workspace',
+        url: 'api/users/last-active-workspace',
         method: 'POST',
         body: { workspaceId },
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(workspaceApi.util.invalidateTags(['LastActiveWorkspace']))
+        dispatch(api.util.invalidateTags(['LastActiveWorkspace']))
       },
     }),
   }),

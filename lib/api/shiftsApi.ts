@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Shift {
   _id: string
@@ -65,10 +64,7 @@ export interface ShiftsQuery {
   includeInactive?: boolean
 }
 
-export const shiftsApi = createApi({
-  reducerPath: 'shiftsApi',
-  baseQuery: createBaseQuery('/api/shifts'),
-  tagTypes: ['Shift'],
+const shiftsApi = api.injectEndpoints({
   endpoints: builder => ({
     getShifts: builder.query<
       {
@@ -89,13 +85,13 @@ export const shiftsApi = createApi({
             searchParams.append(key, value.toString())
           }
         })
-        return `?${searchParams.toString()}`
+        return `api/shifts?${searchParams.toString()}`
       },
       providesTags: ['Shift'],
     }),
 
     getShift: builder.query<Shift, string>({
-      query: id => `/${id}`,
+      query: id => `api/shifts/${id}`,
       providesTags: (result, error, id) => [{ type: 'Shift', id }],
     }),
 
@@ -108,13 +104,13 @@ export const shiftsApi = createApi({
       CreateShiftRequest
     >({
       query: shift => ({
-        url: '',
+        url: 'api/shifts',
         method: 'POST',
         body: shift,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(shiftsApi.util.invalidateTags(['Shift']))
+        dispatch(api.util.invalidateTags(['Shift']))
       },
     }),
 
@@ -127,14 +123,14 @@ export const shiftsApi = createApi({
       UpdateShiftRequest
     >({
       query: ({ id, ...shift }) => ({
-        url: `/${id}`,
+        url: `api/shifts/${id}`,
         method: 'PUT',
         body: shift,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          shiftsApi.util.invalidateTags([{ type: 'Shift', id }, 'Shift'])
+          api.util.invalidateTags([{ type: 'Shift', id }, 'Shift'])
         )
       },
     }),
@@ -147,12 +143,12 @@ export const shiftsApi = createApi({
       string
     >({
       query: id => ({
-        url: `/${id}`,
+        url: `api/shifts/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(shiftsApi.util.invalidateTags(['Shift']))
+        dispatch(api.util.invalidateTags(['Shift']))
       },
     }),
 
@@ -164,13 +160,13 @@ export const shiftsApi = createApi({
       string
     >({
       query: id => ({
-        url: `/${id}`,
+        url: `api/shifts/${id}`,
         method: 'PUT',
         body: { isDefault: true },
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(shiftsApi.util.invalidateTags(['Shift']))
+        dispatch(api.util.invalidateTags(['Shift']))
       },
     }),
   }),

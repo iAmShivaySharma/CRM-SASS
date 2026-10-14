@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useConnectFacebookMutation } from '@/lib/api/whatsappApi'
+import { useConnectWhatsAppFacebookMutation } from '@/lib/api/whatsappApi'
 
 declare global {
   interface Window {
@@ -38,7 +38,7 @@ export function WhatsAppFBSignup({
 }: WhatsAppFBSignupProps) {
   const [sdkReady, setSdkReady] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [connectFacebook] = useConnectFacebookMutation()
+  const [connectFacebook] = useConnectWhatsAppFacebookMutation()
 
   useEffect(() => {
     const appId = process.env.NEXT_PUBLIC_META_APP_ID

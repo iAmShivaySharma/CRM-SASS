@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface AttendanceRecord {
   _id: string
@@ -102,10 +101,7 @@ export interface AttendanceQuery {
   workspaceId: string
 }
 
-export const attendanceApi = createApi({
-  reducerPath: 'attendanceApi',
-  baseQuery: createBaseQuery('/api/attendance'),
-  tagTypes: ['Attendance', 'TodayAttendance', 'Employees'],
+const attendanceApi = api.injectEndpoints({
   endpoints: builder => ({
     getTodayAttendance: builder.query<
       TodayAttendanceResponse,
@@ -114,7 +110,7 @@ export const attendanceApi = createApi({
       query: params => {
         const searchParams = new URLSearchParams()
         searchParams.append('workspaceId', params.workspaceId)
-        return `/today?${searchParams.toString()}`
+        return `api/attendance/today?${searchParams.toString()}`
       },
       providesTags: ['TodayAttendance'],
     }),
@@ -138,7 +134,7 @@ export const attendanceApi = createApi({
             searchParams.append(key, value.toString())
           }
         })
-        return `?${searchParams.toString()}`
+        return `api/attendance?${searchParams.toString()}`
       },
       providesTags: ['Attendance'],
     }),
@@ -152,14 +148,14 @@ export const attendanceApi = createApi({
       AttendanceActionRequest & { workspaceId: string }
     >({
       query: action => ({
-        url: '',
+        url: 'api/attendance',
         method: 'POST',
         body: action,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          attendanceApi.util.invalidateTags(['TodayAttendance', 'Attendance'])
+          api.util.invalidateTags(['TodayAttendance', 'Attendance'])
         )
       },
     }),
@@ -201,12 +197,12 @@ export const attendanceApi = createApi({
             searchParams.append(key, value)
           }
         })
-        return `/summary?${searchParams.toString()}`
+        return `api/attendance/summary?${searchParams.toString()}`
       },
       providesTags: ['Attendance'],
     }),
 
-    getEmployees: builder.query<
+    getAttendanceEmployees: builder.query<
       {
         employees: Array<{
           _id: string
@@ -254,7 +250,7 @@ export const attendanceApi = createApi({
           }
         })
         return {
-          url: `../employees?${searchParams.toString()}`,
+          url: `api/employees?${searchParams.toString()}`,
           method: 'GET',
         }
       },
@@ -268,5 +264,5 @@ export const {
   useGetAttendanceRecordsQuery,
   useAttendanceActionMutation,
   useGetAttendanceSummaryQuery,
-  useGetEmployeesQuery,
+  useGetAttendanceEmployeesQuery,
 } = attendanceApi

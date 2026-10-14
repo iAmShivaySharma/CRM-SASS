@@ -51,7 +51,7 @@ import {
   useCreateBatchMutation,
   useUpdateBatchMutation,
   useDeleteBatchMutation,
-  useGetProductsQuery,
+  useGetFmcgProductsQuery,
   type FmcgBatchRecord,
 } from '@/lib/api/fmcgApi'
 
@@ -113,7 +113,7 @@ export function BatchList({ workspaceId }: BatchListProps) {
     status: statusFilter || undefined,
   })
 
-  const { data: productsData } = useGetProductsQuery({ workspaceId, limit: 200 })
+  const { data: productsData } = useGetFmcgProductsQuery({ workspaceId, limit: 200 })
   const products = productsData?.products || []
 
   const [createBatch, { isLoading: creating }] = useCreateBatchMutation()

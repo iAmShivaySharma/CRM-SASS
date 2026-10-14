@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface WhatsAppAccount {
   _id: string
@@ -147,15 +146,7 @@ export interface WhatsAppBotFlowResponse {
   updatedAt: string
 }
 
-export const whatsappApi = createApi({
-  reducerPath: 'whatsappApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: [
-    'WhatsAppAccount',
-    'WhatsAppTemplate',
-    'WhatsAppConversation',
-    'WhatsAppBotFlow',
-  ],
+const whatsappApi = api.injectEndpoints({
   endpoints: builder => ({
     getAccounts: builder.query<AccountsResponse, { workspaceId: string }>({
       query: ({ workspaceId }) =>
@@ -194,12 +185,12 @@ export const whatsappApi = createApi({
       }),
       invalidatesTags: ['WhatsAppAccount'],
     }),
-    getTemplates: builder.query<TemplatesResponse, { workspaceId: string }>({
+    getWhatsAppTemplates: builder.query<TemplatesResponse, { workspaceId: string }>({
       query: ({ workspaceId }) =>
         `api/whatsapp/templates?workspaceId=${workspaceId}`,
       providesTags: ['WhatsAppTemplate'],
     }),
-    createTemplate: builder.mutation<
+    createWhatsAppTemplate: builder.mutation<
       { success: boolean; template: WhatsAppTemplate },
       Partial<WhatsAppTemplate> & { workspaceId: string }
     >({
@@ -252,7 +243,7 @@ export const whatsappApi = createApi({
         body,
       }),
     }),
-    deleteTemplate: builder.mutation<
+    deleteWhatsAppTemplate: builder.mutation<
       { success: boolean },
       { id: string; workspaceId: string }
     >({
@@ -284,7 +275,7 @@ export const whatsappApi = createApi({
       }),
       invalidatesTags: ['WhatsAppTemplate'],
     }),
-    getMessages: builder.query<
+    getWhatsAppMessages: builder.query<
       { success: boolean; messages: WhatsAppMessage[] },
       { workspaceId: string; phone: string; page?: number }
     >({
@@ -292,7 +283,7 @@ export const whatsappApi = createApi({
         `api/whatsapp/conversations?workspaceId=${workspaceId}&phone=${encodeURIComponent(phone)}&page=${page}`,
       providesTags: ['WhatsAppConversation'],
     }),
-    connectFacebook: builder.mutation<
+    connectWhatsAppFacebook: builder.mutation<
       { success: boolean; accounts: WhatsAppAccount[] },
       { workspaceId: string; accessToken: string }
     >({
@@ -371,17 +362,17 @@ export const {
   useCreateAccountMutation,
   useUpdateAccountMutation,
   useDeleteAccountMutation,
-  useGetTemplatesQuery,
-  useCreateTemplateMutation,
+  useGetWhatsAppTemplatesQuery,
+  useCreateWhatsAppTemplateMutation,
   useGetConversationsQuery,
   useSendMessageMutation,
   useSendTemplateMutation,
   useBroadcastMutation,
-  useDeleteTemplateMutation,
+  useDeleteWhatsAppTemplateMutation,
   useSubmitTemplateMutation,
   useSyncTemplatesMutation,
-  useGetMessagesQuery,
-  useConnectFacebookMutation,
+  useGetWhatsAppMessagesQuery,
+  useConnectWhatsAppFacebookMutation,
   useGetBotFlowsQuery,
   useCreateBotFlowMutation,
   useUpdateBotFlowMutation,

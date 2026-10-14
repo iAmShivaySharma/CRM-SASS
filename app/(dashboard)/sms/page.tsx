@@ -17,11 +17,11 @@ import {
   TestTube,
 } from 'lucide-react'
 import {
-  useGetTemplatesQuery,
+  useGetSmsTemplatesQuery,
   useGetSmsLogsQuery,
-  useCreateTemplateMutation,
+  useCreateSmsTemplateMutation,
   useUpdateTemplateMutation,
-  useDeleteTemplateMutation,
+  useDeleteSmsTemplateMutation,
   useSendSmsMutation,
   useSendBulkSmsMutation,
 } from '@/lib/api/smsApi'
@@ -52,7 +52,7 @@ export default function SmsPage() {
   const workspaceId = currentWorkspace?.id ?? ''
 
   const { data: templatesData, isLoading: templatesLoading } =
-    useGetTemplatesQuery({ workspaceId }, { skip: !currentWorkspace })
+    useGetSmsTemplatesQuery({ workspaceId }, { skip: !currentWorkspace })
 
   const { data: logsData, isLoading: logsLoading } = useGetSmsLogsQuery(
     { workspaceId },
@@ -61,9 +61,9 @@ export default function SmsPage() {
 
   const [sendSms, { isLoading: sending }] = useSendSmsMutation()
   const [sendBulkSms, { isLoading: bulkSending }] = useSendBulkSmsMutation()
-  const [createTemplate] = useCreateTemplateMutation()
+  const [createTemplate] = useCreateSmsTemplateMutation()
   const [updateTemplate] = useUpdateTemplateMutation()
-  const [deleteTemplate] = useDeleteTemplateMutation()
+  const [deleteTemplate] = useDeleteSmsTemplateMutation()
 
   const [phone, setPhone] = useState('')
   const [message, setMessage] = useState('')

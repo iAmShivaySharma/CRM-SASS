@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface LeaveRequestRecord {
   _id: string
@@ -101,10 +100,7 @@ export interface LeaveStats {
   }>
 }
 
-export const leaveApi = createApi({
-  reducerPath: 'leaveApi',
-  baseQuery: createBaseQuery('/api/leaves'),
-  tagTypes: ['Leave', 'LeaveStats'],
+const leaveApi = api.injectEndpoints({
   endpoints: builder => ({
     getLeaveRequests: builder.query<
       {
@@ -125,7 +121,7 @@ export const leaveApi = createApi({
             searchParams.append(key, value.toString())
           }
         })
-        return `?${searchParams.toString()}`
+        return `api/leaves?${searchParams.toString()}`
       },
       providesTags: ['Leave'],
     }),
@@ -134,7 +130,7 @@ export const leaveApi = createApi({
       { leaveRequest: LeaveRequestRecord },
       string
     >({
-      query: id => `/${id}`,
+      query: id => `api/leaves/${id}`,
       providesTags: (result, error, id) => [{ type: 'Leave', id }],
     }),
 
@@ -143,13 +139,13 @@ export const leaveApi = createApi({
       CreateLeaveRequest
     >({
       query: body => ({
-        url: '',
+        url: 'api/leaves',
         method: 'POST',
         body,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(leaveApi.util.invalidateTags(['Leave', 'LeaveStats']))
+        dispatch(api.util.invalidateTags(['Leave', 'LeaveStats']))
       },
     }),
 
@@ -158,14 +154,14 @@ export const leaveApi = createApi({
       UpdateLeaveRequest
     >({
       query: ({ id, ...body }) => ({
-        url: `/${id}`,
+        url: `api/leaves/${id}`,
         method: 'PUT',
         body,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          leaveApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Leave', id },
             'Leave',
             'LeaveStats',
@@ -179,12 +175,12 @@ export const leaveApi = createApi({
       string
     >({
       query: id => ({
-        url: `/${id}`,
+        url: `api/leaves/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(leaveApi.util.invalidateTags(['Leave', 'LeaveStats']))
+        dispatch(api.util.invalidateTags(['Leave', 'LeaveStats']))
       },
     }),
 
@@ -194,7 +190,7 @@ export const leaveApi = createApi({
         if (params.workspaceId) {
           searchParams.append('workspaceId', params.workspaceId)
         }
-        return `../leaves/stats?${searchParams.toString()}`
+        return `api/leaves/stats?${searchParams.toString()}`
       },
       providesTags: ['LeaveStats'],
     }),

@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface ProjectMemberUser {
   id: string
@@ -38,10 +37,7 @@ export interface AddMemberBody {
   roleId: string
 }
 
-export const projectMembersApi = createApi({
-  reducerPath: 'projectMembersApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['ProjectMember'],
+const projectMembersApi = api.injectEndpoints({
   endpoints: builder => ({
     getProjectMembers: builder.query<ProjectMembersResponse, string>({
       query: projectId => `api/projects/${projectId}/members`,

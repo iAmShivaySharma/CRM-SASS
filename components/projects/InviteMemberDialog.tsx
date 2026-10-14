@@ -5,7 +5,7 @@ import { UserPlus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import { useGetWorkspaceMembersQuery } from '@/lib/api/mongoApi'
-import { useAddProjectMemberMutation } from '@/lib/api/projectsApi'
+import { useAddProjectMemberInProjectMutation } from '@/lib/api/projectsApi'
 import {
   Dialog,
   DialogContent,
@@ -45,7 +45,7 @@ export function InviteMemberDialog({
       skip: !currentWorkspace?.id || !open,
     })
 
-  const [addProjectMember] = useAddProjectMemberMutation()
+  const [addProjectMember] = useAddProjectMemberInProjectMutation()
 
   const availableMembers = (membersData?.members || []).filter(
     member =>

@@ -7,9 +7,9 @@ import {
   useCreateAccountMutation,
   useUpdateAccountMutation,
   useDeleteAccountMutation,
-  useGetTemplatesQuery,
-  useCreateTemplateMutation,
-  useDeleteTemplateMutation,
+  useGetWhatsAppTemplatesQuery,
+  useCreateWhatsAppTemplateMutation,
+  useDeleteWhatsAppTemplateMutation,
   useSubmitTemplateMutation,
   useSyncTemplatesMutation,
   useGetConversationsQuery,
@@ -181,7 +181,7 @@ export default function WhatsAppPage() {
     refetch: accountsRefetch,
   } = useGetAccountsQuery({ workspaceId }, { skip: !currentWorkspace })
   const { data: templatesData, isLoading: templatesLoading } =
-    useGetTemplatesQuery({ workspaceId }, { skip: !currentWorkspace })
+    useGetWhatsAppTemplatesQuery({ workspaceId }, { skip: !currentWorkspace })
   const { data: conversationsData, isLoading: conversationsLoading } =
     useGetConversationsQuery(
       { workspaceId },
@@ -194,8 +194,8 @@ export default function WhatsAppPage() {
     useUpdateAccountMutation()
   const [deleteAccount] = useDeleteAccountMutation()
   const [createTemplate, { isLoading: creatingTemplate }] =
-    useCreateTemplateMutation()
-  const [deleteTemplate] = useDeleteTemplateMutation()
+    useCreateWhatsAppTemplateMutation()
+  const [deleteTemplate] = useDeleteWhatsAppTemplateMutation()
   const [submitTemplate] = useSubmitTemplateMutation()
   const [syncTemplates, { isLoading: syncing }] = useSyncTemplatesMutation()
   const [broadcast, { isLoading: broadcasting }] = useBroadcastMutation()

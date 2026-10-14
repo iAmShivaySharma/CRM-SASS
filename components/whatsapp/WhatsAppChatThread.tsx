@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import {
-  useGetMessagesQuery,
+  useGetWhatsAppMessagesQuery,
   useSendMessageMutation,
 } from '@/lib/api/whatsappApi'
 import { Button } from '@/components/ui/button'
@@ -143,7 +143,7 @@ export function WhatsAppChatThread({
   const [templateSheetOpen, setTemplateSheetOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const { data, isLoading } = useGetMessagesQuery(
+  const { data, isLoading } = useGetWhatsAppMessagesQuery(
     { workspaceId, phone },
     { skip: !workspaceId || !phone, pollingInterval: 8000 }
   )

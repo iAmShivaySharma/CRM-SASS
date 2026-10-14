@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAppSelector } from '@/lib/hooks'
-import { useCreateRoleMutation } from '@/lib/api/mongoApi'
+import { useCreateWorkspaceSettingsRoleMutation } from '@/lib/api/mongoApi'
 import { getPermissionsForAPI } from '@/lib/permissions/constants'
 
 interface RoleFormProps {
@@ -34,7 +34,7 @@ export function RoleForm({ onSuccess, onCancel }: RoleFormProps) {
   } = useForm<RoleFormData>()
 
   const { currentWorkspace } = useAppSelector(state => state.workspace)
-  const [createRole, { isLoading }] = useCreateRoleMutation()
+  const [createRole, { isLoading }] = useCreateWorkspaceSettingsRoleMutation()
 
   // Get permissions from constants (no API call needed)
   const permissions = getPermissionsForAPI()

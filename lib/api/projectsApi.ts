@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Project {
   id: string
@@ -189,20 +188,7 @@ export interface Column {
   updatedAt: string
 }
 
-export const projectsApi = createApi({
-  reducerPath: 'projectsApi',
-  baseQuery: createBaseQuery('/api'),
-  tagTypes: [
-    'Project',
-    'ProjectMember',
-    'Task',
-    'Document',
-    'ProjectInvitation',
-    'ProjectJoinRequest',
-    'Column',
-    'Tag',
-    'Sprint',
-  ],
+const projectsApi = api.injectEndpoints({
   endpoints: builder => ({
     getProjects: builder.query<
       { projects: Project[]; pagination: any },
@@ -222,7 +208,7 @@ export const projectsApi = createApi({
         })
         if (status) params.append('status', status)
         if (search) params.append('search', search)
-        return `projects?${params}`
+        return `api/projects?${params}`
       },
       providesTags: result =>
         result
@@ -237,7 +223,7 @@ export const projectsApi = createApi({
     }),
 
     getProject: builder.query<{ project: Project }, { id: string }>({
-      query: ({ id }) => `projects/${id}`,
+      query: ({ id }) => `api/projects/${id}`,
       providesTags: ['Project'],
     }),
 
@@ -246,14 +232,14 @@ export const projectsApi = createApi({
       Partial<Project> & { workspaceId: string }
     >({
       query: data => ({
-        url: 'projects',
+        url: 'api/projects',
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([{ type: 'Project', id: 'LIST' }])
+          api.util.invalidateTags([{ type: 'Project', id: 'LIST' }])
         )
       },
     }),
@@ -263,47 +249,47 @@ export const projectsApi = createApi({
       { id: string; data: Partial<Project> }
     >({
       query: ({ id, data }) => ({
-        url: `projects/${id}`,
+        url: `api/projects/${id}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Project']))
+        dispatch(api.util.invalidateTags(['Project']))
       },
     }),
 
     deleteProject: builder.mutation<{ success: boolean }, { id: string }>({
       query: ({ id }) => ({
-        url: `projects/${id}`,
+        url: `api/projects/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Project']))
+        dispatch(api.util.invalidateTags(['Project']))
       },
     }),
 
-    getProjectMembers: builder.query<
+    getProjectMembersInProject: builder.query<
       { members: ProjectMember[] },
       { projectId: string }
     >({
-      query: ({ projectId }) => `projects/${projectId}/members`,
+      query: ({ projectId }) => `api/projects/${projectId}/members`,
       providesTags: ['ProjectMember'],
     }),
 
-    addProjectMember: builder.mutation<
+    addProjectMemberInProject: builder.mutation<
       { member: ProjectMember },
       { projectId: string; userId: string; roleId: string }
     >({
       query: ({ projectId, ...data }) => ({
-        url: `projects/${projectId}/members`,
+        url: `api/projects/${projectId}/members`,
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['ProjectMember']))
+        dispatch(api.util.invalidateTags(['ProjectMember']))
       },
     }),
 
@@ -312,31 +298,31 @@ export const projectsApi = createApi({
       { projectId: string; memberId: string; data: Partial<ProjectMember> }
     >({
       query: ({ projectId, memberId, data }) => ({
-        url: `projects/${projectId}/members/${memberId}`,
+        url: `api/projects/${projectId}/members/${memberId}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['ProjectMember']))
+        dispatch(api.util.invalidateTags(['ProjectMember']))
       },
     }),
 
-    removeProjectMember: builder.mutation<
+    removeProjectMemberInProject: builder.mutation<
       { success: boolean },
       { projectId: string; memberId: string }
     >({
       query: ({ projectId, memberId }) => ({
-        url: `projects/${projectId}/members/${memberId}`,
+        url: `api/projects/${projectId}/members/${memberId}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['ProjectMember']))
+        dispatch(api.util.invalidateTags(['ProjectMember']))
       },
     }),
 
-    getTasks: builder.query<
+    getProjectTasks: builder.query<
       { tasks: Task[] },
       {
         projectId?: string
@@ -355,7 +341,7 @@ export const projectsApi = createApi({
         if (status) params.append('status', status)
         if (assigneeId) params.append('assigneeId', assigneeId)
         if (search) params.append('search', search)
-        return `tasks?${params}`
+        return `api/tasks?${params}`
       },
       providesTags: (result, error, arg) =>
         result
@@ -380,19 +366,19 @@ export const projectsApi = createApi({
           : [{ type: 'Task', id: 'LIST' }],
     }),
 
-    createTask: builder.mutation<
+    createProjectTask: builder.mutation<
       { task: Task },
       Partial<Task> & { projectId: string; workspaceId: string }
     >({
       query: data => ({
-        url: 'tasks',
+        url: 'api/tasks',
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Task', id: 'LIST' },
             { type: 'Task', id: `PROJECT_${arg.projectId}` },
             { type: 'Task', id: `WORKSPACE_${arg.workspaceId}` },
@@ -401,19 +387,19 @@ export const projectsApi = createApi({
       },
     }),
 
-    updateTask: builder.mutation<
+    updateProjectTask: builder.mutation<
       { task: Task },
       { id: string; data: Partial<Task> }
     >({
       query: ({ id, data }) => ({
-        url: `tasks/${id}`,
+        url: `api/tasks/${id}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Task', id: 'LIST' },
             { type: 'Task', id },
           ])
@@ -421,15 +407,15 @@ export const projectsApi = createApi({
       },
     }),
 
-    deleteTask: builder.mutation<{ success: boolean }, { id: string }>({
+    deleteProjectTask: builder.mutation<{ success: boolean }, { id: string }>({
       query: ({ id }) => ({
-        url: `tasks/${id}`,
+        url: `api/tasks/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Task', id: 'LIST' },
             { type: 'Task', id },
           ])
@@ -445,17 +431,17 @@ export const projectsApi = createApi({
       }
     >({
       query: ({ projectId, tasks }) => ({
-        url: `projects/${projectId}/tasks/reorder`,
+        url: `api/projects/${projectId}/tasks/reorder`,
         method: 'PUT',
         body: { tasks },
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Task']))
+        dispatch(api.util.invalidateTags(['Task']))
       },
     }),
 
-    getDocuments: builder.query<
+    getProjectDocuments: builder.query<
       { documents: Document[] },
       {
         projectId: string
@@ -467,17 +453,17 @@ export const projectsApi = createApi({
         const params = new URLSearchParams({ projectId })
         if (type) params.append('type', type)
         if (search) params.append('search', search)
-        return `documents?${params}`
+        return `api/documents?${params}`
       },
       providesTags: ['Document'],
     }),
 
-    getDocument: builder.query<{ document: Document }, { id: string }>({
-      query: ({ id }) => `documents/${id}`,
+    getProjectDocument: builder.query<{ document: Document }, { id: string }>({
+      query: ({ id }) => `api/documents/${id}`,
       providesTags: (result, error, arg) => [{ type: 'Document', id: arg.id }],
     }),
 
-    createDocument: builder.mutation<
+    createProjectDocument: builder.mutation<
       { document: Document },
       Partial<Document> & { projectId: string; workspaceId: string }
     >({
@@ -491,7 +477,7 @@ export const projectsApi = createApi({
         }
 
         return {
-          url: 'documents',
+          url: 'api/documents',
           method: 'POST',
           body: processedData,
           headers: {
@@ -501,11 +487,11 @@ export const projectsApi = createApi({
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Document']))
+        dispatch(api.util.invalidateTags(['Document']))
       },
     }),
 
-    updateDocument: builder.mutation<
+    updateProjectDocument: builder.mutation<
       { document: Document },
       { id: string; data: Partial<Document> }
     >({
@@ -519,7 +505,7 @@ export const projectsApi = createApi({
         }
 
         return {
-          url: `documents/${id}`,
+          url: `api/documents/${id}`,
           method: 'PUT',
           body: processedData,
           headers: {
@@ -529,18 +515,18 @@ export const projectsApi = createApi({
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Document']))
+        dispatch(api.util.invalidateTags(['Document']))
       },
     }),
 
-    deleteDocument: builder.mutation<{ success: boolean }, { id: string }>({
+    deleteProjectDocument: builder.mutation<{ success: boolean }, { id: string }>({
       query: ({ id }) => ({
-        url: `documents/${id}`,
+        url: `api/documents/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Document']))
+        dispatch(api.util.invalidateTags(['Document']))
       },
     }),
 
@@ -554,13 +540,13 @@ export const projectsApi = createApi({
       }
     >({
       query: ({ projectId, ...data }) => ({
-        url: `projects/${projectId}/invite`,
+        url: `api/projects/${projectId}/invite`,
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['ProjectInvitation']))
+        dispatch(api.util.invalidateTags(['ProjectInvitation']))
       },
     }),
 
@@ -568,7 +554,7 @@ export const projectsApi = createApi({
       { invitations: ProjectInvitation[] },
       { projectId: string }
     >({
-      query: ({ projectId }) => `projects/${projectId}/invitations`,
+      query: ({ projectId }) => `api/projects/${projectId}/invitations`,
       providesTags: ['ProjectInvitation'],
     }),
 
@@ -577,13 +563,13 @@ export const projectsApi = createApi({
       { token: string; action: 'accept' | 'decline' }
     >({
       query: ({ token, action }) => ({
-        url: `projects/invitations/${token}/${action}`,
+        url: `api/projects/invitations/${token}/${action}`,
         method: 'POST',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             'ProjectInvitation',
             'ProjectMember',
           ])
@@ -596,13 +582,13 @@ export const projectsApi = createApi({
       { projectId: string; message?: string }
     >({
       query: ({ projectId, message }) => ({
-        url: `projects/${projectId}/join-request`,
+        url: `api/projects/${projectId}/join-request`,
         method: 'POST',
         body: { message },
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['ProjectJoinRequest']))
+        dispatch(api.util.invalidateTags(['ProjectJoinRequest']))
       },
     }),
 
@@ -610,7 +596,7 @@ export const projectsApi = createApi({
       { requests: ProjectJoinRequest[] },
       { projectId: string }
     >({
-      query: ({ projectId }) => `projects/${projectId}/join-requests`,
+      query: ({ projectId }) => `api/projects/${projectId}/join-requests`,
       providesTags: ['ProjectJoinRequest'],
     }),
 
@@ -619,13 +605,13 @@ export const projectsApi = createApi({
       { requestId: string; action: 'approve' | 'deny' }
     >({
       query: ({ requestId, action }) => ({
-        url: `projects/join-requests/${requestId}/${action}`,
+        url: `api/projects/join-requests/${requestId}/${action}`,
         method: 'POST',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             'ProjectJoinRequest',
             'ProjectMember',
           ])
@@ -634,7 +620,7 @@ export const projectsApi = createApi({
     }),
 
     getColumns: builder.query<{ columns: Column[] }, { projectId: string }>({
-      query: ({ projectId }) => `columns?projectId=${projectId}`,
+      query: ({ projectId }) => `api/columns?projectId=${projectId}`,
       providesTags: ['Column'],
     }),
 
@@ -643,13 +629,13 @@ export const projectsApi = createApi({
       Partial<Column> & { projectId: string }
     >({
       query: data => ({
-        url: 'columns',
+        url: 'api/columns',
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Column']))
+        dispatch(api.util.invalidateTags(['Column']))
       },
     }),
 
@@ -658,30 +644,30 @@ export const projectsApi = createApi({
       { id: string; data: Partial<Column> }
     >({
       query: ({ id, data }) => ({
-        url: `columns/${id}`,
+        url: `api/columns/${id}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Column']))
+        dispatch(api.util.invalidateTags(['Column']))
       },
     }),
 
     deleteColumn: builder.mutation<{ success: boolean }, { id: string }>({
       query: ({ id }) => ({
-        url: `columns/${id}`,
+        url: `api/columns/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(projectsApi.util.invalidateTags(['Column']))
+        dispatch(api.util.invalidateTags(['Column']))
       },
     }),
 
     startTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
-        url: `tasks/${taskId}/time-tracking/start`,
+        url: `api/tasks/${taskId}/time-tracking/start`,
         method: 'POST',
       }),
       async onQueryStarted({ taskId }, { dispatch, queryFulfilled }) {
@@ -695,7 +681,7 @@ export const projectsApi = createApi({
 
           queries.forEach(queryArgs => {
             dispatch(
-              projectsApi.util.updateQueryData('getTasks', queryArgs, draft => {
+              projectsApi.util.updateQueryData('getProjectTasks', queryArgs, draft => {
                 const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
                 if (taskIndex !== -1) {
                   draft.tasks[taskIndex] = data.task
@@ -705,7 +691,7 @@ export const projectsApi = createApi({
           })
 
           dispatch(
-            projectsApi.util.invalidateTags([
+            api.util.invalidateTags([
               { type: 'Task', id: 'LIST' },
               { type: 'Task', id: taskId },
             ])
@@ -716,7 +702,7 @@ export const projectsApi = createApi({
 
     stopTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
-        url: `tasks/${taskId}/time-tracking/stop`,
+        url: `api/tasks/${taskId}/time-tracking/stop`,
         method: 'POST',
       }),
       async onQueryStarted({ taskId }, { dispatch, queryFulfilled }) {
@@ -724,7 +710,7 @@ export const projectsApi = createApi({
           const { data } = await queryFulfilled
           dispatch(
             projectsApi.util.updateQueryData(
-              'getTasks',
+              'getProjectTasks',
               { projectId: data.task.projectId },
               draft => {
                 const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
@@ -736,7 +722,7 @@ export const projectsApi = createApi({
           )
 
           dispatch(
-            projectsApi.util.invalidateTags([
+            api.util.invalidateTags([
               { type: 'Task', id: 'LIST' },
               { type: 'Task', id: taskId },
             ])
@@ -747,7 +733,7 @@ export const projectsApi = createApi({
 
     pauseTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
-        url: `tasks/${taskId}/time-tracking/pause`,
+        url: `api/tasks/${taskId}/time-tracking/pause`,
         method: 'POST',
       }),
       async onQueryStarted({ taskId }, { dispatch, queryFulfilled }) {
@@ -755,7 +741,7 @@ export const projectsApi = createApi({
           const { data } = await queryFulfilled
           dispatch(
             projectsApi.util.updateQueryData(
-              'getTasks',
+              'getProjectTasks',
               { projectId: data.task.projectId },
               draft => {
                 const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
@@ -767,7 +753,7 @@ export const projectsApi = createApi({
           )
 
           dispatch(
-            projectsApi.util.invalidateTags([
+            api.util.invalidateTags([
               { type: 'Task', id: 'LIST' },
               { type: 'Task', id: taskId },
             ])
@@ -778,7 +764,7 @@ export const projectsApi = createApi({
 
     resumeTimeTracking: builder.mutation<{ task: Task }, { taskId: string }>({
       query: ({ taskId }) => ({
-        url: `tasks/${taskId}/time-tracking/resume`,
+        url: `api/tasks/${taskId}/time-tracking/resume`,
         method: 'POST',
       }),
       async onQueryStarted({ taskId }, { dispatch, queryFulfilled }) {
@@ -786,7 +772,7 @@ export const projectsApi = createApi({
           const { data } = await queryFulfilled
           dispatch(
             projectsApi.util.updateQueryData(
-              'getTasks',
+              'getProjectTasks',
               { projectId: data.task.projectId },
               draft => {
                 const taskIndex = draft.tasks.findIndex(t => t.id === taskId)
@@ -798,7 +784,7 @@ export const projectsApi = createApi({
           )
 
           dispatch(
-            projectsApi.util.invalidateTags([
+            api.util.invalidateTags([
               { type: 'Task', id: 'LIST' },
               { type: 'Task', id: taskId },
             ])
@@ -807,7 +793,6 @@ export const projectsApi = createApi({
       },
     }),
 
-    // Sprint endpoints
     getSprints: builder.query<
       { sprints: Sprint[] },
       { projectId: string; status?: string }
@@ -815,7 +800,7 @@ export const projectsApi = createApi({
       query: ({ projectId, status }) => {
         const params = new URLSearchParams({ projectId })
         if (status) params.append('status', status)
-        return `sprints?${params}`
+        return `api/sprints?${params}`
       },
       providesTags: (result, error, arg) =>
         result
@@ -830,7 +815,7 @@ export const projectsApi = createApi({
     }),
 
     getSprint: builder.query<{ sprint: Sprint }, { id: string }>({
-      query: ({ id }) => `sprints/${id}`,
+      query: ({ id }) => `api/sprints/${id}`,
       providesTags: (result, error, arg) => [{ type: 'Sprint', id: arg.id }],
     }),
 
@@ -845,14 +830,14 @@ export const projectsApi = createApi({
       }
     >({
       query: data => ({
-        url: 'sprints',
+        url: 'api/sprints',
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
           ])
         )
@@ -864,14 +849,14 @@ export const projectsApi = createApi({
       { id: string; data: Partial<Sprint> }
     >({
       query: ({ id, data }) => ({
-        url: `sprints/${id}`,
+        url: `api/sprints/${id}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         const { data: result } = await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Sprint', id },
             ...(result
               ? [
@@ -891,13 +876,13 @@ export const projectsApi = createApi({
       { id: string; projectId: string }
     >({
       query: ({ id }) => ({
-        url: `sprints/${id}`,
+        url: `api/sprints/${id}`,
         method: 'DELETE',
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Sprint', id: arg.id },
             { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
             { type: 'Task', id: 'LIST' },
@@ -911,13 +896,13 @@ export const projectsApi = createApi({
       { id: string; projectId: string }
     >({
       query: ({ id }) => ({
-        url: `sprints/${id}/start`,
+        url: `api/sprints/${id}/start`,
         method: 'POST',
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Sprint', id: arg.id },
             { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
           ])
@@ -937,14 +922,14 @@ export const projectsApi = createApi({
       { id: string; projectId: string; moveIncompleteTo: string }
     >({
       query: ({ id, moveIncompleteTo }) => ({
-        url: `sprints/${id}/complete`,
+        url: `api/sprints/${id}/complete`,
         method: 'POST',
         body: { moveIncompleteTo },
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Sprint', id: arg.id },
             { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
             { type: 'Task', id: 'LIST' },
@@ -963,14 +948,14 @@ export const projectsApi = createApi({
       }
     >({
       query: ({ sprintId, taskIds, action }) => ({
-        url: `sprints/${sprintId}/tasks`,
+        url: `api/sprints/${sprintId}/tasks`,
         method: 'POST',
         body: { taskIds, action },
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          projectsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Sprint', id: arg.sprintId },
             { type: 'Sprint', id: `PROJECT_${arg.projectId}` },
             { type: 'Task', id: 'LIST' },
@@ -979,7 +964,7 @@ export const projectsApi = createApi({
       },
     }),
 
-    getTags: builder.query<
+    getProjectTags: builder.query<
       {
         tags: {
           id: string
@@ -991,7 +976,7 @@ export const projectsApi = createApi({
       { workspaceId: string }
     >({
       query: ({ workspaceId }) => ({
-        url: `/tags?workspaceId=${workspaceId}`,
+        url: `api/tags?workspaceId=${workspaceId}`,
         method: 'GET',
       }),
       providesTags: ['Tag'],
@@ -1006,15 +991,15 @@ export const {
   useUpdateProjectMutation,
   useDeleteProjectMutation,
 
-  useGetProjectMembersQuery,
-  useAddProjectMemberMutation,
+  useGetProjectMembersInProjectQuery,
+  useAddProjectMemberInProjectMutation,
   useUpdateProjectMemberMutation,
-  useRemoveProjectMemberMutation,
+  useRemoveProjectMemberInProjectMutation,
 
-  useGetTasksQuery,
-  useCreateTaskMutation,
-  useUpdateTaskMutation,
-  useDeleteTaskMutation,
+  useGetProjectTasksQuery,
+  useCreateProjectTaskMutation,
+  useUpdateProjectTaskMutation,
+  useDeleteProjectTaskMutation,
   useReorderTasksMutation,
 
   useStartTimeTrackingMutation,
@@ -1022,11 +1007,11 @@ export const {
   usePauseTimeTrackingMutation,
   useResumeTimeTrackingMutation,
 
-  useGetDocumentsQuery,
-  useGetDocumentQuery,
-  useCreateDocumentMutation,
-  useUpdateDocumentMutation,
-  useDeleteDocumentMutation,
+  useGetProjectDocumentsQuery,
+  useGetProjectDocumentQuery,
+  useCreateProjectDocumentMutation,
+  useUpdateProjectDocumentMutation,
+  useDeleteProjectDocumentMutation,
 
   useInviteToProjectMutation,
   useGetProjectInvitationsQuery,
@@ -1049,5 +1034,5 @@ export const {
   useCompleteSprintMutation,
   useAssignTasksToSprintMutation,
 
-  useGetTagsQuery,
+  useGetProjectTagsQuery,
 } = projectsApi

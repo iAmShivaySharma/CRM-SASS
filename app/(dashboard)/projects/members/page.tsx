@@ -16,9 +16,9 @@ import { toast } from 'sonner'
 import { useAppSelector } from '@/lib/hooks'
 import {
   useGetProjectsQuery,
-  useGetProjectMembersQuery,
-  useAddProjectMemberMutation,
-  useRemoveProjectMemberMutation,
+  useGetProjectMembersInProjectQuery,
+  useAddProjectMemberInProjectMutation,
+  useRemoveProjectMemberInProjectMutation,
 } from '@/lib/api/projectsApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -60,7 +60,7 @@ export default function ProjectMembersPage() {
     data: membersData,
     isLoading: membersLoading,
     error: membersError,
-  } = useGetProjectMembersQuery(
+  } = useGetProjectMembersInProjectQuery(
     {
       projectId: projectFilter,
     },
@@ -73,9 +73,9 @@ export default function ProjectMembersPage() {
     }
   )
 
-  const [addProjectMember] = useAddProjectMemberMutation()
+  const [addProjectMember] = useAddProjectMemberInProjectMutation()
   const [removeProjectMember, { isLoading: isRemovingMember }] =
-    useRemoveProjectMemberMutation()
+    useRemoveProjectMemberInProjectMutation()
 
   const members = membersData?.members || []
 

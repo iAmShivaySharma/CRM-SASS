@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface Contact {
   _id: string
@@ -144,10 +143,7 @@ export interface ConvertLeadToContactResponse {
   leadId: string
 }
 
-export const contactsApi = createApi({
-  reducerPath: 'contactsApi',
-  baseQuery: createBaseQuery('/api/contacts'),
-  tagTypes: ['Contact', 'ContactsList'],
+const contactsApi = api.injectEndpoints({
   endpoints: builder => ({
     getContacts: builder.query<ContactsListResponse, ContactsQueryParams>({
       query: ({
@@ -172,7 +168,7 @@ export const contactsApi = createApi({
         if (assignedTo) params.append('assignedTo', assignedTo)
         if (priority) params.append('priority', priority)
 
-        return `?${params.toString()}`
+        return `api/contacts?${params.toString()}`
       },
       providesTags: result =>
         result
@@ -190,7 +186,7 @@ export const contactsApi = createApi({
       ContactResponse,
       { id: string; workspaceId: string }
     >({
-      query: ({ id, workspaceId }) => `/${id}?workspaceId=${workspaceId}`,
+      query: ({ id, workspaceId }) => `api/contacts/${id}?workspaceId=${workspaceId}`,
       providesTags: (result, error, { id }) => [{ type: 'Contact', id }],
     }),
 
@@ -199,14 +195,14 @@ export const contactsApi = createApi({
       { data: CreateContactRequest; workspaceId: string }
     >({
       query: ({ data, workspaceId }) => ({
-        url: `?workspaceId=${workspaceId}`,
+        url: `api/contacts?workspaceId=${workspaceId}`,
         method: 'POST',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          contactsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'ContactsList', id: 'LIST' },
           ])
         )
@@ -218,14 +214,14 @@ export const contactsApi = createApi({
       { id: string; data: UpdateContactRequest; workspaceId: string }
     >({
       query: ({ id, data, workspaceId }) => ({
-        url: `/${id}?workspaceId=${workspaceId}`,
+        url: `api/contacts/${id}?workspaceId=${workspaceId}`,
         method: 'PUT',
         body: data,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          contactsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Contact', id },
             { type: 'ContactsList', id: 'LIST' },
           ])
@@ -238,13 +234,13 @@ export const contactsApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) => ({
-        url: `/${id}?workspaceId=${workspaceId}`,
+        url: `api/contacts/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          contactsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'Contact', id },
             { type: 'ContactsList', id: 'LIST' },
           ])
@@ -259,7 +255,7 @@ export const contactsApi = createApi({
       async queryFn({ leadId, workspaceId }) {
         try {
           const res = await fetch(
-            `/api/leads/${leadId}/convert-to-contact?workspaceId=${workspaceId}`,
+            `/api/leads/${leadId}/convert?workspaceId=${workspaceId}`,
             { method: 'POST', credentials: 'include' }
           )
           const data = await res.json()
@@ -272,7 +268,7 @@ export const contactsApi = createApi({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(
-          contactsApi.util.invalidateTags([
+          api.util.invalidateTags([
             { type: 'ContactsList', id: 'LIST' },
             { type: 'Contact', id: 'NEW' },
           ])

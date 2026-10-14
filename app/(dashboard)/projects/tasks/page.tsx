@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Search, Filter, List, Grid, LayoutGrid } from 'lucide-react'
 import { useAppSelector } from '@/lib/hooks'
-import { useGetTasksQuery, useGetProjectsQuery } from '@/lib/api/projectsApi'
+import { useGetProjectTasksQuery, useGetProjectsQuery } from '@/lib/api/projectsApi'
 import {
   useGetUserPreferencesQuery,
   usePatchUserPreferencesMutation,
@@ -82,7 +82,7 @@ export default function TasksPage() {
     data: tasksData,
     isLoading,
     error,
-  } = useGetTasksQuery(
+  } = useGetProjectTasksQuery(
     {
       ...(projectFilter === 'all'
         ? { workspaceId: currentWorkspace?.id }

@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface InvoiceItem {
   _id?: string
@@ -146,10 +145,7 @@ export interface InvoiceAnalytics {
   }
 }
 
-export const invoiceApi = createApi({
-  reducerPath: 'invoiceApi',
-  baseQuery: createBaseQuery('/api'),
-  tagTypes: ['Invoice', 'InvoiceAnalytics'],
+const invoiceApi = api.injectEndpoints({
   endpoints: builder => ({
     getInvoices: builder.query<
       {
@@ -184,7 +180,7 @@ export const invoiceApi = createApi({
             searchParams.set(key, String(value))
           }
         })
-        return `/invoices?${searchParams.toString()}`
+        return `api/invoices?${searchParams.toString()}`
       },
       providesTags: result =>
         result
@@ -203,7 +199,7 @@ export const invoiceApi = createApi({
       { id: string; workspaceId: string }
     >({
       query: ({ id, workspaceId }) =>
-        `/invoices/${id}?workspaceId=${workspaceId}`,
+        `api/invoices/${id}?workspaceId=${workspaceId}`,
       providesTags: (_result, _error, { id }) => [{ type: 'Invoice', id }],
     }),
 
@@ -212,7 +208,7 @@ export const invoiceApi = createApi({
       Record<string, any>
     >({
       query: body => ({
-        url: '/invoices',
+        url: 'api/invoices',
         method: 'POST',
         body,
       }),
@@ -224,7 +220,7 @@ export const invoiceApi = createApi({
       { id: string } & Record<string, any>
     >({
       query: ({ id, ...body }) => ({
-        url: `/invoices/${id}`,
+        url: `api/invoices/${id}`,
         method: 'PUT',
         body,
       }),
@@ -237,7 +233,7 @@ export const invoiceApi = createApi({
 
     deleteInvoice: builder.mutation<void, { id: string; workspaceId: string }>({
       query: ({ id, workspaceId }) => ({
-        url: `/invoices/${id}?workspaceId=${workspaceId}`,
+        url: `api/invoices/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       invalidatesTags: [{ type: 'Invoice', id: 'LIST' }, 'InvoiceAnalytics'],
@@ -256,7 +252,7 @@ export const invoiceApi = createApi({
       }
     >({
       query: ({ invoiceId, ...body }) => ({
-        url: `/invoices/${invoiceId}/record-payment`,
+        url: `api/invoices/${invoiceId}/record-payment`,
         method: 'POST',
         body,
       }),
@@ -272,7 +268,7 @@ export const invoiceApi = createApi({
       { invoiceId: string; workspaceId: string; channel?: string }
     >({
       query: ({ invoiceId, ...body }) => ({
-        url: `/invoices/${invoiceId}/send`,
+        url: `api/invoices/${invoiceId}/send`,
         method: 'POST',
         body,
       }),
@@ -287,7 +283,7 @@ export const invoiceApi = createApi({
       { workspaceId: string; type?: string }
     >({
       query: ({ workspaceId, type }) =>
-        `/invoices/next-number?workspaceId=${workspaceId}${type ? `&type=${type}` : ''}`,
+        `api/invoices/next-number?workspaceId=${workspaceId}${type ? `&type=${type}` : ''}`,
     }),
 
     getInvoiceAnalytics: builder.query<
@@ -299,7 +295,7 @@ export const invoiceApi = createApi({
         Object.entries(params).forEach(([key, value]) => {
           if (value) searchParams.set(key, value)
         })
-        return `/invoices/analytics?${searchParams.toString()}`
+        return `api/invoices/analytics?${searchParams.toString()}`
       },
       transformResponse: (response: any) => response.analytics,
       providesTags: ['InvoiceAnalytics'],

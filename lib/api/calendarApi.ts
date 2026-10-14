@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export interface CalendarEvent {
   id: string
@@ -30,10 +29,7 @@ export interface CreateEventBody {
   entityId?: string
 }
 
-export const calendarApi = createApi({
-  reducerPath: 'calendarApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['CalendarEvent'],
+const calendarApi = api.injectEndpoints({
   endpoints: builder => ({
     getCalendarEvents: builder.query<CalendarEventsResponse, { workspaceId: string }>({
       query: ({ workspaceId }) => `api/calendar/events?workspaceId=${workspaceId}`,

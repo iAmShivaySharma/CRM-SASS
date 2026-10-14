@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { KanbanBoardSkeleton } from '@/components/ui/skeleton'
 import {
-  useUpdateTaskMutation,
+  useUpdateProjectTaskMutation,
   useGetColumnsQuery,
   type Task,
   type Column,
@@ -52,7 +52,7 @@ export function KanbanBoard({
   const [showCreateColumn, setShowCreateColumn] = useState(false)
   const [showCreateTask, setShowCreateTask] = useState(false)
   const [selectedColumnForTask, setSelectedColumnForTask] = useState<string>('')
-  const [updateTask] = useUpdateTaskMutation()
+  const [updateTask] = useUpdateProjectTaskMutation()
 
   // Get dynamic columns for the project
   const { data: columnsData, isLoading: columnsLoading } = useGetColumnsQuery(

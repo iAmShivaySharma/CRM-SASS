@@ -76,7 +76,7 @@ import {
   useBulkDeleteLeadsMutation,
   useImportLeadsMutation,
   useGetWorkspaceMembersQuery,
-  useGetTagsQuery,
+  useGetWorkspaceTagsQuery,
 } from '@/lib/api/mongoApi'
 import { useConvertLeadToContactMutation } from '@/lib/api/contactsApi'
 import { LeadDetailsSheet } from './LeadDetailsSheet'
@@ -146,7 +146,7 @@ export function LeadList() {
     currentWorkspace?.id || '',
     { skip: !currentWorkspace?.id }
   )
-  const { data: tagsData } = useGetTagsQuery(currentWorkspace?.id || '', {
+  const { data: tagsData } = useGetWorkspaceTagsQuery(currentWorkspace?.id || '', {
     skip: !currentWorkspace?.id,
   })
 

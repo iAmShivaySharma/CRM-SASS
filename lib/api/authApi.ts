@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 import { logout } from '@/lib/slices/authSlice'
 import { clearPersistedData } from '@/lib/middleware/persistenceMiddleware'
 
@@ -31,52 +30,48 @@ export interface VerifyResponse {
   workspace?: any
 }
 
-export const authApi = createApi({
-  reducerPath: 'authApi',
-  baseQuery: createBaseQuery('/api/auth'),
-  tagTypes: ['Auth'],
+const authApi = api.injectEndpoints({
   endpoints: builder => ({
     login: builder.mutation<AuthResponse, LoginRequest>({
       query: credentials => ({
-        url: 'login',
+        url: 'api/auth/login',
         method: 'POST',
         body: credentials,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(authApi.util.invalidateTags(['Auth']))
+        dispatch(api.util.invalidateTags(['Auth']))
       },
     }),
     signup: builder.mutation<AuthResponse, SignupRequest>({
       query: userData => ({
-        url: 'signup',
+        url: 'api/auth/signup',
         method: 'POST',
         body: userData,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
-        dispatch(authApi.util.invalidateTags(['Auth']))
+        dispatch(api.util.invalidateTags(['Auth']))
       },
     }),
     logout: builder.mutation<AuthResponse, void>({
       query: () => ({
-        url: 'logout',
+        url: 'api/auth/logout',
         method: 'POST',
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled
         } catch {
-          // Clear state even if API call fails
         }
         dispatch(logout())
-        dispatch(authApi.util.invalidateTags(['Auth']))
+        dispatch(api.util.invalidateTags(['Auth']))
         clearPersistedData()
       },
     }),
     verify: builder.query<VerifyResponse, void>({
       query: () => ({
-        url: 'verify',
+        url: 'api/auth/verify',
         method: 'POST',
       }),
       providesTags: ['Auth'],

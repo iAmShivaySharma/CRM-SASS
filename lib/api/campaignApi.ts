@@ -1,5 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { createBaseQuery } from './baseQuery'
+import { api } from './index'
 
 export type CampaignChannel = 'email' | 'whatsapp' | 'sms' | 'ai_reply'
 
@@ -36,10 +35,7 @@ interface CampaignResponse {
   campaign: Campaign
 }
 
-export const campaignApi = createApi({
-  reducerPath: 'campaignApi',
-  baseQuery: createBaseQuery(''),
-  tagTypes: ['Campaign'],
+const campaignApi = api.injectEndpoints({
   endpoints: builder => ({
     getCampaigns: builder.query<CampaignsResponse, { workspaceId: string }>({
       query: ({ workspaceId }) => `api/campaigns?workspaceId=${workspaceId}`,

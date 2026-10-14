@@ -28,8 +28,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { TiptapEditor } from '@/components/ui/tiptap-editor-improved'
 import {
-  useCreateDocumentMutation,
-  useUpdateDocumentMutation,
+  useCreateProjectDocumentMutation,
+  useUpdateProjectDocumentMutation,
 } from '@/lib/api/projectsApi'
 import { useAppSelector } from '@/lib/hooks'
 
@@ -70,8 +70,8 @@ export function DocumentEditorDialog({
   const [tagInput, setTagInput] = useState('')
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
-  const [createDocument] = useCreateDocumentMutation()
-  const [updateDocument] = useUpdateDocumentMutation()
+  const [createDocument] = useCreateProjectDocumentMutation()
+  const [updateDocument] = useUpdateProjectDocumentMutation()
 
   const form = useForm<DocumentFormData>({
     resolver: zodResolver(documentSchema),
