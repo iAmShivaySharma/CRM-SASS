@@ -35,7 +35,7 @@ import {
 import { useAppSelector } from '@/lib/hooks'
 
 interface EmailMessage {
-  _id: string
+  id: string
   messageId: string
   threadId?: string
   from: {

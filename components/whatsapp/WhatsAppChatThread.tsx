@@ -253,7 +253,7 @@ export function WhatsAppChatThread({
                 )
 
                 return (
-                  <div key={msg._id}>
+                  <div key={msg.id}>
                     {showDate && (
                       <div className="flex justify-center py-3">
                         <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground">

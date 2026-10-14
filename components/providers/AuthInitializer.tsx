@@ -28,7 +28,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
                   email: data.user.email,
                   name: data.user.fullName || data.user.name || data.user.email,
                   role: data.role?.name || data.user.role || 'user',
-                  roleId: data.role?.id || data.role?._id || data.user.roleId || '',
+                  roleId: data.role?.id || data.user.roleId || '',
                   workspaceId:
                     data.user.workspaceId || data.workspace?.id || '',
                   permissions: data.role?.permissions || data.user.permissions || [],

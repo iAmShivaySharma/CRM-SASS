@@ -197,7 +197,7 @@ export function RecallEventList({ workspaceId }: RecallEventListProps) {
 
     try {
       if (editingRecord) {
-        await updateRecallEvent({ id: editingRecord._id, ...payload }).unwrap()
+        await updateRecallEvent({ id: editingRecord.id, ...payload }).unwrap()
         toast.success('Recall event updated successfully')
       } else {
         await createRecallEvent(payload).unwrap()
@@ -280,7 +280,7 @@ export function RecallEventList({ workspaceId }: RecallEventListProps) {
               </TableRow>
             ) : (
               records.map(record => (
-                <TableRow key={record._id}>
+                <TableRow key={record.id}>
                   <TableCell className="font-mono font-medium">
                     {record.recallNumber}
                   </TableCell>
@@ -325,7 +325,7 @@ export function RecallEventList({ workspaceId }: RecallEventListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(record._id)}
+                          onClick={() => setDeleteId(record.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

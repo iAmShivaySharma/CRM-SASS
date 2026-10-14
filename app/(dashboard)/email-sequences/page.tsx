@@ -125,7 +125,7 @@ export default function EmailSequencesPage() {
   }
 
   const openEdit = (seq: any) => {
-    setEditingId(seq._id)
+    setEditingId(seq.id)
     setSequenceName(seq.name)
     setSequenceDescription(seq.description || '')
     setEditingSteps(
@@ -384,7 +384,7 @@ export default function EmailSequencesPage() {
               ...new Set((seq.steps || []).map(s => s.channel || 'email')),
             ]
             return (
-              <Card key={seq._id}>
+              <Card key={seq.id}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-base">{seq.name}</CardTitle>
@@ -421,7 +421,7 @@ export default function EmailSequencesPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleStatusChange(seq._id, 'active')}
+                        onClick={() => handleStatusChange(seq.id, 'active')}
                       >
                         <Play className="mr-1 h-3 w-3" />
                         Activate
@@ -430,7 +430,7 @@ export default function EmailSequencesPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleStatusChange(seq._id, 'paused')}
+                        onClick={() => handleStatusChange(seq.id, 'paused')}
                       >
                         <Pause className="mr-1 h-3 w-3" />
                         Pause
@@ -440,7 +440,7 @@ export default function EmailSequencesPage() {
                       size="sm"
                       variant="ghost"
                       className="text-destructive"
-                      onClick={() => handleDelete(seq._id)}
+                      onClick={() => handleDelete(seq.id)}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>

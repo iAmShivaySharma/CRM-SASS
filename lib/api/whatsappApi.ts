@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface WhatsAppAccount {
-  _id: string
+  id: string
   workspaceId: string
   name: string
   displayName?: string
@@ -19,7 +19,7 @@ export interface WhatsAppAccount {
 }
 
 export interface WhatsAppTemplate {
-  _id: string
+  id: string
   workspaceId: string
   accountId: string
   name: string
@@ -42,7 +42,7 @@ export interface WhatsAppTemplate {
 }
 
 export interface WhatsAppMessage {
-  _id: string
+  id: string
   direction: 'inbound' | 'outbound'
   from: string
   to: string
@@ -58,7 +58,7 @@ export interface WhatsAppMessage {
 }
 
 export interface WhatsAppConversation {
-  _id: string
+  id: string
   workspaceId: string
   accountId: string
   contactPhone: string
@@ -132,8 +132,7 @@ export interface BotFlowStepPayload {
 }
 
 export interface WhatsAppBotFlowResponse {
-  _id: string
-  id?: string
+  id: string
   workspaceId: string
   accountId: string
   name: string

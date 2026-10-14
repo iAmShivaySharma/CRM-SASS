@@ -232,7 +232,7 @@ export default function WhatsAppPage() {
     try {
       const result = await syncTemplates({
         workspaceId,
-        accountId: accounts[0]._id,
+        accountId: accounts[0].id,
       }).unwrap()
       toast.success(`Synced ${result.synced} templates`)
     } catch {
@@ -324,7 +324,7 @@ export default function WhatsAppPage() {
   }
 
   function openEditAccount(account: (typeof accounts)[0]) {
-    setEditingAccountId(account._id)
+    setEditingAccountId(account.id)
     setAccountForm({
       name: account.displayName || account.name,
       phoneNumber: account.phoneNumber,
@@ -473,7 +473,7 @@ export default function WhatsAppPage() {
     }
     try {
       await updateBotFlow({
-        id: editingBotFlow._id || editingBotFlow.id!,
+        id: editingBotFlow.id,
         steps,
         triggerKeywords,
         name: botFlowForm.name || editingBotFlow.name,
@@ -500,7 +500,7 @@ export default function WhatsAppPage() {
   async function handleToggleBotFlow(flow: WhatsAppBotFlowResponse) {
     try {
       await updateBotFlow({
-        id: flow._id || flow.id!,
+        id: flow.id,
         isActive: !flow.isActive,
       }).unwrap()
       toast.success(
@@ -594,12 +594,12 @@ export default function WhatsAppPage() {
                       const isSelected = selectedPhone === conv.contactPhone
                       return (
                         <button
-                          key={conv._id}
+                          key={conv.id}
                           onClick={() => {
                             setSelectedPhone(conv.contactPhone)
                             setSelectedAccountId(conv.accountId)
                             const account = accounts.find(
-                              a => a._id === conv.accountId
+                              a => a.id === conv.accountId
                             )
                             setSelectedAccountPhone(account?.phoneNumber ?? '')
                           }}
@@ -739,7 +739,7 @@ export default function WhatsAppPage() {
                   (t.components || []) as { type: string; text?: string }[]
                 ).find(c => c.type === 'BODY')
                 return (
-                  <Card key={t._id} className="flex flex-col">
+                  <Card key={t.id} className="flex flex-col">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-2">
                         <CardTitle className="break-all text-sm font-semibold">
@@ -772,7 +772,7 @@ export default function WhatsAppPage() {
                             size="sm"
                             variant="outline"
                             className="flex-1 text-xs"
-                            onClick={() => handleSubmitTemplate(t._id)}
+                            onClick={() => handleSubmitTemplate(t.id)}
                           >
                             <Send className="mr-1 h-3 w-3" />
                             Submit to Meta
@@ -782,7 +782,7 @@ export default function WhatsAppPage() {
                           size="sm"
                           variant="outline"
                           className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteTemplate(t._id)}
+                          onClick={() => handleDeleteTemplate(t.id)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -839,7 +839,7 @@ export default function WhatsAppPage() {
           ) : (
             <div className="space-y-3">
               {accounts.map(account => (
-                <Card key={account._id}>
+                <Card key={account.id}>
                   <CardContent className="flex items-center justify-between py-4">
                     <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-2">
@@ -875,7 +875,7 @@ export default function WhatsAppPage() {
                         size="sm"
                         variant="outline"
                         className="text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDeleteAccount(account._id)}
+                        onClick={() => handleDeleteAccount(account.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -910,7 +910,7 @@ export default function WhatsAppPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {accounts.map(a => (
-                      <SelectItem key={a._id} value={a._id}>
+                      <SelectItem key={a.id} value={a.id}>
                         {a.displayName || a.name || a.phoneNumber}
                       </SelectItem>
                     ))}
@@ -942,7 +942,7 @@ export default function WhatsAppPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {approvedTemplates.map(t => (
-                        <SelectItem key={t._id} value={t.name}>
+                        <SelectItem key={t.id} value={t.name}>
                           {t.name} ({t.language})
                         </SelectItem>
                       ))}
@@ -1101,7 +1101,7 @@ export default function WhatsAppPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {botFlows.map(flow => (
-                    <Card key={flow._id || flow.id}>
+                    <Card key={flow.id}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between gap-2">
                           <CardTitle className="text-sm font-semibold">
@@ -1159,7 +1159,7 @@ export default function WhatsAppPage() {
                             variant="outline"
                             className="text-destructive hover:bg-destructive/10"
                             onClick={() =>
-                              handleDeleteBotFlow(flow._id || flow.id!)
+                              handleDeleteBotFlow(flow.id)
                             }
                           >
                             <Trash2 className="h-3 w-3" />
@@ -1233,7 +1233,7 @@ export default function WhatsAppPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {accounts.map(a => (
-                          <SelectItem key={a._id} value={a._id}>
+                          <SelectItem key={a.id} value={a.id}>
                             {a.displayName || a.name || a.phoneNumber}
                           </SelectItem>
                         ))}

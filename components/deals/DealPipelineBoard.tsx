@@ -58,7 +58,7 @@ export function DealPipelineBoard() {
   const currentWorkspace = useAppSelector(
     (state: any) => state.workspace?.currentWorkspace
   )
-  const workspaceId = currentWorkspace?.id || currentWorkspace?._id || ''
+  const workspaceId = currentWorkspace?.id || ''
 
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')

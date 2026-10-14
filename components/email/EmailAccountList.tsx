@@ -26,7 +26,7 @@ import {
 import { useAppSelector } from '@/lib/hooks'
 
 interface EmailAccount {
-  _id: string
+  id: string
   provider: 'gmail' | 'outlook' | 'smtp' | 'imap'
   displayName: string
   emailAddress: string
@@ -87,7 +87,7 @@ export function EmailAccountList({
       if (!cancelled) setAccounts(data.accounts || [])
 
       if (!activeAccount && data.accounts?.length > 0) {
-        onAccountSelect(data.accounts[0]._id)
+        onAccountSelect(data.accounts[0].id)
       }
     } catch (error) {
       toast.error('Failed to load email accounts')
@@ -114,7 +114,7 @@ export function EmailAccountList({
 
       setAccounts(prev =>
         prev.map(acc =>
-          acc._id === accountId
+          acc.id === accountId
             ? { ...acc, settings: { ...acc.settings, lastSyncAt: new Date() } }
             : acc
         )
@@ -144,11 +144,11 @@ export function EmailAccountList({
 
       if (!response.ok) throw new Error('Failed to delete account')
 
-      setAccounts(prev => prev.filter(acc => acc._id !== accountId))
+      setAccounts(prev => prev.filter(acc => acc.id !== accountId))
 
       if (activeAccount === accountId) {
-        const remainingAccounts = accounts.filter(acc => acc._id !== accountId)
-        onAccountSelect(remainingAccounts[0]?._id || '')
+        const remainingAccounts = accounts.filter(acc => acc.id !== accountId)
+        onAccountSelect(remainingAccounts[0]?.id || '')
       }
 
       toast.success('Email account deleted')
@@ -174,7 +174,7 @@ export function EmailAccountList({
       setAccounts(prev =>
         prev.map(acc => ({
           ...acc,
-          isDefault: acc._id === accountId,
+          isDefault: acc.id === accountId,
         }))
       )
 
@@ -267,13 +267,13 @@ export function EmailAccountList({
       <div className="space-y-2">
         {accounts.map(account => (
           <div
-            key={account._id}
+            key={account.id}
             className={`group relative flex cursor-pointer items-center space-x-3 rounded-lg p-3 transition-colors ${
-              activeAccount === account._id
+              activeAccount === account.id
                 ? 'border border-primary/20 bg-primary/10'
                 : 'hover:bg-muted'
             }`}
-            onClick={() => onAccountSelect(account._id)}
+            onClick={() => onAccountSelect(account.id)}
           >
             <Avatar className="h-10 w-10">
               <AvatarFallback className="text-lg">
@@ -339,11 +339,11 @@ export function EmailAccountList({
               >
                 {account.settings.syncEnabled && (
                   <DropdownMenuItem
-                    onSelect={() => syncAccount(account._id)}
-                    disabled={syncingAccounts.has(account._id)}
+                    onSelect={() => syncAccount(account.id)}
+                    disabled={syncingAccounts.has(account.id)}
                   >
                     <RefreshCw
-                      className={`mr-2 h-4 w-4 ${syncingAccounts.has(account._id) ? 'animate-spin' : ''}`}
+                      className={`mr-2 h-4 w-4 ${syncingAccounts.has(account.id) ? 'animate-spin' : ''}`}
                     />
                     Sync Now
                   </DropdownMenuItem>
@@ -351,10 +351,10 @@ export function EmailAccountList({
 
                 {!account.isDefault && (
                   <DropdownMenuItem
-                    disabled={settingDefaultId === account._id}
-                    onSelect={() => setAsDefault(account._id)}
+                    disabled={settingDefaultId === account.id}
+                    onSelect={() => setAsDefault(account.id)}
                   >
-                    {settingDefaultId === account._id ? (
+                    {settingDefaultId === account.id ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <Zap className="mr-2 h-4 w-4" />
@@ -364,7 +364,7 @@ export function EmailAccountList({
                 )}
 
                 <DropdownMenuItem
-                  onSelect={() => onSettingsClick?.(account._id)}
+                  onSelect={() => onSettingsClick?.(account.id)}
                 >
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
@@ -373,11 +373,11 @@ export function EmailAccountList({
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
-                  disabled={deletingAccountId === account._id}
-                  onSelect={() => deleteAccount(account._id)}
+                  disabled={deletingAccountId === account.id}
+                  onSelect={() => deleteAccount(account.id)}
                   className="text-red-600 dark:text-red-400"
                 >
-                  {deletingAccountId === account._id ? (
+                  {deletingAccountId === account.id ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Trash2 className="mr-2 h-4 w-4" />

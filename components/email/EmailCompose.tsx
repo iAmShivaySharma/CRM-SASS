@@ -73,14 +73,14 @@ interface Attachment {
 }
 
 interface EmailAccount {
-  _id: string
+  id: string
   displayName: string
   emailAddress: string
   provider: string
 }
 
 interface EmailTemplate {
-  _id: string
+  id: string
   name: string
   subject: string
   bodyHtml: string
@@ -201,10 +201,10 @@ export function EmailCompose({
 
       if (accountId) {
         const account = data.accounts?.find(
-          (acc: EmailAccount) => acc._id === accountId
+          (acc: EmailAccount) => acc.id === accountId
         )
         if (account) {
-          setEmailData(prev => ({ ...prev, from: account._id }))
+          setEmailData(prev => ({ ...prev, from: account.id }))
         }
       }
     } catch (error) {
@@ -293,7 +293,7 @@ export function EmailCompose({
   }
 
   const applyTemplate = (templateId: string) => {
-    const template = templates.find(t => t._id === templateId)
+    const template = templates.find(t => t.id === templateId)
     if (!template) return
 
     setEmailData(prev => ({
@@ -432,7 +432,7 @@ export function EmailCompose({
                   </SelectTrigger>
                   <SelectContent>
                     {templates.map(template => (
-                      <SelectItem key={template._id} value={template._id}>
+                      <SelectItem key={template.id} value={template.id}>
                         {template.name}
                       </SelectItem>
                     ))}
@@ -469,7 +469,7 @@ export function EmailCompose({
               </SelectTrigger>
               <SelectContent>
                 {accounts.map(account => (
-                  <SelectItem key={account._id} value={account._id}>
+                  <SelectItem key={account.id} value={account.id}>
                     <div className="flex items-center">
                       <span className="font-medium">{account.displayName}</span>
                       <span className="ml-2 text-sm text-muted-foreground">

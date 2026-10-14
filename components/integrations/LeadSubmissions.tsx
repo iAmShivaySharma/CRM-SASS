@@ -86,11 +86,11 @@ export function LeadSubmissions() {
   const pagination = data?.pagination
 
   const handleProcess = async (submission: LeadFormSubmission) => {
-    setProcessingIds(prev => new Set(prev).add(submission._id))
+    setProcessingIds(prev => new Set(prev).add(submission.id))
     try {
       await processSubmission({
         workspaceId,
-        submissionId: submission._id,
+        submissionId: submission.id,
       }).unwrap()
       toast.success('Submission processed successfully')
     } catch {
@@ -98,7 +98,7 @@ export function LeadSubmissions() {
     } finally {
       setProcessingIds(prev => {
         const next = new Set(prev)
-        next.delete(submission._id)
+        next.delete(submission.id)
         return next
       })
     }
@@ -119,7 +119,7 @@ export function LeadSubmissions() {
       try {
         await processSubmission({
           workspaceId,
-          submissionId: submission._id,
+          submissionId: submission.id,
         }).unwrap()
         successCount++
       } catch {
@@ -225,10 +225,10 @@ export function LeadSubmissions() {
               submissions.map(submission => {
                 const PlatformIcon = PLATFORM_ICONS[submission.platform]
                 const platformColor = PLATFORM_COLORS[submission.platform] || ''
-                const isProcessing = processingIds.has(submission._id)
+                const isProcessing = processingIds.has(submission.id)
 
                 return (
-                  <TableRow key={submission._id}>
+                  <TableRow key={submission.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {PlatformIcon && (

@@ -61,7 +61,7 @@ export function ExecuteWorkflowModal({
 }: ExecuteWorkflowModalProps) {
   const router = useRouter()
   // Resolve workflow ID from any possible field name
-  const workflowId = workflow.id || workflow._id || workflow.n8nWorkflowId || ''
+  const workflowId = workflow.id || workflow.n8nWorkflowId || ''
 
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [emailResults, setEmailResults] = useState(false)
@@ -402,7 +402,7 @@ export function ExecuteWorkflowModal({
                           className="bg-orange-600 text-white hover:bg-orange-700"
                         >
                           <a
-                            href={`/engines/executions/${(executionResult as any).data._id}/input`}
+                            href={`/engines/executions/${(executionResult as any).data.id}/input`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -414,7 +414,7 @@ export function ExecuteWorkflowModal({
                           variant="outline"
                           onClick={() =>
                             window.open(
-                              `/engines/executions/${(executionResult as any).data._id}`,
+                              `/engines/executions/${(executionResult as any).data.id}`,
                               '_blank'
                             )
                           }

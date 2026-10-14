@@ -15,7 +15,7 @@ export interface CampaignStep {
 }
 
 export interface Campaign {
-  _id: string
+  id: string
   workspaceId: string
   name: string
   description?: string

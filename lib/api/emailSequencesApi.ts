@@ -15,7 +15,7 @@ export interface SequenceStep {
 }
 
 export interface EmailSequence {
-  _id: string
+  id: string
   workspaceId: string
   name: string
   description?: string
@@ -27,7 +27,7 @@ export interface EmailSequence {
 }
 
 export interface SequenceEnrollment {
-  _id: string
+  id: string
   sequenceId: string
   leadId?: string
   contactId?: string

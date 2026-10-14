@@ -188,13 +188,13 @@ export function ConnectedPlatforms() {
       if (integration.platform === 'google_ads') {
         const result = await syncGoogle({
           workspaceId,
-          integrationId: integration._id,
+          integrationId: integration.id,
         }).unwrap()
         toast.success(`Synced ${result.synced} leads from Google Ads`)
       } else if (integration.platform === 'linkedin') {
         const result = await syncLinkedIn({
           workspaceId,
-          integrationId: integration._id,
+          integrationId: integration.id,
         }).unwrap()
         toast.success(`Synced ${result.synced} leads from LinkedIn`)
       }
@@ -320,7 +320,7 @@ export function ConnectedPlatforms() {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => handleDisconnect(integration._id)}
+                              onClick={() => handleDisconnect(integration.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
                               Disconnect

@@ -87,8 +87,8 @@ export function ContactDetail({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="flex max-h-[80vh] flex-col">
+      <div className="shrink-0 pb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Avatar className="h-16 w-16">
@@ -124,9 +124,10 @@ export function ContactDetail({
           </Button>
         </div>
       </div>
+      </div>
 
+      <div className="flex-1 space-y-6 overflow-y-auto pr-1">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Contact Information */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Contact Information</CardTitle>
@@ -168,7 +169,7 @@ export function ContactDetail({
                   href={contact.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-primary hover:underline"
                 >
                   {contact.website}
                 </a>
@@ -181,7 +182,7 @@ export function ContactDetail({
                   href={contact.linkedIn}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-primary hover:underline"
                 >
                   LinkedIn Profile
                 </a>
@@ -194,7 +195,7 @@ export function ContactDetail({
                   href={contact.twitter}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-primary hover:underline"
                 >
                   Twitter Profile
                 </a>
@@ -203,7 +204,6 @@ export function ContactDetail({
           </CardContent>
         </Card>
 
-        {/* Business Information */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
@@ -261,7 +261,6 @@ export function ContactDetail({
           </CardContent>
         </Card>
 
-        {/* Tags */}
         {contact.tagIds && contact.tagIds.length > 0 && (
           <Card>
             <CardHeader>
@@ -274,7 +273,7 @@ export function ContactDetail({
               <div className="flex flex-wrap gap-2">
                 {contact.tagIds.map(tag => (
                   <Badge
-                    key={tag._id}
+                    key={tag.id}
                     variant="outline"
                     style={{ borderColor: tag.color, color: tag.color }}
                   >
@@ -286,7 +285,6 @@ export function ContactDetail({
           </Card>
         )}
 
-        {/* Custom Fields */}
         {contact.customData && Object.keys(contact.customData).length > 0 && (
           <Card>
             <CardHeader>
@@ -305,7 +303,6 @@ export function ContactDetail({
           </Card>
         )}
 
-        {/* Notes */}
         {contact.notes && (
           <Card className="lg:col-span-2">
             <CardHeader>
@@ -322,7 +319,6 @@ export function ContactDetail({
           </Card>
         )}
 
-        {/* Dates */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
@@ -371,6 +367,7 @@ export function ContactDetail({
             )}
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   )

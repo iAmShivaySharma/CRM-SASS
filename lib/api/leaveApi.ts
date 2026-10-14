@@ -1,11 +1,11 @@
 import { api } from './index'
 
 export interface LeaveRequestRecord {
-  _id: string
+  id: string
   workspaceId: string
   employeeId:
     | {
-        _id: string
+        id: string
         fullName: string
         email: string
       }
@@ -18,14 +18,14 @@ export interface LeaveRequestRecord {
   status: 'pending' | 'approved' | 'rejected' | 'cancelled'
   leavePolicyId:
     | {
-        _id: string
+        id: string
         name: string
         type: string
       }
     | string
   approvedBy?:
     | {
-        _id: string
+        id: string
         fullName: string
       }
     | string
@@ -94,7 +94,7 @@ export interface LeaveStats {
   totalDaysUsedThisYear: number
   upcomingLeaves: number
   leaveTypeBreakdown: Array<{
-    _id: string
+    id: string
     count: number
     totalDays: number
   }>

@@ -140,7 +140,7 @@ export function CleaningLogList({ workspaceId }: CleaningLogListProps) {
 
     try {
       if (editingRecord) {
-        await updateCleaningLog({ id: editingRecord._id, ...payload }).unwrap()
+        await updateCleaningLog({ id: editingRecord.id, ...payload }).unwrap()
         toast.success('Cleaning log updated successfully')
       } else {
         await createCleaningLog(payload).unwrap()
@@ -236,7 +236,7 @@ export function CleaningLogList({ workspaceId }: CleaningLogListProps) {
               </TableRow>
             ) : (
               records.map(record => (
-                <TableRow key={record._id}>
+                <TableRow key={record.id}>
                   <TableCell>
                     {record.date
                       ? format(new Date(record.date), 'dd MMM yyyy')
@@ -275,7 +275,7 @@ export function CleaningLogList({ workspaceId }: CleaningLogListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(record._id)}
+                          onClick={() => setDeleteId(record.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

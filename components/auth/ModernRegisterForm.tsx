@@ -489,7 +489,7 @@ export function ModernRegisterForm() {
                               role: data.user.role || 'Owner',
                               roleId: data.user.roleId || '',
                               workspaceId:
-                                data.workspace?.id || data.workspace?._id || '',
+                                data.workspace?.id || '',
                               permissions: data.user.permissions || ['*:*'],
                             },
                           })
@@ -497,7 +497,7 @@ export function ModernRegisterForm() {
                         if (data.workspace) {
                           dispatch(
                             setCurrentWorkspace({
-                              id: data.workspace.id || data.workspace._id,
+                              id: data.workspace.id,
                               name: data.workspace.name,
                               plan: data.workspace.planId || 'free',
                               memberCount: 1,

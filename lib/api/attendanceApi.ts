@@ -205,20 +205,20 @@ const attendanceApi = api.injectEndpoints({
     getAttendanceEmployees: builder.query<
       {
         employees: Array<{
-          _id: string
+          id: string
           userId: string
           fullName: string
           email: string
           avatar?: string
           role: {
-            _id: string
+            id: string
             name: string
           }
           joinedAt: string
           status: string
           lastActive?: string
           todayAttendance?: {
-            _id: string
+            id: string
             status: string
             clockIn: string
             clockOut?: string

@@ -289,7 +289,7 @@ export function EmployeeList() {
                     </TableRow>
                   ) : (
                     filteredEmployees.map(employee => (
-                      <TableRow key={employee._id}>
+                      <TableRow key={employee.id}>
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-8 w-8">

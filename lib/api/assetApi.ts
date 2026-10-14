@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface AssetRecord {
-  _id: string
+  id: string
   workspaceId: string
   name: string
   category: string
@@ -42,7 +42,7 @@ export interface AssetRecord {
   }
   notes?: string
   createdBy?: {
-    _id: string
+    id: string
     fullName: string
     email: string
   }
@@ -116,7 +116,7 @@ export interface AssetStats {
   }
   totalPortfolioValue: number
   categoryBreakdown: Array<{
-    _id: string
+    id: string
     count: number
     totalValue: number
   }>

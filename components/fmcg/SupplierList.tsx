@@ -187,7 +187,7 @@ export function SupplierList({ workspaceId }: SupplierListProps) {
 
     try {
       if (editingSupplier) {
-        await updateSupplier({ id: editingSupplier._id, ...payload }).unwrap()
+        await updateSupplier({ id: editingSupplier.id, ...payload }).unwrap()
         toast.success('Supplier updated successfully')
       } else {
         await createSupplier(payload).unwrap()
@@ -271,7 +271,7 @@ export function SupplierList({ workspaceId }: SupplierListProps) {
               </TableRow>
             ) : (
               suppliers.map(supplier => (
-                <TableRow key={supplier._id}>
+                <TableRow key={supplier.id}>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell className="text-muted-foreground">{supplier.code || '—'}</TableCell>
                   <TableCell className="font-mono text-sm">{supplier.fssaiLicenseNumber || '—'}</TableCell>
@@ -298,7 +298,7 @@ export function SupplierList({ workspaceId }: SupplierListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(supplier._id)}
+                          onClick={() => setDeleteId(supplier.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

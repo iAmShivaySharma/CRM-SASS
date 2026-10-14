@@ -145,7 +145,7 @@ export function LeadDetailsSheet({
       const tagIds = Array.isArray(lead.tagIds)
         ? lead.tagIds.map((tag: any) => {
             if (typeof tag === 'string') return tag
-            const id = tag.id || tag._id
+            const id = tag.id
             return id?.toString ? id.toString() : id
           })
         : []
@@ -155,7 +155,7 @@ export function LeadDetailsSheet({
           ? lead.statusId
           : (
               (lead.statusId as any)?.id ||
-              (lead.statusId as any)?._id ||
+              (lead.statusId as any)?.id ||
               ''
             ).toString()
 
@@ -163,7 +163,7 @@ export function LeadDetailsSheet({
         typeof lead.assignedTo === 'string'
           ? lead.assignedTo
           : (lead.assignedTo as any)?.id ||
-            (lead.assignedTo as any)?._id ||
+            (lead.assignedTo as any)?.id ||
             'unassigned'
 
       setSelectedTags(tagIds)
@@ -261,20 +261,20 @@ export function LeadDetailsSheet({
     // Reset to original values with proper ID extraction
     const tagIds = Array.isArray(lead.tagIds)
       ? lead.tagIds.map((tag: any) =>
-          typeof tag === 'string' ? tag : tag.id || tag._id
+          typeof tag === 'string' ? tag : tag.id
         )
       : []
 
     const statusId =
       typeof lead.statusId === 'string'
         ? lead.statusId
-        : (lead.statusId as any)?.id || (lead.statusId as any)?._id || ''
+        : (lead.statusId as any)?.id || ''
 
     const assignedUserId =
       typeof lead.assignedTo === 'string'
         ? lead.assignedTo
         : (lead.assignedTo as any)?.id ||
-          (lead.assignedTo as any)?._id ||
+          (lead.assignedTo as any)?.id ||
           'unassigned'
 
     setSelectedTags(tagIds)

@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface Contact {
-  _id: string
+  id: string
   workspaceId: string
   name: string
   email?: string
@@ -18,7 +18,7 @@ export interface Contact {
     country?: string
   }
   milestones?: Array<{
-    _id?: string
+    id?: string
     title: string
     description?: string
     date: string
@@ -34,18 +34,18 @@ export interface Contact {
   leadConversionDate?: string
   customData?: Record<string, any>
   tagIds?: Array<{
-    _id: string
+    id: string
     name: string
     color: string
   }>
   category: 'client' | 'prospect' | 'partner' | 'vendor' | 'other'
   assignedTo?: {
-    _id: string
+    id: string
     fullName: string
     email: string
   }
   accountManager?: {
-    _id: string
+    id: string
     fullName: string
     email: string
   }
@@ -55,7 +55,7 @@ export interface Contact {
   lastContactDate?: string
   nextFollowUpDate?: string
   createdBy: {
-    _id: string
+    id: string
     fullName: string
     email: string
   }
@@ -173,9 +173,9 @@ const contactsApi = api.injectEndpoints({
       providesTags: result =>
         result
           ? [
-              ...result.contacts.map(({ _id }) => ({
+              ...result.contacts.map(({ id }) => ({
                 type: 'Contact' as const,
-                id: _id,
+                id,
               })),
               { type: 'ContactsList', id: 'LIST' },
             ]

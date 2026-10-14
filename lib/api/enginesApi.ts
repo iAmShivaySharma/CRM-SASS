@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface WorkflowCatalogItem {
-  _id: string
+  id: string
   name: string
   description: string
   category: string
@@ -25,7 +25,7 @@ export interface WorkflowCatalogItem {
 }
 
 export interface WorkflowCategory {
-  _id: string
+  id: string
   name: string
   description: string
   icon: string
@@ -69,7 +69,7 @@ export interface WorkflowExecutionRequest {
 }
 
 export interface WorkflowExecutionResponse {
-  _id: string
+  id: string
   status:
     | 'pending'
     | 'running'
@@ -104,7 +104,7 @@ export interface WorkflowExecutionResponse {
 export interface ExecutionInputRequirement {
   isWaitingForInput: boolean
   execution: {
-    _id: string
+    id: string
     status: string
     workflowName: string
     createdAt: string
@@ -117,7 +117,7 @@ export interface ExecutionInputRequirement {
     isExpired: boolean
   }
   userInput?: {
-    _id: string
+    id: string
     step: number
     metadata: {
       workflowName: string
@@ -131,9 +131,9 @@ export interface ExecutionInputRequirement {
 }
 
 export interface PendingInputItem {
-  _id: string
+  id: string
   execution: {
-    _id: string
+    id: string
     workflowName: string
     status: string
     startedAt: string

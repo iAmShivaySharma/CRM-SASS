@@ -606,7 +606,7 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
               </TableHeader>
               <TableBody>
                 {filteredRequests.map(request => (
-                  <TableRow key={request._id}>
+                  <TableRow key={request.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
@@ -662,7 +662,7 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
                               <DropdownMenuItem
                                 disabled={isUpdating}
                                 onClick={() =>
-                                  handleApproveRequest(request._id)
+                                  handleApproveRequest(request.id)
                                 }
                               >
                                 {isUpdating ? (
@@ -673,14 +673,14 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
                                 Approve
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => setRejectDialogId(request._id)}
+                                onClick={() => setRejectDialogId(request.id)}
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
                                 Reject
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 disabled={isDeleting}
-                                onClick={() => handleDeleteRequest(request._id)}
+                                onClick={() => handleDeleteRequest(request.id)}
                                 className="text-red-600"
                               >
                                 {isDeleting ? (
@@ -788,11 +788,11 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
       statsData.leaveTypeBreakdown.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2">
           {statsData.leaveTypeBreakdown.map(item => (
-            <Card key={item._id}>
+            <Card key={item.id}>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Badge className="bg-blue-100 text-blue-800">
-                    {item._id}
+                    {item.id}
                   </Badge>
                 </CardTitle>
               </CardHeader>

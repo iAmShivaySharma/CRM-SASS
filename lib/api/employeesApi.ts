@@ -1,17 +1,17 @@
 import { api } from './index'
 
 export interface Employee {
-  _id: string
+  id: string
   userId: string
   fullName: string
   email: string
   avatar?: string
-  role: { _id: string; name: string }
+  role: { id: string; name: string }
   joinedAt: string
   status: string
   lastActive?: string
   todayAttendance?: {
-    _id: string
+    id: string
     status: string
     clockIn?: string
     clockOut?: string

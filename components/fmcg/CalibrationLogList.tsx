@@ -154,7 +154,7 @@ export function CalibrationLogList({ workspaceId }: CalibrationLogListProps) {
     try {
       if (editingRecord) {
         await updateCalibrationLog({
-          id: editingRecord._id,
+          id: editingRecord.id,
           ...payload,
         }).unwrap()
         toast.success('Calibration log updated successfully')
@@ -251,7 +251,7 @@ export function CalibrationLogList({ workspaceId }: CalibrationLogListProps) {
               </TableRow>
             ) : (
               records.map(record => (
-                <TableRow key={record._id}>
+                <TableRow key={record.id}>
                   <TableCell>
                     <div className="font-medium">{record.equipmentName}</div>
                     {record.equipmentId && (
@@ -290,7 +290,7 @@ export function CalibrationLogList({ workspaceId }: CalibrationLogListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(record._id)}
+                          onClick={() => setDeleteId(record.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

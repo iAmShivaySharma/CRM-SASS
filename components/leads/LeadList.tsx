@@ -864,7 +864,7 @@ export function LeadList() {
                         lead.tagIds.length > 0 ? (
                           lead.tagIds.slice(0, 2).map((tag: any) => (
                             <Badge
-                              key={tag.id || tag._id || tag.name}
+                              key={tag.id || tag.name}
                               variant="outline"
                               className="text-xs"
                               style={{

@@ -30,7 +30,6 @@ import {
   useGetWorkspaceTagsQuery,
 } from '@/lib/api/mongoApi'
 
-// Form validation schema
 const contactSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -165,7 +164,7 @@ export function ContactForm({
       })
 
       if (contact.tagIds) {
-        setSelectedTags(contact.tagIds.map(tag => tag._id))
+        setSelectedTags(contact.tagIds.map(tag => tag.id))
       }
 
       if (contact.customData) {
@@ -228,7 +227,7 @@ export function ContactForm({
 
       if (isEditing && contact) {
         await updateContact({
-          id: contact._id,
+          id: contact.id,
           data: contactData,
           workspaceId,
         }).unwrap()
@@ -249,8 +248,8 @@ export function ContactForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Basic Information */}
+    <form onSubmit={handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Basic Information</CardTitle>
@@ -261,7 +260,7 @@ export function ContactForm({
               <Label htmlFor="name">Name *</Label>
               <Input id="name" {...register('name')} placeholder="Full name" />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.name.message}
                 </p>
               )}
@@ -275,7 +274,7 @@ export function ContactForm({
                 placeholder="email@example.com"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.email.message}
                 </p>
               )}
@@ -288,7 +287,7 @@ export function ContactForm({
                 placeholder="+1 (555) 123-4567"
               />
               {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.phone.message}
                 </p>
               )}
@@ -301,7 +300,7 @@ export function ContactForm({
                 placeholder="Company name"
               />
               {errors.company && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.company.message}
                 </p>
               )}
@@ -314,7 +313,7 @@ export function ContactForm({
                 placeholder="Job title"
               />
               {errors.position && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.position.message}
                 </p>
               )}
@@ -323,7 +322,6 @@ export function ContactForm({
         </CardContent>
       </Card>
 
-      {/* Business Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-lg">
@@ -344,7 +342,7 @@ export function ContactForm({
                 placeholder="0.00"
               />
               {errors.totalRevenue && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.totalRevenue.message}
                 </p>
               )}
@@ -360,7 +358,7 @@ export function ContactForm({
                 placeholder="0.00"
               />
               {errors.totalPayments && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.totalPayments.message}
                 </p>
               )}
@@ -369,7 +367,6 @@ export function ContactForm({
         </CardContent>
       </Card>
 
-      {/* Contact Management */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Contact Management</CardTitle>
@@ -468,7 +465,6 @@ export function ContactForm({
         </CardContent>
       </Card>
 
-      {/* Address Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-lg">
@@ -514,7 +510,6 @@ export function ContactForm({
         </CardContent>
       </Card>
 
-      {/* Social & Web Presence */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Social & Web Presence</CardTitle>
@@ -529,7 +524,7 @@ export function ContactForm({
                 placeholder="https://example.com"
               />
               {errors.website && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.website.message}
                 </p>
               )}
@@ -542,7 +537,7 @@ export function ContactForm({
                 placeholder="https://linkedin.com/in/username"
               />
               {errors.linkedIn && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.linkedIn.message}
                 </p>
               )}
@@ -555,7 +550,7 @@ export function ContactForm({
                 placeholder="https://twitter.com/username"
               />
               {errors.twitter && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {errors.twitter.message}
                 </p>
               )}
@@ -564,7 +559,6 @@ export function ContactForm({
         </CardContent>
       </Card>
 
-      {/* Important Dates */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-lg">
@@ -594,7 +588,6 @@ export function ContactForm({
         </CardContent>
       </Card>
 
-      {/* Tags */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Tags</CardTitle>
@@ -631,7 +624,6 @@ export function ContactForm({
         </CardContent>
       </Card>
 
-      {/* Custom Fields */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Custom Fields</CardTitle>
@@ -682,7 +674,6 @@ export function ContactForm({
         </CardContent>
       </Card>
 
-      {/* Notes */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Notes</CardTitle>
@@ -694,13 +685,14 @@ export function ContactForm({
             rows={4}
           />
           {errors.notes && (
-            <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.notes.message}</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Form Actions */}
-      <div className="flex justify-end space-x-2">
+      </div>
+
+      <div className="flex shrink-0 justify-end space-x-2 border-t pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

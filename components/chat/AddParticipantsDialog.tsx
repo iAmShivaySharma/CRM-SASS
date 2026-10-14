@@ -51,9 +51,8 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
       Array.isArray(chatRoom.participants) &&
       chatRoom.participants.some(
         (p: any) =>
-          (p.id || p._id || p) ===
+          (p.id || p) ===
           ((member.userId as any)?.id ||
-            (member.userId as any)?._id ||
             member.userId)
       )
 
@@ -85,7 +84,7 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
     setIsAdding(true)
     try {
       const currentParticipants = Array.isArray(chatRoom.participants)
-        ? chatRoom.participants.map((p: any) => p.id || p._id || p)
+        ? chatRoom.participants.map((p: any) => p.id || p)
         : []
 
       await updateChatRoom({
@@ -157,7 +156,6 @@ export const AddParticipantsDialog: React.FC<AddParticipantsDialogProps> = ({
                 {availableMembers.map(member => {
                   const memberId =
                     (member.userId as any)?.id ||
-                    (member.userId as any)?._id ||
                     member.userId
                   const memberName =
                     (member.userId as any)?.name ||

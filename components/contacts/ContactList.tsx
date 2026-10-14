@@ -84,7 +84,7 @@ export function ContactList({
   const handleDelete = async (contact: Contact) => {
     setIsDeleting(true)
     try {
-      await deleteContact({ id: contact._id, workspaceId }).unwrap()
+      await deleteContact({ id: contact.id, workspaceId }).unwrap()
       toast.success('Contact deleted successfully')
       setDeletingContact(null)
     } catch (error) {
@@ -166,7 +166,7 @@ export function ContactList({
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-red-600">
+          <div className="text-center text-destructive">
             <p>Error loading contacts: {error.message || 'Unknown error'}</p>
           </div>
         </CardContent>
@@ -312,7 +312,7 @@ export function ContactList({
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeletingContact(contact)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-destructive hover:text-destructive/80"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -322,7 +322,6 @@ export function ContactList({
             ))}
           </div>
 
-          {/* Pagination */}
           {contactsData.pagination.pages > 1 && (
             <div className="mt-6 flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
@@ -358,13 +357,12 @@ export function ContactList({
         </CardContent>
       </Card>
 
-      {/* Edit Contact Dialog */}
       <Dialog
         open={!!editingContact}
         onOpenChange={() => setEditingContact(null)}
       >
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="!flex !flex-col max-h-[90vh] max-w-2xl overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Edit Contact</DialogTitle>
           </DialogHeader>
           {editingContact && (
@@ -378,13 +376,12 @@ export function ContactList({
         </DialogContent>
       </Dialog>
 
-      {/* View Contact Dialog */}
       <Dialog
         open={!!viewingContact}
         onOpenChange={() => setViewingContact(null)}
       >
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="!flex !flex-col max-h-[90vh] max-w-4xl overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Contact Details</DialogTitle>
           </DialogHeader>
           {viewingContact && (
@@ -401,7 +398,6 @@ export function ContactList({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={!!deletingContact}
         onOpenChange={() => setDeletingContact(null)}
@@ -419,7 +415,7 @@ export function ContactList({
             <AlertDialogAction
               onClick={() => deletingContact && handleDelete(deletingContact)}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete

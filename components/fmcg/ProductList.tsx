@@ -177,7 +177,7 @@ export function ProductList({ workspaceId }: ProductListProps) {
 
     try {
       if (editingProduct) {
-        await updateProduct({ id: editingProduct._id, ...payload }).unwrap()
+        await updateProduct({ id: editingProduct.id, ...payload }).unwrap()
         toast.success('Product updated successfully')
       } else {
         await createProduct(payload).unwrap()
@@ -259,7 +259,7 @@ export function ProductList({ workspaceId }: ProductListProps) {
               </TableRow>
             ) : (
               products.map(product => (
-                <TableRow key={product._id}>
+                <TableRow key={product.id}>
                   <TableCell>
                     <div>
                       <div className="font-medium">{product.name}</div>
@@ -300,7 +300,7 @@ export function ProductList({ workspaceId }: ProductListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(product._id)}
+                          onClick={() => setDeleteId(product.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

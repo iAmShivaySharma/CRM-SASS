@@ -41,7 +41,7 @@ export function WhatsAppTemplateSelector({
   const [variables, setVariables] = useState<Record<string, string>>({})
 
   const approved = (data?.templates ?? []).filter(t => t.status === 'APPROVED')
-  const selected = approved.find(t => t._id === selectedId)
+  const selected = approved.find(t => t.id === selectedId)
 
   const bodyComponent = selected
     ? ((selected.components || []) as { type: string; text?: string }[]).find(
@@ -112,9 +112,9 @@ export function WhatsAppTemplateSelector({
             ).find(c => c.type === 'BODY')
             return (
               <button
-                key={t._id}
-                onClick={() => handleSelect(t._id)}
-                className={`w-full rounded-lg border p-3 text-left transition-colors hover:bg-muted ${selectedId === t._id ? 'border-primary bg-primary/10' : 'bg-card'}`}
+                key={t.id}
+                onClick={() => handleSelect(t.id)}
+                className={`w-full rounded-lg border p-3 text-left transition-colors hover:bg-muted ${selectedId === t.id ? 'border-primary bg-primary/10' : 'bg-card'}`}
               >
                 <div className="mb-1 flex items-center gap-2">
                   <span className="text-sm font-medium">{t.name}</span>

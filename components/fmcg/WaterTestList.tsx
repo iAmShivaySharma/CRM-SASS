@@ -170,7 +170,7 @@ export function WaterTestList({ workspaceId }: WaterTestListProps) {
 
     try {
       if (editingRecord) {
-        await updateWaterTest({ id: editingRecord._id, ...payload }).unwrap()
+        await updateWaterTest({ id: editingRecord.id, ...payload }).unwrap()
         toast.success('Water test updated successfully')
       } else {
         await createWaterTest(payload).unwrap()
@@ -251,7 +251,7 @@ export function WaterTestList({ workspaceId }: WaterTestListProps) {
               </TableRow>
             ) : (
               records.map(record => (
-                <TableRow key={record._id}>
+                <TableRow key={record.id}>
                   <TableCell>
                     {record.testDate
                       ? format(new Date(record.testDate), 'dd MMM yyyy')
@@ -284,7 +284,7 @@ export function WaterTestList({ workspaceId }: WaterTestListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(record._id)}
+                          onClick={() => setDeleteId(record.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

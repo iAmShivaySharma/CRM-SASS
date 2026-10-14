@@ -22,9 +22,9 @@ import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 export interface PendingInput {
-  _id: string
+  id: string
   execution: {
-    _id: string
+    id: string
     workflowName: string
     status: string
     startedAt: string
@@ -98,7 +98,7 @@ export function PendingInputsModal({
   }
 
   const handleInputClick = (input: PendingInput) => {
-    setSelectedInput(input._id)
+    setSelectedInput(input.id)
     onInputSelected(input)
   }
 
@@ -151,10 +151,10 @@ export function PendingInputsModal({
                   <div className="space-y-2">
                     {expiredInputs.map(input => (
                       <InputCard
-                        key={input._id}
+                        key={input.id}
                         input={input}
                         onSelect={() => handleInputClick(input)}
-                        isSelected={selectedInput === input._id}
+                        isSelected={selectedInput === input.id}
                         getPriorityColor={getPriorityColor}
                         getUrgencyIndicator={getUrgencyIndicator}
                         formatTimeRemaining={formatTimeRemaining}
@@ -176,10 +176,10 @@ export function PendingInputsModal({
                   <div className="space-y-2">
                     {urgentInputs.map(input => (
                       <InputCard
-                        key={input._id}
+                        key={input.id}
                         input={input}
                         onSelect={() => handleInputClick(input)}
-                        isSelected={selectedInput === input._id}
+                        isSelected={selectedInput === input.id}
                         getPriorityColor={getPriorityColor}
                         getUrgencyIndicator={getUrgencyIndicator}
                         formatTimeRemaining={formatTimeRemaining}
@@ -201,10 +201,10 @@ export function PendingInputsModal({
                   <div className="space-y-2">
                     {normalInputs.map(input => (
                       <InputCard
-                        key={input._id}
+                        key={input.id}
                         input={input}
                         onSelect={() => handleInputClick(input)}
-                        isSelected={selectedInput === input._id}
+                        isSelected={selectedInput === input.id}
                         getPriorityColor={getPriorityColor}
                         getUrgencyIndicator={getUrgencyIndicator}
                         formatTimeRemaining={formatTimeRemaining}
@@ -290,7 +290,7 @@ function InputCard({
         <div className="flex items-center space-x-2">
           <Button size="sm" variant="outline" asChild>
             <a
-              href={`/engines/executions/${input.execution._id}/input`}
+              href={`/engines/executions/${input.execution.id}/input`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-1"

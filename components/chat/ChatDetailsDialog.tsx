@@ -303,7 +303,7 @@ export const ChatDetailsDialog: React.FC<ChatDetailsDialogProps> = ({
                     {Array.isArray(chatRoom.participants) &&
                       chatRoom.participants.map((participant: any) => (
                         <div
-                          key={participant.id || participant._id}
+                          key={participant.id}
                           className="flex items-center gap-3 rounded-lg border bg-background p-3 transition-shadow hover:shadow-sm"
                         >
                           <Avatar className="h-10 w-10">
@@ -328,8 +328,8 @@ export const ChatDetailsDialog: React.FC<ChatDetailsDialogProps> = ({
                             {Array.isArray(chatRoom.admins) &&
                               chatRoom.admins.some(
                                 (admin: any) =>
-                                  (admin.id || admin._id || admin) ===
-                                  (participant.id || participant._id)
+                                  (admin.id || admin) ===
+                                  (participant.id)
                               ) && (
                                 <Badge variant="default" className="text-xs">
                                   <User className="mr-1 h-3 w-3" />

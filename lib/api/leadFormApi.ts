@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface LeadFormIntegration {
-  _id: string
+  id: string
   workspaceId: string
   platform: 'facebook' | 'instagram' | 'google_ads' | 'linkedin'
   accountName: string
@@ -16,7 +16,7 @@ export interface LeadFormIntegration {
 }
 
 export interface LeadFormSubmission {
-  _id: string
+  id: string
   workspaceId: string
   platform: string
   formName: string

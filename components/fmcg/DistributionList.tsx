@@ -132,15 +132,15 @@ export function DistributionList({ workspaceId }: DistributionListProps) {
   const pagination = data?.pagination
 
   function getBatchNumber(batchId: string) {
-    return batches.find(b => b._id === batchId)?.batchNumber || batchId
+    return batches.find(b => b.id === batchId)?.batchNumber || batchId
   }
 
   function getProductName(productId: string) {
-    return products.find(p => p._id === productId)?.name || productId
+    return products.find(p => p.id === productId)?.name || productId
   }
 
   function handleBatchSelect(batchId: string) {
-    const batch = batches.find(b => b._id === batchId)
+    const batch = batches.find(b => b.id === batchId)
     setForm(p => ({ ...p, batchId, productId: batch?.productId || '' }))
   }
 
@@ -207,7 +207,7 @@ export function DistributionList({ workspaceId }: DistributionListProps) {
 
     try {
       if (editingRecord) {
-        await updateDistribution({ id: editingRecord._id, ...payload }).unwrap()
+        await updateDistribution({ id: editingRecord.id, ...payload }).unwrap()
         toast.success('Distribution record updated successfully')
       } else {
         await createDistribution(payload).unwrap()
@@ -293,7 +293,7 @@ export function DistributionList({ workspaceId }: DistributionListProps) {
               </TableRow>
             ) : (
               distributions.map(record => (
-                <TableRow key={record._id}>
+                <TableRow key={record.id}>
                   <TableCell className="font-mono text-sm">{record.invoiceNumber || '—'}</TableCell>
                   <TableCell className="font-mono font-medium">{getBatchNumber(record.batchId)}</TableCell>
                   <TableCell>{getProductName(record.productId)}</TableCell>
@@ -326,7 +326,7 @@ export function DistributionList({ workspaceId }: DistributionListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(record._id)}
+                          onClick={() => setDeleteId(record.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -369,7 +369,7 @@ export function DistributionList({ workspaceId }: DistributionListProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {batches.map(b => (
-                    <SelectItem key={b._id} value={b._id}>{b.batchNumber}</SelectItem>
+                    <SelectItem key={b.id} value={b.id}>{b.batchNumber}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

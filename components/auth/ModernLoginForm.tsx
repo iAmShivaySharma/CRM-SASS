@@ -168,7 +168,7 @@ export function ModernLoginForm() {
         if (result.workspace) {
           dispatch(
             setCurrentWorkspace({
-              id: result.workspace.id || result.workspace._id,
+              id: result.workspace.id,
               name: result.workspace.name,
               plan: result.workspace.planId || 'free',
               memberCount: 1,

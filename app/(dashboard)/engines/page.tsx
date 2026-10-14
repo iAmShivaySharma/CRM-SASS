@@ -68,16 +68,9 @@ export default function EnginesPage() {
   ]
 
   const handleExecuteWorkflow = (workflow: any) => {
-    const resolvedId = workflow._id || workflow.n8nWorkflowId || workflow.id
-    console.log(
-      '[Engines] Execute workflow - raw keys:',
-      Object.keys(workflow),
-      'resolved ID:',
-      resolvedId
-    )
+    const resolvedId = workflow.id || workflow.n8nWorkflowId
     setSelectedWorkflow({
       id: resolvedId,
-      _id: workflow._id,
       n8nWorkflowId: workflow.n8nWorkflowId,
       name: workflow.name,
       description: workflow.description,
@@ -278,9 +271,9 @@ export default function EnginesPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {workflows.map(workflow => (
             <WorkflowCard
-              key={workflow._id}
+              key={workflow.id}
               workflow={{
-                id: workflow._id,
+                id: workflow.id,
                 name: workflow.name,
                 description: workflow.description,
                 category: workflow.categoryName,
@@ -326,7 +319,7 @@ export default function EnginesPage() {
         onClose={() => setShowPendingInputs(false)}
         onInputSelected={input => {
           setShowPendingInputs(false)
-          router.push(`/engines/executions/${input.execution._id}/input`)
+          router.push(`/engines/executions/${input.execution.id}/input`)
         }}
         isLoading={isPendingLoading}
       />

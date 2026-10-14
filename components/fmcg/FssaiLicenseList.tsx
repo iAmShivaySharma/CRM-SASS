@@ -186,7 +186,7 @@ export function FssaiLicenseList({ workspaceId }: FssaiLicenseListProps) {
 
     try {
       if (editingLicense) {
-        await updateLicense({ id: editingLicense._id, ...payload }).unwrap()
+        await updateLicense({ id: editingLicense.id, ...payload }).unwrap()
         toast.success('License updated successfully')
       } else {
         await createLicense(payload).unwrap()
@@ -274,7 +274,7 @@ export function FssaiLicenseList({ workspaceId }: FssaiLicenseListProps) {
               licenses.map(license => {
                 const daysLeft = getDaysUntilExpiry(license.expiryDate)
                 return (
-                  <TableRow key={license._id}>
+                  <TableRow key={license.id}>
                     <TableCell className="font-mono font-medium">{license.licenseNumber}</TableCell>
                     <TableCell>
                       <Badge className={typeBadgeClass(license.licenseType)}>
@@ -312,7 +312,7 @@ export function FssaiLicenseList({ workspaceId }: FssaiLicenseListProps) {
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteId(license._id)}
+                            onClick={() => setDeleteId(license.id)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete

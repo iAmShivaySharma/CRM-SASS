@@ -133,8 +133,8 @@ export default function ContactsPage() {
               Add Contact
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="!flex !flex-col max-h-[90vh] max-w-2xl overflow-hidden">
+            <DialogHeader className="shrink-0">
               <DialogTitle>Create New Contact</DialogTitle>
             </DialogHeader>
             <ContactForm

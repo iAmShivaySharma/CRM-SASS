@@ -643,7 +643,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {assets.map(asset => (
-            <Card key={asset._id} className="transition-shadow hover:shadow-md">
+            <Card key={asset.id} className="transition-shadow hover:shadow-md">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -660,7 +660,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
                       <DropdownMenuItem
                         disabled={isUpdatingAsset}
                         onClick={() =>
-                          handleUpdateStatus(asset._id, 'maintenance')
+                          handleUpdateStatus(asset.id, 'maintenance')
                         }
                       >
                         {isUpdatingAsset ? (
@@ -673,7 +673,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
                       <DropdownMenuItem
                         disabled={isUpdatingAsset}
                         onClick={() =>
-                          handleUpdateStatus(asset._id, 'available')
+                          handleUpdateStatus(asset.id, 'available')
                         }
                       >
                         {isUpdatingAsset ? (
@@ -685,7 +685,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         disabled={isUpdatingAsset}
-                        onClick={() => handleUpdateStatus(asset._id, 'retired')}
+                        onClick={() => handleUpdateStatus(asset.id, 'retired')}
                       >
                         {isUpdatingAsset ? (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -697,7 +697,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
                       <DropdownMenuItem
                         className="text-red-600"
                         disabled={isDeletingAsset}
-                        onClick={() => handleDeleteAsset(asset._id)}
+                        onClick={() => handleDeleteAsset(asset.id)}
                       >
                         {isDeletingAsset ? (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -845,7 +845,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
                   assets
                     .filter(a => a.status === 'allocated')
                     .map(asset => (
-                      <TableRow key={asset._id}>
+                      <TableRow key={asset.id}>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             {getCategoryIcon(asset.category)}
@@ -955,7 +955,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
                   assets
                     .filter(a => a.status === 'maintenance')
                     .map(asset => (
-                      <TableRow key={asset._id}>
+                      <TableRow key={asset.id}>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             {getCategoryIcon(asset.category)}
@@ -980,7 +980,7 @@ export function AssetManagement({ activeTab }: AssetManagementProps) {
                             variant="outline"
                             size="sm"
                             onClick={() =>
-                              handleUpdateStatus(asset._id, 'available')
+                              handleUpdateStatus(asset.id, 'available')
                             }
                           >
                             <CheckCircle className="mr-1 h-3 w-3" />

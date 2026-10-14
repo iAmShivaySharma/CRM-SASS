@@ -343,7 +343,7 @@ export default function CampaignsPage() {
         steps,
       }).unwrap()
 
-      const campaignId = result.campaign._id
+      const campaignId = result.campaign.id
 
       if (scheduleMode === 'now') {
         await updateCampaign({ id: campaignId, status: 'active' }).unwrap()
@@ -411,7 +411,7 @@ export default function CampaignsPage() {
   }
 
   if (viewMode === 'results' && resultsCampaignId) {
-    const campaign = campaigns.find(c => c._id === resultsCampaignId)
+    const campaign = campaigns.find(c => c.id === resultsCampaignId)
     if (!campaign) {
       return (
         <div className="flex items-center justify-center py-20">
@@ -682,7 +682,7 @@ export default function CampaignsPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {approvedTemplates.map((t: WhatsAppTemplate) => (
-                            <SelectItem key={t._id} value={t.name}>
+                            <SelectItem key={t.id} value={t.name}>
                               {t.name}
                             </SelectItem>
                           ))}
@@ -781,7 +781,7 @@ export default function CampaignsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {sequences.map(seq => (
-                        <SelectItem key={seq._id} value={seq._id}>
+                        <SelectItem key={seq.id} value={seq.id}>
                           <span className="flex items-center gap-2">
                             {seq.name}
                             <Badge variant="outline" className="text-xs">
@@ -1188,7 +1188,7 @@ export default function CampaignsPage() {
                     Sequence
                   </p>
                   <p>
-                    {sequences.find(s => s._id === form.sequenceId)?.name ||
+                    {sequences.find(s => s.id === form.sequenceId)?.name ||
                       'Unknown sequence'}
                   </p>
                 </div>
@@ -1287,7 +1287,7 @@ export default function CampaignsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {campaigns.map(campaign => (
-            <Card key={campaign._id}>
+            <Card key={campaign.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-base">{campaign.name}</CardTitle>
@@ -1321,7 +1321,7 @@ export default function CampaignsPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      setResultsCampaignId(campaign._id)
+                      setResultsCampaignId(campaign.id)
                       setViewMode('results')
                     }}
                   >
@@ -1333,7 +1333,7 @@ export default function CampaignsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleStatusChange(campaign._id, 'active')}
+                      onClick={() => handleStatusChange(campaign.id, 'active')}
                     >
                       <Play className="mr-1 h-3 w-3" />
                       Activate
@@ -1342,7 +1342,7 @@ export default function CampaignsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleStatusChange(campaign._id, 'paused')}
+                      onClick={() => handleStatusChange(campaign.id, 'paused')}
                     >
                       <Pause className="mr-1 h-3 w-3" />
                       Pause
@@ -1352,7 +1352,7 @@ export default function CampaignsPage() {
                     size="sm"
                     variant="ghost"
                     className="text-destructive"
-                    onClick={() => handleDelete(campaign._id)}
+                    onClick={() => handleDelete(campaign.id)}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>

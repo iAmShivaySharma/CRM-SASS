@@ -151,7 +151,7 @@ export function RmLotList({ workspaceId }: RmLotListProps) {
 
     try {
       if (editingRecord) {
-        await updateRmLot({ id: editingRecord._id, ...payload }).unwrap()
+        await updateRmLot({ id: editingRecord.id, ...payload }).unwrap()
         toast.success('RM lot updated successfully')
       } else {
         await createRmLot(payload).unwrap()
@@ -248,7 +248,7 @@ export function RmLotList({ workspaceId }: RmLotListProps) {
               </TableRow>
             ) : (
               records.map(record => (
-                <TableRow key={record._id}>
+                <TableRow key={record.id}>
                   <TableCell>
                     {record.receiptDate
                       ? format(new Date(record.receiptDate), 'dd MMM yyyy')
@@ -282,7 +282,7 @@ export function RmLotList({ workspaceId }: RmLotListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(record._id)}
+                          onClick={() => setDeleteId(record.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

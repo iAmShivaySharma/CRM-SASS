@@ -153,7 +153,7 @@ export function BatchList({ workspaceId }: BatchListProps) {
   }
 
   function getProductName(productId: string) {
-    const product = products.find(p => p._id === productId)
+    const product = products.find(p => p.id === productId)
     return product?.name || productId
   }
 
@@ -181,7 +181,7 @@ export function BatchList({ workspaceId }: BatchListProps) {
 
     try {
       if (editingBatch) {
-        await updateBatch({ id: editingBatch._id, ...payload }).unwrap()
+        await updateBatch({ id: editingBatch.id, ...payload }).unwrap()
         toast.success('Batch updated successfully')
       } else {
         await createBatch(payload).unwrap()
@@ -275,7 +275,7 @@ export function BatchList({ workspaceId }: BatchListProps) {
               </TableRow>
             ) : (
               batches.map(batch => (
-                <TableRow key={batch._id}>
+                <TableRow key={batch.id}>
                   <TableCell className="font-mono font-medium">{batch.batchNumber}</TableCell>
                   <TableCell>{getProductName(batch.productId)}</TableCell>
                   <TableCell>{batch.manufacturingDate ? format(new Date(batch.manufacturingDate), 'dd MMM yyyy') : '—'}</TableCell>
@@ -305,7 +305,7 @@ export function BatchList({ workspaceId }: BatchListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(batch._id)}
+                          onClick={() => setDeleteId(batch.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -348,7 +348,7 @@ export function BatchList({ workspaceId }: BatchListProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {products.map(prod => (
-                    <SelectItem key={prod._id} value={prod._id}>{prod.name} ({prod.sku})</SelectItem>
+                    <SelectItem key={prod.id} value={prod.id}>{prod.name} ({prod.sku})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

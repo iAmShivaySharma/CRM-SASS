@@ -121,7 +121,7 @@ export function InvoiceList() {
   const currentWorkspace = useAppSelector(
     (state: any) => state.workspace?.currentWorkspace
   )
-  const workspaceId = currentWorkspace?.id || currentWorkspace?._id || ''
+  const workspaceId = currentWorkspace?.id || ''
 
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')

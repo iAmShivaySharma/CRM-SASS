@@ -187,7 +187,7 @@ export function ComplaintList({ workspaceId }: ComplaintListProps) {
 
     try {
       if (editingRecord) {
-        await updateComplaint({ id: editingRecord._id, ...payload }).unwrap()
+        await updateComplaint({ id: editingRecord.id, ...payload }).unwrap()
         toast.success('Complaint updated successfully')
       } else {
         await createComplaint(payload).unwrap()
@@ -285,7 +285,7 @@ export function ComplaintList({ workspaceId }: ComplaintListProps) {
               </TableRow>
             ) : (
               records.map(record => (
-                <TableRow key={record._id}>
+                <TableRow key={record.id}>
                   <TableCell className="font-mono font-medium">
                     {record.referenceNumber}
                   </TableCell>
@@ -328,7 +328,7 @@ export function ComplaintList({ workspaceId }: ComplaintListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(record._id)}
+                          onClick={() => setDeleteId(record.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 interface Connection {
-  _id: string
+  id: string
   provider: string
   displayName: string
   email?: string
@@ -120,7 +120,7 @@ export function OAuthConnectButton({
     <div className="space-y-3">
       {connections.map(conn => (
         <div
-          key={conn._id}
+          key={conn.id}
           className="flex items-center justify-between rounded-lg border bg-card px-4 py-3"
         >
           <div className="flex items-center gap-3">
@@ -135,7 +135,7 @@ export function OAuthConnectButton({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleDisconnect(conn._id, conn.displayName)}
+            onClick={() => handleDisconnect(conn.id, conn.displayName)}
           >
             <Link2Off className="mr-1 h-4 w-4" />
             Disconnect

@@ -146,7 +146,7 @@ export function PestLogList({ workspaceId }: PestLogListProps) {
 
     try {
       if (editingRecord) {
-        await updatePestLog({ id: editingRecord._id, ...payload }).unwrap()
+        await updatePestLog({ id: editingRecord.id, ...payload }).unwrap()
         toast.success('Pest log updated successfully')
       } else {
         await createPestLog(payload).unwrap()
@@ -227,7 +227,7 @@ export function PestLogList({ workspaceId }: PestLogListProps) {
               </TableRow>
             ) : (
               records.map(record => (
-                <TableRow key={record._id}>
+                <TableRow key={record.id}>
                   <TableCell>
                     {record.weekEnding
                       ? format(new Date(record.weekEnding), 'dd MMM yyyy')
@@ -258,7 +258,7 @@ export function PestLogList({ workspaceId }: PestLogListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(record._id)}
+                          onClick={() => setDeleteId(record.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

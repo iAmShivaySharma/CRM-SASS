@@ -277,7 +277,7 @@ export function ShiftManagement() {
 
     try {
       const result = await updateShift({
-        id: editingShift._id,
+        id: editingShift.id,
         name: formData.name,
         startTime: formData.startTime,
         endTime: formData.endTime,
@@ -299,7 +299,7 @@ export function ShiftManagement() {
   }
 
   const handleDeleteShift = async (shiftId: string) => {
-    const shift = shifts.find(s => s._id === shiftId)
+    const shift = shifts.find(s => s.id === shiftId)
     if (shift?.employeeCount && shift.employeeCount > 0) {
       toast.error('Cannot delete shift with assigned employees')
       return
@@ -683,7 +683,7 @@ export function ShiftManagement() {
                   </TableRow>
                 ) : (
                   shifts.map(shift => (
-                    <TableRow key={shift._id}>
+                    <TableRow key={shift.id}>
                       <TableCell>
                         <div>
                           <div className="flex items-center space-x-2 font-medium">
@@ -775,7 +775,7 @@ export function ShiftManagement() {
                             {!shift.isDefault && (
                               <DropdownMenuItem
                                 disabled={isSettingDefault}
-                                onClick={() => handleSetDefaultShift(shift._id)}
+                                onClick={() => handleSetDefaultShift(shift.id)}
                               >
                                 {isSettingDefault ? (
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -786,7 +786,7 @@ export function ShiftManagement() {
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem
-                              onClick={() => handleDeleteShift(shift._id)}
+                              onClick={() => handleDeleteShift(shift.id)}
                               className="text-red-600"
                               disabled={shift.employeeCount > 0 || isDeleting}
                             >

@@ -31,7 +31,7 @@ import {
 import { useAppSelector } from '@/lib/hooks'
 
 interface EmailMessage {
-  _id: string
+  id: string
   messageId: string
   threadId?: string
   from: {
@@ -145,7 +145,7 @@ export function EmailList({
     if (selectedEmails.size === emails.length) {
       setSelectedEmails(new Set())
     } else {
-      setSelectedEmails(new Set(emails.map(email => email._id)))
+      setSelectedEmails(new Set(emails.map(email => email.id)))
     }
   }
 
@@ -171,7 +171,7 @@ export function EmailList({
 
       setEmails(prev =>
         prev.map(email =>
-          emailIds.includes(email._id)
+          emailIds.includes(email.id)
             ? { ...email, isRead: read, readAt: read ? new Date() : undefined }
             : email
         )
@@ -187,14 +187,14 @@ export function EmailList({
 
   const toggleStar = async (emailId: string) => {
     try {
-      const email = emails.find(e => e._id === emailId)
+      const email = emails.find(e => e.id === emailId)
       if (!email) return
 
       await updateMessage(emailId, { isStarred: !email.isStarred })
 
       setEmails(prev =>
         prev.map(e =>
-          e._id === emailId ? { ...e, isStarred: !e.isStarred } : e
+          e.id === emailId ? { ...e, isStarred: !e.isStarred } : e
         )
       )
     } catch (error) {
@@ -208,7 +208,7 @@ export function EmailList({
         emailIds.map(id => updateMessage(id, { folder: targetFolder }))
       )
 
-      setEmails(prev => prev.filter(email => !emailIds.includes(email._id)))
+      setEmails(prev => prev.filter(email => !emailIds.includes(email.id)))
       setSelectedEmails(new Set())
 
       toast.success(`Moved ${emailIds.length} email(s) to ${targetFolder}`)
@@ -234,7 +234,7 @@ export function EmailList({
         )
       )
 
-      setEmails(prev => prev.filter(email => !emailIds.includes(email._id)))
+      setEmails(prev => prev.filter(email => !emailIds.includes(email.id)))
       setSelectedEmails(new Set())
 
       toast.success(`Deleted ${emailIds.length} email(s)`)
@@ -394,17 +394,17 @@ export function EmailList({
         <div className="divide-y divide-border">
           {emails.map(email => (
             <div
-              key={email._id}
+              key={email.id}
               className={`group flex cursor-pointer items-center space-x-3 p-3 transition-colors hover:bg-muted ${
-                selectedEmailId === email._id
+                selectedEmailId === email.id
                   ? 'bg-blue-50 dark:bg-blue-900/20'
                   : ''
               } ${!email.isRead ? 'bg-blue-25 dark:bg-blue-950/10' : ''}`}
-              onClick={() => onEmailSelect(email._id)}
+              onClick={() => onEmailSelect(email.id)}
             >
               <Checkbox
-                checked={selectedEmails.has(email._id)}
-                onCheckedChange={() => toggleEmailSelection(email._id)}
+                checked={selectedEmails.has(email.id)}
+                onCheckedChange={() => toggleEmailSelection(email.id)}
                 onClick={e => e.stopPropagation()}
               />
 
@@ -414,7 +414,7 @@ export function EmailList({
                 className="h-6 w-6 p-0"
                 onClick={e => {
                   e.stopPropagation()
-                  toggleStar(email._id)
+                  toggleStar(email.id)
                 }}
               >
                 <Star
@@ -504,7 +504,7 @@ export function EmailList({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem
-                    onClick={() => markAsRead([email._id], !email.isRead)}
+                    onClick={() => markAsRead([email.id], !email.isRead)}
                   >
                     {email.isRead ? (
                       <EyeOff className="mr-2 h-4 w-4" />
@@ -525,7 +525,7 @@ export function EmailList({
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
-                    onClick={() => moveToFolder([email._id], 'archive')}
+                    onClick={() => moveToFolder([email.id], 'archive')}
                   >
                     <Archive className="mr-2 h-4 w-4" />
                     Archive
@@ -537,7 +537,7 @@ export function EmailList({
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
-                    onClick={() => deleteEmails([email._id])}
+                    onClick={() => deleteEmails([email.id])}
                     className="text-red-600 dark:text-red-400"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />

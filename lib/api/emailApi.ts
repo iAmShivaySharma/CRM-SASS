@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface EmailAccount {
-  _id: string
+  id: string
   provider: 'gmail' | 'outlook' | 'smtp' | 'imap'
   displayName: string
   emailAddress: string
@@ -29,7 +29,7 @@ export interface EmailAccount {
 }
 
 export interface EmailMessage {
-  _id: string
+  id: string
   userId: string
   workspaceId: string
   emailAccountId: string

@@ -143,17 +143,17 @@ export function TestReportList({ workspaceId }: TestReportListProps) {
   const pagination = data?.pagination
 
   function getBatchLabel(batchId: string) {
-    const batch = batches.find(b => b._id === batchId)
+    const batch = batches.find(b => b.id === batchId)
     return batch?.batchNumber || batchId
   }
 
   function getProductName(productId: string) {
-    const product = products.find(p => p._id === productId)
+    const product = products.find(p => p.id === productId)
     return product?.name || productId
   }
 
   function handleBatchChange(batchId: string) {
-    const batch = batches.find(b => b._id === batchId)
+    const batch = batches.find(b => b.id === batchId)
     setForm(p => ({
       ...p,
       batchId,
@@ -227,7 +227,7 @@ export function TestReportList({ workspaceId }: TestReportListProps) {
 
     try {
       if (editingReport) {
-        await updateTestReport({ id: editingReport._id, ...payload }).unwrap()
+        await updateTestReport({ id: editingReport.id, ...payload }).unwrap()
         toast.success('Test report updated successfully')
       } else {
         await createTestReport(payload).unwrap()
@@ -312,7 +312,7 @@ export function TestReportList({ workspaceId }: TestReportListProps) {
               </TableRow>
             ) : (
               reports.map(report => (
-                <TableRow key={report._id}>
+                <TableRow key={report.id}>
                   <TableCell className="font-mono font-medium">{report.reportNumber}</TableCell>
                   <TableCell className="text-sm">{getBatchLabel(report.batchId)}</TableCell>
                   <TableCell className="max-w-[140px] truncate">{getProductName(report.productId)}</TableCell>
@@ -338,7 +338,7 @@ export function TestReportList({ workspaceId }: TestReportListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteId(report._id)}
+                          onClick={() => setDeleteId(report.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -381,7 +381,7 @@ export function TestReportList({ workspaceId }: TestReportListProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {batches.map(b => (
-                    <SelectItem key={b._id} value={b._id}>{b.batchNumber}</SelectItem>
+                    <SelectItem key={b.id} value={b.id}>{b.batchNumber}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -395,7 +395,7 @@ export function TestReportList({ workspaceId }: TestReportListProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {products.map(prod => (
-                    <SelectItem key={prod._id} value={prod._id}>{prod.name}</SelectItem>
+                    <SelectItem key={prod.id} value={prod.id}>{prod.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

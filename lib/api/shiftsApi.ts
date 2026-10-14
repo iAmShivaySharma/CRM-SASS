@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface Shift {
-  _id: string
+  id: string
   name: string
   workspaceId: string
   startTime: string
@@ -15,7 +15,7 @@ export interface Shift {
   isActive: boolean
   timezone: string
   createdBy: {
-    _id: string
+    id: string
     name: string
     email: string
   }

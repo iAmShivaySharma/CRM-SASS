@@ -11,6 +11,7 @@ export interface DashboardAnalytics {
   growthPrevious: number
 
   activeDeals: number
+  openDeals: number
   monthlyRevenue: number
   newLeads: number
 
