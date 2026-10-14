@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://crmprosaas.com'
-const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
+const API_URL = process.env.API_GATEWAY_URL
 const SITE_NAME = 'ClearCRM Blog'
 const SITE_DESCRIPTION =
   'Expert articles on CRM strategy, sales automation, AI workflows, and business productivity.'
