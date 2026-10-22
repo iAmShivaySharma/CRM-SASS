@@ -70,10 +70,7 @@ const authApi = api.injectEndpoints({
       },
     }),
     verify: builder.query<VerifyResponse, void>({
-      query: () => ({
-        url: 'api/auth/verify',
-        method: 'POST',
-      }),
+      query: () => 'api/auth/verify',
       providesTags: ['Auth'],
     }),
   }),

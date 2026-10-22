@@ -71,11 +71,18 @@ const notificationsApi = api.injectEndpoints({
       { success: boolean; result: boolean | number; message: string },
       MarkNotificationRequest
     >({
-      query: ({ notificationId, action, workspaceId }) => ({
-        url: 'api/notifications',
-        method: 'PATCH',
-        body: { notificationId, action, workspaceId },
-      }),
+      query: ({ notificationId, action, workspaceId }) =>
+        action === 'markAllAsRead'
+          ? {
+              url: `api/notifications/mark-all-read?workspaceId=${workspaceId}`,
+              method: 'POST',
+              body: { workspaceId },
+            }
+          : {
+              url: `api/notifications/${notificationId}/read?workspaceId=${workspaceId}`,
+              method: 'PUT',
+              body: { workspaceId },
+            },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled
         dispatch(api.util.invalidateTags(['Notification']))

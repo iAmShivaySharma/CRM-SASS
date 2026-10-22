@@ -121,7 +121,7 @@ export default function PlansPage() {
 
   const fetchUsage = useCallback(async () => {
     try {
-      const response = await fetch('/api/payments/usage', {
+      const response = await fetch(`/api/payments/usage?workspaceId=${currentWorkspace?.id}`, {
         credentials: 'include',
       })
       if (response.ok) {

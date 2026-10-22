@@ -207,7 +207,7 @@ const chatApi = api.injectEndpoints({
     >({
       query: ({ messageId, content }) => ({
         url: `api/chat/messages/${messageId}`,
-        method: 'PATCH',
+        method: 'PUT',
         body: { content },
       }),
       async onQueryStarted({ chatRoomId }, { dispatch, queryFulfilled }) {
@@ -316,7 +316,7 @@ const chatApi = api.injectEndpoints({
       },
       void
     >({
-      query: () => 'api/chat/upload',
+      query: () => 'api/chat/upload/config',
     }),
   }),
 })

@@ -14,7 +14,7 @@ export default function EditBlogPage() {
   useEffect(() => {
     async function fetchBlog() {
       try {
-        const res = await fetch(`/api/blogs/${params.slug}`)
+        const res = await fetch(`/api/blogs/slug/${params.slug}`)
         if (!res.ok) {
           const allRes = await fetch(
             `/api/blogs?search=${params.slug}&status=draft`

@@ -77,7 +77,7 @@ function AcceptInvitationContent() {
     if (!token) return
 
     try {
-      const invitationResponse = await fetch('/api/invitations/validate', {
+      const invitationResponse = await fetch('/api/invites/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -138,7 +138,7 @@ function AcceptInvitationContent() {
     setError(null)
 
     try {
-      const response = await fetch('/api/invitations/accept', {
+      const response = await fetch('/api/invites/accept', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -164,7 +164,7 @@ function AcceptInvitationContent() {
     if (!token) return
     setIsLoading(true)
     try {
-      const response = await fetch('/api/invitations/decline', {
+      const response = await fetch('/api/invites/decline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -201,7 +201,7 @@ function AcceptInvitationContent() {
 
     try {
       const response = await fetch(
-        '/api/invitations/accept-with-registration',
+        '/api/invites/accept-with-registration',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

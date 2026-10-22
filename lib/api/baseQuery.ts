@@ -6,8 +6,12 @@ export const createBaseQuery = (basePath: string = '') =>
   fetchBaseQuery({
     baseUrl: `${API_URL}${basePath || '/'}`,
     credentials: 'include',
-    prepareHeaders: (headers) => {
+    prepareHeaders: (headers, { getState }) => {
       headers.set('Accept', 'application/json')
+      const workspaceId = (getState() as any).workspace?.currentWorkspace?.id
+      if (workspaceId && !headers.has('x-workspace-id')) {
+        headers.set('x-workspace-id', workspaceId)
+      }
       return headers
     },
   })

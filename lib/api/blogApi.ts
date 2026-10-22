@@ -90,7 +90,7 @@ const blogApi = api.injectEndpoints({
       providesTags: ['Blog'],
     }),
     getBlog: builder.query<BlogResponse, string>({
-      query: slug => `api/blogs/${slug}`,
+      query: slug => `api/blogs/slug/${slug}`,
       providesTags: (result, error, slug) => [{ type: 'Blog', id: slug }],
     }),
     createBlog: builder.mutation<{ blog: Blog }, CreateBlogBody>({
@@ -102,7 +102,7 @@ const blogApi = api.injectEndpoints({
       invalidatesTags: (result, error, { slug }) => [{ type: 'Blog', id: slug }, 'Blog'],
     }),
     deleteBlog: builder.mutation<{ message: string }, string>({
-      query: slug => ({ url: `api/blogs/${slug}`, method: 'DELETE' }),
+      query: id => ({ url: `api/blogs/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Blog'],
     }),
     getCategories: builder.query<CategoriesResponse, void>({

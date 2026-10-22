@@ -76,11 +76,11 @@ export default function BlogsManagementPage() {
     fetchBlogs()
   }, [fetchBlogs])
 
-  const handleDelete = async (slug: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this blog post?')) return
 
     try {
-      const res = await fetch(`/api/blogs/${slug}`, { method: 'DELETE' })
+      const res = await fetch(`/api/blogs/${id}`, { method: 'DELETE' })
       if (res.ok) {
         toast.success('Blog post deleted')
         fetchBlogs()
@@ -258,7 +258,7 @@ export default function BlogsManagementPage() {
                         )}
                         <DropdownMenuItem
                           className="text-destructive"
-                          onClick={() => handleDelete(blog.slug)}
+                          onClick={() => handleDelete(blog.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

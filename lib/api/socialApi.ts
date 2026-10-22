@@ -107,7 +107,7 @@ const socialApi = api.injectEndpoints({
       string
     >({
       query: id => ({
-        url: `api/social/accounts?id=${id}`,
+        url: `api/social/accounts/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['SocialAccount'],

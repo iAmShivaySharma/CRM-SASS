@@ -27,7 +27,7 @@ export async function generateMetadata({
 }: BlogPageProps): Promise<Metadata> {
   try {
     const { slug } = await params
-    const res = await fetch(`${API_URL}/api/blogs/${slug}`, {
+    const res = await fetch(`${API_URL}/api/blogs/slug/${slug}`, {
       next: { revalidate: 600 },
     })
     if (!res.ok) return { title: 'Blog Post Not Found' }
@@ -80,7 +80,7 @@ export async function generateMetadata({
 }
 
 async function getBlogData(slug: string) {
-  const res = await fetch(`${API_URL}/api/blogs/${slug}`, {
+  const res = await fetch(`${API_URL}/api/blogs/slug/${slug}`, {
     next: { revalidate: 600 },
   })
   if (!res.ok) return null

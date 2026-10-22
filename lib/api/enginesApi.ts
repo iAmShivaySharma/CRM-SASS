@@ -330,7 +330,7 @@ const enginesApi = api.injectEndpoints({
     >({
       query: ({ id, ...data }) => ({
         url: `api/engines/api-keys/${id}`,
-        method: 'PATCH',
+        method: 'PUT',
         body: data,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {

@@ -47,15 +47,9 @@ export default function AuthSetupPage() {
   useEffect(() => {
     const checkUserAndSetup = async () => {
       try {
-        const response = await fetch('/api/auth/verify', {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
+        const response = await fetch('/api/auth/verify', { credentials: 'include' })
 
-        if (!response.ok || !(await response.json()).valid) {
+        if (!response.ok) {
           toast.error('Please sign in first')
           router.push('/login')
           return

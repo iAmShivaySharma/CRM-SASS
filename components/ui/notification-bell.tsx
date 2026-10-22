@@ -108,7 +108,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
     if (!currentWorkspace?.id) return
     try {
       await fetch(
-        `/api/notifications?id=${id}&workspaceId=${currentWorkspace.id}`,
+        `/api/notifications/${id}?workspaceId=${currentWorkspace.id}`,
         { method: 'DELETE' }
       )
       refetch()

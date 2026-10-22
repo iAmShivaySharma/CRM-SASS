@@ -62,7 +62,7 @@ const roleApi = api.injectEndpoints({
     updateRole: builder.mutation<Role, UpdateRoleRequest>({
       query: ({ id, ...patch }) => ({
         url: `api/roles/${id}`,
-        method: 'PATCH',
+        method: 'PUT',
         body: patch,
       }),
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
