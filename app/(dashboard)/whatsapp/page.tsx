@@ -456,6 +456,7 @@ export default function WhatsAppPage() {
     try {
       await updateBotFlow({
         id: editingBotFlow.id,
+        workspaceId,
         steps,
         triggerKeywords,
         name: botFlowForm.name || editingBotFlow.name,
@@ -483,6 +484,7 @@ export default function WhatsAppPage() {
     try {
       await updateBotFlow({
         id: flow.id,
+        workspaceId,
         isActive: !flow.isActive,
       }).unwrap()
       toast.success(

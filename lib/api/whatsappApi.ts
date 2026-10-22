@@ -373,6 +373,7 @@ const whatsappApi = api.injectEndpoints({
       { success: boolean; botFlow: WhatsAppBotFlowResponse },
       {
         id: string
+        workspaceId: string
         name?: string
         description?: string
         steps?: BotFlowStepPayload[]
@@ -391,8 +392,8 @@ const whatsappApi = api.injectEndpoints({
       { success: boolean; message: string },
       { id: string; workspaceId: string }
     >({
-      query: ({ id }) => ({
-        url: `api/whatsapp/bot-flows/${id}`,
+      query: ({ id, workspaceId }) => ({
+        url: `api/whatsapp/bot-flows/${id}?workspaceId=${workspaceId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['WhatsAppBotFlow'],
