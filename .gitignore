@@ -40,8 +40,9 @@ CLAUDE.md
 # claude
 .claude/
 
-# docs (local testing guides)
-docs/
+# docs (local testing guides; architecture doc is tracked)
+docs/*
+!docs/architecture.html
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Frontend Docs</title>
+<style>
+:root{--bg:#ffffff;--sidebar-bg:#f8fafc;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--accent:#2563eb;--accent-light:#eff6ff;--green:#059669;--orange:#d97706;--purple:#7c3aed;--pink:#db2777;--cyan:#0891b2;--red:#dc2626;--shadow:0 1px 2px rgba(0,0,0,.05)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+.sidebar{width:260px;background:var(--sidebar-bg);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:10}
+.sidebar-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.sidebar-header p{font-size:11px;color:var(--muted);margin-top:2px}
+.sidebar-nav{padding:12px 0}
+.nav-group{padding:0 12px;margin-bottom:4px}
+.nav-group-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 8px 4px}
+.nav-item{display:block;padding:6px 12px;font-size:13px;color:var(--text);text-decoration:none;border-radius:6px;cursor:pointer;transition:background .1s}
+.nav-item:hover{background:#e2e8f0}
+.nav-item.active{background:var(--accent-light);color:var(--accent);font-weight:600}
+.nav-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:8px}
+.main{margin-left:260px;flex:1;min-width:0}
+.topbar{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;z-index:5}
+.breadcrumb{font-size:12px;color:var(--muted)}
+.breadcrumb span{color:var(--accent)}
+.content{padding:32px;max-width:960px}
+.section{display:none}
+.section.active{display:block}
+.section-title{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
+.section-desc{font-size:13px;color:var(--muted);margin-bottom:24px}
+.label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;margin-top:28px}
+.label:first-child{margin-top:0}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.card h3{font-size:13px;font-weight:600;margin-bottom:2px}
+.card p{font-size:12px;color:var(--muted);line-height:1.5}
+.card .port{font-size:11px;font-family:'SF Mono',Consolas,monospace;color:var(--accent);margin-top:4px}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.4px}
+.badge-green{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.badge-orange{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.badge-purple{background:#f5f3ff;color:#5b21b6;border:1px solid #ddd6fe}
+.badge-cyan{background:#ecfeff;color:#155e75;border:1px solid #a5f3fc}
+.badge-pink{background:#fdf2f8;color:#9d174d;border:1px solid #fbcfe8}
+.badge-blue{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
+.badge-red{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.badge-gray{background:#f9fafb;color:#374151;border:1px solid #e5e7eb}
+.connector{text-align:center;padding:8px 0;color:#cbd5e1;font-size:18px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 12px;background:#f8fafc;border-bottom:2px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.tbl td{padding:8px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+.tbl td:first-child{font-weight:600;white-space:nowrap}
+.tbl tr:last-child td{border-bottom:none}
+.tbl-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.svc-header{display:flex;align-items:center;gap:8px;padding:12px 16px;background:#f8fafc;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
+.flow-row{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;margin:20px 0}
+.flow-step{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-size:12px;font-weight:500;box-shadow:var(--shadow)}
+.flow-arrow{color:#94a3b8;padding:0 4px;font-size:16px}
+.note{font-size:11px;color:var(--muted);background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-top:10px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+code{font-family:'SF Mono',Consolas,monospace;font-size:11px;background:#f1f5f9;padding:1px 5px;border-radius:4px}
+pre{font-family:'SF Mono',Consolas,monospace;font-size:11px;background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow-x:auto;line-height:1.6;margin-bottom:10px}
+pre code{background:none;padding:0;color:inherit}
+@media(max-width:900px){.sidebar{display:none}.main{margin-left:0}.g3,.g4{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+<div class="sidebar-header">
+<h1>CRM Frontend</h1>
+<p>Next.js app &middot; Internal Documentation</p>
+</div>
+<div class="sidebar-nav">
+<div class="nav-group">
+<div class="nav-group-title">Overview</div>
+<a class="nav-item active" onclick="go('overview')">Architecture</a>
+<a class="nav-item" onclick="go('modules')">Module Map</a>
+<a class="nav-item" onclick="go('structure')">Project Structure</a>
+</div>
+<div class="nav-group">
+<div class="nav-group-title">Runtime</div>
+<a class="nav-item" onclick="go('data')"><span class="nav-dot dot" style="background:var(--green)"></span>State &amp; Data Fetching</a>
+<a class="nav-item" onclick="go('auth')"><span class="nav-dot dot" style="background:var(--green)"></span>Auth &amp; Workspaces</a>
+<a class="nav-item" onclick="go('permissions')"><span class="nav-dot dot" style="background:var(--green)"></span>Permissions</a>
+<a class="nav-item" onclick="go('whatsapp')"><span class="nav-dot dot" style="background:var(--orange)"></span>WhatsApp UI</a>
+<a class="nav-item" onclick="go('deals')"><span class="nav-dot dot" style="background:var(--orange)"></span>Deals Kanban</a>
+<a class="nav-item" onclick="go('integrations')"><span class="nav-dot dot" style="background:var(--purple)"></span>Integrations</a>
+</div>
+<div class="nav-group">
+<div class="nav-group-title">Working on it</div>
+<a class="nav-item" onclick="go('dev')">Dev Workflow</a>
+<a class="nav-item" onclick="go('conventions')">Conventions</a>
+<a class="nav-item" onclick="go('deploy')">Deployment</a>
+</div>
+</div>
+</nav>
+
+<div class="main">
+<div class="topbar">
+<div class="breadcrumb">CRM Frontend &nbsp;/&nbsp; <span id="breadcrumb-page">Architecture</span></div>
+<span class="badge badge-blue">v1.0</span>
+</div>
+
+<div class="content">
+
+<!-- ====== OVERVIEW ====== -->
+<div id="sec-overview" class="section active">
+<div class="section-title">Architecture Overview</div>
+<div class="section-desc">Next.js 15 App Router, Redux Toolkit + one RTK Query API, cookie auth, all data from the microservice gateway</div>
+
+<div class="label">Browser</div>
+<div class="grid g2">
+<div class="card"><h3>React 18 client</h3><p>Tailwind + shadcn/ui (Radix) &middot; lucide icons &middot; sonner toasts &middot; next-themes</p><div class="port">components/</div></div>
+<div class="card"><h3>Redux store</h3><p><code>auth</code>, <code>workspace</code>, <code>theme</code> slices + a single RTK Query reducer; persisted to localStorage by middleware</p><div class="port">lib/store.ts</div></div>
+</div>
+
+<div class="connector">&darr;</div>
+
+<div class="label">Next.js server (Vercel)</div>
+<div class="card" style="border-left:3px solid var(--accent)">
+<h3>App Router &nbsp;<span class="badge badge-blue">SSR for public pages</span> <span class="badge badge-gray">CSR for dashboard</span></h3>
+<p><code>app/(auth)</code> login/register &middot; <code>app/(dashboard)</code> 50+ module pages behind <code>DashboardLayout</code> &middot; <code>app/home</code>, <code>app/blog</code> public marketing/blog (SSR, sitemap, RSS feed)</p>
+<div class="port">next.config.js rewrites: /api/:path* &rarr; ${API_GATEWAY_URL}/api/:path*</div>
+</div>
+<div class="note">There are <strong>no</strong> Next.js API routes (<code>app/api</code> does not exist). Every <code>/api/*</code> call is proxied server-side to the gateway, so the browser talks same-origin: no CORS, and the <code>auth_token</code> httpOnly cookie set by auth-service is forwarded automatically.</div>
+
+<div class="connector">&darr;</div>
+
+<div class="label">Backend</div>
+<div class="grid g3">
+<div class="card" style="border-top:3px solid var(--orange)"><h3>API Gateway</h3><p>nginx (Compose) or NGINX Ingress (OKE)</p><div class="port">http://localhost:8000 locally</div></div>
+<div class="card" style="border-top:3px solid var(--green)"><h3>10 microservices</h3><p>auth, sales, hr, whatsapp, social, billing, marketing, collaboration, analytics, cms</p><div class="port">see crm-platform/docs</div></div>
+<div class="card" style="border-top:3px solid var(--purple)"><h3>Third parties hit from the browser</h3><p>Meta JS SDK (WhatsApp Embedded Signup) &middot; Razorpay checkout &middot; JaaS meetings</p><div class="port">NEXT_PUBLIC_* keys</div></div>
+</div>
+
+<div class="label">Request lifecycle</div>
+<div class="flow-row">
+<div class="flow-step">component calls <code>useXQuery()</code></div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">RTK Query (lib/api/*)</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">fetch /api/... (credentials: include)</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">Next rewrite &rarr; gateway</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">service verifies cookie JWT + permission</div>
+</div>
+</div>
+
+<!-- ====== MODULE MAP ====== -->
+<div id="sec-modules" class="section">
+<div class="section-title">Module Map</div>
+<div class="section-desc">Sidebar section &rarr; page route &rarr; RTK Query file &rarr; backend service. Use this to find where a feature lives.</div>
+
+<div class="tbl-wrap">
+<table class="tbl">
+<thead><tr><th>Sidebar</th><th>Route(s)</th><th>lib/api</th><th>Service</th></tr></thead>
+<tr><td>Dashboard</td><td>/dashboard</td><td>analyticsApi, mongoApi</td><td><span class="badge badge-cyan">analytics</span></td></tr>
+<tr><td>Sales &rsaquo; Leads</td><td>/leads, /leads/statuses, /leads/tags</td><td>mongoApi (leads, statuses, tags), leadFormApi</td><td><span class="badge badge-green">sales</span></td></tr>
+<tr><td>Sales &rsaquo; Contacts</td><td>/contacts</td><td>contactsApi</td><td><span class="badge badge-green">sales</span></td></tr>
+<tr><td>Sales &rsaquo; Deals</td><td>/deals</td><td>dealsApi (pipelines, stages, deals)</td><td><span class="badge badge-green">sales</span></td></tr>
+<tr><td>Sales &rsaquo; Invoices / Quotations</td><td>/invoices, /quotations</td><td>invoiceApi, quotationApi</td><td><span class="badge badge-green">sales</span></td></tr>
+<tr><td>Sales &rsaquo; Webhooks</td><td>/webhooks, /webhooks/callback</td><td>webhookApi, leadFormApi</td><td><span class="badge badge-purple">marketing</span> <span class="badge badge-orange">social</span></td></tr>
+<tr><td>HR</td><td>/hr, /employees, /attendance, /leaves, /assets</td><td>employeesApi, attendanceApi, leaveApi, shiftsApi, assetApi</td><td><span class="badge badge-green">hr</span></td></tr>
+<tr><td>Marketing &rsaquo; WhatsApp</td><td>/whatsapp</td><td>whatsappApi</td><td><span class="badge badge-orange">whatsapp</span></td></tr>
+<tr><td>Marketing &rsaquo; Campaigns / Sequences</td><td>/campaigns, /email-sequences</td><td>campaignApi, emailSequencesApi</td><td><span class="badge badge-purple">marketing</span></td></tr>
+<tr><td>Marketing &rsaquo; Email / SMS / Calls</td><td>/email, /sms, /calls</td><td>emailApi, smsApi, callsApi</td><td><span class="badge badge-purple">marketing</span> <span class="badge badge-cyan">collab</span></td></tr>
+<tr><td>Marketing &rsaquo; Social / LinkedIn</td><td>/social-media, /linkedin</td><td>socialApi, leadFormApi</td><td><span class="badge badge-orange">social</span></td></tr>
+<tr><td>Engines</td><td>/engines, /engines/api-keys, /engines/executions</td><td>enginesApi</td><td><span class="badge badge-purple">marketing</span> (n8n)</td></tr>
+<tr><td>Chat / Calendar / Appointments</td><td>/chat, /calendar, /appointments</td><td>chatApi, calendarApi, appointmentApi</td><td><span class="badge badge-cyan">collab</span> <span class="badge badge-green">sales</span></td></tr>
+<tr><td>Projects</td><td>/projects, /projects/[id], /projects/tasks, /projects/members, /projects/documents</td><td>projectsApi, tasksApi, projectMembersApi, documentsApi, commentsApi</td><td><span class="badge badge-cyan">collab</span></td></tr>
+<tr><td>Inventory / Blog / Compliance / FMCG</td><td>/inventory, /blogs/*, /compliance, /fmcg/*</td><td>inventoryApi, blogApi, complianceApi, fmcgApi</td><td><span class="badge badge-green">sales</span> <span class="badge badge-pink">cms</span></td></tr>
+<tr><td>Referrals / Plans / Notifications</td><td>/referrals, /plans, /notifications</td><td>referralsApi, mongoApi, notificationsApi</td><td><span class="badge badge-green">auth</span> <span class="badge badge-purple">billing</span> <span class="badge badge-cyan">collab</span></td></tr>
+<tr><td>Settings</td><td>/settings, /workspace, /roles</td><td>mongoApi, workspaceApi, roleApi, userPreferencesApi, authApi</td><td><span class="badge badge-green">auth</span></td></tr>
+</table>
+</div>
+<div class="note"><code>mongoApi.ts</code> is the oldest file and still hosts leads, workspace, members and a few misc endpoints; newer modules each have their own file. All of them inject into the same <code>api</code> instance.</div>
+</div>
+
+<!-- ====== STRUCTURE ====== -->
+<div id="sec-structure" class="section">
+<div class="section-title">Project Structure</div>
+<div class="section-desc">Where things go</div>
+<pre><code>app/
+  layout.tsx                 root: StoreProvider, ThemeProvider, AuthInitializer, PushNotificationProvider
+  (auth)/login, register     public auth pages
+  (dashboard)/layout.tsx     DashboardLayout (Sidebar + Header + SiteTour + SocketProvider)
+  (dashboard)/&lt;module&gt;/      one folder per sidebar item (see Module Map)
+  home/, blog/, blog/[slug]  SSR marketing + blog, sitemap.ts, feed.xml/route.ts
+  accept-invitation, auth/forgot-password, auth/reset-password, shared/document/[id]
+components/
+  ui/                        shadcn primitives (button, dialog, sheet, switch, ...)
+  layout/                    Sidebar, Header, DashboardLayout, WorkspaceSwitcher
+  providers/                 StoreProvider, ThemeProvider, AuthInitializer, PushNotificationProvider
+  &lt;module&gt;/                  leads/, contacts/, deals/, whatsapp/, marketing/, projects/, hr/ ...
+  tour/SiteTour.tsx          first-run product tour (data-tour attributes on Sidebar)
+lib/
+  api/index.ts               the single createApi() with every tagType
+  api/baseQuery.ts           fetchBaseQuery({ baseUrl: NEXT_PUBLIC_API_URL || '/', credentials: 'include' })
+  api/*Api.ts                api.injectEndpoints() per module + exported hooks
+  slices/                    authSlice, workspaceSlice, themeSlice
+  middleware/persistenceMiddleware.ts   localStorage persistence + loadPersistedState()
+  context/SocketContext.tsx  socket.io client (path /api/socket)
+  permissions/constants.ts   permission keys + categories used by Roles UI
+  validation/                yup/zod schemas for forms
+hooks/usePermissions.ts      hasPermission(), role lookup for current workspace
+next.config.js               rewrites, images, headers</code></pre>
+</div>
+
+<!-- ====== DATA ====== -->
+<div id="sec-data" class="section">
+<div class="section-title">State &amp; Data Fetching</div>
+<div class="section-desc">One RTK Query API instance, module files inject endpoints, three plain slices for session state</div>
+
+<div class="label">Store shape</div>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Key</th><th>Owner</th><th>Holds</th><th>Persisted</th></tr></thead>
+<tr><td>auth</td><td>lib/slices/authSlice</td><td>user {id, email, fullName, workspaceId, permissions[]}, isAuthenticated, loading</td><td>yes</td></tr>
+<tr><td>workspace</td><td>lib/slices/workspaceSlice</td><td>currentWorkspace {id, name, plan, currency, timezone, settings}, workspaces[]</td><td>yes</td></tr>
+<tr><td>theme</td><td>lib/slices/themeSlice</td><td>mode, sidebarCollapsed</td><td>yes</td></tr>
+<tr><td>api</td><td>lib/api/index.ts</td><td>RTK Query cache for every endpoint (one reducer, one middleware)</td><td>no</td></tr>
+</table></div>
+
+<div class="label">Adding an endpoint</div>
+<pre><code>// lib/api/fooApi.ts
+import { api } from './index'
+
+const fooApi = api.injectEndpoints({
+  endpoints: builder =&gt; ({
+    getFoos: builder.query&lt;{ success: boolean; foos: Foo[] }, { workspaceId: string }&gt;({
+      query: ({ workspaceId }) =&gt; `api/foos?workspaceId=${workspaceId}`,
+      providesTags: ['Foo'],
+    }),
+    createFoo: builder.mutation&lt;{ success: boolean; foo: Foo }, CreateFooBody&gt;({
+      query: body =&gt; ({ url: 'api/foos', method: 'POST', body }),
+      invalidatesTags: ['Foo'],
+    }),
+  }),
+})
+
+export const { useGetFoosQuery, useCreateFooMutation } = fooApi</code></pre>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Rule</th><th>Why</th></tr></thead>
+<tr><td>Add the tag to <code>tagTypes</code> in <code>lib/api/index.ts</code></td><td>Tags are declared once on the base API; a module file cannot add its own.</td></tr>
+<tr><td>Endpoint names are global</td><td>Two modules injecting <code>getTemplates</code> throws at startup. Prefix: <code>getWhatsAppTemplates</code>, <code>getSmsTemplates</code>.</td></tr>
+<tr><td>Import the file for side effects in <code>lib/store.ts</code></td><td>Injection only happens when the module is evaluated.</td></tr>
+<tr><td>Always pass <code>workspaceId</code></td><td>Backend <code>requirePermission</code> reads it from params/query/body/<code>x-workspace-id</code>; without it you get 400.</td></tr>
+<tr><td>Use <code>.id</code>, never <code>._id</code></td><td>Every Mongoose model has a <code>toJSON</code> transform. No fallbacks like <code>x._id || x.id</code>.</td></tr>
+<tr><td>Mutations must <code>invalidatesTags</code></td><td>Lists refresh through the cache, not manual refetch.</td></tr>
+</table></div>
+
+<div class="label">Persistence</div>
+<div class="card"><h3>lib/middleware/persistenceMiddleware.ts</h3><p>After every action, serialises <code>auth</code>, <code>workspace</code> and <code>theme</code> to localStorage; <code>loadPersistedState()</code> hydrates <code>preloadedState</code> on boot so the dashboard renders before <code>/api/auth/verify</code> returns. Server truth still wins once verify completes.</p></div>
+</div>
+
+<!-- ====== AUTH ====== -->
+<div id="sec-auth" class="section">
+<div class="section-title">Auth &amp; Workspaces</div>
+<div class="section-desc">httpOnly cookie session, verified on boot, workspace switching without reload</div>
+
+<div class="label">Login</div>
+<div class="flow-row">
+<div class="flow-step">POST /api/auth/login</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">auth-service sets <code>auth_token</code> cookie (httpOnly, SameSite=Lax, Secure in prod)</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">dispatch setUser + setCurrentWorkspace</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">router.push('/dashboard')</div>
+</div>
+
+<div class="label">Boot / refresh</div>
+<div class="flow-row">
+<div class="flow-step">AuthInitializer mounts</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">GET /api/auth/verify</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">user + role.permissions + last active workspace</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">store hydrated, guards release</div>
+</div>
+<div class="note"><code>verify</code> returns <code>{ user, role, workspace }</code>. Permissions come from <code>role.permissions</code> (server-side role lookup for the active workspace), not from the user document. A 401 clears the store and redirects to <code>/login</code>.</div>
+
+<div class="label">Workspace switching (WorkspaceSwitcher)</div>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Step</th><th>Detail</th></tr></thead>
+<tr><td>1. Persist</td><td><code>POST /api/users/last-active-workspace</code> so the next verify returns the same workspace.</td></tr>
+<tr><td>2. Update store</td><td><code>setCurrentWorkspace(ws)</code> and <code>setUser({ ...user, workspaceId })</code>.</td></tr>
+<tr><td>3. Refresh data</td><td>Every query keys on <code>workspaceId</code>, so RTK Query refetches automatically; no page reload.</td></tr>
+<tr><td>4. Permissions</td><td><code>usePermissions</code> re-queries roles for the new workspace; Sidebar items re-evaluate.</td></tr>
+</table></div>
+
+<div class="label">Other auth pages</div>
+<div class="grid g3">
+<div class="card"><h3>/register</h3><p>Signup + workspace creation, OTP verify (email delivery depends on backend mailer)</p></div>
+<div class="card"><h3>/auth/forgot-password, /auth/reset-password</h3><p>Token-based reset</p></div>
+<div class="card"><h3>/accept-invitation</h3><p>Invite token &rarr; join workspace with role</p></div>
+</div>
+</div>
+
+<!-- ====== PERMISSIONS ====== -->
+<div id="sec-permissions" class="section">
+<div class="section-title">Permissions</div>
+<div class="section-desc">Role-based, resolved per workspace, enforced in UI and again on every backend route</div>
+
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Piece</th><th>Role</th></tr></thead>
+<tr><td>lib/permissions/constants.ts</td><td>Canonical permission keys (<code>leads.view</code>, <code>deals.edit</code>, <code>workspace.edit</code>, ...) grouped by category; drives the Roles page matrix.</td></tr>
+<tr><td>hooks/usePermissions.ts</td><td><code>hasPermission(key)</code>: true for <code>*:*</code>, Owner/Admin roles, or an explicit key. Reads <code>auth.user.permissions</code>, falls back to <code>getRoles(workspaceId)</code>.</td></tr>
+<tr><td>components/layout/Sidebar.tsx</td><td>Each nav item carries a required permission; hidden when missing. <code>data-tour</code> attributes feed the SiteTour.</td></tr>
+<tr><td>components/ui/access-denied.tsx</td><td>Rendered by pages when the user lacks the module permission.</td></tr>
+<tr><td>Backend</td><td><code>requirePermission("x.y")</code> on every route re-checks membership + role, so the UI gate is cosmetic, not security.</td></tr>
+</table></div>
+<div class="note">If a module disappears from the sidebar after refresh, check that <code>/api/auth/verify</code> returned <code>role.permissions</code> for the active workspace — that is the only source after boot.</div>
+</div>
+
+<!-- ====== WHATSAPP ====== -->
+<div id="sec-whatsapp" class="section">
+<div class="section-title">WhatsApp UI <span class="badge badge-orange">/whatsapp</span></div>
+<div class="section-desc">Five tabs on one page: Conversations, Templates, Accounts, Broadcast, Bot Flows</div>
+
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Component</th><th>Does</th><th>Endpoints</th></tr></thead>
+<tr><td>app/(dashboard)/whatsapp/page.tsx</td><td>Tab shell, account/template/bot-flow forms, broadcast composer, conversation list (polls 15s)</td><td>getAccounts, getWhatsAppTemplates, getConversations, getBotFlows, mutations</td></tr>
+<tr><td>components/whatsapp/WhatsAppChatThread.tsx</td><td>Thread view (polls 8s), send text, template sheet, Intervene/Release handoff, sender badges (Agent / AI Bot / Campaign / Template)</td><td>getWhatsAppMessages (<code>?phone=</code>), sendMessage, handoffConversation</td></tr>
+<tr><td>MediaBubble (in ChatThread)</td><td>176&times;128 thumbnail for image/video, click opens a Dialog preview; audio player; document link</td><td><code>&lt;img src="/api/whatsapp/media/{id}?workspaceId="&gt;</code> &mdash; cookie-auth proxy, so plain img tags work</td></tr>
+<tr><td>components/whatsapp/WhatsAppTemplateSelector.tsx</td><td>Pick an APPROVED template, fill <code>{{n}}</code> variables, send</td><td>sendTemplate with <code>variables[]</code></td></tr>
+<tr><td>components/whatsapp/WhatsAppFBSignup.tsx</td><td>Meta Embedded Signup via FB JS SDK (<code>NEXT_PUBLIC_META_APP_ID</code>), posts the access token</td><td>connectWhatsAppFacebook</td></tr>
+<tr><td>components/whatsapp/BotFlowBuilder.tsx</td><td>@xyflow/react canvas: send_message, wait_for_reply, keyword_match, quick_reply, list_message, ai_reply, assign_human, delay, condition</td><td>createBotFlow / updateBotFlow (steps[], triggerKeywords[])</td></tr>
+</table></div>
+
+<div class="label">Payload contracts to keep in sync with whatsapp-service</div>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Call</th><th>Body</th></tr></thead>
+<tr><td>sendMessage</td><td><code>{ workspaceId, accountId, to, message }</code></td></tr>
+<tr><td>sendTemplate</td><td><code>{ workspaceId, accountId, to, templateName, language, variables?: string[] }</code></td></tr>
+<tr><td>createWhatsAppTemplate</td><td><code>{ workspaceId, accountId, name, category, language, headerType, headerContent?, bodyText, footerText?, buttons[] }</code> (first account is used)</td></tr>
+<tr><td>updateBotFlow / deleteBotFlow</td><td>must include <code>workspaceId</code> (body / query) or the permission check returns 400</td></tr>
+<tr><td>handoffConversation</td><td><code>{ id: conversationId | phone, workspaceId, action: 'take_over' | 'release' }</code></td></tr>
+</table></div>
+</div>
+
+<!-- ====== DEALS ====== -->
+<div id="sec-deals" class="section">
+<div class="section-title">Deals Kanban <span class="badge badge-orange">/deals</span></div>
+<div class="section-desc">Pipeline board with drag-and-drop stage movement; deals can be created automatically from leads</div>
+
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Component</th><th>Does</th></tr></thead>
+<tr><td>components/deals/DealPipelineBoard.tsx</td><td>Loads pipelines (<code>getPipelines</code>), defaults to <code>isDefault</code>, renders a <code>StageColumn</code> per stage; <code>@dnd-kit</code> drag end &rarr; <code>moveDealStage</code>.</td></tr>
+<tr><td>components/deals/StageColumn.tsx, DealCard.tsx</td><td>Column totals and sortable cards.</td></tr>
+<tr><td>components/deals/DealForm.tsx, DealDetailsSheet.tsx</td><td>Create/edit, won/lost, notes.</td></tr>
+</table></div>
+
+<div class="label">Auto-create deal from lead</div>
+<div class="flow-row">
+<div class="flow-step">Workspace &rsaquo; General &rsaquo; Sales Automation switch</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">PUT /api/workspaces/:id { settings: { autoCreateDeal } }</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">every new lead &rarr; deal in first stage of default pipeline</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">LeadDetailsSheet shows "Deal &middot; {stage}"</div>
+</div>
+<div class="note">The lead sheet queries <code>getDeals({ workspaceId, leadId, limit: 1 })</code>. The backend seeds a "Sales Pipeline" (New &rarr; Contacted &rarr; Qualified &rarr; Proposal &rarr; Won &rarr; Lost) the first time a workspace has none.</div>
+</div>
+
+<!-- ====== INTEGRATIONS ====== -->
+<div id="sec-integrations" class="section">
+<div class="section-title">Integrations</div>
+<div class="section-desc">Browser-side SDKs and real-time pieces</div>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Integration</th><th>Where</th><th>Config</th></tr></thead>
+<tr><td>Meta Embedded Signup (WhatsApp)</td><td>components/whatsapp/WhatsAppFBSignup.tsx</td><td><code>NEXT_PUBLIC_META_APP_ID</code></td></tr>
+<tr><td>Lead-form OAuth (Facebook, Google Ads, LinkedIn)</td><td>components/integrations/ConnectedPlatforms.tsx, LeadSubmissions.tsx (inside /webhooks)</td><td>Redirect flow through social-service; <code>/webhooks/callback</code> completes it</td></tr>
+<tr><td>Razorpay checkout</td><td>/plans</td><td><code>NEXT_PUBLIC_RAZORPAY_KEY_ID</code></td></tr>
+<tr><td>JaaS (Jitsi) meetings</td><td>/calendar, /chat</td><td><code>NEXT_PUBLIC_JAAS_APP_ID</code></td></tr>
+<tr><td>Web push</td><td>components/providers/PushNotificationProvider.tsx</td><td>Service worker + <code>/api/push/subscribe</code> (backend endpoint pending in microservices)</td></tr>
+<tr><td>socket.io</td><td>lib/context/SocketContext.tsx (<code>path: /api/socket</code>)</td><td>Chat/notifications transport; there is no socket server in the microservices yet, the client degrades to polling-free REST</td></tr>
+<tr><td>n8n (Engines)</td><td>/engines/*</td><td>Through marketing-service; keys in backend env, never in the browser</td></tr>
+</table></div>
+</div>
+
+<!-- ====== DEV ====== -->
+<div id="sec-dev" class="section">
+<div class="section-title">Dev Workflow</div>
+<div class="section-desc">Run the backend containers, point the frontend at the gateway, iterate with Turbopack</div>
+
+<div class="label">Start</div>
+<pre><code># backend (crm-platform)
+docker compose up -d            # 10 services + gateway :8000 + redis + n8n :5678
+
+# frontend (CRM-SASS)
+npm install
+npm run dev                     # http://localhost:3000 (Turbopack, hot reload)
+npx tsc --noEmit -p tsconfig.json   # type-check before committing
+npm run build                   # production build (sitemap/feed need API_GATEWAY_URL reachable)</code></pre>
+
+<div class="label">Environment (.env)</div>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Key</th><th>Local value</th><th>Used by</th></tr></thead>
+<tr><td>API_GATEWAY_URL</td><td>http://localhost:8000</td><td>next.config.js rewrites, sitemap.ts, feed.xml (server only)</td></tr>
+<tr><td>NEXT_PUBLIC_API_URL</td><td><em>empty</em></td><td>baseQuery base URL. Empty = same-origin through the rewrite. Set only if the browser should call the gateway directly (then CORS + cookie domain matter).</td></tr>
+<tr><td>NEXT_PUBLIC_APP_URL</td><td>http://localhost:3000</td><td>Absolute links in sitemap/feed, OAuth redirect URIs</td></tr>
+<tr><td>NEXT_PUBLIC_META_APP_ID, NEXT_PUBLIC_RAZORPAY_KEY_ID, NEXT_PUBLIC_JAAS_APP_ID</td><td>public keys</td><td>Browser SDKs</td></tr>
+</table></div>
+<div class="note">Anything without the <code>NEXT_PUBLIC_</code> prefix is server-only and never shipped to the browser. Secrets for Mongo, Resend, OpenRouter, etc. belong to the backend's Infisical environment, not to this repo.</div>
+
+<div class="label">Rebuild rule</div>
+<div class="card"><h3>Changed backend code?</h3><p><code>docker compose up -d --build &lt;service&gt;</code>, then confirm the container was actually recreated (<code>docker compose ps</code> shows a fresh "Up"); use <code>--force-recreate --no-deps &lt;service&gt;</code> if it only rebuilt the image. The gateway resolves services dynamically, so it does not need a restart.</p></div>
+</div>
+
+<!-- ====== CONVENTIONS ====== -->
+<div id="sec-conventions" class="section">
+<div class="section-title">Conventions</div>
+<div class="section-desc">House rules that reviews are strict about</div>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Rule</th><th>Detail</th></tr></thead>
+<tr><td>Theme tokens only</td><td>Use <code>bg-primary</code>, <code>text-muted-foreground</code>, <code>border-destructive/30</code>, <code>hsl(var(--primary))</code>. Never hardcoded Tailwind colours like <code>bg-blue-500</code>; the app has light/dark themes.</td></tr>
+<tr><td>No comments in code</td><td>Names carry the meaning. Explanations go in the PR description.</td></tr>
+<tr><td>No defensive fallbacks for our own API</td><td>The backend is ours: read <code>x.id</code>, <code>data.items</code>; do not chain <code>||</code> guesses. Only validate at real boundaries (user input, third-party responses).</td></tr>
+<tr><td>Constants, not literals</td><td>Shared values live in a constants file; env in <code>.env</code>; no inline magic strings/URLs.</td></tr>
+<tr><td>Forms</td><td>Formik + yup (older modules) or react-hook-form + zod (newer). Dialog/Sheet bodies get <code>flex flex-col min-h-0</code> so long forms scroll instead of clipping.</td></tr>
+<tr><td>Lists &amp; cards</td><td>Fixed-height rows for badges/actions so cards align regardless of content (see bot flow cards).</td></tr>
+<tr><td>Commits</td><td>Conventional prefix (<code>feat:</code>, <code>fix:</code>), no trailers. Never force-push; main is protected.</td></tr>
+</table></div>
+</div>
+
+<!-- ====== DEPLOY ====== -->
+<div id="sec-deploy" class="section">
+<div class="section-title">Deployment</div>
+<div class="section-desc">Vercel for the Next.js app; the gateway URL is the only backend dependency</div>
+
+<div class="flow-row">
+<div class="flow-step">push feat/frontend-only-migration &rarr; main</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">Vercel build (next build)</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">rewrites /api/* &rarr; API_GATEWAY_URL</div><div class="flow-arrow">&rarr;</div>
+<div class="flow-step">OKE Ingress or VPS gateway</div>
+</div>
+
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Vercel env</th><th>Value</th></tr></thead>
+<tr><td>API_GATEWAY_URL</td><td><code>https://api.&lt;domain&gt;</code> &mdash; OKE load balancer or the VPS gateway behind TLS. Must be HTTPS; JWT cookies transit this hop.</td></tr>
+<tr><td>NEXT_PUBLIC_APP_URL</td><td>The Vercel/production URL (also set as <code>CORS_ORIGIN</code>/<code>APP_URL</code> in the backend's Infisical env)</td></tr>
+<tr><td>NEXT_PUBLIC_API_URL</td><td>leave empty</td></tr>
+<tr><td>NEXT_PUBLIC_META_APP_ID, NEXT_PUBLIC_RAZORPAY_KEY_ID, NEXT_PUBLIC_JAAS_APP_ID</td><td>production public keys</td></tr>
+</table></div>
+<div class="note">Because the browser only ever talks to the Vercel origin, the backend CORS allow-list is irrelevant for the app itself; it only matters for direct API consumers. Cookie flags: <code>Secure</code> is set when <code>NODE_ENV=production</code> on the backend.</div>
+</div>
+
+</div>
+</div>
+
+<script>
+function go(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  const names={overview:'Architecture',modules:'Module Map',structure:'Project Structure',data:'State & Data Fetching',auth:'Auth & Workspaces',permissions:'Permissions',whatsapp:'WhatsApp UI',deals:'Deals Kanban',integrations:'Integrations',dev:'Dev Workflow',conventions:'Conventions',deploy:'Deployment'};
+  document.getElementById('breadcrumb-page').textContent=names[id]||id;
+  event.target.classList.add('active');
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
