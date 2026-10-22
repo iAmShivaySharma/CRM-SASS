@@ -14,6 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import {
   Loader2,
   Send,
@@ -26,6 +27,7 @@ import {
   Bot,
   User,
   Hand,
+  FileText,
 } from 'lucide-react'
 import { WhatsAppTemplateSelector } from './WhatsAppTemplateSelector'
 import { ClickToCall } from '@/components/calls/ClickToCall'
@@ -125,6 +127,66 @@ function SenderBadge({ msg }: { msg: any }) {
       <User className="h-3 w-3" /> Agent
     </span>
   )
+}
+
+const MEDIA_TYPES = ['image', 'video', 'audio', 'document']
+
+function MediaBubble({ msg, workspaceId }: { msg: any; workspaceId: string }) {
+  const [open, setOpen] = useState(false)
+  const src = `/api/whatsapp/media/${msg.id}?workspaceId=${workspaceId}`
+  if (msg.messageType === 'image' || msg.messageType === 'video') {
+    const isImage = msg.messageType === 'image'
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="block overflow-hidden rounded-lg bg-muted/40"
+        >
+          {isImage ? (
+            <img
+              src={src}
+              alt={msg.fileName || 'Image'}
+              className="h-32 w-44 object-cover transition-opacity hover:opacity-90"
+              loading="lazy"
+            />
+          ) : (
+            <video src={src} preload="metadata" muted className="h-32 w-44 object-cover" />
+          )}
+        </button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="max-w-3xl border-0 bg-transparent p-0 shadow-none">
+            <DialogTitle className="sr-only">
+              {isImage ? 'Image preview' : 'Video preview'}
+            </DialogTitle>
+            {isImage ? (
+              <img src={src} alt={msg.fileName || 'Image'} className="max-h-[85vh] w-full rounded-lg object-contain" />
+            ) : (
+              <video src={src} controls autoPlay className="max-h-[85vh] w-full rounded-lg" />
+            )}
+          </DialogContent>
+        </Dialog>
+      </>
+    )
+  }
+  if (msg.messageType === 'audio') {
+    return <audio src={src} controls className="w-56" />
+  }
+  return (
+    <a
+      href={src}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-[13px] hover:bg-muted"
+    >
+      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <span className="truncate">{msg.fileName || 'Document'}</span>
+    </a>
+  )
+}
+
+function isPlaceholderCaption(msg: any): boolean {
+  return msg.content === `[${msg.messageType}]`
 }
 
 function shouldShowDate(current: string, previous?: string): boolean {
@@ -296,9 +358,16 @@ export function WhatsAppChatThread({
                             </span>
                           </div>
                         )}
-                        <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed">
-                          {msg.content}
-                        </p>
+                        {MEDIA_TYPES.includes(msg.messageType) && msg.mediaId && (
+                          <div className="mb-1">
+                            <MediaBubble msg={msg} workspaceId={workspaceId} />
+                          </div>
+                        )}
+                        {!(msg.mediaId && isPlaceholderCaption(msg)) && (
+                          <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed">
+                            {msg.content}
+                          </p>
+                        )}
                         {msg.status === 'failed' && msg.errorMessage && (
                           <p className="mt-1 text-[10px] text-destructive">
                             {msg.errorMessage}

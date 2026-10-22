@@ -1083,10 +1083,10 @@ export default function WhatsAppPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {botFlows.map(flow => (
-                    <Card key={flow.id}>
+                    <Card key={flow.id} className="flex flex-col">
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="text-sm font-semibold">
+                          <CardTitle className="line-clamp-1 text-sm font-semibold">
                             {flow.name}
                           </CardTitle>
                           <span
@@ -1099,14 +1099,12 @@ export default function WhatsAppPage() {
                             {flow.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </div>
-                        {flow.description && (
-                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                            {flow.description}
-                          </p>
-                        )}
+                        <p className="mt-1 line-clamp-2 min-h-[2rem] text-xs text-muted-foreground">
+                          {flow.description}
+                        </p>
                       </CardHeader>
-                      <CardContent>
-                        <div className="mb-3 flex flex-wrap gap-1.5">
+                      <CardContent className="mt-auto">
+                        <div className="mb-3 flex h-6 flex-wrap gap-1.5">
                           <Badge variant="outline" className="text-xs">
                             {flow.steps?.length || 0} steps
                           </Badge>
@@ -1130,7 +1128,7 @@ export default function WhatsAppPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-xs"
+                            className="w-[104px] text-xs"
                             onClick={() => handleToggleBotFlow(flow)}
                           >
                             <Power className="mr-1 h-3 w-3" />

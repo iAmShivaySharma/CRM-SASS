@@ -48,6 +48,9 @@ export interface WhatsAppMessage {
   to: string
   content: string
   messageType: string
+  mediaId?: string
+  mimeType?: string
+  fileName?: string
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
   waMessageId?: string
   templateName?: string
