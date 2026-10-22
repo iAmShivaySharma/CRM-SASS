@@ -918,7 +918,7 @@ function OAuthConnectButton({
     setLoading(true)
     try {
       const res = await fetch(
-        `/api/social/oauth/${platform}?workspaceId=${workspaceId}`
+        `/api/social/oauth?platform=${platform}&workspaceId=${workspaceId}`
       )
       const data = await res.json()
 
