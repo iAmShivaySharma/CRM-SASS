@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   useGetWhatsAppMessagesQuery,
   useSendMessageMutation,
+  useHandoffConversationMutation,
 } from '@/lib/api/whatsappApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -148,8 +149,25 @@ export function WhatsAppChatThread({
     { skip: !workspaceId || !phone, pollingInterval: 8000 }
   )
   const [sendMessage, { isLoading: isSending }] = useSendMessageMutation()
+  const [handoff, { isLoading: isHandingOff }] = useHandoffConversationMutation()
 
   const messages = data?.messages ?? []
+  const isHuman = data?.state?.mode === 'human'
+
+  async function handleHandoff() {
+    try {
+      await handoff({
+        id: data?.state?.id ?? phone,
+        workspaceId,
+        action: isHuman ? 'release' : 'take_over',
+      }).unwrap()
+      toast.success(
+        isHuman ? 'Conversation released' : 'You took over this conversation'
+      )
+    } catch {
+      toast.error('Handoff failed')
+    }
+  }
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -202,18 +220,11 @@ export function WhatsAppChatThread({
             variant="outline"
             size="sm"
             className="h-7 gap-1.5 text-xs"
-            onClick={() => {
-              fetch(`/api/whatsapp/conversations/${phone}/handoff`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'take_over' }),
-              })
-                .then(() => toast.success('You took over this conversation'))
-                .catch(() => toast.error('Handoff failed'))
-            }}
+            onClick={handleHandoff}
+            disabled={isHandingOff}
           >
             <Hand className="h-3 w-3" />
-            Intervene
+            {isHuman ? 'Release' : 'Intervene'}
           </Button>
           <Button
             variant="outline"

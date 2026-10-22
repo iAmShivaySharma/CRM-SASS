@@ -102,7 +102,25 @@ export interface SendTemplateBody {
   to: string
   templateName: string
   language: string
-  components?: object[]
+  variables?: string[]
+}
+
+export interface CreateTemplateBody {
+  workspaceId: string
+  accountId: string
+  name: string
+  category: string
+  language: string
+  headerType: string
+  headerContent?: string
+  bodyText: string
+  footerText?: string
+  buttons?: Array<{
+    type: string
+    text: string
+    url?: string
+    phoneNumber?: string
+  }>
 }
 
 export interface BroadcastBody {
@@ -191,7 +209,7 @@ const whatsappApi = api.injectEndpoints({
     }),
     createWhatsAppTemplate: builder.mutation<
       { success: boolean; template: WhatsAppTemplate },
-      Partial<WhatsAppTemplate> & { workspaceId: string }
+      CreateTemplateBody
     >({
       query: body => ({
         url: 'api/whatsapp/templates',
@@ -222,6 +240,7 @@ const whatsappApi = api.injectEndpoints({
         method: 'POST',
         body,
       }),
+      invalidatesTags: ['WhatsAppConversation'],
     }),
     broadcast: builder.mutation<
       {
@@ -241,6 +260,7 @@ const whatsappApi = api.injectEndpoints({
         method: 'POST',
         body,
       }),
+      invalidatesTags: ['WhatsAppConversation'],
     }),
     deleteWhatsAppTemplate: builder.mutation<
       { success: boolean },
@@ -275,12 +295,33 @@ const whatsappApi = api.injectEndpoints({
       invalidatesTags: ['WhatsAppTemplate'],
     }),
     getWhatsAppMessages: builder.query<
-      { success: boolean; messages: WhatsAppMessage[] },
+      {
+        success: boolean
+        messages: WhatsAppMessage[]
+        state: WhatsAppConversation | null
+        hasMore: boolean
+      },
       { workspaceId: string; phone: string; page?: number }
     >({
       query: ({ workspaceId, phone, page = 1 }) =>
         `api/whatsapp/conversations?workspaceId=${workspaceId}&phone=${encodeURIComponent(phone)}&page=${page}`,
       providesTags: ['WhatsAppConversation'],
+    }),
+    handoffConversation: builder.mutation<
+      { success: boolean; conversation: WhatsAppConversation },
+      {
+        id: string
+        workspaceId: string
+        action: 'take_over' | 'release'
+        assignedTo?: string
+      }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `api/whatsapp/conversations/${encodeURIComponent(id)}/handoff`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['WhatsAppConversation'],
     }),
     connectWhatsAppFacebook: builder.mutation<
       { success: boolean; accounts: WhatsAppAccount[] },
@@ -371,6 +412,7 @@ export const {
   useSubmitTemplateMutation,
   useSyncTemplatesMutation,
   useGetWhatsAppMessagesQuery,
+  useHandoffConversationMutation,
   useConnectWhatsAppFacebookMutation,
   useGetBotFlowsQuery,
   useCreateBotFlowMutation,

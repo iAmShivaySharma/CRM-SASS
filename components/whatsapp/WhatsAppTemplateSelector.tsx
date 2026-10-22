@@ -61,15 +61,6 @@ export function WhatsAppTemplateSelector({
       return
     }
     const variableValues = varKeys.map(k => variables[k] ?? '')
-    const components =
-      varKeys.length > 0
-        ? [
-            {
-              type: 'body',
-              parameters: variableValues.map(v => ({ type: 'text', text: v })),
-            },
-          ]
-        : undefined
     try {
       await sendTemplate({
         workspaceId,
@@ -77,7 +68,7 @@ export function WhatsAppTemplateSelector({
         to: phone,
         templateName: selected.name,
         language: selected.language,
-        components,
+        variables: variableValues.length > 0 ? variableValues : undefined,
       }).unwrap()
       toast.success('Template sent')
       onSend()

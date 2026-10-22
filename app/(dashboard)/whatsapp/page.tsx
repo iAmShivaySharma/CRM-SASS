@@ -259,45 +259,27 @@ export default function WhatsAppPage() {
   }
 
   async function handleCreateTemplate() {
-    const components: object[] = []
-    if (templateForm.headerType !== 'NONE') {
-      if (templateForm.headerType === 'TEXT') {
-        components.push({
-          type: 'HEADER',
-          format: 'TEXT',
-          text: templateForm.headerContent,
-        })
-      } else {
-        components.push({ type: 'HEADER', format: templateForm.headerType })
-      }
-    }
-    if (templateForm.body) {
-      components.push({ type: 'BODY', text: templateForm.body })
-    }
-    if (templateForm.footer) {
-      components.push({ type: 'FOOTER', text: templateForm.footer })
-    }
-    if (templateForm.buttons.length > 0) {
-      components.push({
-        type: 'BUTTONS',
-        buttons: templateForm.buttons.map(b => {
-          if (b.type === 'QUICK_REPLY') {
-            return { type: 'QUICK_REPLY', text: b.text }
-          }
-          if (b.type === 'URL') {
-            return { type: 'URL', text: b.text, url: b.url }
-          }
-          return { type: 'PHONE_NUMBER', text: b.text, phone_number: b.phone }
-        }),
-      })
+    if (accounts.length === 0) {
+      toast.error('Connect a WhatsApp account first')
+      return
     }
     try {
       await createTemplate({
         workspaceId,
+        accountId: accounts[0].id,
         name: templateForm.name,
         category: templateForm.category,
         language: templateForm.language,
-        components,
+        headerType: templateForm.headerType,
+        headerContent: templateForm.headerContent || undefined,
+        bodyText: templateForm.body,
+        footerText: templateForm.footer || undefined,
+        buttons: templateForm.buttons.map(b => ({
+          type: b.type,
+          text: b.text,
+          url: b.type === 'URL' ? b.url : undefined,
+          phoneNumber: b.type === 'PHONE_NUMBER' ? b.phone : undefined,
+        })),
       }).unwrap()
       toast.success('Template created')
       setTemplateSheetOpen(false)
