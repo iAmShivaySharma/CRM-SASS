@@ -237,6 +237,7 @@ const dealsApi = api.injectEndpoints({
         priority?: string
         search?: string
         contactId?: string
+        leadId?: string
         page?: number
         limit?: number
         sortBy?: string

@@ -54,6 +54,8 @@ import {
   validateCustomFields,
 } from '@/lib/validation/leadValidation'
 import { LeadActivityHistory } from './LeadActivityHistory'
+import Link from 'next/link'
+import { useGetDealsQuery } from '@/lib/api/dealsApi'
 
 interface Lead {
   id: string
@@ -113,6 +115,15 @@ export function LeadDetailsSheet({
   const [newCustomField, setNewCustomField] = useState({ key: '', value: '' })
 
   const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const { data: linkedDeals } = useGetDealsQuery(
+    { workspaceId: currentWorkspace?.id || '', leadId: lead?.id, limit: 1 },
+    { skip: !currentWorkspace?.id || !lead?.id }
+  )
+  const linkedDeal = linkedDeals?.deals?.[0]
+  const linkedDealStage =
+    linkedDeal && typeof linkedDeal.stageId === 'object'
+      ? linkedDeal.stageId.name
+      : undefined
   const { formatCurrency, getTimeAgo, formatDateTime, getCurrencyCode } =
     useWorkspaceFormatting()
 
@@ -334,6 +345,14 @@ export function LeadDetailsSheet({
                 </>
               ) : (
                 <>
+                  {linkedDeal && (
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/deals">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Deal{linkedDealStage ? ` · ${linkedDealStage}` : ''}
+                      </Link>
+                    </Button>
+                  )}
                   <LeadActivityHistory leadId={lead.id} leadName={lead.name} />
                   <Button
                     variant="outline"

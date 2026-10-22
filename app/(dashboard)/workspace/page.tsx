@@ -78,6 +78,7 @@ import { RoleForm } from '@/components/roles/RoleForm'
 import { getPermissionsForAPI } from '@/lib/permissions/constants'
 import { usePermissions, Permission } from '@/hooks/usePermissions'
 import { AccessDenied } from '@/components/ui/access-denied'
+import { Switch } from '@/components/ui/switch'
 
 interface WorkspaceMember {
   id: string
@@ -164,14 +165,35 @@ export default function WorkspaceSettingsPage() {
   )
   const [workspaceDescription, setWorkspaceDescription] = useState('')
   const [workspaceSlug, setWorkspaceSlug] = useState('')
+  const [autoCreateDeal, setAutoCreateDeal] = useState(false)
 
   useEffect(() => {
     if (workspaceDetails) {
       setWorkspaceName(workspaceDetails.name)
       setWorkspaceDescription(workspaceDetails.description || '')
       setWorkspaceSlug(workspaceDetails.slug || '')
+      setAutoCreateDeal(Boolean(workspaceDetails.settings?.autoCreateDeal))
     }
   }, [workspaceDetails])
+
+  const handleToggleAutoCreateDeal = async (checked: boolean) => {
+    if (!currentWorkspace?.id) return
+    setAutoCreateDeal(checked)
+    try {
+      await updateWorkspace({
+        id: currentWorkspace.id,
+        settings: { autoCreateDeal: checked },
+      }).unwrap()
+      toast.success(
+        checked
+          ? 'New leads will now create a deal automatically'
+          : 'Automatic deal creation turned off'
+      )
+    } catch (error: any) {
+      setAutoCreateDeal(!checked)
+      toast.error(error?.data?.message || 'Failed to update setting')
+    }
+  }
 
   useEffect(() => {
     if (roles && roles.length > 0 && !inviteRole) {
@@ -485,6 +507,37 @@ export default function WorkspaceSettingsPage() {
                     <Save className="mr-2 h-4 w-4" />
                     {updateLoading ? 'Saving...' : 'Save Changes'}
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 'general' && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Sales Automation</CardTitle>
+                <CardDescription>
+                  Keep your pipeline in sync with incoming leads.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="autoCreateDeal">
+                      Auto-create deal for new leads
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Every new lead (form, API, Meta/Google/LinkedIn lead forms)
+                      gets a deal in the first stage of your default pipeline.
+                      A &quot;Sales Pipeline&quot; is created if none exists.
+                    </p>
+                  </div>
+                  <Switch
+                    id="autoCreateDeal"
+                    checked={autoCreateDeal}
+                    onCheckedChange={handleToggleAutoCreateDeal}
+                    disabled={updateLoading || workspaceLoading}
+                  />
                 </div>
               </CardContent>
             </Card>
