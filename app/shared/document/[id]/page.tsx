@@ -26,7 +26,7 @@ export default function PublicDocumentPage() {
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        const response = await fetch(`/api/shared/documents/${params?.id}`)
+        const response = await fetch(`/api/documents/${params?.id}/public`)
 
         if (!response.ok) {
           if (response.status === 404) {

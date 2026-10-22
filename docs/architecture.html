@@ -92,6 +92,7 @@ pre code{background:none;padding:0;color:inherit}
 <div class="nav-group">
 <div class="nav-group-title">Working on it</div>
 <a class="nav-item" onclick="go('dev')">Dev Workflow</a>
+<a class="nav-item" onclick="go('tooling')">Tooling &amp; CI</a>
 <a class="nav-item" onclick="go('conventions')">Conventions</a>
 <a class="nav-item" onclick="go('deploy')">Deployment</a>
 </div>
@@ -101,7 +102,7 @@ pre code{background:none;padding:0;color:inherit}
 <div class="main">
 <div class="topbar">
 <div class="breadcrumb">CRM Frontend &nbsp;/&nbsp; <span id="breadcrumb-page">Architecture</span></div>
-<span class="badge badge-blue">v1.0</span>
+<span class="badge badge-blue">v1.1</span>
 </div>
 
 <div class="content">
@@ -168,9 +169,10 @@ pre code{background:none;padding:0;color:inherit}
 <tr><td>Engines</td><td>/engines, /engines/api-keys, /engines/executions</td><td>enginesApi</td><td><span class="badge badge-purple">marketing</span> (n8n)</td></tr>
 <tr><td>Chat / Calendar / Appointments</td><td>/chat, /calendar, /appointments</td><td>chatApi, calendarApi, appointmentApi</td><td><span class="badge badge-cyan">collab</span> <span class="badge badge-green">sales</span></td></tr>
 <tr><td>Projects</td><td>/projects, /projects/[id], /projects/tasks, /projects/members, /projects/documents</td><td>projectsApi, tasksApi, projectMembersApi, documentsApi, commentsApi</td><td><span class="badge badge-cyan">collab</span></td></tr>
-<tr><td>Inventory / Blog / Compliance / FMCG</td><td>/inventory, /blogs/*, /compliance, /fmcg/*</td><td>inventoryApi, blogApi, complianceApi, fmcgApi</td><td><span class="badge badge-green">sales</span> <span class="badge badge-pink">cms</span></td></tr>
+<tr><td>Inventory / Blog / Compliance / FMCG</td><td>/inventory &middot; /blogs, /blogs/new, /blogs/[slug]/edit, /blogs/categories &middot; /compliance &middot; /fmcg, /fmcg/batches, /fmcg/suppliers, /fmcg/licenses, /fmcg/test-reports, /fmcg/distribution (shared <code>fmcg/layout.tsx</code>)</td><td>inventoryApi, blogApi, complianceApi, fmcgApi</td><td><span class="badge badge-green">sales</span> <span class="badge badge-pink">cms</span></td></tr>
 <tr><td>Referrals / Plans / Notifications</td><td>/referrals, /plans, /notifications</td><td>referralsApi, mongoApi, notificationsApi</td><td><span class="badge badge-green">auth</span> <span class="badge badge-purple">billing</span> <span class="badge badge-cyan">collab</span></td></tr>
 <tr><td>Settings</td><td>/settings, /workspace, /roles</td><td>mongoApi, workspaceApi, roleApi, userPreferencesApi, authApi</td><td><span class="badge badge-green">auth</span></td></tr>
+<tr><td>Outside the dashboard</td><td>/login, /register, /auth/setup (post-signup profile + workspace), /auth/forgot-password, /auth/reset-password, /accept-invitation, /home, /blog, /blog/[slug], /shared/document/[id] (public doc viewer &rarr; <code>GET /api/documents/:id/public</code>)</td><td>authApi, blogApi, raw fetch</td><td><span class="badge badge-green">auth</span> <span class="badge badge-pink">cms</span> <span class="badge badge-cyan">collab</span></td></tr>
 </table>
 </div>
 <div class="note"><code>mongoApi.ts</code> is the oldest file and still hosts leads, workspace, members and a few misc endpoints; newer modules each have their own file. All of them inject into the same <code>api</code> instance.</div>
@@ -393,11 +395,46 @@ npm run build                   # production build (sitemap/feed need API_GATEWA
 <tr><td>NEXT_PUBLIC_API_URL</td><td><em>empty</em></td><td>baseQuery base URL. Empty = same-origin through the rewrite. Set only if the browser should call the gateway directly (then CORS + cookie domain matter).</td></tr>
 <tr><td>NEXT_PUBLIC_APP_URL</td><td>http://localhost:3000</td><td>Absolute links in sitemap/feed, OAuth redirect URIs</td></tr>
 <tr><td>NEXT_PUBLIC_META_APP_ID, NEXT_PUBLIC_RAZORPAY_KEY_ID, NEXT_PUBLIC_JAAS_APP_ID</td><td>public keys</td><td>Browser SDKs</td></tr>
+<tr><td>E2E_BASE_URL, CI</td><td>http://localhost:3000</td><td>playwright.config.ts (baseURL, retries/workers in CI)</td></tr>
 </table></div>
 <div class="note">Anything without the <code>NEXT_PUBLIC_</code> prefix is server-only and never shipped to the browser. Secrets for Mongo, Resend, OpenRouter, etc. belong to the backend's Infisical environment, not to this repo.</div>
 
 <div class="label">Rebuild rule</div>
 <div class="card"><h3>Changed backend code?</h3><p><code>docker compose up -d --build &lt;service&gt;</code>, then confirm the container was actually recreated (<code>docker compose ps</code> shows a fresh "Up"); use <code>--force-recreate --no-deps &lt;service&gt;</code> if it only rebuilt the image. The gateway resolves services dynamically, so it does not need a restart.</p></div>
+</div>
+
+<!-- ====== TOOLING ====== -->
+<div id="sec-tooling" class="section">
+<div class="section-title">Tooling &amp; CI</div>
+<div class="section-desc">What the npm scripts and GitHub workflows actually do today, including the ones left over from the monolith</div>
+
+<div class="label">npm scripts</div>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Script</th><th>Status</th><th>Notes</th></tr></thead>
+<tr><td>dev, build, build:unix, start</td><td><span class="badge badge-green">works</span></td><td><code>build</code> sets <code>NODE_OPTIONS=--max-old-space-size=4096</code> (Windows syntax); use <code>build:unix</code> on Linux/macOS/CI.</td></tr>
+<tr><td>type-check, lint, format, format:check, knip</td><td><span class="badge badge-green">works</span></td><td>tsc / next lint / prettier / dead-code scan. Run <code>type-check</code> before every commit.</td></tr>
+<tr><td>test, test:unit, test:integration, test:components, test:ci</td><td><span class="badge badge-red">stale</span></td><td>Jest is referenced but there is no <code>jest.config</code> and no <code>tests/</code> directory in this branch.</td></tr>
+<tr><td>test:e2e*, playwright:*</td><td><span class="badge badge-orange">partial</span></td><td><code>playwright.config.ts</code> exists (testDir <code>./e2e</code>, baseURL <code>E2E_BASE_URL</code>) but <code>e2e/</code> has no specs yet.</td></tr>
+<tr><td>db:seed, db:seed-email-templates, db:migrate-permissions, db:reset</td><td><span class="badge badge-red">stale</span></td><td>Point at <code>scripts/*.ts</code> from the monolith; the folder no longer exists. Seeding now belongs to the backend repo.</td></tr>
+<tr><td>dev:docker, build:docker</td><td><span class="badge badge-red">stale</span></td><td>Reference <code>docker-compose.dev.yml</code> / <code>docker/Dockerfile</code>, neither present.</td></tr>
+<tr><td>audit:security, audit:licenses, analyze, clean, fresh, doctor</td><td><span class="badge badge-green">works</span></td><td>npm audit, license check, react-doctor.</td></tr>
+</table></div>
+
+<div class="label">GitHub workflows (.github/workflows)</div>
+<div class="tbl-wrap">
+<table class="tbl"><thead><tr><th>Workflow</th><th>Trigger</th><th>Does</th><th>Status</th></tr></thead>
+<tr><td>ci.yml</td><td>push main/develop/release/*, PR to develop</td><td>npm ci &rarr; lint &rarr; type-check &rarr; format:check</td><td><span class="badge badge-green">active</span></td></tr>
+<tr><td>lint.yml</td><td>push/PR main</td><td>next lint</td><td><span class="badge badge-green">active</span> (duplicates ci.yml)</td></tr>
+<tr><td>security.yml</td><td>push/PR + weekly cron</td><td>CodeQL, Semgrep, npm audit</td><td><span class="badge badge-green">active</span></td></tr>
+<tr><td>react-doctor.yml</td><td>push main</td><td>millionco/react-doctor scan</td><td><span class="badge badge-green">active</span></td></tr>
+<tr><td>build.yml</td><td>push main/develop</td><td>Docker build &rarr; GHCR, cosign sign, Trivy scan</td><td><span class="badge badge-red">broken</span> &mdash; needs <code>docker/Dockerfile</code></td></tr>
+<tr><td>deploy-vps.yml</td><td>push main</td><td>Build <code>Dockerfile.vps</code> &rarr; GHCR &rarr; ssh <code>/opt/crm docker compose up</code> &rarr; health on :8080</td><td><span class="badge badge-red">broken</span> &mdash; no <code>Dockerfile.vps</code>; production target is Vercel</td></tr>
+<tr><td>deploy-docs.yml</td><td>push main (docs/api-docs/**)</td><td>GitHub Pages for API docs</td><td><span class="badge badge-gray">dormant</span> &mdash; path does not exist</td></tr>
+</table></div>
+<div class="note">Decision pending: either delete <code>build.yml</code>, <code>deploy-vps.yml</code>, <code>deploy-docs.yml</code> and the stale scripts, or add a Next.js Dockerfile if the frontend should also ship as a container next to the backend on the VPS.</div>
+
+<div class="label">Git hooks</div>
+<div class="card"><h3>husky (<code>prepare</code>)</h3><p>Installed on <code>npm install</code>; no hook files are committed in this branch, so nothing runs pre-commit. The CI lint/type-check is the gate.</p></div>
 </div>
 
 <!-- ====== CONVENTIONS ====== -->
@@ -446,7 +483,7 @@ function go(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
-  const names={overview:'Architecture',modules:'Module Map',structure:'Project Structure',data:'State & Data Fetching',auth:'Auth & Workspaces',permissions:'Permissions',whatsapp:'WhatsApp UI',deals:'Deals Kanban',integrations:'Integrations',dev:'Dev Workflow',conventions:'Conventions',deploy:'Deployment'};
+  const names={overview:'Architecture',modules:'Module Map',structure:'Project Structure',data:'State & Data Fetching',auth:'Auth & Workspaces',permissions:'Permissions',whatsapp:'WhatsApp UI',deals:'Deals Kanban',integrations:'Integrations',dev:'Dev Workflow',tooling:'Tooling & CI',conventions:'Conventions',deploy:'Deployment'};
   document.getElementById('breadcrumb-page').textContent=names[id]||id;
   event.target.classList.add('active');
   window.scrollTo(0,0);
