@@ -54,10 +54,37 @@ interface SubscriptionData {
   currentPeriodEnd: string
   cancelAtPeriodEnd: boolean
   cancelledAt: string | null
+  cashfreeSubscriptionId?: string
+  cashfreeSubscriptionStatus?: string
+  authorizationStatus?: string
+  nextChargeAt?: string | null
   metadata: Record<string, any>
 }
 
+interface PaymentRecord {
+  orderId?: string
+  paymentId?: string
+  subscriptionId?: string
+  amount?: number
+  currency?: string
+  method?: string
+  planId: string
+  paidAt: string
+}
+
 const POPULAR_PLAN_ID = 'pro'
+const CHECKOUT_SUBSCRIPTION = 'subscription'
+const PENDING_PLAN_KEY = 'pending_plan_id'
+const PENDING_SUBSCRIPTION_KEY = 'pending_subscription_id'
+
+const formatDate = (value?: string | null, long = false) =>
+  value
+    ? new Date(value).toLocaleDateString('en-IN', {
+        month: long ? 'long' : 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : '-'
 const CASHFREE_MODE =
   process.env.NEXT_PUBLIC_CASHFREE_ENV === 'production' ? 'production' : 'sandbox'
 
@@ -93,6 +120,8 @@ export default function PlansPage() {
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null)
   const [isCancelling, setIsCancelling] = useState(false)
   const [billingTab, setBillingTab] = useState('plans')
+  const [payments, setPayments] = useState<PaymentRecord[]>([])
+  const [checkoutType, setCheckoutType] = useState<string>(CHECKOUT_SUBSCRIPTION)
   const [usage, setUsage] = useState<{
     leads: { used: number; limit: number }
     members: { used: number; limit: number }
@@ -116,6 +145,8 @@ export default function PlansPage() {
       const data = await response.json()
 
       setSubscription(data.subscription ?? null)
+      setPayments(Array.isArray(data.payments) ? data.payments : [])
+      if (data.checkoutType) setCheckoutType(data.checkoutType)
       if (data.workspace) {
         setCurrentPlanId(data.workspace.planId || 'free')
         setWorkspaceName(data.workspace.name || '')
@@ -152,15 +183,51 @@ export default function PlansPage() {
     if (!workspaceId) return
     const params = new URLSearchParams(window.location.search)
     const orderId = params.get('order_id')
+    const subscriptionId =
+      params.get('subscription_id') ||
+      sessionStorage.getItem(PENDING_SUBSCRIPTION_KEY)
     if (orderId) {
       handleReturnFromPayment(orderId)
+      window.history.replaceState({}, '', '/plans')
+    } else if (subscriptionId) {
+      handleReturnFromSubscription(subscriptionId)
       window.history.replaceState({}, '', '/plans')
     }
   }, [workspaceId])
 
+  const handleReturnFromSubscription = async (subscriptionId: string) => {
+    const pendingPlanId = sessionStorage.getItem(PENDING_PLAN_KEY)
+    setUpgradingPlanId(pendingPlanId)
+    try {
+      const response = await fetch('/api/payments/subscriptions/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ subscriptionId, workspaceId }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        toast.error(data.message || 'Subscription verification failed')
+        return
+      }
+      if (data.success) {
+        toast.success('Subscription active! Your plan has been upgraded.')
+        sessionStorage.removeItem(PENDING_SUBSCRIPTION_KEY)
+      } else if (data.pending) {
+        toast.info(data.message || 'Authorization pending with your bank')
+      }
+      await fetchSubscription()
+    } catch {
+      toast.error('Could not verify the subscription. Please refresh in a moment.')
+    } finally {
+      sessionStorage.removeItem(PENDING_PLAN_KEY)
+      setUpgradingPlanId(null)
+    }
+  }
+
   const handleReturnFromPayment = async (orderId: string) => {
     try {
-      const planIdFromUrl = sessionStorage.getItem('pending_plan_id')
+      const planIdFromUrl = sessionStorage.getItem(PENDING_PLAN_KEY)
       if (!planIdFromUrl) return
 
       setUpgradingPlanId(planIdFromUrl)
@@ -190,7 +257,7 @@ export default function PlansPage() {
     } catch (error) {
       console.error('Error verifying payment:', error)
     } finally {
-      sessionStorage.removeItem('pending_plan_id')
+      sessionStorage.removeItem(PENDING_PLAN_KEY)
       setUpgradingPlanId(null)
     }
   }
@@ -198,7 +265,7 @@ export default function PlansPage() {
   const handleCancel = async () => {
     if (
       !confirm(
-        'Are you sure you want to cancel your subscription? Your plan will remain active until the end of the billing period.'
+        'Cancel auto-renewal? Your plan stays active until the end of the current billing period and will not be charged again.'
       )
     ) {
       return
@@ -262,9 +329,24 @@ export default function PlansPage() {
 
       const orderData = await orderResponse.json()
 
-      sessionStorage.setItem('pending_plan_id', planId)
+      sessionStorage.setItem(PENDING_PLAN_KEY, planId)
 
       const cashfree = (window.Cashfree as any)({ mode: CASHFREE_MODE })
+
+      if (orderData.checkoutType === CHECKOUT_SUBSCRIPTION) {
+        sessionStorage.setItem(PENDING_SUBSCRIPTION_KEY, orderData.subscriptionId)
+        const result = await cashfree.subscriptionsCheckout({
+          subsSessionId: orderData.subscriptionSessionId,
+          redirectTarget: '_self',
+        })
+        if (result?.error) {
+          toast.error(result.error?.message || 'Could not open the mandate checkout')
+          setUpgradingPlanId(null)
+          sessionStorage.removeItem(PENDING_PLAN_KEY)
+          sessionStorage.removeItem(PENDING_SUBSCRIPTION_KEY)
+        }
+        return
+      }
 
       const checkoutResult = await cashfree.checkout({
         paymentSessionId: orderData.paymentSessionId,
@@ -276,7 +358,7 @@ export default function PlansPage() {
           checkoutResult.error?.message || 'Payment failed. Please try again.'
         )
         setUpgradingPlanId(null)
-        sessionStorage.removeItem('pending_plan_id')
+        sessionStorage.removeItem(PENDING_PLAN_KEY)
         return
       }
 
@@ -287,7 +369,8 @@ export default function PlansPage() {
       console.error('Error initiating payment:', error)
       toast.error('Failed to initiate payment. Please try again.')
       setUpgradingPlanId(null)
-      sessionStorage.removeItem('pending_plan_id')
+      sessionStorage.removeItem(PENDING_PLAN_KEY)
+      sessionStorage.removeItem(PENDING_SUBSCRIPTION_KEY)
     }
   }
 
@@ -326,7 +409,7 @@ export default function PlansPage() {
       )
     } finally {
       setUpgradingPlanId(null)
-      sessionStorage.removeItem('pending_plan_id')
+      sessionStorage.removeItem(PENDING_PLAN_KEY)
     }
   }
 
@@ -395,34 +478,40 @@ export default function PlansPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {subscription.currentPeriodEnd && (
+                {subscription.currentPeriodEnd && currentPlanId !== 'free' && (
                   <div className="text-right text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       <span>
-                        {subscription.status === 'cancelled'
-                          ? 'Active until'
-                          : 'Renews'}{' '}
-                        {new Date(
-                          subscription.currentPeriodEnd
-                        ).toLocaleDateString('en-US', {
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
+                        {subscription.status === 'cancelled' ||
+                        subscription.cancelAtPeriodEnd
+                          ? `Active until ${formatDate(subscription.currentPeriodEnd, true)}`
+                          : subscription.cashfreeSubscriptionId
+                            ? `Auto-renews ${formatDate(subscription.nextChargeAt || subscription.currentPeriodEnd, true)}`
+                            : `Expires ${formatDate(subscription.currentPeriodEnd, true)}`}
                       </span>
                     </div>
+                    {subscription.cashfreeSubscriptionId &&
+                      subscription.status === 'active' && (
+                        <div className="mt-1 text-xs">
+                          Mandate {subscription.authorizationStatus?.toLowerCase() || 'active'}
+                        </div>
+                      )}
                   </div>
                 )}
                 {currentPlanId !== 'free' &&
-                  subscription.status === 'active' && (
+                  ['active', 'past_due'].includes(subscription.status) && (
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleCancel}
                       disabled={isCancelling}
                     >
-                      {isCancelling ? 'Cancelling...' : 'Cancel Plan'}
+                      {isCancelling
+                        ? 'Cancelling...'
+                        : subscription.cashfreeSubscriptionId
+                          ? 'Cancel at period end'
+                          : 'Cancel Plan'}
                     </Button>
                   )}
               </div>
@@ -523,7 +612,9 @@ export default function PlansPage() {
                       ) : (
                         <>
                           <CreditCard className="mr-2 h-4 w-4" />
-                          Upgrade to {plan.name}
+                          {checkoutType === CHECKOUT_SUBSCRIPTION
+                            ? `Subscribe to ${plan.name}`
+                            : `Upgrade to ${plan.name}`}
                         </>
                       )}
                     </Button>
@@ -662,72 +753,48 @@ export default function PlansPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {subscription && subscription.metadata?.cashfreePaymentId ? (
-                <div className="rounded-lg border">
-                  <div className="grid grid-cols-5 gap-4 border-b bg-muted p-3 text-sm font-medium text-muted-foreground">
+              {payments.length > 0 ? (
+                <div className="overflow-x-auto rounded-lg border">
+                  <div className="grid min-w-[640px] grid-cols-5 gap-4 border-b bg-muted p-3 text-sm font-medium text-muted-foreground">
                     <span>Date</span>
                     <span>Plan</span>
                     <span>Amount</span>
                     <span>Payment ID</span>
-                    <span>Status</span>
+                    <span>Type</span>
                   </div>
-                  <div className="grid grid-cols-5 gap-4 border-b p-3 text-sm last:border-0">
-                    <span className="text-foreground">
-                      {subscription.metadata?.lastPaymentAt
-                        ? new Date(
-                            subscription.metadata.lastPaymentAt
-                          ).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })
-                        : subscription.currentPeriodStart
-                          ? new Date(
-                              subscription.currentPeriodStart
-                            ).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })
-                          : '-'}
-                    </span>
-                    <span className="text-foreground">
-                      {plans.find(p => p.id === subscription.planId)?.name ||
-                        subscription.planId}
-                    </span>
-                    <span className="font-medium text-foreground">
-                      {formatPrice(
-                        subscription.metadata?.amountPaid ||
-                          plans.find(p => p.id === subscription.planId)
-                            ?.price ||
-                          0,
-                        subscription.metadata?.currency ||
-                          plans.find(p => p.id === subscription.planId)
-                            ?.currency
-                      )}
-                    </span>
-                    <span className="truncate font-mono text-xs text-muted-foreground">
-                      {subscription.metadata?.cashfreePaymentId || '-'}
-                    </span>
-                    <Badge
-                      variant={
-                        subscription.status === 'active'
-                          ? 'default'
-                          : subscription.status === 'cancelled'
-                            ? 'secondary'
-                            : 'destructive'
-                      }
-                      className={
-                        subscription.status === 'active' ? 'bg-primary' : ''
-                      }
+                  {payments.map((payment, index) => (
+                    <div
+                      key={`${payment.paymentId || payment.orderId || index}`}
+                      className="grid min-w-[640px] grid-cols-5 gap-4 border-b p-3 text-sm last:border-0"
                     >
-                      {subscription.status === 'active'
-                        ? 'Paid'
-                        : subscription.status === 'cancelled'
-                          ? 'Cancelled'
-                          : subscription.status}
-                    </Badge>
-                  </div>
+                      <span className="text-foreground">
+                        {formatDate(payment.paidAt)}
+                      </span>
+                      <span className="text-foreground">
+                        {plans.find(p => p.id === payment.planId)?.name ||
+                          payment.planId}
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {formatPrice(
+                          payment.amount ??
+                            plans.find(p => p.id === payment.planId)?.price ??
+                            0,
+                          payment.currency ||
+                            plans.find(p => p.id === payment.planId)?.currency
+                        )}
+                      </span>
+                      <span className="truncate font-mono text-xs text-muted-foreground">
+                        {payment.paymentId || payment.orderId || '-'}
+                      </span>
+                      <Badge variant="secondary">
+                        {payment.subscriptionId
+                          ? index === payments.length - 1
+                            ? 'Mandate'
+                            : 'Renewal'
+                          : 'One-time'}
+                      </Badge>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">

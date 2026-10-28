@@ -1,0 +1,111 @@
+name: Deploy frontend to OKE
+
+on:
+  push:
+    branches:
+      - develop
+      - qa
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+concurrency:
+  group: deploy-oke-frontend-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  OCI_REGION: ${{ vars.OCI_REGION }}
+  OCIR_REGISTRY: ${{ vars.OCI_REGION }}.ocir.io
+  OKE_CLUSTER_ID: ${{ vars.OKE_CLUSTER_ID }}
+
+jobs:
+  resolve-env:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      k8s_namespace: ${{ steps.env.outputs.k8s_namespace }}
+      image_tag: ${{ steps.env.outputs.image_tag }}
+    steps:
+      - id: env
+        run: |
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            ENV=prod
+          elif [ "${{ github.ref_name }}" = "qa" ]; then
+            ENV=qa
+          else
+            ENV=dev
+          fi
+          echo "environment=${ENV}" >> $GITHUB_OUTPUT
+          echo "k8s_namespace=crm-${ENV}" >> $GITHUB_OUTPUT
+          echo "image_tag=${ENV}-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+  build-push:
+    needs: resolve-env
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve-env.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.OCIR_REGISTRY }}
+          username: ${{ vars.OCIR_NAMESPACE }}/${{ secrets.OCI_USER }}
+          password: ${{ secrets.OCI_AUTH_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/arm64
+          push: true
+          build-args: |
+            API_GATEWAY_URL=${{ vars.PUBLIC_API_URL }}
+            NEXT_PUBLIC_APP_URL=${{ vars.APP_ORIGIN }}
+            NEXT_PUBLIC_CASHFREE_ENV=${{ vars.CASHFREE_ENV || 'sandbox' }}
+            NEXT_PUBLIC_META_APP_ID=${{ vars.META_APP_ID }}
+          tags: |
+            ${{ env.OCIR_REGISTRY }}/${{ vars.OCIR_NAMESPACE }}/crm/frontend:${{ needs.resolve-env.outputs.image_tag }}
+            ${{ env.OCIR_REGISTRY }}/${{ vars.OCIR_NAMESPACE }}/crm/frontend:${{ needs.resolve-env.outputs.environment }}
+          cache-from: type=gha,scope=frontend-oke
+          cache-to: type=gha,mode=max,scope=frontend-oke
+
+  deploy:
+    needs: [resolve-env, build-push]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve-env.outputs.environment }}
+    steps:
+      - uses: oracle-actions/configure-kubectl-oke@v1.5.1
+        with:
+          cluster: ${{ env.OKE_CLUSTER_ID }}
+          region: ${{ env.OCI_REGION }}
+        env:
+          OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+          OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+          OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+          OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+          OCI_CLI_REGION: ${{ env.OCI_REGION }}
+
+      - name: Roll frontend
+        run: |
+          NS=${{ needs.resolve-env.outputs.k8s_namespace }}
+          IMAGE=${{ env.OCIR_REGISTRY }}/${{ vars.OCIR_NAMESPACE }}/crm/frontend:${{ needs.resolve-env.outputs.image_tag }}
+          kubectl get deployment/frontend -n ${NS} >/dev/null 2>&1 || (echo "frontend Deployment missing; run crm-platform deploy-oke first" && exit 1)
+          kubectl set image deployment/frontend frontend=${IMAGE} -n ${NS}
+          kubectl rollout status deployment/frontend -n ${NS} --timeout=180s
+          kubectl get pods -n ${NS} -l app=frontend

@@ -25,13 +25,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env
-.env*
 .env*.local
-.env.development
-.env.production
-.env.staging
-.env.test
 
 # vercel
 .vercel
@@ -52,7 +46,6 @@ logs/
 *.log
 
 # Environment files (security sensitive)
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -81,7 +74,6 @@ db_backup/
 database/
 
 # IDE and editor files
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -151,3 +143,5 @@ temp_interactive_push.bat
 e2e/.auth/
 
 e2e-videos/
+test-results-recheck/
+config.bat
