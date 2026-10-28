@@ -131,6 +131,59 @@ export enum Permission {
   COLUMNS_CREATE = 'columns.create',
   COLUMNS_EDIT = 'columns.edit',
   COLUMNS_DELETE = 'columns.delete',
+
+  DEALS_VIEW = 'deals.view',
+  DEALS_CREATE = 'deals.create',
+  DEALS_EDIT = 'deals.edit',
+  DEALS_DELETE = 'deals.delete',
+  INVOICES_VIEW = 'invoices.view',
+  INVOICES_CREATE = 'invoices.create',
+  INVOICES_EDIT = 'invoices.edit',
+  INVOICES_DELETE = 'invoices.delete',
+  QUOTATIONS_VIEW = 'quotations.view',
+  QUOTATIONS_CREATE = 'quotations.create',
+  QUOTATIONS_EDIT = 'quotations.edit',
+  QUOTATIONS_DELETE = 'quotations.delete',
+  PRODUCTS_VIEW = 'products.view',
+  PRODUCTS_CREATE = 'products.create',
+  PRODUCTS_EDIT = 'products.edit',
+  PRODUCTS_DELETE = 'products.delete',
+  CALENDAR_VIEW = 'calendar.view',
+  CALENDAR_CREATE = 'calendar.create',
+  CALENDAR_EDIT = 'calendar.edit',
+  CALENDAR_DELETE = 'calendar.delete',
+  MEETINGS_VIEW = 'meetings.view',
+  MEETINGS_CREATE = 'meetings.create',
+  MEETINGS_EDIT = 'meetings.edit',
+  MEETINGS_DELETE = 'meetings.delete',
+  COMMENTS_VIEW = 'comments.view',
+  COMMENTS_CREATE = 'comments.create',
+  COMMENTS_EDIT = 'comments.edit',
+  COMMENTS_DELETE = 'comments.delete',
+  CAMPAIGNS_VIEW = 'campaigns.view',
+  CAMPAIGNS_CREATE = 'campaigns.create',
+  CAMPAIGNS_EDIT = 'campaigns.edit',
+  CAMPAIGNS_DELETE = 'campaigns.delete',
+  SOCIAL_VIEW = 'social.view',
+  SOCIAL_CREATE = 'social.create',
+  SOCIAL_EDIT = 'social.edit',
+  SOCIAL_DELETE = 'social.delete',
+  CHAT_CREATE = 'chat.create',
+  CHAT_EDIT = 'chat.edit',
+  CHAT_DELETE = 'chat.delete',
+  HR_VIEW = 'hr.view',
+  HR_CREATE = 'hr.create',
+  HR_EDIT = 'hr.edit',
+  HR_DELETE = 'hr.delete',
+  COMPLIANCE_VIEW = 'compliance.view',
+  COMPLIANCE_CREATE = 'compliance.create',
+  COMPLIANCE_EDIT = 'compliance.edit',
+  COMPLIANCE_DELETE = 'compliance.delete',
+  NOTIFICATIONS_CREATE = 'notifications.create',
+  NOTIFICATIONS_DELETE = 'notifications.delete',
+  SETTINGS_MANAGE = 'settings.manage',
+  FMCG_PRODUCTS_VIEW = 'fmcg.products.view',
+  FMCG_BATCHES_VIEW = 'fmcg.batches.view',
 }
 
 export const PERMISSION_DEFINITIONS: Record<Permission, PermissionDefinition> =
@@ -796,6 +849,350 @@ export const PERMISSION_DEFINITIONS: Record<Permission, PermissionDefinition> =
       description: 'Remove project board columns',
       category: PermissionCategory.PROJECTS,
       dependencies: [Permission.COLUMNS_VIEW],
+    },    [Permission.DEALS_VIEW]: {
+      name: Permission.DEALS_VIEW,
+      displayName: 'View Deals',
+      description: 'View deals',
+      category: PermissionCategory.SALES,
+    },
+    [Permission.DEALS_CREATE]: {
+      name: Permission.DEALS_CREATE,
+      displayName: 'Create Deals',
+      description: 'Create deals',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.DEALS_VIEW],
+    },
+    [Permission.DEALS_EDIT]: {
+      name: Permission.DEALS_EDIT,
+      displayName: 'Edit Deals',
+      description: 'Modify deals',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.DEALS_VIEW],
+    },
+    [Permission.DEALS_DELETE]: {
+      name: Permission.DEALS_DELETE,
+      displayName: 'Delete Deals',
+      description: 'Remove deals',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.DEALS_VIEW],
+    },
+    [Permission.INVOICES_VIEW]: {
+      name: Permission.INVOICES_VIEW,
+      displayName: 'View Invoices',
+      description: 'View invoices',
+      category: PermissionCategory.SALES,
+    },
+    [Permission.INVOICES_CREATE]: {
+      name: Permission.INVOICES_CREATE,
+      displayName: 'Create Invoices',
+      description: 'Create invoices',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.INVOICES_VIEW],
+    },
+    [Permission.INVOICES_EDIT]: {
+      name: Permission.INVOICES_EDIT,
+      displayName: 'Edit Invoices',
+      description: 'Modify invoices',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.INVOICES_VIEW],
+    },
+    [Permission.INVOICES_DELETE]: {
+      name: Permission.INVOICES_DELETE,
+      displayName: 'Delete Invoices',
+      description: 'Remove invoices',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.INVOICES_VIEW],
+    },
+    [Permission.QUOTATIONS_VIEW]: {
+      name: Permission.QUOTATIONS_VIEW,
+      displayName: 'View Quotations',
+      description: 'View quotations',
+      category: PermissionCategory.SALES,
+    },
+    [Permission.QUOTATIONS_CREATE]: {
+      name: Permission.QUOTATIONS_CREATE,
+      displayName: 'Create Quotations',
+      description: 'Create quotations',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.QUOTATIONS_VIEW],
+    },
+    [Permission.QUOTATIONS_EDIT]: {
+      name: Permission.QUOTATIONS_EDIT,
+      displayName: 'Edit Quotations',
+      description: 'Modify quotations',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.QUOTATIONS_VIEW],
+    },
+    [Permission.QUOTATIONS_DELETE]: {
+      name: Permission.QUOTATIONS_DELETE,
+      displayName: 'Delete Quotations',
+      description: 'Remove quotations',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.QUOTATIONS_VIEW],
+    },
+    [Permission.PRODUCTS_VIEW]: {
+      name: Permission.PRODUCTS_VIEW,
+      displayName: 'View Products',
+      description: 'View products',
+      category: PermissionCategory.SALES,
+    },
+    [Permission.PRODUCTS_CREATE]: {
+      name: Permission.PRODUCTS_CREATE,
+      displayName: 'Create Products',
+      description: 'Create products',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.PRODUCTS_VIEW],
+    },
+    [Permission.PRODUCTS_EDIT]: {
+      name: Permission.PRODUCTS_EDIT,
+      displayName: 'Edit Products',
+      description: 'Modify products',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.PRODUCTS_VIEW],
+    },
+    [Permission.PRODUCTS_DELETE]: {
+      name: Permission.PRODUCTS_DELETE,
+      displayName: 'Delete Products',
+      description: 'Remove products',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.PRODUCTS_VIEW],
+    },
+    [Permission.CALENDAR_VIEW]: {
+      name: Permission.CALENDAR_VIEW,
+      displayName: 'View Calendar Events',
+      description: 'View calendar events',
+      category: PermissionCategory.SALES,
+    },
+    [Permission.CALENDAR_CREATE]: {
+      name: Permission.CALENDAR_CREATE,
+      displayName: 'Create Calendar Events',
+      description: 'Create calendar events',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.CALENDAR_VIEW],
+    },
+    [Permission.CALENDAR_EDIT]: {
+      name: Permission.CALENDAR_EDIT,
+      displayName: 'Edit Calendar Events',
+      description: 'Modify calendar events',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.CALENDAR_VIEW],
+    },
+    [Permission.CALENDAR_DELETE]: {
+      name: Permission.CALENDAR_DELETE,
+      displayName: 'Delete Calendar Events',
+      description: 'Remove calendar events',
+      category: PermissionCategory.SALES,
+      dependencies: [Permission.CALENDAR_VIEW],
+    },
+    [Permission.MEETINGS_VIEW]: {
+      name: Permission.MEETINGS_VIEW,
+      displayName: 'View Meetings',
+      description: 'View meetings',
+      category: PermissionCategory.PROJECTS,
+    },
+    [Permission.MEETINGS_CREATE]: {
+      name: Permission.MEETINGS_CREATE,
+      displayName: 'Create Meetings',
+      description: 'Create meetings',
+      category: PermissionCategory.PROJECTS,
+      dependencies: [Permission.MEETINGS_VIEW],
+    },
+    [Permission.MEETINGS_EDIT]: {
+      name: Permission.MEETINGS_EDIT,
+      displayName: 'Edit Meetings',
+      description: 'Modify meetings',
+      category: PermissionCategory.PROJECTS,
+      dependencies: [Permission.MEETINGS_VIEW],
+    },
+    [Permission.MEETINGS_DELETE]: {
+      name: Permission.MEETINGS_DELETE,
+      displayName: 'Delete Meetings',
+      description: 'Remove meetings',
+      category: PermissionCategory.PROJECTS,
+      dependencies: [Permission.MEETINGS_VIEW],
+    },
+    [Permission.COMMENTS_VIEW]: {
+      name: Permission.COMMENTS_VIEW,
+      displayName: 'View Comments',
+      description: 'View comments',
+      category: PermissionCategory.PROJECTS,
+    },
+    [Permission.COMMENTS_CREATE]: {
+      name: Permission.COMMENTS_CREATE,
+      displayName: 'Create Comments',
+      description: 'Create comments',
+      category: PermissionCategory.PROJECTS,
+      dependencies: [Permission.COMMENTS_VIEW],
+    },
+    [Permission.COMMENTS_EDIT]: {
+      name: Permission.COMMENTS_EDIT,
+      displayName: 'Edit Comments',
+      description: 'Modify comments',
+      category: PermissionCategory.PROJECTS,
+      dependencies: [Permission.COMMENTS_VIEW],
+    },
+    [Permission.COMMENTS_DELETE]: {
+      name: Permission.COMMENTS_DELETE,
+      displayName: 'Delete Comments',
+      description: 'Remove comments',
+      category: PermissionCategory.PROJECTS,
+      dependencies: [Permission.COMMENTS_VIEW],
+    },
+    [Permission.CAMPAIGNS_VIEW]: {
+      name: Permission.CAMPAIGNS_VIEW,
+      displayName: 'View Campaigns',
+      description: 'View campaigns',
+      category: PermissionCategory.COMMUNICATION,
+    },
+    [Permission.CAMPAIGNS_CREATE]: {
+      name: Permission.CAMPAIGNS_CREATE,
+      displayName: 'Create Campaigns',
+      description: 'Create campaigns',
+      category: PermissionCategory.COMMUNICATION,
+      dependencies: [Permission.CAMPAIGNS_VIEW],
+    },
+    [Permission.CAMPAIGNS_EDIT]: {
+      name: Permission.CAMPAIGNS_EDIT,
+      displayName: 'Edit Campaigns',
+      description: 'Modify campaigns',
+      category: PermissionCategory.COMMUNICATION,
+      dependencies: [Permission.CAMPAIGNS_VIEW],
+    },
+    [Permission.CAMPAIGNS_DELETE]: {
+      name: Permission.CAMPAIGNS_DELETE,
+      displayName: 'Delete Campaigns',
+      description: 'Remove campaigns',
+      category: PermissionCategory.COMMUNICATION,
+      dependencies: [Permission.CAMPAIGNS_VIEW],
+    },
+    [Permission.SOCIAL_VIEW]: {
+      name: Permission.SOCIAL_VIEW,
+      displayName: 'View Social Media',
+      description: 'View social media',
+      category: PermissionCategory.COMMUNICATION,
+    },
+    [Permission.SOCIAL_CREATE]: {
+      name: Permission.SOCIAL_CREATE,
+      displayName: 'Create Social Media',
+      description: 'Create social media',
+      category: PermissionCategory.COMMUNICATION,
+      dependencies: [Permission.SOCIAL_VIEW],
+    },
+    [Permission.SOCIAL_EDIT]: {
+      name: Permission.SOCIAL_EDIT,
+      displayName: 'Edit Social Media',
+      description: 'Modify social media',
+      category: PermissionCategory.COMMUNICATION,
+      dependencies: [Permission.SOCIAL_VIEW],
+    },
+    [Permission.SOCIAL_DELETE]: {
+      name: Permission.SOCIAL_DELETE,
+      displayName: 'Delete Social Media',
+      description: 'Remove social media',
+      category: PermissionCategory.COMMUNICATION,
+      dependencies: [Permission.SOCIAL_VIEW],
+    },
+    [Permission.CHAT_CREATE]: {
+      name: Permission.CHAT_CREATE,
+      displayName: 'Create Chat',
+      description: 'Create chat',
+      category: PermissionCategory.COMMUNICATION,
+    },
+    [Permission.CHAT_EDIT]: {
+      name: Permission.CHAT_EDIT,
+      displayName: 'Edit Chat',
+      description: 'Modify chat',
+      category: PermissionCategory.COMMUNICATION,
+    },
+    [Permission.CHAT_DELETE]: {
+      name: Permission.CHAT_DELETE,
+      displayName: 'Delete Chat',
+      description: 'Remove chat',
+      category: PermissionCategory.COMMUNICATION,
+    },
+    [Permission.HR_VIEW]: {
+      name: Permission.HR_VIEW,
+      displayName: 'View HR Records',
+      description: 'View hr records',
+      category: PermissionCategory.ADMIN,
+    },
+    [Permission.HR_CREATE]: {
+      name: Permission.HR_CREATE,
+      displayName: 'Create HR Records',
+      description: 'Create hr records',
+      category: PermissionCategory.ADMIN,
+      dependencies: [Permission.HR_VIEW],
+    },
+    [Permission.HR_EDIT]: {
+      name: Permission.HR_EDIT,
+      displayName: 'Edit HR Records',
+      description: 'Modify hr records',
+      category: PermissionCategory.ADMIN,
+      dependencies: [Permission.HR_VIEW],
+    },
+    [Permission.HR_DELETE]: {
+      name: Permission.HR_DELETE,
+      displayName: 'Delete HR Records',
+      description: 'Remove hr records',
+      category: PermissionCategory.ADMIN,
+      dependencies: [Permission.HR_VIEW],
+    },
+    [Permission.COMPLIANCE_VIEW]: {
+      name: Permission.COMPLIANCE_VIEW,
+      displayName: 'View Compliance',
+      description: 'View compliance',
+      category: PermissionCategory.ADMIN,
+    },
+    [Permission.COMPLIANCE_CREATE]: {
+      name: Permission.COMPLIANCE_CREATE,
+      displayName: 'Create Compliance',
+      description: 'Create compliance',
+      category: PermissionCategory.ADMIN,
+      dependencies: [Permission.COMPLIANCE_VIEW],
+    },
+    [Permission.COMPLIANCE_EDIT]: {
+      name: Permission.COMPLIANCE_EDIT,
+      displayName: 'Edit Compliance',
+      description: 'Modify compliance',
+      category: PermissionCategory.ADMIN,
+      dependencies: [Permission.COMPLIANCE_VIEW],
+    },
+    [Permission.COMPLIANCE_DELETE]: {
+      name: Permission.COMPLIANCE_DELETE,
+      displayName: 'Delete Compliance',
+      description: 'Remove compliance',
+      category: PermissionCategory.ADMIN,
+      dependencies: [Permission.COMPLIANCE_VIEW],
+    },
+    [Permission.NOTIFICATIONS_CREATE]: {
+      name: Permission.NOTIFICATIONS_CREATE,
+      displayName: 'Create Notifications',
+      description: 'Create notifications',
+      category: PermissionCategory.CORE,
+    },
+    [Permission.NOTIFICATIONS_DELETE]: {
+      name: Permission.NOTIFICATIONS_DELETE,
+      displayName: 'Delete Notifications',
+      description: 'Remove notifications',
+      category: PermissionCategory.CORE,
+    },
+    [Permission.SETTINGS_MANAGE]: {
+      name: Permission.SETTINGS_MANAGE,
+      displayName: 'Manage Settings',
+      description: 'Manage all settings',
+      category: PermissionCategory.ADMIN,
+    },
+    [Permission.FMCG_PRODUCTS_VIEW]: {
+      name: Permission.FMCG_PRODUCTS_VIEW,
+      displayName: 'View FMCG Products',
+      description: 'View fmcg products',
+      category: PermissionCategory.SALES,
+    },
+    [Permission.FMCG_BATCHES_VIEW]: {
+      name: Permission.FMCG_BATCHES_VIEW,
+      displayName: 'View FMCG Batches',
+      description: 'View fmcg batches',
+      category: PermissionCategory.SALES,
     },
   }
 
@@ -829,4 +1226,344 @@ export function getPermissionsForAPI(): Array<{
       isSystemPermission: true,
     }
   })
+}
+
+export const MODULE_ACTIONS = ['view', 'create', 'edit', 'delete'] as const
+export type ModuleAction = (typeof MODULE_ACTIONS)[number]
+
+export interface PermissionModule {
+  id: string
+  label: string
+  actions: Partial<Record<ModuleAction, Permission[]>>
+}
+
+export const PERMISSION_MODULES: PermissionModule[] = [
+  {
+    id: 'leads',
+    label: 'Leads',
+    actions: {
+      view: [
+        Permission.LEADS_VIEW,
+        Permission.LEAD_ACTIVITIES_VIEW,
+        Permission.LEAD_NOTES_VIEW,
+        Permission.LEADS_EXPORT,
+      ],
+      create: [Permission.LEADS_CREATE, Permission.LEAD_NOTES_CREATE],
+      edit: [
+        Permission.LEADS_EDIT,
+        Permission.LEADS_ASSIGN,
+        Permission.LEADS_CONVERT,
+        Permission.LEAD_NOTES_EDIT,
+      ],
+      delete: [Permission.LEADS_DELETE, Permission.LEAD_NOTES_DELETE],
+    },
+  },
+  {
+    id: 'lead_setup',
+    label: 'Lead Statuses & Tags',
+    actions: {
+      view: [Permission.LEAD_STATUSES_VIEW, Permission.TAGS_VIEW],
+      create: [Permission.LEAD_STATUSES_CREATE, Permission.TAGS_CREATE],
+      edit: [Permission.LEAD_STATUSES_EDIT, Permission.TAGS_EDIT],
+      delete: [Permission.LEAD_STATUSES_DELETE, Permission.TAGS_DELETE],
+    },
+  },
+  {
+    id: 'contacts',
+    label: 'Contacts',
+    actions: {
+      view: [Permission.CONTACTS_VIEW, Permission.CONTACTS_EXPORT],
+      create: [Permission.CONTACTS_CREATE],
+      edit: [Permission.CONTACTS_EDIT],
+      delete: [Permission.CONTACTS_DELETE],
+    },
+  },
+  {
+    id: 'deals',
+    label: 'Deals & Pipelines',
+    actions: {
+      view: [Permission.DEALS_VIEW],
+      create: [Permission.DEALS_CREATE],
+      edit: [Permission.DEALS_EDIT],
+      delete: [Permission.DEALS_DELETE],
+    },
+  },
+  {
+    id: 'invoices',
+    label: 'Invoices',
+    actions: {
+      view: [Permission.INVOICES_VIEW],
+      create: [Permission.INVOICES_CREATE],
+      edit: [Permission.INVOICES_EDIT],
+      delete: [Permission.INVOICES_DELETE],
+    },
+  },
+  {
+    id: 'quotations',
+    label: 'Quotations',
+    actions: {
+      view: [Permission.QUOTATIONS_VIEW],
+      create: [Permission.QUOTATIONS_CREATE],
+      edit: [Permission.QUOTATIONS_EDIT],
+      delete: [Permission.QUOTATIONS_DELETE],
+    },
+  },
+  {
+    id: 'products',
+    label: 'Products & Inventory',
+    actions: {
+      view: [
+        Permission.PRODUCTS_VIEW,
+        Permission.FMCG_PRODUCTS_VIEW,
+        Permission.FMCG_BATCHES_VIEW,
+      ],
+      create: [Permission.PRODUCTS_CREATE],
+      edit: [Permission.PRODUCTS_EDIT],
+      delete: [Permission.PRODUCTS_DELETE],
+    },
+  },
+  {
+    id: 'calendar',
+    label: 'Appointments, Calendar & Meetings',
+    actions: {
+      view: [Permission.CALENDAR_VIEW, Permission.MEETINGS_VIEW],
+      create: [Permission.CALENDAR_CREATE, Permission.MEETINGS_CREATE],
+      edit: [Permission.CALENDAR_EDIT, Permission.MEETINGS_EDIT],
+      delete: [Permission.CALENDAR_DELETE, Permission.MEETINGS_DELETE],
+    },
+  },
+  {
+    id: 'marketing',
+    label: 'Campaigns, Sequences, SMS & Webhooks',
+    actions: {
+      view: [Permission.CAMPAIGNS_VIEW, Permission.WEBHOOKS_VIEW],
+      create: [Permission.CAMPAIGNS_CREATE, Permission.WEBHOOKS_CREATE],
+      edit: [Permission.CAMPAIGNS_EDIT, Permission.WEBHOOKS_EDIT],
+      delete: [Permission.CAMPAIGNS_DELETE, Permission.WEBHOOKS_DELETE],
+    },
+  },
+  {
+    id: 'social',
+    label: 'Social Media',
+    actions: {
+      view: [Permission.SOCIAL_VIEW],
+      create: [Permission.SOCIAL_CREATE],
+      edit: [Permission.SOCIAL_EDIT],
+      delete: [Permission.SOCIAL_DELETE],
+    },
+  },
+  {
+    id: 'projects',
+    label: 'Projects & Members',
+    actions: {
+      view: [Permission.PROJECTS_VIEW, Permission.PROJECT_MEMBERS_VIEW],
+      create: [Permission.PROJECTS_CREATE, Permission.PROJECT_MEMBERS_INVITE],
+      edit: [
+        Permission.PROJECTS_EDIT,
+        Permission.PROJECTS_MANAGE,
+        Permission.PROJECT_MEMBERS_EDIT,
+        Permission.PROJECT_MEMBERS_MANAGE,
+      ],
+      delete: [Permission.PROJECTS_DELETE, Permission.PROJECT_MEMBERS_REMOVE],
+    },
+  },
+  {
+    id: 'tasks',
+    label: 'Tasks, Boards & Comments',
+    actions: {
+      view: [
+        Permission.TASKS_VIEW,
+        Permission.COLUMNS_VIEW,
+        Permission.COMMENTS_VIEW,
+      ],
+      create: [
+        Permission.TASKS_CREATE,
+        Permission.COLUMNS_CREATE,
+        Permission.COMMENTS_CREATE,
+      ],
+      edit: [
+        Permission.TASKS_EDIT,
+        Permission.TASKS_ASSIGN,
+        Permission.TASKS_MANAGE,
+        Permission.COLUMNS_EDIT,
+        Permission.COMMENTS_EDIT,
+      ],
+      delete: [
+        Permission.TASKS_DELETE,
+        Permission.COLUMNS_DELETE,
+        Permission.COMMENTS_DELETE,
+      ],
+    },
+  },
+  {
+    id: 'documents',
+    label: 'Documents',
+    actions: {
+      view: [Permission.DOCUMENTS_VIEW],
+      create: [Permission.DOCUMENTS_CREATE],
+      edit: [
+        Permission.DOCUMENTS_EDIT,
+        Permission.DOCUMENTS_SHARE,
+        Permission.DOCUMENTS_MANAGE,
+      ],
+      delete: [Permission.DOCUMENTS_DELETE],
+    },
+  },
+  {
+    id: 'chat',
+    label: 'Chat',
+    actions: {
+      view: [Permission.CHAT_VIEW],
+      create: [
+        Permission.CHAT_SEND,
+        Permission.CHAT_CREATE_ROOM,
+        Permission.CHAT_UPLOAD_FILES,
+        Permission.CHAT_CREATE,
+      ],
+      edit: [
+        Permission.CHAT_MANAGE_ROOM,
+        Permission.CHAT_MODERATE,
+        Permission.CHAT_EDIT,
+      ],
+      delete: [Permission.CHAT_DELETE_MESSAGES, Permission.CHAT_DELETE],
+    },
+  },
+  {
+    id: 'hr',
+    label: 'HR (Employees, Attendance, Leaves, Assets)',
+    actions: {
+      view: [Permission.HR_VIEW],
+      create: [Permission.HR_CREATE],
+      edit: [Permission.HR_EDIT],
+      delete: [Permission.HR_DELETE],
+    },
+  },
+  {
+    id: 'compliance',
+    label: 'Compliance',
+    actions: {
+      view: [Permission.COMPLIANCE_VIEW],
+      create: [Permission.COMPLIANCE_CREATE],
+      edit: [Permission.COMPLIANCE_EDIT],
+      delete: [Permission.COMPLIANCE_DELETE],
+    },
+  },
+  {
+    id: 'analytics',
+    label: 'Analytics & Reports',
+    actions: {
+      view: [
+        Permission.ANALYTICS_VIEW,
+        Permission.REPORTS_VIEW,
+        Permission.REPORTS_EXPORT,
+      ],
+    },
+  },
+  {
+    id: 'workspace',
+    label: 'Workspace & Team Members',
+    actions: {
+      view: [
+        Permission.WORKSPACE_VIEW,
+        Permission.MEMBERS_VIEW,
+        Permission.USERS_VIEW,
+        Permission.INVITATIONS_VIEW,
+      ],
+      create: [
+        Permission.WORKSPACE_INVITE,
+        Permission.MEMBERS_INVITE,
+        Permission.INVITATIONS_CREATE,
+        Permission.USERS_CREATE,
+      ],
+      edit: [
+        Permission.WORKSPACE_EDIT,
+        Permission.MEMBERS_EDIT,
+        Permission.USERS_EDIT,
+      ],
+      delete: [
+        Permission.WORKSPACE_DELETE,
+        Permission.MEMBERS_REMOVE,
+        Permission.USERS_DELETE,
+        Permission.INVITATIONS_CANCEL,
+      ],
+    },
+  },
+  {
+    id: 'roles',
+    label: 'Roles & Permissions',
+    actions: {
+      view: [Permission.ROLES_VIEW, Permission.PERMISSIONS_VIEW],
+      create: [Permission.ROLES_CREATE],
+      edit: [Permission.ROLES_EDIT],
+      delete: [Permission.ROLES_DELETE],
+    },
+  },
+  {
+    id: 'settings',
+    label: 'Settings & Notifications',
+    actions: {
+      view: [
+        Permission.SETTINGS_VIEW,
+        Permission.NOTIFICATIONS_VIEW,
+        Permission.ACTIVITIES_VIEW,
+      ],
+      create: [Permission.NOTIFICATIONS_CREATE],
+      edit: [
+        Permission.SETTINGS_EDIT,
+        Permission.SETTINGS_MANAGE,
+        Permission.NOTIFICATIONS_MANAGE,
+      ],
+      delete: [Permission.NOTIFICATIONS_DELETE],
+    },
+  },
+  {
+    id: 'billing',
+    label: 'Billing & Subscription',
+    actions: {
+      view: [Permission.BILLING_VIEW],
+      edit: [Permission.BILLING_EDIT],
+    },
+  },
+]
+
+export type ModuleSelection = Record<string, ModuleAction[]>
+
+const gridPermissionIds = new Set<string>(
+  PERMISSION_MODULES.flatMap(module => Object.values(module.actions).flat())
+)
+
+export function getAdvancedPermissions(): PermissionDefinition[] {
+  return getAllPermissions().filter(
+    permission => !gridPermissionIds.has(permission.name)
+  )
+}
+
+export function expandModuleSelection(selection: ModuleSelection): string[] {
+  const ids = new Set<string>()
+  for (const module of PERMISSION_MODULES) {
+    for (const action of selection[module.id] ?? []) {
+      for (const id of module.actions[action] ?? []) ids.add(id)
+    }
+  }
+  return Array.from(ids)
+}
+
+export function collapseToModuleSelection(ids: string[]): {
+  selection: ModuleSelection
+  extras: string[]
+} {
+  const owned = new Set(ids)
+  const selection: ModuleSelection = {}
+  const covered = new Set<string>()
+  for (const module of PERMISSION_MODULES) {
+    const actions = MODULE_ACTIONS.filter(action => {
+      const cell = module.actions[action]
+      return cell?.length ? cell.every(id => owned.has(id)) : false
+    })
+    if (actions.length) selection[module.id] = actions
+    for (const action of actions) {
+      module.actions[action]?.forEach(id => covered.add(id))
+    }
+  }
+  return { selection, extras: ids.filter(id => !covered.has(id)) }
 }

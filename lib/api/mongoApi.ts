@@ -344,6 +344,20 @@ const mongoApi = api.injectEndpoints({
         dispatch(api.util.invalidateTags(['Role']))
       },
     }),
+    updateWorkspaceSettingsRole: builder.mutation<
+      { success: boolean; role: Role },
+      { id: string; workspaceId: string; name: string; description?: string; permissions: string[] }
+    >({
+      query: ({ id, ...role }) => ({
+        url: `api/roles/${id}?workspaceId=${role.workspaceId}`,
+        method: 'PUT',
+        body: role,
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled
+        dispatch(api.util.invalidateTags(['Role']))
+      },
+    }),
     deleteWorkspaceSettingsRole: builder.mutation<
       { success: boolean },
       { id: string; workspaceId: string }
@@ -585,6 +599,7 @@ export const {
   useCreateLeadActivityMutation,
   useGetWorkspaceSettingsRolesQuery,
   useCreateWorkspaceSettingsRoleMutation,
+  useUpdateWorkspaceSettingsRoleMutation,
   useDeleteWorkspaceSettingsRoleMutation,
   useGetUserWorkspacesQuery,
   useGetLeadStatusesQuery,

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://crmprosaas.com'
-const API_URL = process.env.API_GATEWAY_URL
+const API_URL = process.env.API_GATEWAY_URL || 'http://localhost:8000'
 
 export const dynamic = 'force-dynamic'
 

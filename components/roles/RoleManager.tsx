@@ -16,11 +16,16 @@ import {
 } from '@/components/ui/dialog'
 import { useAppSelector } from '@/lib/hooks'
 import { CardSkeleton, PageHeaderSkeleton } from '@/components/ui/skeleton'
-import { useGetWorkspaceSettingsRolesQuery, useDeleteWorkspaceSettingsRoleMutation } from '@/lib/api/mongoApi'
+import {
+  useGetWorkspaceSettingsRolesQuery,
+  useDeleteWorkspaceSettingsRoleMutation,
+  type Role,
+} from '@/lib/api/mongoApi'
 import { RoleForm } from './RoleForm'
 
 export function RoleManager() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [editingRole, setEditingRole] = useState<Role | null>(null)
 
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
@@ -95,6 +100,26 @@ export function RoleManager() {
             />
           </DialogContent>
         </Dialog>
+        <Dialog open={!!editingRole} onOpenChange={open => !open && setEditingRole(null)}>
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Role</DialogTitle>
+              <DialogDescription>
+                Update the permissions this role grants in your workspace.
+              </DialogDescription>
+            </DialogHeader>
+            {editingRole && (
+              <RoleForm
+                role={editingRole}
+                onSuccess={() => {
+                  setEditingRole(null)
+                  refetch()
+                }}
+                onCancel={() => setEditingRole(null)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -103,11 +128,16 @@ export function RoleManager() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Shield className="h-5 w-5 text-blue-600" />
+                  <Shield className="h-5 w-5 text-primary" />
                   <CardTitle className="text-lg">{role.name}</CardTitle>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={role.name === 'Owner'}
+                    onClick={() => setEditingRole(role)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
                   {!role.isDefault && (
@@ -116,7 +146,7 @@ export function RoleManager() {
                       size="sm"
                       disabled={isDeletingRole}
                       onClick={() => handleDelete(role.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-destructive hover:text-destructive"
                     >
                       {isDeletingRole ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

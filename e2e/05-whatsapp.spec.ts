@@ -11,7 +11,7 @@ test.describe.serial('WhatsApp module', () => {
   test('accounts tab: connect manually, edit, disconnect', async ({ page }) => {
     await gotoModule(page, '/whatsapp', /whatsapp/i)
     await page.getByRole('tab', { name: /accounts/i }).click()
-    await page.getByRole('button', { name: /connect manually/i }).click()
+    await page.getByRole('button', { name: /connect manually/i }).first().click()
     const form = dialog(page)
     await form.getByPlaceholder('My Business').fill(accountName)
     await form.getByPlaceholder('+1234567890').fill(`91${id.padEnd(10, '0').slice(0, 10)}`)

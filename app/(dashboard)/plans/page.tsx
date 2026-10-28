@@ -43,6 +43,7 @@ interface PlanData {
   description: string
   features: string[]
   limits: Record<string, string | number>
+  currency?: string
 }
 
 interface SubscriptionData {
@@ -57,6 +58,15 @@ interface SubscriptionData {
 }
 
 const POPULAR_PLAN_ID = 'pro'
+const CASHFREE_MODE =
+  process.env.NEXT_PUBLIC_CASHFREE_ENV === 'production' ? 'production' : 'sandbox'
+
+const formatPrice = (price: number, currency?: string) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: currency || 'INR',
+    maximumFractionDigits: 0,
+  }).format(price)
 
 function loadCashfreeScript(): Promise<boolean> {
   return new Promise(resolve => {
@@ -89,12 +99,15 @@ export default function PlansPage() {
   } | null>(null)
 
   const { currentWorkspace } = useAppSelector(state => state.workspace)
+  const workspaceId = currentWorkspace?.id
 
   const fetchSubscription = useCallback(async () => {
+    if (!workspaceId) return
     try {
-      const response = await fetch('/api/payments/subscription', {
-        credentials: 'include',
-      })
+      const response = await fetch(
+        `/api/payments/subscription?workspaceId=${workspaceId}`,
+        { credentials: 'include', headers: { 'x-workspace-id': workspaceId } }
+      )
 
       if (!response.ok) {
         throw new Error('Failed to fetch subscription')
@@ -102,9 +115,7 @@ export default function PlansPage() {
 
       const data = await response.json()
 
-      if (data.subscription) {
-        setSubscription(data.subscription)
-      }
+      setSubscription(data.subscription ?? null)
       if (data.workspace) {
         setCurrentPlanId(data.workspace.planId || 'free')
         setWorkspaceName(data.workspace.name || '')
@@ -117,18 +128,20 @@ export default function PlansPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [workspaceId])
 
   const fetchUsage = useCallback(async () => {
+    if (!workspaceId) return
     try {
-      const response = await fetch(`/api/payments/usage?workspaceId=${currentWorkspace?.id}`, {
-        credentials: 'include',
-      })
+      const response = await fetch(
+        `/api/payments/usage?workspaceId=${workspaceId}`,
+        { credentials: 'include', headers: { 'x-workspace-id': workspaceId } }
+      )
       if (response.ok) {
         setUsage(await response.json())
       }
     } catch {}
-  }, [])
+  }, [workspaceId])
 
   useEffect(() => {
     fetchSubscription()
@@ -136,13 +149,14 @@ export default function PlansPage() {
   }, [fetchSubscription, fetchUsage])
 
   useEffect(() => {
+    if (!workspaceId) return
     const params = new URLSearchParams(window.location.search)
     const orderId = params.get('order_id')
     if (orderId) {
       handleReturnFromPayment(orderId)
       window.history.replaceState({}, '', '/plans')
     }
-  }, [])
+  }, [workspaceId])
 
   const handleReturnFromPayment = async (orderId: string) => {
     try {
@@ -155,12 +169,12 @@ export default function PlansPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ orderId, planId: planIdFromUrl }),
+        body: JSON.stringify({ orderId, planId: planIdFromUrl, workspaceId }),
       })
 
       if (!verifyResponse.ok) {
         const errorData = await verifyResponse.json()
-        toast.error(errorData.error || 'Payment verification failed')
+        toast.error(errorData.message || errorData.error || 'Payment verification failed')
         return
       }
 
@@ -193,14 +207,16 @@ export default function PlansPage() {
     try {
       const response = await fetch('/api/payments/cancel', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: JSON.stringify({ workspaceId }),
       })
       if (response.ok) {
         toast.success('Subscription cancelled successfully')
         fetchSubscription()
       } else {
         const data = await response.json()
-        toast.error(data.error || 'Failed to cancel subscription')
+        toast.error(data.message || data.error || 'Failed to cancel subscription')
       }
     } catch {
       toast.error('Failed to cancel subscription')
@@ -234,12 +250,12 @@ export default function PlansPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ planId, workspaceId }),
       })
 
       if (!orderResponse.ok) {
         const errorData = await orderResponse.json()
-        toast.error(errorData.error || 'Failed to create order')
+        toast.error(errorData.message || errorData.error || 'Failed to create order')
         setUpgradingPlanId(null)
         return
       }
@@ -248,9 +264,7 @@ export default function PlansPage() {
 
       sessionStorage.setItem('pending_plan_id', planId)
 
-      const cashfreeMode =
-        process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
-      const cashfree = (window.Cashfree as any)({ mode: cashfreeMode })
+      const cashfree = (window.Cashfree as any)({ mode: CASHFREE_MODE })
 
       const checkoutResult = await cashfree.checkout({
         paymentSessionId: orderData.paymentSessionId,
@@ -283,12 +297,12 @@ export default function PlansPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ orderId, planId }),
+        body: JSON.stringify({ orderId, planId, workspaceId }),
       })
 
       if (!verifyResponse.ok) {
         const errorData = await verifyResponse.json()
-        toast.error(errorData.error || 'Payment verification failed')
+        toast.error(errorData.message || errorData.error || 'Payment verification failed')
         setUpgradingPlanId(null)
         return
       }
@@ -357,13 +371,13 @@ export default function PlansPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Crown className="h-5 w-5 text-yellow-500" />
+                <Crown className="h-5 w-5 text-primary" />
                 <div>
                   <CardTitle className="text-lg">Current Plan</CardTitle>
                   <CardDescription>
                     {currentPlan?.name || 'Free'} Plan
                     {subscription.status === 'active' && (
-                      <Badge variant="default" className="ml-2 bg-green-600">
+                      <Badge variant="default" className="ml-2 bg-primary">
                         Active
                       </Badge>
                     )}
@@ -440,18 +454,18 @@ export default function PlansPage() {
                     plan.id === POPULAR_PLAN_ID
                       ? 'border-2 border-primary shadow-lg'
                       : ''
-                  } ${isCurrent ? 'ring-1 ring-green-500' : ''}`}
+                  } ${isCurrent ? 'ring-1 ring-primary' : ''}`}
                 >
                   {plan.id === POPULAR_PLAN_ID && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-indigo-500 text-white">
+                      <Badge className="bg-primary text-primary-foreground">
                         Most Popular
                       </Badge>
                     </div>
                   )}
                   {isCurrent && (
                     <div className="absolute -top-3 right-4">
-                      <Badge className="bg-green-600 text-white">
+                      <Badge className="bg-primary text-primary-foreground">
                         Current Plan
                       </Badge>
                     </div>
@@ -461,7 +475,9 @@ export default function PlansPage() {
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="mt-4">
                       <span className="text-4xl font-bold text-foreground">
-                        {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                        {plan.price === 0
+                          ? 'Free'
+                          : formatPrice(plan.price, plan.currency)}
                       </span>
                       {plan.price > 0 && (
                         <span className="text-muted-foreground">
@@ -475,7 +491,7 @@ export default function PlansPage() {
                       {(plan.features || []).map(
                         (feature: string, index: number) => (
                           <li key={index} className="flex items-center gap-2">
-                            <Check className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                            <Check className="h-4 w-4 flex-shrink-0 text-primary" />
                             <span className="text-sm text-foreground">
                               {feature}
                             </span>
@@ -523,7 +539,7 @@ export default function PlansPage() {
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Database className="h-5 w-5 text-blue-500" />
+                  <Database className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">Leads</CardTitle>
                 </div>
               </CardHeader>
@@ -555,7 +571,7 @@ export default function PlansPage() {
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-green-500" />
+                  <Users className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">Team Members</CardTitle>
                 </div>
               </CardHeader>
@@ -587,7 +603,7 @@ export default function PlansPage() {
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-yellow-500" />
+                  <Zap className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">API Calls</CardTitle>
                 </div>
               </CardHeader>
@@ -615,7 +631,7 @@ export default function PlansPage() {
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-purple-500" />
+                  <Shield className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">Storage</CardTitle>
                 </div>
               </CardHeader>
@@ -638,7 +654,7 @@ export default function PlansPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-indigo-500" />
+                <TrendingUp className="h-5 w-5 text-primary" />
                 <CardTitle>Billing History</CardTitle>
               </div>
               <CardDescription>
@@ -680,12 +696,15 @@ export default function PlansPage() {
                         subscription.planId}
                     </span>
                     <span className="font-medium text-foreground">
-                      $
-                      {(subscription.metadata?.amountPaid || 0).toFixed(2) !==
-                      '0.00'
-                        ? (subscription.metadata?.amountPaid || 0).toFixed(2)
-                        : plans.find(p => p.id === subscription.planId)
-                            ?.price || 0}
+                      {formatPrice(
+                        subscription.metadata?.amountPaid ||
+                          plans.find(p => p.id === subscription.planId)
+                            ?.price ||
+                          0,
+                        subscription.metadata?.currency ||
+                          plans.find(p => p.id === subscription.planId)
+                            ?.currency
+                      )}
                     </span>
                     <span className="truncate font-mono text-xs text-muted-foreground">
                       {subscription.metadata?.cashfreePaymentId || '-'}
@@ -699,7 +718,7 @@ export default function PlansPage() {
                             : 'destructive'
                       }
                       className={
-                        subscription.status === 'active' ? 'bg-emerald-600' : ''
+                        subscription.status === 'active' ? 'bg-primary' : ''
                       }
                     >
                       {subscription.status === 'active'
