@@ -406,7 +406,7 @@ export default function CompliancePage() {
     }
     try {
       if (editingTask) {
-        await updateTask({ id: editingTask._id, ...payload }).unwrap()
+        await updateTask({ id: editingTask.id, ...payload }).unwrap()
         toast.success('Task updated successfully')
       } else {
         await createTask(payload).unwrap()
@@ -471,7 +471,7 @@ export default function CompliancePage() {
     }
     try {
       if (editingDoc) {
-        await updateDocument({ id: editingDoc._id, ...payload }).unwrap()
+        await updateDocument({ id: editingDoc.id, ...payload }).unwrap()
         toast.success('Document updated successfully')
       } else {
         await createDocument(payload).unwrap()
@@ -736,7 +736,7 @@ export default function CompliancePage() {
                       task.status !== 'not_applicable' &&
                       new Date(task.dueDate) < now
                     return (
-                      <TableRow key={task._id}>
+                      <TableRow key={task.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-1.5">
                             {task.title}
@@ -802,7 +802,7 @@ export default function CompliancePage() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
-                                onClick={() => setDeleteTaskId(task._id)}
+                                onClick={() => setDeleteTaskId(task.id)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete
@@ -885,7 +885,7 @@ export default function CompliancePage() {
                   </TableRow>
                 ) : (
                   docs.map(doc => (
-                    <TableRow key={doc._id}>
+                    <TableRow key={doc.id}>
                       <TableCell className="font-medium">{doc.name}</TableCell>
                       <TableCell>
                         <Badge className="bg-muted capitalize text-muted-foreground hover:bg-muted">
@@ -927,7 +927,7 @@ export default function CompliancePage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
-                              onClick={() => setDeleteDocId(doc._id)}
+                              onClick={() => setDeleteDocId(doc.id)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete

@@ -102,10 +102,10 @@ export default function FmcgPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `fssai-export-${currentWorkspace.name}-${new Date().toISOString().split('T')[0]}.xlsx`
+      a.download = `fssai-export-${currentWorkspace.name}-${new Date().toISOString().split('T')[0]}.csv`
       a.click()
       URL.revokeObjectURL(url)
-      toast.success('FSSAI data exported as Excel')
+      toast.success('FSSAI data exported as CSV')
     } catch {
       toast.error('Failed to export FSSAI data')
     } finally {

@@ -38,7 +38,6 @@ import { ExecutionOutput } from './ExecutionOutput'
 
 interface WorkflowProp {
   id?: string
-  _id?: string
   n8nWorkflowId?: string
   name: string
   description: string

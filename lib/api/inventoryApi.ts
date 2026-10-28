@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface Product {
-  _id: string
+  id: string
   workspaceId: string
   name: string
   sku: string
@@ -21,7 +21,7 @@ export interface Product {
 }
 
 export interface StockMovement {
-  _id: string
+  id: string
   workspaceId: string
   productId: string
   type: 'in' | 'out' | 'adjustment'

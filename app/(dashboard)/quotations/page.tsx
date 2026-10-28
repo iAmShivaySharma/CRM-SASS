@@ -8,7 +8,7 @@ export default function QuotationsPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
   const { data, isLoading } = useGetQuotationsQuery(
-    { workspaceId: currentWorkspace?._id ?? '' },
+    { workspaceId: currentWorkspace?.id ?? '' },
     { skip: !currentWorkspace }
   )
 
@@ -44,7 +44,7 @@ export default function QuotationsPage() {
               <p className="text-sm text-muted-foreground">No quotations yet.</p>
             ) : (
               (data?.quotations ?? []).map(q => (
-                <div key={q._id} className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
+                <div key={q.id} className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
                   <div>
                     <p className="text-sm font-medium">{q.quotationNumber} — {q.clientName}</p>
                     <p className="text-xs text-muted-foreground">{q.currency} {q.total.toLocaleString()}</p>

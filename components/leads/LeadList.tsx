@@ -458,7 +458,7 @@ export function LeadList() {
                 Add Lead
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Lead</DialogTitle>
                 <DialogDescription>

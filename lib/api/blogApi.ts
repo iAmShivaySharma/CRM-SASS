@@ -7,7 +7,7 @@ export interface BlogAuthor {
 }
 
 export interface Blog {
-  _id: string
+  id: string
   title: string
   slug: string
   content: string
@@ -28,7 +28,7 @@ export interface Blog {
 }
 
 export interface BlogCategory {
-  _id: string
+  id: string
   name: string
   slug: string
   description?: string

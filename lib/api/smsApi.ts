@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface SmsTemplate {
-  _id: string
+  id: string
   workspaceId: string
   name: string
   content: string
@@ -12,7 +12,7 @@ export interface SmsTemplate {
 }
 
 export interface SmsLog {
-  _id: string
+  id: string
   workspaceId: string
   templateId?: string
   to: string

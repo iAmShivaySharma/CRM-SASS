@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { LEAVE_REQUEST_TYPES, leaveTypeLabel } from '@/lib/config/leave'
 import {
   Dialog,
   DialogContent,
@@ -150,7 +151,7 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
     if (typeof req.leavePolicyId === 'object' && req.leavePolicyId?.name) {
       return req.leavePolicyId.name
     }
-    return req.leaveType
+    return leaveTypeLabel(req.leaveType)
   }
 
   const getStatusBadge = (status: string) => {
@@ -239,7 +240,6 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
         endDate: requestForm.endDate.toISOString(),
         totalDays: calculateDays(requestForm.startDate, requestForm.endDate),
         reason: requestForm.reason,
-        leavePolicyId: requestForm.leaveType,
       }).unwrap()
 
       toast.success('Leave request submitted successfully')
@@ -306,17 +306,11 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
                     <SelectValue placeholder="Select leave type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                    <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-                    <SelectItem value="Personal Leave">
-                      Personal Leave
-                    </SelectItem>
-                    <SelectItem value="Maternity Leave">
-                      Maternity Leave
-                    </SelectItem>
-                    <SelectItem value="Emergency Leave">
-                      Emergency Leave
-                    </SelectItem>
+                    {LEAVE_REQUEST_TYPES.map(type => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -511,9 +505,11 @@ export function LeaveManagement({ activeTab }: LeaveManagementProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-            <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-            <SelectItem value="Personal Leave">Personal Leave</SelectItem>
+            {LEAVE_REQUEST_TYPES.map(type => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

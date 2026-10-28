@@ -158,7 +158,7 @@ export default function TasksPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {tasksData?.tasks.filter(t => t.status === 'in-progress')
+              {tasksData?.tasks.filter(t => t.status === 'in_progress')
                 .length || 0}
             </div>
           </CardContent>
@@ -169,7 +169,7 @@ export default function TasksPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {tasksData?.tasks.filter(t => t.status === 'review').length || 0}
+              {tasksData?.tasks.filter(t => t.status === 'in_review').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -217,8 +217,8 @@ export default function TasksPage() {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="todo">To Do</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="review">Review</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="in_review">Review</SelectItem>
             <SelectItem value="done">Done</SelectItem>
           </SelectContent>
         </Select>

@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface Referral {
-  _id: string
+  id: string
   referrerId: string
   referrerWorkspaceId: string
   referredUserId?: string

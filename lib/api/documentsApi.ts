@@ -1,7 +1,6 @@
 import { api } from './index'
 
 export interface ProjectDocument {
-  _id: string
   id: string
   title: string
   content: string

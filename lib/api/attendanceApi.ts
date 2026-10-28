@@ -1,7 +1,7 @@
 import { api } from './index'
 
 export interface AttendanceRecord {
-  _id: string
+  id: string
   userId: string
   workspaceId: string
   date: Date
@@ -42,7 +42,7 @@ export interface AttendanceRecord {
   isHoliday: boolean
   isWeekend: boolean
   shiftId?: {
-    _id: string
+    id: string
     name: string
     startTime: string
     endTime: string
@@ -57,7 +57,7 @@ export interface AttendanceRecord {
 export interface TodayAttendanceResponse {
   attendance: AttendanceRecord | null
   shift: {
-    _id: string
+    id: string
     name: string
     startTime: string
     endTime: string

@@ -159,7 +159,7 @@ export default function SmsPage() {
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplateId(templateId)
-    const tpl = templates.find((t: any) => t._id === templateId)
+    const tpl = templates.find((t: any) => t.id === templateId)
     if (tpl) {
       setMessage(tpl.content)
     }
@@ -189,7 +189,7 @@ export default function SmsPage() {
     try {
       if (editingTemplate) {
         await updateTemplate({
-          id: editingTemplate._id,
+          id: editingTemplate.id,
           workspaceId,
           name: templateForm.name,
           content: templateForm.content,
@@ -318,7 +318,7 @@ export default function SmsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {templates.map((t: any) => (
-                        <SelectItem key={t._id} value={t._id}>
+                        <SelectItem key={t.id} value={t.id}>
                           {t.name}
                         </SelectItem>
                       ))}
@@ -402,7 +402,7 @@ export default function SmsPage() {
             ) : (
               <div className="space-y-2">
                 {filteredLogs.map(log => (
-                  <Card key={log._id}>
+                  <Card key={log.id}>
                     <CardContent className="flex items-center justify-between p-4">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium">{log.to}</p>
@@ -461,7 +461,7 @@ export default function SmsPage() {
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {templates.map((t: any) => (
-                  <Card key={t._id}>
+                  <Card key={t.id}>
                     <CardContent className="p-4">
                       <div className="mb-2 flex items-start justify-between">
                         <h3 className="font-medium">{t.name}</h3>
@@ -484,7 +484,7 @@ export default function SmsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteTemplate(t._id)}
+                          onClick={() => handleDeleteTemplate(t.id)}
                           className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="mr-1 h-3 w-3" />

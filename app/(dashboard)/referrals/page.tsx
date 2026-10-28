@@ -147,7 +147,7 @@ export default function ReferralsPage() {
             <div className="space-y-3">
               {referrals.map((ref: any) => (
                 <div
-                  key={ref.id || ref._id}
+                  key={ref.id}
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div>

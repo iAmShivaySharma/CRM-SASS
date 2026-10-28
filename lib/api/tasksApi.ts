@@ -2,7 +2,6 @@ import { api } from './index'
 
 export interface Task {
   id: string
-  _id: string
   title: string
   description?: string
   projectId: string

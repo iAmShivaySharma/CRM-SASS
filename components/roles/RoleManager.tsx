@@ -79,7 +79,7 @@ export function RoleManager() {
               Create Role
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Role</DialogTitle>
               <DialogDescription>

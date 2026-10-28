@@ -8,12 +8,12 @@ export default function InventoryPage() {
   const { currentWorkspace } = useAppSelector(state => state.workspace)
 
   const { data: productsData, isLoading: productsLoading } = useGetProductsQuery(
-    { workspaceId: currentWorkspace?._id ?? '' },
+    { workspaceId: currentWorkspace?.id ?? '' },
     { skip: !currentWorkspace }
   )
 
   const { data: lowStockData, isLoading: lowStockLoading } = useGetLowStockQuery(
-    { workspaceId: currentWorkspace?._id ?? '' },
+    { workspaceId: currentWorkspace?.id ?? '' },
     { skip: !currentWorkspace }
   )
 
@@ -45,7 +45,7 @@ export default function InventoryPage() {
                 <p className="text-sm text-muted-foreground">No products yet.</p>
               ) : (
                 (productsData?.products ?? []).map(p => (
-                  <div key={p._id} className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
+                  <div key={p.id} className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
                     <div>
                       <p className="text-sm font-medium">{p.name}</p>
                       <p className="text-xs text-muted-foreground">SKU: {p.sku}</p>
@@ -70,7 +70,7 @@ export default function InventoryPage() {
                 <p className="text-sm text-muted-foreground">No low stock items.</p>
               ) : (
                 (lowStockData?.products ?? []).map(p => (
-                  <div key={p._id} className="flex items-center justify-between rounded-lg bg-destructive/10 px-4 py-3">
+                  <div key={p.id} className="flex items-center justify-between rounded-lg bg-destructive/10 px-4 py-3">
                     <div>
                       <p className="text-sm font-medium text-destructive">{p.name}</p>
                       <p className="text-xs text-muted-foreground">SKU: {p.sku}</p>

@@ -62,7 +62,7 @@ export interface CreateLeaveRequest {
   endDate: string
   totalDays: number
   reason: string
-  leavePolicyId: string
+  leavePolicyId?: string
   attachments?: string[]
   emergencyContact?: {
     name: string

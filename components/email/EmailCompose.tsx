@@ -355,37 +355,41 @@ export function EmailCompose({
     setIsSending(true)
 
     try {
-      const formData = new FormData()
-      formData.append('accountId', emailData.from)
-      formData.append('to', emailData.to)
-      formData.append('cc', emailData.cc)
-      formData.append('bcc', emailData.bcc)
-      formData.append('subject', emailData.subject)
-      formData.append('body', emailData.body)
-      formData.append('priority', priority)
-
-      if (scheduleDate) {
-        formData.append('scheduleDate', scheduleDate)
-      }
-
-      if (replyTo) {
-        formData.append('inReplyTo', replyTo.messageId)
-      }
-
-      attachments
-        .filter(att => att.uploaded)
-        .forEach(att => {
-          formData.append('attachments', att.file)
+      const toBase64 = (file: File) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(String(reader.result).split(',')[1] || '')
+          reader.onerror = () => reject(reader.error)
+          reader.readAsDataURL(file)
         })
-
+      const encodedAttachments = await Promise.all(
+        attachments
+          .filter(att => att.uploaded)
+          .map(async att => ({
+            filename: att.file.name,
+            contentType: att.file.type || 'application/octet-stream',
+            content: await toBase64(att.file),
+          }))
+      )
       const response = await fetch(
         `/api/email/send?workspaceId=${currentWorkspace?.id}`,
         {
           method: 'POST',
-          body: formData,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountId: emailData.from,
+            to: emailData.to,
+            cc: emailData.cc,
+            bcc: emailData.bcc,
+            subject: emailData.subject,
+            body: emailData.body,
+            priority,
+            scheduleDate: scheduleDate || undefined,
+            inReplyTo: replyTo?.messageId,
+            attachments: encodedAttachments,
+          }),
         }
       )
-
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.error || 'Failed to send email')

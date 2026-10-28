@@ -251,7 +251,7 @@ export default function CallsPage() {
                   <div className="space-y-2">
                     {recentCalls.map(call => (
                       <button
-                        key={call._id}
+                        key={call.id}
                         className="flex w-full items-center justify-between rounded-lg bg-muted px-3 py-2 text-left transition-colors hover:bg-muted/80"
                         onClick={() => setDialNumber(call.recipient)}
                       >
@@ -320,7 +320,7 @@ export default function CallsPage() {
             ) : (
               <div className="space-y-2">
                 {filteredLogs.map(call => (
-                  <Card key={call._id}>
+                  <Card key={call.id}>
                     <CardContent className="flex items-center justify-between p-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">

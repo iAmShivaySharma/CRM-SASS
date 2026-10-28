@@ -11,7 +11,7 @@ export interface QuotationItem {
 }
 
 export interface Quotation {
-  _id: string
+  id: string
   workspaceId: string
   quotationNumber: string
   clientName: string

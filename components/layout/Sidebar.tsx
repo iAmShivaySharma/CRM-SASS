@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { isModuleDisabled } from '@/lib/config/modules'
 import { useState } from 'react'
 import {
   LayoutDashboard,
@@ -423,6 +424,7 @@ export function Sidebar({
   }
 
   const filteredNavigation = navigation.filter(item => {
+    if (isModuleDisabled(item.id) || isModuleDisabled(item.category) || isModuleDisabled(item.parent)) return false
     if (!item.permission) return true
     if (item.category === 'section' && item.id) {
       const children = navigation.filter(n => n.parent === item.id)

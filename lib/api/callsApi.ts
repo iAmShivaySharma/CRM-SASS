@@ -3,7 +3,7 @@ import { api } from './index'
 export interface CallSettingsResponse {
   success: boolean
   settings: {
-    _id: string
+    id: string
     workspaceId: string
     provider: 'telecmi' | 'exotel' | 'custom'
     apiKey: string
@@ -18,7 +18,7 @@ export interface CallSettingsResponse {
 }
 
 export interface CallLog {
-  _id: string
+  id: string
   workspaceId: string
   caller: string
   recipient: string

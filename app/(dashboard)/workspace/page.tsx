@@ -675,7 +675,7 @@ export default function WorkspaceSettingsPage() {
                                       try {
                                         await removeMember({
                                           workspaceId: currentWorkspace?.id,
-                                          memberId: member.id || member._id,
+                                          memberId: member.id,
                                         }).unwrap()
                                         toast.success('Member removed')
                                       } catch (err: any) {
@@ -698,7 +698,7 @@ export default function WorkspaceSettingsPage() {
                                       try {
                                         await resendInvitation({
                                           workspaceId: currentWorkspace?.id,
-                                          inviteId: member.id || member._id,
+                                          inviteId: member.id,
                                         }).unwrap()
                                         toast.success('Invitation resent')
                                       } catch (err: any) {
@@ -718,7 +718,7 @@ export default function WorkspaceSettingsPage() {
                                       try {
                                         await cancelInvitation({
                                           workspaceId: currentWorkspace?.id,
-                                          inviteId: member.id || member._id,
+                                          inviteId: member.id,
                                         }).unwrap()
                                         toast.success('Invitation cancelled')
                                       } catch (err: any) {

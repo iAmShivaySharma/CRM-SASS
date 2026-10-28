@@ -72,6 +72,7 @@ export interface CreateChatRoomData {
 export interface CreateMessageData {
   chatRoomId: string
   content: string
+  senderName: string
   type?: 'text' | 'file' | 'image'
   fileUrl?: string
   fileName?: string

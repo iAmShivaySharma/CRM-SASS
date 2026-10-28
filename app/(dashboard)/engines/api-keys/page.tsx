@@ -246,7 +246,7 @@ export default function ApiKeysPage() {
         {!isLoading && apiKeys.length > 0 && (
           <div className="grid gap-4">
             {apiKeys.map(apiKey => (
-              <Card key={apiKey._id} className="relative">
+              <Card key={apiKey.id} className="relative">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="space-y-2">
@@ -294,21 +294,21 @@ export default function ApiKeysPage() {
                       <DropdownMenuContent align="end">
                         {!apiKey.isDefault && (
                           <DropdownMenuItem
-                            onClick={() => handleSetDefault(apiKey._id)}
+                            onClick={() => handleSetDefault(apiKey.id)}
                           >
                             Set as Default
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
                           onClick={() =>
-                            handleToggleActive(apiKey._id, apiKey.isActive)
+                            handleToggleActive(apiKey.id, apiKey.isActive)
                           }
                         >
                           {apiKey.isActive ? 'Deactivate' : 'Activate'}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-red-600"
-                          onClick={() => setDeleteTarget(apiKey._id)}
+                          onClick={() => setDeleteTarget(apiKey.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -328,10 +328,10 @@ export default function ApiKeysPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleKeyVisibility(apiKey._id)}
+                        onClick={() => toggleKeyVisibility(apiKey.id)}
                         className="h-8 w-8 p-0"
                       >
-                        {showKey[apiKey._id] ? (
+                        {showKey[apiKey.id] ? (
                           <EyeOff className="h-4 w-4" />
                         ) : (
                           <Eye className="h-4 w-4" />

@@ -2,7 +2,6 @@ import { api } from './index'
 
 export interface PipelineStage {
   id: string
-  _id?: string
   name: string
   color: string
   order: number
@@ -15,7 +14,6 @@ export interface PipelineStage {
 
 export interface Pipeline {
   id: string
-  _id?: string
   name: string
   description?: string
   isDefault: boolean
@@ -27,7 +25,6 @@ export interface Pipeline {
 
 export interface Deal {
   id: string
-  _id?: string
   workspaceId: string
   pipelineId: string | Pipeline
   stageId: string | PipelineStage

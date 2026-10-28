@@ -69,6 +69,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
 
   const workspace = useSelector((state: RootState) => state.workspace)
+  const auth = useSelector((state: RootState) => state.auth)
+  const senderName = auth.user?.fullName || auth.user?.email || ''
 
   const [createMessage, { isLoading: isSending }] = useCreateMessageMutation()
   const [uploadFile] = useUploadFileMutation()
@@ -154,6 +156,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
           await createMessage({
             chatRoomId,
+            senderName,
             content: fileContent,
             type: messageType,
             fileUrl: file.url,
@@ -175,6 +178,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
         await createMessage({
           chatRoomId,
+          senderName,
           content: trimmedMessage,
           type: 'text',
           replyTo: replyingTo?.id,

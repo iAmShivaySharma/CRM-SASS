@@ -141,7 +141,7 @@ export function StatsCards() {
     },
     {
       title: 'Conversion Rate',
-      value: formatPercentage(data.conversionRate),
+      value: formatPercentage(Number(data.conversionRate) || 0),
       change: conversionChange.change,
       trend: conversionChange.trend,
       icon: Target,
@@ -157,7 +157,7 @@ export function StatsCards() {
     },
     {
       title: 'Growth',
-      value: formatPercentage(data.growth),
+      value: formatPercentage(Number(data.growth) || 0),
       change: growthChange.change,
       trend: growthChange.trend,
       icon: TrendingUp,

@@ -1,7 +1,6 @@
 import { api } from './index'
 
 export interface ComplianceTaskRecord {
-  _id: string
   id: string
   workspaceId: string
   title: string
@@ -33,7 +32,6 @@ export interface ComplianceTaskRecord {
 }
 
 export interface ComplianceDocumentRecord {
-  _id: string
   id: string
   workspaceId: string
   name: string

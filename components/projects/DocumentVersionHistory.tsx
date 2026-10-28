@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAppSelector } from '@/lib/hooks'
 import { History, RotateCcw, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -30,6 +31,7 @@ export function DocumentVersionHistory({
   documentId,
   onRestore,
 }: DocumentVersionHistoryProps) {
+  const { currentWorkspace } = useAppSelector(state => state.workspace)
   const [versions, setVersions] = useState<Version[]>([])
   const [currentVersion, setCurrentVersion] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -39,7 +41,9 @@ export function DocumentVersionHistory({
   const fetchVersions = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/documents/${documentId}/versions`)
+      const response = await fetch(`/api/documents/${documentId}/versions`, {
+        headers: { 'x-workspace-id': currentWorkspace?.id || '' },
+      })
       const data = await response.json()
       if (data.success) {
         setVersions(data.versions)
@@ -61,7 +65,10 @@ export function DocumentVersionHistory({
     try {
       const response = await fetch(`/api/documents/${documentId}/versions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-workspace-id': currentWorkspace?.id || '',
+        },
         body: JSON.stringify({ versionId }),
       })
       const data = await response.json()

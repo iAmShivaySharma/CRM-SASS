@@ -275,7 +275,7 @@ const enginesApi = api.injectEndpoints({
     getApiKeys: builder.query<
       {
         data: Array<{
-          _id: string
+          id: string
           keyName: string
           provider: string
           isDefault: boolean
@@ -298,7 +298,7 @@ const enginesApi = api.injectEndpoints({
     addApiKey: builder.mutation<
       {
         success: boolean
-        data: { _id: string }
+        data: { id: string }
       },
       {
         keyName: string
@@ -421,8 +421,8 @@ const enginesApi = api.injectEndpoints({
         success: boolean
         message: string
         data: {
-          execution: { _id: string; status: string; currentStep: number }
-          userInput: { _id: string; status: string; receivedAt: string }
+          execution: { id: string; status: string; currentStep: number }
+          userInput: { id: string; status: string; receivedAt: string }
           workflowStatus: {
             finished: boolean
             isWaitingForMoreInput: boolean

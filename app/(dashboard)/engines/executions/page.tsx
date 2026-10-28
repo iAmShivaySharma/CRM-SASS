@@ -123,7 +123,7 @@ export default function ExecutionsPage() {
   const filteredExecutions = searchTerm
     ? executions.filter(
         (e: any) =>
-          e._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          e.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
           e.n8nWorkflowId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           e.n8nExecutionId?.toLowerCase().includes(searchTerm.toLowerCase())
       )
@@ -355,21 +355,21 @@ export default function ExecutionsPage() {
                 {filteredExecutions.map((execution: any) => (
                   <>
                     <TableRow
-                      key={execution._id}
+                      key={execution.id}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() =>
                         setExpandedRow(
-                          expandedRow === execution._id ? null : execution._id
+                          expandedRow === execution.id ? null : execution.id
                         )
                       }
                     >
                       <TableCell>
                         <div className="space-y-0.5">
                           <div className="text-sm font-medium">
-                            {execution.n8nWorkflowId || execution._id.slice(-8)}
+                            {execution.n8nWorkflowId || execution.id.slice(-8)}
                           </div>
                           <div className="font-mono text-xs text-muted-foreground">
-                            {execution._id.slice(-8)}
+                            {execution.id.slice(-8)}
                           </div>
                         </div>
                       </TableCell>
@@ -417,13 +417,13 @@ export default function ExecutionsPage() {
                             onClick={e => {
                               e.stopPropagation()
                               setExpandedRow(
-                                expandedRow === execution._id
+                                expandedRow === execution.id
                                   ? null
-                                  : execution._id
+                                  : execution.id
                               )
                             }}
                           >
-                            {expandedRow === execution._id ? (
+                            {expandedRow === execution.id ? (
                               <ChevronUp className="h-4 w-4" />
                             ) : (
                               <ChevronDown className="h-4 w-4" />
@@ -444,7 +444,7 @@ export default function ExecutionsPage() {
                               <DropdownMenuItem
                                 onClick={() =>
                                   router.push(
-                                    `/engines/executions/${execution._id}`
+                                    `/engines/executions/${execution.id}`
                                   )
                                 }
                               >
@@ -455,7 +455,7 @@ export default function ExecutionsPage() {
                                 <DropdownMenuItem
                                   onClick={() =>
                                     router.push(
-                                      `/engines/executions/${execution._id}/input`
+                                      `/engines/executions/${execution.id}/input`
                                     )
                                   }
                                 >
@@ -480,7 +480,7 @@ export default function ExecutionsPage() {
                                       const url = URL.createObjectURL(blob)
                                       const a = document.createElement('a')
                                       a.href = url
-                                      a.download = `execution-${execution._id.slice(-8)}.json`
+                                      a.download = `execution-${execution.id.slice(-8)}.json`
                                       a.click()
                                       URL.revokeObjectURL(url)
                                     }}
@@ -495,8 +495,8 @@ export default function ExecutionsPage() {
                       </TableCell>
                     </TableRow>
 
-                    {expandedRow === execution._id && (
-                      <TableRow key={`${execution._id}-expanded`}>
+                    {expandedRow === execution.id && (
+                      <TableRow key={`${execution.id}-expanded`}>
                         <TableCell colSpan={6} className="bg-muted/30 p-4">
                           <div className="space-y-3">
                             {execution.inputData &&

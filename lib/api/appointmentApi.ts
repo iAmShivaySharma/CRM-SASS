@@ -1,35 +1,69 @@
 import { api } from './index'
 
+export const APPOINTMENT_STATUSES = [
+  'scheduled',
+  'confirmed',
+  'in_progress',
+  'completed',
+  'cancelled',
+  'no_show',
+] as const
+
+export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number]
+
+export const APPOINTMENT_SOURCES = ['manual', 'online', 'phone', 'whatsapp'] as const
+
+export type AppointmentSource = (typeof APPOINTMENT_SOURCES)[number]
+
 export interface Appointment {
-  _id: string
+  id: string
   workspaceId: string
   serviceId?: string
-  clientName: string
-  clientEmail?: string
-  clientPhone?: string
-  staffId?: string
-  date: string
+  serviceName: string
+  contactId?: string
+  leadId?: string
+  customerName: string
+  customerEmail?: string
+  customerPhone?: string
+  assignedTo?: string
   startTime: string
   endTime: string
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+  duration: number
+  status: AppointmentStatus
+  type: 'scheduled' | 'walk_in'
+  price: number
+  currency: string
   notes?: string
+  internalNotes?: string
+  cancelReason?: string
+  source: AppointmentSource
+  location?: string
+  createdBy: string
   createdAt: string
   updatedAt: string
 }
 
-export interface AppointmentSlot {
-  date: string
+export interface AppointmentInput {
+  workspaceId: string
+  serviceName: string
+  customerName: string
+  customerEmail?: string
+  customerPhone?: string
   startTime: string
-  endTime: string
-  available: boolean
+  duration?: number
+  price?: number
+  assignedTo?: string
+  notes?: string
+  status?: AppointmentStatus
+  source?: AppointmentSource
+  leadId?: string
+  contactId?: string
+  location?: string
 }
 
 export interface AppointmentAnalytics {
-  total: number
-  confirmed: number
-  cancelled: number
-  completed: number
-  noShow: number
+  byStatus: Array<{ _id: AppointmentStatus; count: number }>
+  upcomingCount: number
 }
 
 export interface AppointmentsResponse {
@@ -43,21 +77,29 @@ export interface AppointmentResponse {
   appointment: Appointment
 }
 
-export interface SlotsResponse {
-  success: boolean
-  slots: AppointmentSlot[]
-}
-
 export interface AnalyticsResponse {
   success: boolean
   analytics: AppointmentAnalytics
 }
 
+export interface AppointmentsQuery {
+  workspaceId: string
+  status?: string
+  assignedTo?: string
+  startDate?: string
+  endDate?: string
+  page?: number
+  limit?: number
+}
+
 const appointmentApi = api.injectEndpoints({
   endpoints: builder => ({
-    getAppointments: builder.query<AppointmentsResponse, { workspaceId: string; status?: string; date?: string }>({
+    getAppointments: builder.query<AppointmentsResponse, AppointmentsQuery>({
       query: ({ workspaceId, ...rest }) => {
-        const params = new URLSearchParams({ workspaceId, ...rest as Record<string, string> })
+        const params = new URLSearchParams({ workspaceId })
+        Object.entries(rest).forEach(([key, value]) => {
+          if (value !== undefined && value !== '') params.append(key, String(value))
+        })
         return `api/appointments?${params.toString()}`
       },
       providesTags: ['Appointment'],
@@ -66,7 +108,7 @@ const appointmentApi = api.injectEndpoints({
       query: ({ id, workspaceId }) => `api/appointments/${id}?workspaceId=${workspaceId}`,
       providesTags: (result, error, { id }) => [{ type: 'Appointment', id }],
     }),
-    createAppointment: builder.mutation<AppointmentResponse, Partial<Appointment> & { workspaceId: string }>({
+    createAppointment: builder.mutation<AppointmentResponse, AppointmentInput>({
       query: body => ({
         url: 'api/appointments',
         method: 'POST',
@@ -74,7 +116,10 @@ const appointmentApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Appointment'],
     }),
-    updateAppointment: builder.mutation<AppointmentResponse, { id: string } & Partial<Appointment>>({
+    updateAppointment: builder.mutation<
+      AppointmentResponse,
+      { id: string; workspaceId: string } & Partial<Omit<AppointmentInput, 'workspaceId'>> & { cancelReason?: string }
+    >({
       query: ({ id, ...body }) => ({
         url: `api/appointments/${id}`,
         method: 'PUT',
@@ -89,17 +134,9 @@ const appointmentApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Appointment'],
     }),
-    getAvailableSlots: builder.query<SlotsResponse, { workspaceId: string; date?: string; serviceId?: string }>({
-      query: ({ workspaceId, ...rest }) => {
-        const params = new URLSearchParams({ workspaceId, ...rest as Record<string, string> })
-        return `api/appointments/available-slots?${params.toString()}`
-      },
-    }),
-    getAppointmentAnalytics: builder.query<AnalyticsResponse, { workspaceId: string; dateFrom?: string; dateTo?: string }>({
-      query: ({ workspaceId, ...rest }) => {
-        const params = new URLSearchParams({ workspaceId, ...rest as Record<string, string> })
-        return `api/appointments/analytics?${params.toString()}`
-      },
+    getAppointmentAnalytics: builder.query<AnalyticsResponse, { workspaceId: string }>({
+      query: ({ workspaceId }) => `api/appointments/analytics?workspaceId=${workspaceId}`,
+      providesTags: ['Appointment'],
     }),
   }),
 })
@@ -110,6 +147,5 @@ export const {
   useCreateAppointmentMutation,
   useUpdateAppointmentMutation,
   useDeleteAppointmentMutation,
-  useGetAvailableSlotsQuery,
   useGetAppointmentAnalyticsQuery,
 } = appointmentApi

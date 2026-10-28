@@ -99,7 +99,7 @@ export function OAuthConnectButton({
 
   const handleDisconnect = async (id: string, name: string) => {
     try {
-      const res = await fetch(`/api/oauth/connections?id=${id}`, {
+      const res = await fetch(`/api/oauth/connections?id=${id}&workspaceId=${workspaceId}`, {
         method: 'DELETE',
       })
       if (!res.ok) {

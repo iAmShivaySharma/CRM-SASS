@@ -22,14 +22,12 @@ import {
   useCreateAppointmentMutation,
   useUpdateAppointmentMutation,
   useDeleteAppointmentMutation,
+  APPOINTMENT_STATUSES,
   type Appointment,
+  type AppointmentInput,
+  type AppointmentStatus,
 } from '@/lib/api/appointmentApi'
-import {
-  useGetLeadsQuery,
-  useGetLeadStatusesQuery,
-  type Lead,
-  type LeadStatus,
-} from '@/lib/api/mongoApi'
+import { useGetLeadsQuery, type Lead } from '@/lib/api/mongoApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -61,13 +59,64 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 
-const FALLBACK_STATUSES = [
-  { id: 'pending', name: 'Pending', color: '#a1a1aa' },
-  { id: 'confirmed', name: 'Confirmed', color: '#22c55e' },
-  { id: 'cancelled', name: 'Cancelled', color: '#ef4444' },
-  { id: 'completed', name: 'Completed', color: '#3b82f6' },
-  { id: 'no_show', name: 'No Show', color: '#f97316' },
-]
+const STATUS_META: Record<
+  AppointmentStatus,
+  { name: string; badge: string; dot: string }
+> = {
+  scheduled: {
+    name: 'Scheduled',
+    badge: 'border-muted-foreground/40 text-muted-foreground',
+    dot: 'bg-muted-foreground',
+  },
+  confirmed: {
+    name: 'Confirmed',
+    badge: 'border-primary/40 text-primary',
+    dot: 'bg-primary',
+  },
+  in_progress: {
+    name: 'In Progress',
+    badge: 'border-accent-foreground/40 text-accent-foreground',
+    dot: 'bg-accent-foreground',
+  },
+  completed: {
+    name: 'Completed',
+    badge: 'border-secondary-foreground/40 text-secondary-foreground',
+    dot: 'bg-secondary-foreground',
+  },
+  cancelled: {
+    name: 'Cancelled',
+    badge: 'border-destructive/40 text-destructive',
+    dot: 'bg-destructive',
+  },
+  no_show: {
+    name: 'No Show',
+    badge: 'border-destructive/40 text-destructive/80',
+    dot: 'bg-destructive/80',
+  },
+}
+
+const MONGO_ID_PATTERN = /^[a-f\d]{24}$/i
+
+const toDateTimeLocal = (iso: string) => {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+
+const formatTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 
 type FilterTab = 'all' | 'upcoming' | 'past' | 'cancelled'
 
@@ -81,7 +130,7 @@ interface FormState {
   price: number
   assignedTo: string
   notes: string
-  status: string
+  status: AppointmentStatus
   leadId: string
 }
 
@@ -95,7 +144,7 @@ const defaultForm: FormState = {
   price: 0,
   assignedTo: '',
   notes: '',
-  status: 'pending',
+  status: 'scheduled',
   leadId: '',
 }
 
@@ -113,10 +162,6 @@ export default function AppointmentsPage() {
     { skip: !currentWorkspace }
   )
 
-  const { data: statusesData } = useGetLeadStatusesQuery(workspaceId, {
-    skip: !currentWorkspace,
-  })
-
   const [createAppointment, { isLoading: isCreating }] =
     useCreateAppointmentMutation()
   const [updateAppointment, { isLoading: isUpdating }] =
@@ -131,13 +176,6 @@ export default function AppointmentsPage() {
   const [inputMode, setInputMode] = useState<'lead' | 'manual'>('manual')
   const [leadSearch, setLeadSearch] = useState('')
   const [filterTab, setFilterTab] = useState<FilterTab>('all')
-
-  const statuses = useMemo(() => {
-    if (statusesData?.statuses && statusesData.statuses.length > 0) {
-      return statusesData.statuses
-    }
-    return FALLBACK_STATUSES as Pick<LeadStatus, 'id' | 'name' | 'color'>[]
-  }, [statusesData])
 
   const leads = useMemo(() => leadsData?.leads ?? [], [leadsData])
 
@@ -156,18 +194,17 @@ export default function AppointmentsPage() {
 
   const appointments = useMemo(() => data?.appointments ?? [], [data])
 
-  const now = new Date()
-
   const filteredAppointments = useMemo(() => {
+    const now = Date.now()
     switch (filterTab) {
       case 'upcoming':
         return appointments.filter(
-          a => new Date(`${a.date}T${a.startTime}`) >= now
+          a => new Date(a.startTime).getTime() >= now
         )
       case 'past':
         return appointments.filter(
           a =>
-            new Date(`${a.date}T${a.startTime}`) < now &&
+            new Date(a.startTime).getTime() < now &&
             a.status !== 'cancelled'
         )
       case 'cancelled':
@@ -193,19 +230,8 @@ export default function AppointmentsPage() {
     )
   }
 
-  const getStatusColor = (status: string) => {
-    const found = statuses.find(
-      s => s.name.toLowerCase() === status.toLowerCase() || s.id === status
-    )
-    return found?.color ?? '#a1a1aa'
-  }
-
-  const getStatusName = (status: string) => {
-    const found = statuses.find(
-      s => s.name.toLowerCase() === status.toLowerCase() || s.id === status
-    )
-    return found?.name ?? status
-  }
+  const getStatusMeta = (status: AppointmentStatus) =>
+    STATUS_META[status] ?? STATUS_META.scheduled
 
   const getMeetingLink = (appointmentId: string) =>
     `${window.location.origin}/meet/${appointmentId}`
@@ -216,7 +242,15 @@ export default function AppointmentsPage() {
   }
 
   const getLinkedLead = (a: Appointment): Lead | undefined => {
-    return leads.find(l => l.name === a.clientName || l.email === a.clientEmail)
+    if (a.leadId) {
+      const byId = leads.find(l => l.id === a.leadId)
+      if (byId) return byId
+    }
+    return leads.find(
+      l =>
+        l.name === a.customerName ||
+        (!!a.customerEmail && l.email === a.customerEmail)
+    )
   }
 
   const openCreate = () => {
@@ -228,19 +262,19 @@ export default function AppointmentsPage() {
   }
 
   const openEdit = (a: Appointment) => {
-    setEditingId(a._id)
+    setEditingId(a.id)
     setForm({
-      customerName: a.clientName ?? '',
-      customerPhone: a.clientPhone ?? '',
-      customerEmail: a.clientEmail ?? '',
-      serviceName: a.serviceId ?? '',
-      startTime: a.startTime ?? '',
-      duration: 60,
-      price: 0,
-      assignedTo: a.staffId ?? '',
+      customerName: a.customerName,
+      customerPhone: a.customerPhone ?? '',
+      customerEmail: a.customerEmail ?? '',
+      serviceName: a.serviceName,
+      startTime: toDateTimeLocal(a.startTime),
+      duration: a.duration,
+      price: a.price,
+      assignedTo: a.assignedTo ?? '',
       notes: a.notes ?? '',
       status: a.status,
-      leadId: '',
+      leadId: a.leadId ?? '',
     })
     setInputMode('manual')
     setLeadSearch('')
@@ -264,17 +298,28 @@ export default function AppointmentsPage() {
       return
     }
 
-    const payload = {
-      workspaceId,
-      clientName: form.customerName,
-      clientPhone: form.customerPhone,
-      clientEmail: form.customerEmail,
-      serviceId: form.serviceName,
-      startTime: form.startTime,
-      staffId: form.assignedTo,
-      notes: form.notes,
-      status: form.status as Appointment['status'],
+    const startDate = new Date(form.startTime)
+    if (Number.isNaN(startDate.getTime())) {
+      toast.error('Please enter a valid start time')
+      return
     }
+
+    const payload: AppointmentInput = {
+      workspaceId,
+      customerName: form.customerName.trim(),
+      serviceName: form.serviceName.trim(),
+      startTime: startDate.toISOString(),
+      status: form.status,
+    }
+    if (form.customerEmail.trim()) payload.customerEmail = form.customerEmail.trim()
+    if (form.customerPhone.trim()) payload.customerPhone = form.customerPhone.trim()
+    if (form.duration > 0) payload.duration = form.duration
+    if (form.price > 0) payload.price = form.price
+    if (MONGO_ID_PATTERN.test(form.assignedTo.trim())) {
+      payload.assignedTo = form.assignedTo.trim()
+    }
+    if (form.notes.trim()) payload.notes = form.notes.trim()
+    if (form.leadId) payload.leadId = form.leadId
 
     try {
       if (editingId) {
@@ -282,7 +327,7 @@ export default function AppointmentsPage() {
         toast.success('Appointment updated')
       } else {
         const result = await createAppointment(payload).unwrap()
-        const link = getMeetingLink(result.appointment._id)
+        const link = getMeetingLink(result.appointment.id)
         toast.success('Appointment created', {
           description: `Meeting link: ${link}`,
           action: {
@@ -307,7 +352,7 @@ export default function AppointmentsPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
-      await deleteAppointment({ id: deleteTarget._id, workspaceId }).unwrap()
+      await deleteAppointment({ id: deleteTarget.id, workspaceId }).unwrap()
       toast.success('Appointment deleted')
       setDeleteTarget(null)
     } catch {
@@ -337,23 +382,26 @@ export default function AppointmentsPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-        {statuses.map(s => (
-          <div key={s.id} className="rounded-lg border bg-card p-3 text-center">
-            <div className="mb-1 flex items-center justify-center gap-2">
-              <span
-                className="h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: s.color }}
-              />
-              <span className="truncate text-xs font-medium text-muted-foreground">
-                {s.name}
-              </span>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+        {APPOINTMENT_STATUSES.map(status => {
+          const meta = getStatusMeta(status)
+          return (
+            <div
+              key={status}
+              className="rounded-lg border bg-card p-3 text-center"
+            >
+              <div className="mb-1 flex items-center justify-center gap-2">
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${meta.dot}`} />
+                <span className="truncate text-xs font-medium text-muted-foreground">
+                  {meta.name}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-foreground">
+                {statusCounts[status] ?? 0}
+              </p>
             </div>
-            <p className="text-xl font-bold text-foreground">
-              {statusCounts[s.name.toLowerCase()] ?? statusCounts[s.id] ?? 0}
-            </p>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="flex gap-1 border-b">
@@ -385,56 +433,52 @@ export default function AppointmentsPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredAppointments.map(a => {
               const linkedLead = getLinkedLead(a)
-              const color = getStatusColor(a.status)
+              const meta = getStatusMeta(a.status)
 
               return (
                 <div
-                  key={a._id}
+                  key={a.id}
                   className="space-y-3 rounded-lg border bg-background p-4 transition-shadow hover:shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-foreground">
-                        {a.clientName}
+                        {a.customerName}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {a.serviceId}
+                        {a.serviceName}
                       </p>
                     </div>
                     <Badge
                       variant="outline"
-                      className="shrink-0 border text-xs"
-                      style={{ borderColor: color, color }}
+                      className={`shrink-0 border text-xs ${meta.badge}`}
                     >
-                      <span
-                        className="mr-1.5 h-1.5 w-1.5 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
-                      {getStatusName(a.status)}
+                      <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+                      {meta.name}
                     </Badge>
                   </div>
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
-                      <span>{a.date}</span>
+                      <span>{formatDate(a.startTime)}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3.5 w-3.5 shrink-0" />
                       <span>
-                        {a.startTime} &ndash; {a.endTime}
+                        {formatTime(a.startTime)} &ndash; {formatTime(a.endTime)}
                       </span>
                     </div>
-                    {a.clientEmail && (
+                    {a.customerEmail && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Mail className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{a.clientEmail}</span>
+                        <span className="truncate">{a.customerEmail}</span>
                       </div>
                     )}
-                    {a.clientPhone && (
+                    {a.customerPhone && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Phone className="h-3.5 w-3.5 shrink-0" />
-                        <span>{a.clientPhone}</span>
+                        <span>{a.customerPhone}</span>
                       </div>
                     )}
                   </div>
@@ -465,7 +509,7 @@ export default function AppointmentsPage() {
                       variant="ghost"
                       size="sm"
                       className="h-7 px-2 text-xs"
-                      onClick={() => copyMeetingLink(a._id)}
+                      onClick={() => copyMeetingLink(a.id)}
                     >
                       <Copy className="mr-1 h-3 w-3" />
                       Copy Link
@@ -476,7 +520,7 @@ export default function AppointmentsPage() {
                       className="h-7 px-2 text-xs"
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          `Join my meeting: ${getMeetingLink(a._id)}`
+                          `Join my meeting: ${getMeetingLink(a.id)}`
                         )
                         toast.success('Share text copied to clipboard')
                       }}
@@ -691,7 +735,8 @@ export default function AppointmentsPage() {
               <Label>Duration (minutes)</Label>
               <Input
                 type="number"
-                min={1}
+                min={5}
+                max={480}
                 value={form.duration}
                 onChange={e =>
                   setForm(f => ({ ...f, duration: Number(e.target.value) }))
@@ -719,7 +764,7 @@ export default function AppointmentsPage() {
                 onChange={e =>
                   setForm(f => ({ ...f, assignedTo: e.target.value }))
                 }
-                placeholder="Staff member name or ID"
+                placeholder="Staff member user ID"
               />
             </div>
 
@@ -727,23 +772,25 @@ export default function AppointmentsPage() {
               <Label>Status</Label>
               <Select
                 value={form.status}
-                onValueChange={v => setForm(f => ({ ...f, status: v }))}
+                onValueChange={v =>
+                  setForm(f => ({ ...f, status: v as AppointmentStatus }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {statuses.map(s => (
-                    <SelectItem key={s.id} value={s.id}>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="h-2 w-2 shrink-0 rounded-full"
-                          style={{ backgroundColor: s.color }}
-                        />
-                        {s.name}
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {APPOINTMENT_STATUSES.map(status => {
+                    const meta = getStatusMeta(status)
+                    return (
+                      <SelectItem key={status} value={status}>
+                        <div className="flex items-center gap-2">
+                          <span className={`h-2 w-2 shrink-0 rounded-full ${meta.dot}`} />
+                          {meta.name}
+                        </div>
+                      </SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -784,7 +831,7 @@ export default function AppointmentsPage() {
             <AlertDialogTitle>Delete Appointment</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete the appointment for &quot;
-              {deleteTarget?.clientName}
+              {deleteTarget?.customerName}
               &quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
